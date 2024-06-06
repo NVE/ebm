@@ -1,30 +1,56 @@
+from FileHandler import *
 import pandas as pd
 
 class DatabaseManager():
 
-    #TODO: Add input validtion (loguru)
+    # Column names
+    COL_BUILDING_TYPE = 'building_type'
+    COL_RENOVATION_TYPE = 'renovation_type'
     
     def __init__(self):
         
-        # Test data
-        s_curve_input_dict = {
-            'building_type': ['Apartment', 'Apartment', 'Apartment', 'House', 'House', 'House'],
-            'renovation_state': ['EE', 'Rehabilitation', 'Demolition', 'EE', 'Rehabilitation', 'Demolition'],
-            'earliest_renovation_age': [5, 10, 60, 3, 10, 60],
-            'average_age': [20, 30, 90, 23, 37, 90],
-            'last_renovation_age': [50, 60, 150, 80, 75, 150],
-            'rush_period_years': [20, 14, 40, 30, 24, 40],
-            'rush_share': [0.8, 0.6, 0.7, 0.8, 0.65, 0.7],
-            'never_share': [0.1, 0.15, 0.05, 0.01, 0.05, 0.05]
-            }
-        
-        self.s_curve_input_df = pd.DataFrame(s_curve_input_dict)
+        self.file_handler = FileHandler()                    
 
-    def get_s_curve_input(self, building_type, renovation_state):
-        
-        df = self.s_curve_input_df
-        df = df[df['building_type'] == building_type]
-        df = df[df['renovation_state'] == renovation_state]
+    def get_building_type_list(self):
+        """
+        Get building type dataframe and convert it to a list with the building types.
 
-        return df
-        
+        Returns:
+            - building_type_list: list
+        """
+        building_types = self.file_handler.get_building_types()
+        building_type_list = building_types[self.COL_BUILDING_TYPE].unique()
+        return building_type_list
+    
+    def get_renovation_type_list(self):
+        """
+        Get renovation type dataframe and convert it to a list with the renovation types.
+
+        Returns:
+            - renovation_type_list: list
+        """
+        renovation_types = self.file_handler.get_renovation_types()
+        renovation_type_list = renovation_types[self.COL_RENOVATION_TYPE].unique()
+        return renovation_type_list
+
+    def get_s_curve_params(self):
+        """
+        Get input dataframe with S-curve parameters/assumption.
+
+        Returns:
+            - s_curve_params: Pandas dataframe
+        """
+        s_curve_params = self.file_handler.get_s_curve_params()
+        return s_curve_params
+
+    def get_s_curve_params_per_building_and_renovation_type(self, building_type, renovation_type):
+        """
+        Get input dataframe with S-curve parameters/assumption, and filter it on building and renovation type.
+
+        Returns:
+            - s_curve_params_filtered: Pandas dataframe (one row)
+        """
+        s_curve_params = self.file_handler.get_s_curve_params()
+        s_curve_params_filtered = s_curve_params[(s_curve_params[self.COL_BUILDING_TYPE] == building_type) & (s_curve_params[self.COL_RENOVATION_TYPE] == renovation_type)]
+        return s_curve_params_filtered
+    

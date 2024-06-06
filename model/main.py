@@ -1,16 +1,21 @@
 from DatabaseManager import *
 from SCurve import *
-from SCurvePerBuildingType import *
+from BuildingType import *
 
 import pandas as pd
 
-input = DatabaseManager().s_curve_input_df
+# TESTING
+buildingtype_list = DatabaseManager().get_building_type_list()
 
-s = SCurvePerBuildingType('Apartment')
+for building_type in buildingtype_list:
+    s = BuildingType(building_type)
+    small_measures = pd.DataFrame(s.acc_s_curve_small_measures)
+    rehabilitation = pd.DataFrame(s.acc_s_curve_rehabilitation)
+    demolition = pd.DataFrame(s.acc_s_curve_demolition)
+    
+    print(demolition)
+    exit()
 
-ee = pd.DataFrame(s._s_curve_ee)
-rehab = pd.DataFrame(s._s_curve_rehab)
-demo = pd.DataFrame(s._s_curve_demolition)
 
-print(input)
+
 

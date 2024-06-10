@@ -8,6 +8,8 @@ class FileHandler():
     # Filenames
     BUILDING_TYPES = 'building_types.xlsx'
     RENOVATION_TYPES = 'renovation_types.xlsx'
+    TEK_ID = 'TEK_ID.xlsx'
+    TEK_PARAMS = 'TEK_parameters.xlsx'
     S_CURVES = 's_curves.xlsx'
 
     def __init__(self):
@@ -37,6 +39,14 @@ class FileHandler():
     def get_renovation_types(self):
         renovation_types = self.get_file(self.RENOVATION_TYPES)
         return renovation_types
+    
+    def get_tek_id(self):
+        tek_id = self.get_file(self.TEK_ID)
+        return tek_id
+
+    def get_tek_params(self):
+        tek_params = self.get_file(self.TEK_PARAMS)
+        return tek_params
     
     def get_s_curve_params(self):
         s_curve_params = self.get_file(self.S_CURVES)

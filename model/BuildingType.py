@@ -1,5 +1,6 @@
 from DatabaseManager import *
 from SCurve import *
+from Tek import TEK
 import re
 
 class BuildingType():
@@ -9,10 +10,10 @@ class BuildingType():
         self.building_type = building_type
         self.database = DatabaseManager()
         self.renovation_type_list = self.database.get_renovation_type_list()
+        self.create_instance_var_of_s_curve_per_renovation_type()
+        self.tek_id_list = self.database.get_tek_id_list()
 
-        self.create_instance_var_of_s_curve_per_renovation_type(self.renovation_type_list)
-
-    def create_instance_var_of_s_curve_per_renovation_type(self, renovation_type_list):
+    def create_instance_var_of_s_curve_per_renovation_type(self):
         """
         Get input parameters for each renovation type, calculate the corresponding S-curve and set instance variable.
 
@@ -22,7 +23,7 @@ class BuildingType():
         Output:
             - acc_s_curve: dict, accumulated S-curve 
         """
-        for renovation_type in renovation_type_list:
+        for renovation_type in self.renovation_type_list:
             # Get input parameters and calculate accumulated S-curve per renovation type 
             input_params = self.database.get_s_curve_params_per_building_and_renovation_type(self.building_type, renovation_type)
             acc_s_curve = SCurve(input_params).calculate_s_curve_acc()
@@ -34,7 +35,8 @@ class BuildingType():
             # Create dynamic instance variables
             setattr(self, attr_name, acc_s_curve)
 
-# TEST
-#t = BuildingType('Apartment')
-#print(t.acc_s_curve_small_measures)
-            
+    def get_s_curves_per_tek(self):
+        #for tek_id in self.tek_id_list:
+            #tek = Tek(tek_id)
+        pass
+        

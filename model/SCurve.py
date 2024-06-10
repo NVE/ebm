@@ -100,12 +100,3 @@ class SCurve():
 
         return s_curve_acc_dict
     
-
-## TESTING
-"""from DatabaseManager import *
-building_type = "Apartment"
-database = DatabaseManager()
-input = database.get_s_curve_input(building_type, 'Rehabilitation')
-
-s = SCurve(input)
-"""

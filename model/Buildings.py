@@ -1,18 +1,24 @@
 from DatabaseManager import *
 from SCurve import *
-#from Tek import TEK
+from Tek import *
 import re
 
 class Buildings():
+    """
+    Holds all the attributes of a building, with it's associated data and operations.
+    """
 
     def __init__(self, building_type):
         
         self.building_type = building_type
         self.database = DatabaseManager()
         self.renovation_type_list = self.database.get_renovation_type_list()
-        self._set_s_curve_per_renovation_type()
-        self.s_curve_params_dict = self._s_curve_params_dict()
         self.tek_id_list = self.database.get_tek_id_list()
+        self._set_s_curve_per_renovation_type()
+        self.s_curve_params = self._s_curve_params()
+
+        # Set the class variable in TEK class
+        TEK.set_s_curve_params(self.s_curve_params)
 
     # TODO: remove method or create an alternative method to get s curve data
     def _set_s_curve_per_renovation_type(self):
@@ -35,7 +41,8 @@ class Buildings():
             # Create dynamic instance variables
             setattr(self, attr_name, acc_s_curve)
     
-    def _s_curve_params_dict(self):
+    # TODO: find a better way to pass the s_curve_params_dict to the TEK class, now it must be passed every time in a for loop             
+    def _s_curve_params(self):
         """
         Create a dictionary that holds S-curves and the "never share" parameter per renovation type. 
 
@@ -58,13 +65,27 @@ class Buildings():
             s_curve = s.calculate_s_curve_acc()
             never_share = s._never_share
             
-            # Store the results in the dictionary
+            # Store the parameters in the dictionary
             s_curve_params[renovation_type] = [s_curve, never_share]
         
         return s_curve_params
 
-    def get_s_curves_per_tek(self):
-        #for tek_id in self.tek_id_list:
-            #tek = Tek(tek_id)
-        pass
+    def get_demolition_shares_per_tek(self):
+        """
+        loop through the tek id list and get the demolition share dict/list, 
+        append an ID and building_year key and combine together in a dictionary
+        """
+        demolition_shares = {}
+        for tek_id in self.tek_id_list:
+            tek = TEK(tek_id)
+            shares = tek.get_demolition_shares()
+            demolition_shares[tek_id] = shares
+        
+        return demolition_shares
+            
 
+# TEST 
+
+#s = Buildings('SmallHouse')
+#shares = s.get_demolition_shares_per_tek()
+#print(shares)

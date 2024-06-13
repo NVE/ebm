@@ -7,6 +7,7 @@ class SCurve():
         
         #TODO: 
         # - move building_lifetime to congif?
+        # - add negative values checks
         # - create instance variables dynamically from column names?
         # - change building_type to building_category (in input and code)?
         # - change name of methods to be more accurate, e.g. the current s-curve method (snakk med Benedicte)
@@ -112,9 +113,18 @@ class SCurve():
         """
         years = self.s_curve['Year']
         rates = self.s_curve['Rate']
+        
+        # Iterate over the rates and accumulate them in a list
+        accumulated_rates = []
+        acc_rate = 0
+        for rate in rates:
+            acc_rate += rate
+            accumulated_rates.append(acc_rate)
 
-        accumulated_rates = (sum(rates[:i+1]) for i in range(len(rates)))
-        s_curve_acc_dict = {'Year': years, 'Accumulated Rate': accumulated_rates}
+        # Use tuples due to immutability
+        accumulated_rates = tuple(accumulated_rates)
+
+        s_curve_acc_dict = {'year': years, 'accumulated_rate': accumulated_rates}
 
         return s_curve_acc_dict
     

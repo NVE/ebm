@@ -9,7 +9,6 @@ class SCurve():
         # - move building_lifetime to congif?
         # - add negative values checks
         # - create instance variables dynamically from column names?
-        # - change building_type to building_category (in input and code)?
         # - change name of methods to be more accurate, e.g. the current s-curve method (snakk med Benedicte)
 
         self._building_lifetime = 130
@@ -24,8 +23,8 @@ class SCurve():
         self._pre_rush_rate, self._rush_rate, self._post_rush_rate = self._calculate_yearly_rates() 
         
         # Calculate S-curves
+        self.rates_per_year = self.get_rates_per_year_over_building_lifetime() 
         self.s_curve = self.calculate_s_curve() 
-        self.s_curve_acc = self.calculate_s_curve_acc() 
 
     def _get_input_value(self, df, col):
         """
@@ -63,15 +62,15 @@ class SCurve():
         
         return pre_rush_rate, rush_rate, post_rush_rate
 
-    def calculate_s_curve(self):
+    def get_rates_per_year_over_building_lifetime(self):
         """
-        Calculates S-curves.
+        Create a dictionary that holds the yearly renovation rates over the building lifetime.
 
         This method defines the periods in the S-curve, adds the yearly renovation rates to
         the corresponding periods and stores them in a dictionary. 
 
         Returns:
-        - s_curve_dict (dict): Dictionary with year and yearly rates.
+        - rates_per_year_dict (dict): Dictionary with 'Year' and 'Rate' keys containing the years and corresponding rates.
         """
 
         # Define the length of the different periods in the S-curve
@@ -100,19 +99,19 @@ class SCurve():
         years = tuple(years)
         rates = tuple(rates)
 
-        s_curve_dict = {'Year': years, 'Rate': rates}
+        rates_per_year_dict = {'year': years, 'rate': rates}
         
-        return s_curve_dict
+        return rates_per_year_dict
 
-    def calculate_s_curve_acc(self):
+    def calculate_s_curve(self):
         """
-        Calculates accumulated S-curve.
+        Calculates S-curve by accumulating the yearly renovation rates over the building lifetime.
 
         Returns:
-        - s_curve_acc_dict (dict): Dictionary with year and accumulated rates.
+        - s_curve_dict (dict): Dictionary with 'year' and 'rate' keys containing the years and accumulated rates of the S-curve.
         """
-        years = self.s_curve['Year']
-        rates = self.s_curve['Rate']
+        years = self.rates_per_year['year']
+        rates = self.rates_per_year['rate']
         
         # Iterate over the rates and accumulate them in a list
         accumulated_rates = []
@@ -124,7 +123,7 @@ class SCurve():
         # Use tuples due to immutability
         accumulated_rates = tuple(accumulated_rates)
 
-        s_curve_acc_dict = {'year': years, 'accumulated_rate': accumulated_rates}
+        s_curve_dict = {'year': years, 'rate': accumulated_rates}
 
-        return s_curve_acc_dict
+        return s_curve_dict
     

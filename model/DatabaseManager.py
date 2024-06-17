@@ -7,7 +7,7 @@ class DatabaseManager():
     """
 
     # Column names
-    COL_BUILDING_TYPE = 'building_type'
+    COL_BUILDING_CATEGORY = 'building_category'
     COL_RENOVATION_TYPE = 'renovation_type'
     COL_TEK_ID = 'TEK_ID'
     
@@ -15,16 +15,16 @@ class DatabaseManager():
         
         self.file_handler = FileHandler()                    
 
-    def get_building_type_list(self):
+    def get_building_category_list(self):
         """
-        Get a list of building types.
+        Get a list of building categories.
 
         Returns:
-        - building_type_list (list): List of building types.
+        - building_category_list (list): List of building categories.
         """
-        building_types = self.file_handler.get_building_types()
-        building_type_list = building_types[self.COL_BUILDING_TYPE].unique()
-        return building_type_list
+        building_categories = self.file_handler.get_building_categories()
+        building_category_list = building_categories[self.COL_BUILDING_CATEGORY].unique()
+        return building_category_list
     
     def get_renovation_type_list(self):
         """
@@ -83,18 +83,18 @@ class DatabaseManager():
         s_curve_params = self.file_handler.get_s_curve_params()
         return s_curve_params
 
-    def get_s_curve_params_per_building_and_renovation_type(self, building_type, renovation_type):
+    def get_s_curve_params_per_building_and_renovation_type(self, building_category, renovation_type):
         """
         Get input dataframe with S-curve parameters/assumptions and filter it by building and renovation type.
 
         Parameters:
-        - building_type (str): Building type.
+        - building_category (str): Building category.
         - renovation_type (str): Renovation type.
 
         Returns:
         - s_curve_params_filtered (pd.DataFrame): Filtered DataFrame containing S-curve parameters.
         """
         s_curve_params = self.file_handler.get_s_curve_params()
-        s_curve_params_filtered = s_curve_params[(s_curve_params[self.COL_BUILDING_TYPE] == building_type) & (s_curve_params[self.COL_RENOVATION_TYPE] == renovation_type)]
+        s_curve_params_filtered = s_curve_params[(s_curve_params[self.COL_BUILDING_CATEGORY] == building_category) & (s_curve_params[self.COL_RENOVATION_TYPE] == renovation_type)]
         return s_curve_params_filtered
     

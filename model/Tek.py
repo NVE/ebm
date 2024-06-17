@@ -131,11 +131,11 @@ class TEK():
                 share = 0
             elif self.building_year == year - 1:
                 # Set share to the current rate if the building year is equal to year-1
-                rate = self.s_curve_demolition['accumulated_rate'][building_age - 1]
+                rate = self.s_curve_demolition['rate'][building_age - 1]
             else:
                 # Get rates from the demolition S-curve based on building age
-                rate = self.s_curve_demolition['accumulated_rate'][building_age - 1]
-                prev_rate = self.s_curve_demolition['accumulated_rate'][building_age - 2]
+                rate = self.s_curve_demolition['rate'][building_age - 1]
+                prev_rate = self.s_curve_demolition['rate'][building_age - 2]
 
                 # Calculate percentage share by subtracting rate from previous year's rate
                 share = rate - prev_rate 

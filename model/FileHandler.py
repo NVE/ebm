@@ -8,7 +8,7 @@ class FileHandler():
     #TODO: Add input validtion (loguru)
 
     # Filenames
-    BUILDING_TYPES = 'building_types.xlsx'
+    BUILDING_CATEGORIES = 'building_categories.xlsx'
     RENOVATION_TYPES = 'renovation_types.xlsx'
     TEK_ID = 'TEK_ID.xlsx'
     TEK_PARAMS = 'TEK_parameters.xlsx'
@@ -34,15 +34,15 @@ class FileHandler():
 
         return file_df
 
-    def get_building_types(self):
+    def get_building_categories(self):
         """
-        Get building types DataFrame.
+        Get building categories DataFrame.
 
         Returns:
-        - building_types (pd.DataFrame): DataFrame containing building types.
+        - building_categories (pd.DataFrame): DataFrame containing building categories.
         """
-        building_types = self.get_file(self.BUILDING_TYPES)
-        return building_types
+        building_categories = self.get_file(self.BUILDING_CATEGORIES)
+        return building_categories
 
     def get_renovation_types(self):
         """

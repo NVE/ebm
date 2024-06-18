@@ -87,18 +87,32 @@ class Buildings():
             tek = TEK(tek_id)
             
             # Calculate annual demolition shares
-            shares = tek.get_demolition_shares()
+            shares = tek.get_shares_demolition()
             
             # Store the shares in the dictionary
             demolition_shares[tek_id] = shares
         
         return demolition_shares
     
+    def get_small_measures_shares_per_tek(self):
 
+        small_measures_shares = {}
+        for tek_id in self.tek_id_list:
+            # Create TEK instance for each TEK ID
+            tek = TEK(tek_id)
             
+            # Calculate annual shares for small measures
+            shares = tek.get_shares_small_measures_total()
 
-# TEST 
+            # Store the shares in the dictionary
+            small_measures_shares[tek_id] = shares
+        
+        return small_measures_shares
+    
 
-#s = Buildings('SmallHouse')
-#shares = s.get_demolition_shares_per_tek()
-#print(shares)
+
+
+
+
+      
+

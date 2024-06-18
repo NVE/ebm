@@ -8,8 +8,10 @@ class SCurve():
         #TODO: 
         # - move building_lifetime to congif?
         # - add negative values checks
-        # - create instance variables dynamically from column names?
+        # - change input_df so that the class takes the parameters or datastructure with params, where dtype is pre-defined. Filtering can be done in DB manager.
+        # - create instance variables dynamically from column names? or change to constans? -> change to constans for now
         # - change name of methods to be more accurate, e.g. the current s-curve method (snakk med Benedicte)
+        # - change s_curve method to only return a list of shares? The year key in the dict is not necessary in further calculations. -> YES, change this.
 
         self._building_lifetime = 130
         self._earliest_renovation_age = int(self._get_input_value(input_df, 'earliest_renovation_age'))
@@ -20,7 +22,7 @@ class SCurve():
         self._never_share = self._get_input_value(input_df, 'never_share')
 
         # Calculate yearly rates
-        self._pre_rush_rate, self._rush_rate, self._post_rush_rate = self._calculate_yearly_rates() 
+        self._pre_rush_rate, self._rush_rate, self._post_rush_rate = self._calculate_yearly_rates()     #TODO: divide into three separate methods
         
         # Calculate S-curves
         self.rates_per_year = self.get_rates_per_year_over_building_lifetime() 

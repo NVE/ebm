@@ -13,6 +13,7 @@ class TEK():
     
     # TODO: 
     # - move constants to config
+    # - add start and end year as input arguments? 
     # - add negative values checks
     # - add checks to ensure that the class var s_curve_params have been properly initialized
 
@@ -52,6 +53,10 @@ class TEK():
         if TEK.s_curve_params is not None:
             self.s_curve_params = TEK.s_curve_params
             self._set_s_curve_param_variables()
+        
+        self.shares_demolition = self.get_shares_demolition()
+        self.shares_small_measures = self.get_shares_small_measures_total()
+        self.shares_rehabilitation = self.get_shares_rehabilitation_total()
 
     def _get_input_value(self, df, col):
         """
@@ -100,7 +105,7 @@ class TEK():
             setattr(self, f"s_curve_{renovation_type}", s_curve)
             setattr(self, f"never_share_{renovation_type}", never_share)
 
-    def get_demolition_shares(self):
+    def get_shares_demolition(self):
         """
         Calculate the percentage share of area that is demolished over time.
 
@@ -118,11 +123,10 @@ class TEK():
         Returns:
         - shares (list): A list of demolition shares (float) for each year from the
                          start year to the end year.
-
         """
         shares = []
 
-        # Iterate over years from 2010 to 2050
+        # Iterate over years from start to end year
         for year in range(self.START_YEAR, self.END_YEAR + 1):
             building_age = year - self.building_year
             
@@ -130,38 +134,103 @@ class TEK():
                 # Set share to 0 in the start year and if the building isn't buildt yet
                 share = 0
             elif self.building_year == year - 1:
-                # Set share to the current rate if the building year is equal to year-1
+                # Set share to the current rate/share if the building year is equal to year-1
                 rate = self.s_curve_demolition['rate'][building_age - 1]
             else:
-                # Get rates from the demolition S-curve based on building age
+                # Get rates/shares from the demolition S-curve based on building age
                 rate = self.s_curve_demolition['rate'][building_age - 1]
                 prev_rate = self.s_curve_demolition['rate'][building_age - 2]
 
                 # Calculate percentage share by subtracting rate from previous year's rate
-                share = rate - prev_rate 
-
-            # Ensure share is non-negative
-            share = max(0, share)  
+                share = rate - prev_rate   
             
             shares.append(share)
 
         return shares
     
-#TEST
+    def get_shares_small_measures_total(self):
+        """
+        Calculate the percentage share of area that have undergone small measures over the time horizon.
 
-"""
-d = DatabaseManager()
-l = d.get_tek_id_list()
-tek_id = l[0]
+        This method calculates the percentage share of area that have undergone small measures 
+        for each year from the start year to the end year. This share doesn't refer to area that 
+        only have undergone a small measure, as the area may also have undergone rehabilition. 
+        It uses the accumulated rates from the small measures S-curve. 
 
-s = Buildings('SmallHouse')
-s_curve_params = s.s_curve_params_dict
+        Returns:
+        - shares (list): A list of small measures renovation shares (float) for each year from the
+                         start year to the end year.
+        """
+        shares =  []
 
-t = TEK(tek_id, s_curve_params)
+        for idx, year in enumerate(range(self.START_YEAR, self.END_YEAR + 1)):
+            building_age = year - self.building_year
 
-#print(t.get_demolition_shares())
-"""
-
-
-
+            if self.building_year >= year:
+                # Set share to 0 if the building isn't buildt yet
+                share = 0
+            else:
+                # Get Small measures share from S-curve and demolition share for current year
+                small_measure_share = self.s_curve_small_measures['rate'][building_age - 1]
+                demolition_share = self.shares_demolition[idx] 
+                
+                # Calculate max limit for doing a renovation measure (small measure or rehabilitation)
+                measure_limit = 1 - demolition_share - self.never_share_small_measures
+                
+                if small_measure_share < measure_limit:
+                    share = small_measure_share
+                else: 
+                    share = measure_limit
+            
+            shares.append(share)
+                
+        return shares
     
+    def get_shares_rehabilitation_total(self):
+        """
+        Calculate the percentage share of area that is rehabilitated over time.
+
+        This method calculates the percentage share of rehabilitation renovations for each year 
+        from the start year to the end year. It uses the accumulated rates from the rehabilitation 
+        S-curve.
+
+        Returns:
+        - shares (list): A list of rehabilitation renovation shares (float) for each year from the
+                         start year to the end year.
+        """
+        shares =  []
+
+        for idx, year in enumerate(range(self.START_YEAR, self.END_YEAR + 1)):
+            building_age = year - self.building_year
+
+            if self.building_year >= year:
+                # Set share to 0 if the building isn't buildt yet
+                share = 0
+            else:
+                # Get rehabilitation share from S-curve and demolition share for current year
+                rehabilitation_share = self.s_curve_rehabilitation['rate'][building_age - 1]
+                demolition_share = self.shares_demolition[idx]                
+                
+                # Calculate max limit for doing a renovation measure (small measure or rehabilitation)
+                measure_limit = 1 - demolition_share - self.never_share_rehabilitation
+                
+                if rehabilitation_share < measure_limit:
+                    share = rehabilitation_share
+                else: 
+                    share = measure_limit 
+            
+            shares.append(share)
+                
+        return shares
+
+    #def get_shares_rehabilitation():
+        """
+        calculation: 
+        if (share_rehab_total + share_small_measure_total) < measure_limit_rehab):
+            share = share_rehab_total
+        elif share_small_measure_total > measure_limit:
+            share = 0
+        else: 
+            share = measure_limit - share_small_measure_totals
+        """
+

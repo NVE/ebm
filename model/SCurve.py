@@ -1,25 +1,34 @@
 class SCurve():
     """
-    Calculates S-curve per renovation state.
+    Calculates S-curve per building condition.
     """ 
+
+    #TODO: 
+    # - move building_lifetime to congif?
+    # - add negative values checks
+    # - change input_df so that the class takes the parameters or datastructure with params, where dtype is pre-defined. Filtering can be done in DB manager.
+    # - create instance variables dynamically from column names? or change to constans? -> change to constans for now
+    # - change name of methods to be more accurate, e.g. the current s-curve method (snakk med Benedicte)
+    # - change s_curve method to only return a list of shares? The year key in the dict is not necessary in further calculations. -> YES, change this.
+
+    # Column names
+    BUILDING_LIFETIME = 130
+    COL_EARLIEST_AGE = 'earliest_age_for_measure'
+    COL_AVERAGE_AGE = 'average_age_for_measure'
+    COL_LAST_AGE = 'last_age_for_measure'
+    COL_RUSH_YEARS = 'rush_period_years'
+    COL_RUSH_SHARE = 'rush_share'
+    COL_NEVER_SHARE = 'never_share'
        
     def __init__(self, input_df):
-        
-        #TODO: 
-        # - move building_lifetime to congif?
-        # - add negative values checks
-        # - change input_df so that the class takes the parameters or datastructure with params, where dtype is pre-defined. Filtering can be done in DB manager.
-        # - create instance variables dynamically from column names? or change to constans? -> change to constans for now
-        # - change name of methods to be more accurate, e.g. the current s-curve method (snakk med Benedicte)
-        # - change s_curve method to only return a list of shares? The year key in the dict is not necessary in further calculations. -> YES, change this.
 
-        self._building_lifetime = 130
-        self._earliest_renovation_age = int(self._get_input_value(input_df, 'earliest_renovation_age'))
-        self._average_age = int(self._get_input_value(input_df, 'average_age'))
-        self._last_renovation_age = int(self._get_input_value(input_df, 'last_renovation_age'))
-        self._rush_period_years = int(self._get_input_value(input_df, 'rush_period_years'))
-        self._rush_share = self._get_input_value(input_df, 'rush_share')
-        self._never_share = self._get_input_value(input_df, 'never_share')
+        self._building_lifetime = self.BUILDING_LIFETIME
+        self._earliest_age = int(self._get_input_value(input_df, self.COL_EARLIEST_AGE))
+        self._average_age = int(self._get_input_value(input_df, self.COL_AVERAGE_AGE))
+        self._last_age = int(self._get_input_value(input_df, self.COL_LAST_AGE))
+        self._rush_years = int(self._get_input_value(input_df, self.COL_RUSH_YEARS))
+        self._rush_share = self._get_input_value(input_df, self.COL_RUSH_SHARE)
+        self._never_share = self._get_input_value(input_df, self.COL_NEVER_SHARE)
 
         # Calculate yearly rates
         self._pre_rush_rate, self._rush_rate, self._post_rush_rate = self._calculate_yearly_rates()     #TODO: divide into three separate methods
@@ -48,27 +57,27 @@ class SCurve():
 
     def _calculate_yearly_rates(self):
         """
-        Calculate yearly renovation rates from input parameters.
+        Calculate yearly measure rates from input parameters.
          
         Yearly rates represent the percentage share of area that is renovated per year in 
         different periods along the S-curve. 
 
         Returns:
-        - pre_rush_rate (float): Yearly renovation rate in the pre-rush period.
-        - rush_rate (float): Yearly renovation rate in the rush period.
-        - post_rush_rate (float): Yearly renovation rate in the post-rush period.
+        - pre_rush_rate (float): Yearly measure rate in the pre-rush period.
+        - rush_rate (float): Yearly measure rate in the rush period.
+        - post_rush_rate (float): Yearly measure rate in the post-rush period.
         """
-        pre_rush_rate = (1 - self._rush_share - self._never_share) * (0.5 / (self._average_age - self._earliest_renovation_age - (self._rush_period_years/2)))
-        rush_rate = self._rush_share / self._rush_period_years
-        post_rush_rate = (1 - self._rush_share - self._never_share) * (0.5 / (self._last_renovation_age - self._average_age - (self._rush_period_years/2)))
+        pre_rush_rate = (1 - self._rush_share - self._never_share) * (0.5 / (self._average_age - self._earliest_age - (self._rush_years/2)))
+        rush_rate = self._rush_share / self._rush_years
+        post_rush_rate = (1 - self._rush_share - self._never_share) * (0.5 / (self._last_age - self._average_age - (self._rush_years/2)))
         
         return pre_rush_rate, rush_rate, post_rush_rate
 
     def get_rates_per_year_over_building_lifetime(self):
         """
-        Create a dictionary that holds the yearly renovation rates over the building lifetime.
+        Create a dictionary that holds the yearly measure rates over the building lifetime.
 
-        This method defines the periods in the S-curve, adds the yearly renovation rates to
+        This method defines the periods in the S-curve, adds the yearly measure rates to
         the corresponding periods and stores them in a dictionary. 
 
         Returns:
@@ -76,10 +85,10 @@ class SCurve():
         """
 
         # Define the length of the different periods in the S-curve
-        earliest_years = self._earliest_renovation_age - 1
-        pre_rush_years = int(self._average_age - self._earliest_renovation_age - (self._rush_period_years/2))
-        rush_years = self._rush_period_years
-        post_rush_years = int(self._last_renovation_age - self._average_age - (self._rush_period_years/2))
+        earliest_years = self._earliest_age - 1
+        pre_rush_years = int(self._average_age - self._earliest_age - (self._rush_years/2))
+        rush_years = self._rush_years
+        post_rush_years = int(self._last_age - self._average_age - (self._rush_years/2))
         last_years = self._building_lifetime - earliest_years - pre_rush_years - rush_years - post_rush_years
         
         # Redefine periods for Demolition, as the post_rush_year calculation isn't the same as for Small measures and Rehabilition
@@ -107,7 +116,7 @@ class SCurve():
 
     def calculate_s_curve(self):
         """
-        Calculates S-curve by accumulating the yearly renovation rates over the building lifetime.
+        Calculates S-curve by accumulating the yearly measure rates over the building lifetime.
 
         Returns:
         - s_curve_dict (dict): Dictionary with 'year' and 'rate' keys containing the years and accumulated rates of the S-curve.

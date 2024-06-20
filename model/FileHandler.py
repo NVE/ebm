@@ -35,6 +35,7 @@ class FileHandler():
         if file_path.endswith('.xlsx'):
             try:
                 file_df = pd.read_excel(file_path)
+                return file_df
             except FileNotFoundError as ex:
                 logger.exception(ex)
                 logger.error(f'Unable to open {file_path}. File not found.')
@@ -47,6 +48,8 @@ class FileHandler():
             msg = f'{file} is not of type xlsx'
             logger.error(msg)
             raise ValueError(msg)
+        
+
     def get_building_categories(self):
         """
         Get building categories DataFrame.

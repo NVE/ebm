@@ -96,7 +96,7 @@ class Buildings():
     
     def get_total_small_measure_shares_per_tek(self):
 
-        small_measure_shares = {}
+        total_small_measure_shares = {}
         for tek_id in self.tek_id_list:
             # Create TEK instance for each TEK ID
             tek = TEK(tek_id)
@@ -105,13 +105,13 @@ class Buildings():
             shares = tek.get_shares_small_measure_total()
 
             # Store the shares in the dictionary
-            small_measure_shares[tek_id] = shares
+            total_small_measure_shares[tek_id] = shares
         
-        return small_measure_shares
+        return total_small_measure_shares
     
     def get_total_renovation_shares_per_tek(self):
 
-        renovation_shares = {}
+        total_renovation_shares = {}
         for tek_id in self.tek_id_list:
             # Create TEK instance for each TEK ID
             tek = TEK(tek_id)
@@ -120,9 +120,50 @@ class Buildings():
             shares = tek.get_shares_renovation_total()
 
             # Store the shares in the dictionary
-            renovation_shares[tek_id] = shares
+            total_renovation_shares[tek_id] = shares
         
+        return total_renovation_shares
+    
+    def get_renovation_shares_per_tek(self):
+        
+        renovation_shares = {}
+        for tek_id in self.tek_id_list:
+            tek = TEK(tek_id)
+            shares = tek.get_shares_renovation()
+            renovation_shares[tek_id] = shares
+
         return renovation_shares
+
+    def get_small_measure_shares_per_tek(self):
+        
+        small_measure_shares = {}
+        for tek_id in self.tek_id_list:
+            tek = TEK(tek_id)
+            shares = tek.get_shares_small_measure()
+            small_measure_shares[tek_id] = shares
+
+        return small_measure_shares
+    
+    def get_renovation_and_small_measure_shares_per_tek(self):
+
+        renovation_small_measure_shares = {}
+        for tek_id in self.tek_id_list:
+            tek = TEK(tek_id)
+            shares = tek.get_shares_renovation_and_small_measure()
+            renovation_small_measure_shares[tek_id] = shares
+
+        return renovation_small_measure_shares
+
+    def get_original_condition_shares_per_tek(self):
+
+        original_condition_shares = {}
+        for tek_id in self.tek_id_list:
+            tek = TEK(tek_id)
+            shares = tek.get_shares_original_condition()
+            original_condition_shares[tek_id] = shares
+
+        return original_condition_shares
+
 
 
 

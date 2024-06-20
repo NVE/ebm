@@ -9,7 +9,7 @@ class FileHandler():
 
     # Filenames
     BUILDING_CATEGORIES = 'building_categories.xlsx'
-    RENOVATION_TYPES = 'renovation_types.xlsx'
+    BUILDING_CONDITIONS = 'building_conditions.xlsx'
     TEK_ID = 'TEK_ID.xlsx'
     TEK_PARAMS = 'TEK_parameters.xlsx'
     S_CURVES = 's_curves.xlsx'
@@ -44,15 +44,15 @@ class FileHandler():
         building_categories = self.get_file(self.BUILDING_CATEGORIES)
         return building_categories
 
-    def get_renovation_types(self):
+    def get_building_conditions(self):
         """
-        Get renovation types DataFrame.
+        Get building conditions DataFrame.
 
         Returns:
-        - renovation_types (pd.DataFrame): DataFrame containing renovation types.
+        - building_conditions (pd.DataFrame): DataFrame containing building conditions.
         """
-        renovation_types = self.get_file(self.RENOVATION_TYPES)
-        return renovation_types
+        building_conditions = self.get_file(self.BUILDING_CONDITIONS)
+        return building_conditions
     
     def get_tek_id(self):
         """

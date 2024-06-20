@@ -15,30 +15,30 @@ class Buildings():
         
         self.building_category = building_category
         self.database = DatabaseManager()
-        self.renovation_type_list = self.database.get_renovation_type_list()
+        self.condition_list = self.database.get_condition_list()
         self.tek_id_list = self.database.get_tek_id_list()
-        self._set_s_curve_per_renovation_type()
+        self._set_s_curve_per_condition()
         self.s_curve_params = self._s_curve_params()
 
         # Set the class variable in TEK class
         TEK.set_s_curve_params(self.s_curve_params)
 
     # TODO: create an alternative method to get s curve data. the parameters are not needed in this class, but should be accesible for users
-    def _set_s_curve_per_renovation_type(self):
+    def _set_s_curve_per_condition(self):
         """
-        Get input parameters for each renovation type, calculate the corresponding S-curve
+        Get input parameters for each building condition, calculate the corresponding S-curve
         and set as instance variable.
 
         Returns:
-        - instance variable of accumulated S-curve (dict) per renovation type. 
+        - instance variable of S-curve (dict) per building condition. 
         """
-        for renovation_type in self.renovation_type_list:
-            # Get input parameters and calculate accumulated S-curve per renovation type 
-            input_params = self.database.get_s_curve_params_per_building_and_renovation_type(self.building_category, renovation_type)
+        for condition in self.condition_list:
+            # Get input parameters and calculate S-curve per building condition 
+            input_params = self.database.get_s_curve_params_per_building_category_and_condition(self.building_category, condition)
             s_curve = SCurve(input_params).calculate_s_curve()
             
-            # Convert renovation type to lowercase with underscores before uppercase letters
-            attr_name = re.sub(r'(?<!^)(?=[A-Z])', '_', renovation_type).lower()
+            # Convert building condition to lowercase with underscores before uppercase letters
+            attr_name = condition.replace(' ', '_').lower()
             attr_name = f"s_curve_{attr_name}"
 
             # Create dynamic instance variables
@@ -46,21 +46,21 @@ class Buildings():
     
     def _s_curve_params(self):
         """
-        Create a dictionary that holds S-curves and the "never share" parameter per renovation type. 
+        Create a dictionary that holds S-curves and the "never share" parameter per building condition. 
 
-        This method retrieves input parameters for each renovation type, calculates the S-curve,
+        This method retrieves input parameters for each building condition, calculates the S-curve,
         and stores the S-curve along with the "never share" parameter in a dictionary. The dictionary 
         is used as an input argument in the TEK class. 
 
         Returns:
-        - s_curve_params (dict): A dictionary where keys are renovation types (str) and values 
+        - s_curve_params (dict): A dictionary where keys are building conditions (str) and values 
                                  are lists containing the S-curve dictionary and the "never share" parameter (float).
         """
         s_curve_params = {}
 
-        for renovation_type in self.renovation_type_list:
-            # Retrieve input parameters for the given building category and renovation type
-            input_params = self.database.get_s_curve_params_per_building_and_renovation_type(self.building_category, renovation_type)
+        for condition in self.condition_list:
+            # Retrieve input parameters for the given building category and condition
+            input_params = self.database.get_s_curve_params_per_building_category_and_condition(self.building_category, condition)
             
             # Calculate the S-curve and retrieve the "never share" parameter
             s = SCurve(input_params)
@@ -68,7 +68,7 @@ class Buildings():
             never_share = s._never_share
             
             # Store the parameters in the dictionary
-            s_curve_params[renovation_type] = [s_curve, never_share]
+            s_curve_params[condition] = [s_curve, never_share]
         
         return s_curve_params
 
@@ -94,21 +94,76 @@ class Buildings():
         
         return demolition_shares
     
-    def get_small_measures_shares_per_tek(self):
+    def get_total_small_measure_shares_per_tek(self):
 
-        small_measures_shares = {}
+        total_small_measure_shares = {}
         for tek_id in self.tek_id_list:
             # Create TEK instance for each TEK ID
             tek = TEK(tek_id)
             
             # Calculate annual shares for small measures
-            shares = tek.get_shares_small_measures_total()
+            shares = tek.get_shares_small_measure_total()
 
             # Store the shares in the dictionary
-            small_measures_shares[tek_id] = shares
+            total_small_measure_shares[tek_id] = shares
         
-        return small_measures_shares
+        return total_small_measure_shares
     
+    def get_total_renovation_shares_per_tek(self):
+
+        total_renovation_shares = {}
+        for tek_id in self.tek_id_list:
+            # Create TEK instance for each TEK ID
+            tek = TEK(tek_id)
+            
+            # Calculate annual shares for small measures
+            shares = tek.get_shares_renovation_total()
+
+            # Store the shares in the dictionary
+            total_renovation_shares[tek_id] = shares
+        
+        return total_renovation_shares
+    
+    def get_renovation_shares_per_tek(self):
+        
+        renovation_shares = {}
+        for tek_id in self.tek_id_list:
+            tek = TEK(tek_id)
+            shares = tek.get_shares_renovation()
+            renovation_shares[tek_id] = shares
+
+        return renovation_shares
+
+    def get_small_measure_shares_per_tek(self):
+        
+        small_measure_shares = {}
+        for tek_id in self.tek_id_list:
+            tek = TEK(tek_id)
+            shares = tek.get_shares_small_measure()
+            small_measure_shares[tek_id] = shares
+
+        return small_measure_shares
+    
+    def get_renovation_and_small_measure_shares_per_tek(self):
+
+        renovation_small_measure_shares = {}
+        for tek_id in self.tek_id_list:
+            tek = TEK(tek_id)
+            shares = tek.get_shares_renovation_and_small_measure()
+            renovation_small_measure_shares[tek_id] = shares
+
+        return renovation_small_measure_shares
+
+    def get_original_condition_shares_per_tek(self):
+
+        original_condition_shares = {}
+        for tek_id in self.tek_id_list:
+            tek = TEK(tek_id)
+            shares = tek.get_shares_original_condition()
+            original_condition_shares[tek_id] = shares
+
+        return original_condition_shares
+
 
 
 

@@ -14,12 +14,18 @@ class TEK():
     # TODO: 
     # - move constants to config
     # - add start and end year as input arguments? 
-    # - add negative values checks
-    # - add checks to ensure that the class var s_curve_params have been properly initialized
+    # - add negative values checks 
+    # - add checks to control calculations, for example control total values and that original condition should not exceed 100%
+    # - find an alternative to the class variable for s_curve_params
 
     # Model parameters
     START_YEAR = 2010
     END_YEAR = 2050
+
+    # Column names
+    COL_BUILDING_YEAR = 'building_year'
+    COL_TEK_START_YEAR = 'tek_period_start_year' 
+    COL_TEK_END_YEAR = 'tek_period_end_year'
 
     # Class variable to store S-curve parameters
     s_curve_params = None  
@@ -39,14 +45,16 @@ class TEK():
         self.id = tek_id
         self.database = DatabaseManager()
         self.tek_id_params = self.database.get_tek_params_per_id(tek_id)
-        self.building_year = self._get_input_value(self.tek_id_params, 'building_year')
+        self.building_year = self._get_input_value(self.tek_id_params, self.COL_BUILDING_YEAR)
+        self.tek_start_year = self._get_input_value(self.tek_id_params, self.COL_TEK_START_YEAR)
+        self.tek_end_year = self._get_input_value(self.tek_id_params, self.COL_TEK_END_YEAR)
 
         # Define S-curve parameter attributes for IDE recognition
-        self.s_curve_small_measures = None
-        self.s_curve_rehabilitation = None
+        self.s_curve_small_measure = None
+        self.s_curve_renovation = None
         self.s_curve_demolition = None
-        self.never_share_small_measures = None
-        self.never_share_rehabilitation = None
+        self.never_share_small_measure = None
+        self.never_share_renovation = None
         self.never_share_demolition = None
 
         # Set S-curve parameter attributes
@@ -55,8 +63,12 @@ class TEK():
             self._set_s_curve_param_variables()
         
         self.shares_demolition = self.get_shares_demolition()
-        self.shares_small_measures = self.get_shares_small_measures_total()
-        self.shares_rehabilitation = self.get_shares_rehabilitation_total()
+        self.shares_small_measure_total = self.get_shares_small_measure_total()
+        self.shares_renovation_total = self.get_shares_renovation_total()
+        self.shares_renovation = self.get_shares_renovation()
+        self.shares_renovation_and_small_measure = self.get_shares_renovation_and_small_measure()
+        self.shares_small_measure = self.get_shares_small_measure()
+        self.shares_original_condition = self.get_shares_original_condition()
 
     def _get_input_value(self, df, col):
         """
@@ -78,19 +90,19 @@ class TEK():
 
     def _set_s_curve_param_variables(self):
         """
-        Get S-curve parameters per renovation type from input dictionary and set as instance variables.
+        Get S-curve parameters per building condition from input dictionary and set as instance variables.
 
         This method retrieves values from the self.s_curve_params dictionary. This is a dictionary where the
-        keys are renovation types and values are lists containing the S-curve and the "never share" parameter.
-        After retrieving the values, the method sets dynamic instance variables for each renovation type:
-        - s_curve_<renovation_type>: Stores the S-curve.
-        - never_share_<renovation_type>: Stores the "never share" parameter.
+        keys are building conditions and values are lists containing the S-curve and the "never share" parameter.
+        After retrieving the values, the method sets dynamic instance variables for each building condition:
+        - s_curve_<condition>: Stores the S-curve.
+        - never_share_<condition>: Stores the "never share" parameter.
         
         Example:
 
-        If the renovation type is 'SmallMeasures', the method will create instance variables:
-            - self.s_curve_small_measures
-            - self.never_share_small_measures
+        If the building condition is 'Small measure', the method will create instance variables:
+            - self.s_curve_small_measure
+            - self.never_share_small_measure
         """
         for key in self.s_curve_params:
             # Get values from dictionary 
@@ -98,12 +110,12 @@ class TEK():
             s_curve = values[0]
             never_share = values[1]
 
-            # Convert renovation type (key) to lowercase with underscores before uppercase letters
-            renovation_type = re.sub(r'(?<!^)(?=[A-Z])', '_', key).lower() 
+            # Convert building condition (key) to lowercase with underscores before uppercase letters
+            condition = key.replace(' ', '_').lower() 
 
             # Create dynamic instance variables
-            setattr(self, f"s_curve_{renovation_type}", s_curve)
-            setattr(self, f"never_share_{renovation_type}", never_share)
+            setattr(self, f"s_curve_{condition}", s_curve)
+            setattr(self, f"never_share_{condition}", never_share)
 
     def get_shares_demolition(self):
         """
@@ -146,9 +158,16 @@ class TEK():
             
             shares.append(share)
 
-        return shares
+        # Accumulate shares over the time horizon
+        accumulated_shares = []
+        acc_share = 0
+        for share in shares:
+            acc_share += share
+            accumulated_shares.append(acc_share)
+
+        return accumulated_shares
     
-    def get_shares_small_measures_total(self):
+    def get_shares_small_measure_total(self):
         """
         Calculate the percentage share of area that have undergone small measures over the time horizon.
 
@@ -170,12 +189,12 @@ class TEK():
                 # Set share to 0 if the building isn't buildt yet
                 share = 0
             else:
-                # Get Small measures share from S-curve and demolition share for current year
-                small_measure_share = self.s_curve_small_measures['rate'][building_age - 1]
+                # Get Small measure share from S-curve and demolition share for current year
+                small_measure_share = self.s_curve_small_measure['rate'][building_age - 1]
                 demolition_share = self.shares_demolition[idx] 
                 
                 # Calculate max limit for doing a renovation measure (small measure or rehabilitation)
-                measure_limit = 1 - demolition_share - self.never_share_small_measures
+                measure_limit = 1 - demolition_share - self.never_share_small_measure
                 
                 if small_measure_share < measure_limit:
                     share = small_measure_share
@@ -186,16 +205,16 @@ class TEK():
                 
         return shares
     
-    def get_shares_rehabilitation_total(self):
+    def get_shares_renovation_total(self):
         """
-        Calculate the percentage share of area that is rehabilitated over time.
+        Calculate the percentage share of area that is renovated over time.
 
-        This method calculates the percentage share of rehabilitation renovations for each year 
-        from the start year to the end year. It uses the accumulated rates from the rehabilitation 
-        S-curve.
+        This method calculates the percentage share of renovations for each year 
+        from the start year to the end year. It uses the accumulated rates from the 
+        renovation S-curve.
 
         Returns:
-        - shares (list): A list of rehabilitation renovation shares (float) for each year from the
+        - shares (list): A list of renovation shares (float) for each year from the
                          start year to the end year.
         """
         shares =  []
@@ -207,15 +226,15 @@ class TEK():
                 # Set share to 0 if the building isn't buildt yet
                 share = 0
             else:
-                # Get rehabilitation share from S-curve and demolition share for current year
-                rehabilitation_share = self.s_curve_rehabilitation['rate'][building_age - 1]
+                # Get renovation share from S-curve and demolition share for current year
+                renovation_share = self.s_curve_renovation['rate'][building_age - 1]
                 demolition_share = self.shares_demolition[idx]                
                 
-                # Calculate max limit for doing a renovation measure (small measure or rehabilitation)
-                measure_limit = 1 - demolition_share - self.never_share_rehabilitation
+                # Calculate max limit for doing a renovation measure (small measure or renovation)
+                measure_limit = 1 - demolition_share - self.never_share_renovation
                 
-                if rehabilitation_share < measure_limit:
-                    share = rehabilitation_share
+                if renovation_share < measure_limit:
+                    share = renovation_share
                 else: 
                     share = measure_limit 
             
@@ -223,14 +242,91 @@ class TEK():
                 
         return shares
 
-    #def get_shares_rehabilitation():
+    def get_shares_renovation(self):
         """
-        calculation: 
-        if (share_rehab_total + share_small_measure_total) < measure_limit_rehab):
-            share = share_rehab_total
-        elif share_small_measure_total > measure_limit:
-            share = 0
-        else: 
-            share = measure_limit - share_small_measure_totals
         """
+        shares =  []
+
+        for idx, year in enumerate(range(self.START_YEAR, self.END_YEAR + 1)):
+
+            if self.building_year >= year:
+                # Set share to 0 if the building isn't buildt yet
+                share = 0
+            else:
+                share_small_measure_total = self.shares_small_measure_total[idx]
+                share_renovation_total = self.shares_renovation_total[idx]
+                share_demolition = self.shares_demolition[idx]  
+                measure_limit = 1- share_demolition - self.never_share_renovation 
+
+                if (share_small_measure_total + share_renovation_total) < measure_limit:
+                    share = share_renovation_total
+                elif share_small_measure_total > measure_limit:
+                    share = 0
+                else:
+                    share = measure_limit - share_small_measure_total
+
+            shares.append(share)
+
+        return shares
+
+    def get_shares_renovation_and_small_measure(self):
+        """
+        """
+        shares =  []
+
+        for idx, year in enumerate(range(self.START_YEAR, self.END_YEAR + 1)):
+
+            if self.building_year >= year:
+                # Set share to 0 if the building isn't buildt yet
+                share = 0
+            else:
+                share_renovation_total = self.shares_renovation_total[idx]
+                share_renovation = self.shares_renovation[idx]
+                share = share_renovation_total - share_renovation
+            
+            shares.append(share)
+
+        return shares
+    
+    def get_shares_small_measure(self):
+        """
+        """
+        shares =  []
+
+        for idx, year in enumerate(range(self.START_YEAR, self.END_YEAR + 1)):
+
+            if self.building_year >= year:
+                # Set share to 0 if the building isn't buildt yet
+                share = 0
+            else:
+                share_small_measure_total = self.shares_small_measure_total[idx]
+                share_renovation_and_small_measure = self.shares_renovation_and_small_measure[idx]
+                share = share_small_measure_total - share_renovation_and_small_measure
+            
+            shares.append(share)
+
+        return shares
+    
+    def get_shares_original_condition(self):
+        shares =  []
+
+        for idx, year in enumerate(range(self.START_YEAR, self.END_YEAR + 1)):
+            # Set share to 0 in years before the start year of the TEK if the TEK start year is after the start year of the model horizon
+            if (self.tek_start_year > self.START_YEAR) and (year < self.tek_start_year ):
+                share = 0
+            else:
+                share_small_measure = self.shares_small_measure[idx]
+                share_renovation = self.shares_renovation[idx]
+                share_renovation_and_small_measure = self.shares_renovation_and_small_measure[idx]
+                share_demolition = self.shares_demolition[idx]
+                share = 1 - share_small_measure - share_renovation - share_renovation_and_small_measure - share_demolition  
+
+            shares.append(share)
+
+        return shares             
+        
+
+
+
+
 

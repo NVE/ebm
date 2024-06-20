@@ -8,7 +8,7 @@ class DatabaseManager():
 
     # Column names
     COL_BUILDING_CATEGORY = 'building_category'
-    COL_RENOVATION_TYPE = 'renovation_type'
+    COL_BUILDING_CONDITION = 'condition'
     COL_TEK_ID = 'TEK_ID'
     
     def __init__(self):
@@ -26,16 +26,16 @@ class DatabaseManager():
         building_category_list = building_categories[self.COL_BUILDING_CATEGORY].unique()
         return building_category_list
     
-    def get_renovation_type_list(self):
+    def get_condition_list(self):
         """
-        Get a list of renovation types.
+        Get a list of building conditions.
 
         Returns:
-        - renovation_type_list (list): List of renovation types.
+        - condition_list (list): List of building conditions.
         """
-        renovation_types = self.file_handler.get_renovation_types()
-        renovation_type_list = renovation_types[self.COL_RENOVATION_TYPE].unique()
-        return renovation_type_list
+        building_conditions = self.file_handler.get_building_conditions()
+        condition_list = building_conditions[self.COL_BUILDING_CONDITION].unique()
+        return condition_list
     
     def get_tek_id_list(self):
         """
@@ -83,18 +83,18 @@ class DatabaseManager():
         s_curve_params = self.file_handler.get_s_curve_params()
         return s_curve_params
 
-    def get_s_curve_params_per_building_and_renovation_type(self, building_category, renovation_type):
+    def get_s_curve_params_per_building_category_and_condition(self, building_category, condition):
         """
-        Get input dataframe with S-curve parameters/assumptions and filter it by building and renovation type.
+        Get input dataframe with S-curve parameters/assumptions and filter it by building category and condition.
 
         Parameters:
         - building_category (str): Building category.
-        - renovation_type (str): Renovation type.
+        - condition (str): Building condition.
 
         Returns:
         - s_curve_params_filtered (pd.DataFrame): Filtered DataFrame containing S-curve parameters.
         """
         s_curve_params = self.file_handler.get_s_curve_params()
-        s_curve_params_filtered = s_curve_params[(s_curve_params[self.COL_BUILDING_CATEGORY] == building_category) & (s_curve_params[self.COL_RENOVATION_TYPE] == renovation_type)]
+        s_curve_params_filtered = s_curve_params[(s_curve_params[self.COL_BUILDING_CATEGORY] == building_category) & (s_curve_params[self.COL_BUILDING_CONDITION] == condition)]
         return s_curve_params_filtered
     

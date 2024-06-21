@@ -1,4 +1,6 @@
 import os
+
+from loguru import logger
 import pandas as pd
 
 class FileHandler():
@@ -18,7 +20,7 @@ class FileHandler():
         
         self.input_folder = 'input'
 
-    def get_file(self, file_name):
+    def get_file(self, file_name: str) -> pd.DataFrame:
         """
         Finds and returns a file by searching in the folder defined by self.input_folder.
 
@@ -28,11 +30,29 @@ class FileHandler():
         Returns:
         - file_df (pd.DataFrame): DataFrame containing file data.
         """
+        logger.debug(f'get_file {file_name}')
         file_path = os.path.join(self.input_folder, file_name)
         if file_path.endswith('.xlsx'):
-            file_df = pd.read_excel(file_path)
-
-        return file_df
+            try:
+                file_df = pd.read_excel(file_path)
+                return file_df
+            except FileNotFoundError as ex:
+                logger.exception(ex)
+                logger.error(f'Unable to open {file_path}. File not found.')
+                raise
+            except PermissionError as ex:
+                logger.exception(ex)
+                logger.error(f'Unable to open {file_path}. Permission denied.')
+                raise
+            except IOError as ex:
+                logger.exception(ex)
+                logger.error(f'Unable to open {file_path}. Unable to read file.')
+                raise
+        else:
+            msg = f'{file_name} is not of type xlsx'
+            logger.error(msg)
+            raise ValueError(msg)
+        
 
     def get_building_categories(self):
         """

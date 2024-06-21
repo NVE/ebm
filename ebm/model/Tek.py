@@ -1,4 +1,4 @@
-from .DatabaseManager import *
+from .database_manager import *
 
 import re
 

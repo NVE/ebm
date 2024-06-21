@@ -1,4 +1,4 @@
-from .FileHandler import *
+from .file_handler import *
 import pandas as pd
 
 class DatabaseManager():

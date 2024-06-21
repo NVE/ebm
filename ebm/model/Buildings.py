@@ -1,6 +1,6 @@
-from .DatabaseManager import *
-from .SCurve import *
-from .Tek import *
+from .database_manager import *
+from .scurve import *
+from .tek import *
 import re
 
 class Buildings():

@@ -5,6 +5,7 @@ import sys
 from loguru import logger
 
 from ebm.main import get_demolition_shares_per_tek
+from ebm import Buildings
 
 def main():
     arg_parser = argparse.ArgumentParser()

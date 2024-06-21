@@ -73,8 +73,9 @@ def get_original_condition_shares_per_tek(building_category):
     return shares_df
 
 
-df = get_original_condition_shares_per_tek('House')
-print(df)
+if __name__ == '__main__':
+    df = get_original_condition_shares_per_tek('House')
+    print(df)
 
 """
 house = Buildings('House')

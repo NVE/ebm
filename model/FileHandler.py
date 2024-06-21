@@ -44,6 +44,10 @@ class FileHandler():
                 logger.exception(ex)
                 logger.error(f'Unable to open {file_path}. Permission denied.')
                 raise
+            except IOError as ex:
+                logger.exception(ex)
+                logger.error(f'Unable to open {file_path}. Unable to read file.')
+                raise
         else:
             msg = f'{file_name} is not of type xlsx'
             logger.error(msg)

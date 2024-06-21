@@ -14,12 +14,18 @@ class TEK():
     # TODO: 
     # - move constants to config
     # - add start and end year as input arguments? 
-    # - add negative values checks
-    # - add checks to ensure that the class var s_curve_params have been properly initialized
+    # - add negative values checks 
+    # - add checks to control calculations, for example control total values and that original condition should not exceed 100%
+    # - find an alternative to the class variable for s_curve_params
 
     # Model parameters
     START_YEAR = 2010
     END_YEAR = 2050
+
+    # Column names
+    COL_BUILDING_YEAR = 'building_year'
+    COL_TEK_START_YEAR = 'tek_period_start_year' 
+    COL_TEK_END_YEAR = 'tek_period_end_year'
 
     # Class variable to store S-curve parameters
     s_curve_params = None  
@@ -39,7 +45,9 @@ class TEK():
         self.id = tek_id
         self.database = DatabaseManager()
         self.tek_id_params = self.database.get_tek_params_per_id(tek_id)
-        self.building_year = self._get_input_value(self.tek_id_params, 'building_year')
+        self.building_year = self._get_input_value(self.tek_id_params, self.COL_BUILDING_YEAR)
+        self.tek_start_year = self._get_input_value(self.tek_id_params, self.COL_TEK_START_YEAR)
+        self.tek_end_year = self._get_input_value(self.tek_id_params, self.COL_TEK_END_YEAR)
 
         # Define S-curve parameter attributes for IDE recognition
         self.s_curve_small_measure = None
@@ -57,6 +65,10 @@ class TEK():
         self.shares_demolition = self.get_shares_demolition()
         self.shares_small_measure_total = self.get_shares_small_measure_total()
         self.shares_renovation_total = self.get_shares_renovation_total()
+        self.shares_renovation = self.get_shares_renovation()
+        self.shares_renovation_and_small_measure = self.get_shares_renovation_and_small_measure()
+        self.shares_small_measure = self.get_shares_small_measure()
+        self.shares_original_condition = self.get_shares_original_condition()
 
     def _get_input_value(self, df, col):
         """
@@ -230,14 +242,91 @@ class TEK():
                 
         return shares
 
-    #def get_shares_renovation():
+    def get_shares_renovation(self):
         """
-        calculation: 
-        if (share_rehab_total + share_small_measure_total) < measure_limit_rehab):
-            share = share_rehab_total
-        elif share_small_measure_total > measure_limit:
-            share = 0
-        else: 
-            share = measure_limit - share_small_measure_totals
         """
+        shares =  []
+
+        for idx, year in enumerate(range(self.START_YEAR, self.END_YEAR + 1)):
+
+            if self.building_year >= year:
+                # Set share to 0 if the building isn't buildt yet
+                share = 0
+            else:
+                share_small_measure_total = self.shares_small_measure_total[idx]
+                share_renovation_total = self.shares_renovation_total[idx]
+                share_demolition = self.shares_demolition[idx]  
+                measure_limit = 1- share_demolition - self.never_share_renovation 
+
+                if (share_small_measure_total + share_renovation_total) < measure_limit:
+                    share = share_renovation_total
+                elif share_small_measure_total > measure_limit:
+                    share = 0
+                else:
+                    share = measure_limit - share_small_measure_total
+
+            shares.append(share)
+
+        return shares
+
+    def get_shares_renovation_and_small_measure(self):
+        """
+        """
+        shares =  []
+
+        for idx, year in enumerate(range(self.START_YEAR, self.END_YEAR + 1)):
+
+            if self.building_year >= year:
+                # Set share to 0 if the building isn't buildt yet
+                share = 0
+            else:
+                share_renovation_total = self.shares_renovation_total[idx]
+                share_renovation = self.shares_renovation[idx]
+                share = share_renovation_total - share_renovation
+            
+            shares.append(share)
+
+        return shares
+    
+    def get_shares_small_measure(self):
+        """
+        """
+        shares =  []
+
+        for idx, year in enumerate(range(self.START_YEAR, self.END_YEAR + 1)):
+
+            if self.building_year >= year:
+                # Set share to 0 if the building isn't buildt yet
+                share = 0
+            else:
+                share_small_measure_total = self.shares_small_measure_total[idx]
+                share_renovation_and_small_measure = self.shares_renovation_and_small_measure[idx]
+                share = share_small_measure_total - share_renovation_and_small_measure
+            
+            shares.append(share)
+
+        return shares
+    
+    def get_shares_original_condition(self):
+        shares =  []
+
+        for idx, year in enumerate(range(self.START_YEAR, self.END_YEAR + 1)):
+            # Set share to 0 in years before the start year of the TEK if the TEK start year is after the start year of the model horizon
+            if (self.tek_start_year > self.START_YEAR) and (year < self.tek_start_year ):
+                share = 0
+            else:
+                share_small_measure = self.shares_small_measure[idx]
+                share_renovation = self.shares_renovation[idx]
+                share_renovation_and_small_measure = self.shares_renovation_and_small_measure[idx]
+                share_demolition = self.shares_demolition[idx]
+                share = 1 - share_small_measure - share_renovation - share_renovation_and_small_measure - share_demolition  
+
+            shares.append(share)
+
+        return shares             
+        
+
+
+
+
 

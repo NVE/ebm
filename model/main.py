@@ -48,13 +48,40 @@ def get_total_renovation_shares_per_tek(building_category):
     shares_df = pd.DataFrame(shares)
     return shares_df
 
+def get_renovation_shares_per_tek(building_category):
+    s = Buildings(building_category)
+    shares = s.get_renovation_shares_per_tek()
+    shares_df = pd.DataFrame(shares)
+    return shares_df
 
-#df = get_demolition_shares_per_tek('House')
-#df = get_total_small_measures_shares_per_tek('House')
-df = get_total_renovation_shares_per_tek('House')
+def get_small_measure_shares_per_tek(building_category):
+    s = Buildings(building_category)
+    shares = s.get_small_measure_shares_per_tek()
+    shares_df = pd.DataFrame(shares)
+    return shares_df
 
+def get_renovation_and_small_measure_shares_per_tek(building_category):
+    s = Buildings(building_category)
+    shares = s.get_renovation_and_small_measure_shares_per_tek()
+    shares_df = pd.DataFrame(shares)
+    return shares_df
+
+def get_original_condition_shares_per_tek(building_category):
+    s = Buildings(building_category)
+    shares = s.get_original_condition_shares_per_tek()
+    shares_df = pd.DataFrame(shares)
+    return shares_df
+
+
+df = get_original_condition_shares_per_tek('House')
 print(df)
 
+"""
+house = Buildings('House')
+s = house.get_small_measure_shares_per_tek()
+s = pd.DataFrame(s)
+print(s)
+"""
 
 
 

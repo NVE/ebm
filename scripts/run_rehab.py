@@ -4,7 +4,7 @@ import sys
 
 from loguru import logger
 
-from model.main import get_demolition_shares_per_tek
+from ebm.main import get_demolition_shares_per_tek
 
 def main():
     arg_parser = argparse.ArgumentParser()

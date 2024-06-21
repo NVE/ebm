@@ -1,4 +1,4 @@
-from DatabaseManager import *
+from .DatabaseManager import *
 
 import re
 

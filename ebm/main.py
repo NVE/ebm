@@ -1,6 +1,6 @@
-from DatabaseManager import *
-from SCurve import *
-from Buildings import *
+from .model.DatabaseManager import *
+from .model.SCurve import *
+from .model.Buildings import *
 
 import pandas as pd
 

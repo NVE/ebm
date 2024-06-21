@@ -45,7 +45,7 @@ class FileHandler():
                 logger.error(f'Unable to open {file_path}. Permission denied.')
                 raise
         else:
-            msg = f'{file} is not of type xlsx'
+            msg = f'{file_name} is not of type xlsx'
             logger.error(msg)
             raise ValueError(msg)
         

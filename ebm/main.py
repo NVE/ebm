@@ -77,14 +77,6 @@ if __name__ == '__main__':
     df = get_original_condition_shares_per_tek('House')
     print(df)
 
-"""
-house = Buildings('House')
-s = house.get_small_measure_shares_per_tek()
-s = pd.DataFrame(s)
-print(s)
-"""
-
-
 
 
 

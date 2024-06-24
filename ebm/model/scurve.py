@@ -31,7 +31,9 @@ class SCurve():
         self._never_share = self._get_input_value(input_df, self.COL_NEVER_SHARE)
 
         # Calculate yearly rates
-        self._pre_rush_rate, self._rush_rate, self._post_rush_rate = self._calculate_yearly_rates()     #TODO: divide into three separate methods
+        self._pre_rush_rate = self._calculate_pre_rush_rate() 
+        self._rush_rate = self._calculate_rush_rate()
+        self._post_rush_rate = self._calculate_post_rush_rate()
         
         # Calculate S-curves
         self.rates_per_year = self.get_rates_per_year_over_building_lifetime() 
@@ -55,23 +57,44 @@ class SCurve():
         value = df.loc[df.index[0], col]
         return value
 
-    def _calculate_yearly_rates(self):
+    def _calculate_pre_rush_rate(self):
         """
-        Calculate yearly measure rates from input parameters.
-         
-        Yearly rates represent the percentage share of area that is renovated per year in 
-        different periods along the S-curve. 
+        Calculate the yearly measure rate for the pre-rush period.
+
+        The pre-rush rate represents the percentage share of building area that has 
+        undergone a measure per year during the period before the rush period begins.
 
         Returns:
         - pre_rush_rate (float): Yearly measure rate in the pre-rush period.
-        - rush_rate (float): Yearly measure rate in the rush period.
-        - post_rush_rate (float): Yearly measure rate in the post-rush period.
         """
         pre_rush_rate = (1 - self._rush_share - self._never_share) * (0.5 / (self._average_age - self._earliest_age - (self._rush_years/2)))
+        return pre_rush_rate
+    
+    def _calculate_rush_rate(self):
+        """
+        Calculate the yearly measure rate for the rush period.
+
+        The rush rate represents the percentage share of building area that has 
+        undergone a measure per year during the rush period.
+
+        Returns:
+        - rush_rate (float): Yearly measure rate in the rush period.
+        """
         rush_rate = self._rush_share / self._rush_years
+        return rush_rate
+    
+    def _calculate_post_rush_rate(self):
+        """
+        Calculate the yearly measure rate for the post-rush period.
+
+        The post-rush rate represents the percentage share of building area that has 
+        undergone a measure per year during the period after the rush period ends.
+
+        Returns:
+        - post_rush_rate (float): Yearly measure rate in the post-rush period.
+        """
         post_rush_rate = (1 - self._rush_share - self._never_share) * (0.5 / (self._last_age - self._average_age - (self._rush_years/2)))
-        
-        return pre_rush_rate, rush_rate, post_rush_rate
+        return post_rush_rate
 
     def get_rates_per_year_over_building_lifetime(self):
         """

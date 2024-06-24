@@ -7,7 +7,7 @@ class Buildings():
     """
     Holds all the attributes of a building, with it's associated data and operations.
     """
-
+    
     #TODO:
     # - add a get_shares_per_tek class that gets shares per tek for all renovation states
 

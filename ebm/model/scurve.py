@@ -13,22 +13,22 @@ class SCurve():
 
     # Column names
     BUILDING_LIFETIME = 130
-    COL_EARLIEST_AGE = 'earliest_age_for_measure'
-    COL_AVERAGE_AGE = 'average_age_for_measure'
-    COL_LAST_AGE = 'last_age_for_measure'
-    COL_RUSH_YEARS = 'rush_period_years'
-    COL_RUSH_SHARE = 'rush_share'
-    COL_NEVER_SHARE = 'never_share'
-       
-    def __init__(self, input_df):
+    
+    def __init__(self, 
+                 earliest_age: int,
+                 average_age: int,
+                 last_age: int,
+                 rush_years: int,
+                 rush_share: float,
+                 never_share: float):
 
         self._building_lifetime = self.BUILDING_LIFETIME
-        self._earliest_age = int(self._get_input_value(input_df, self.COL_EARLIEST_AGE))
-        self._average_age = int(self._get_input_value(input_df, self.COL_AVERAGE_AGE))
-        self._last_age = int(self._get_input_value(input_df, self.COL_LAST_AGE))
-        self._rush_years = int(self._get_input_value(input_df, self.COL_RUSH_YEARS))
-        self._rush_share = self._get_input_value(input_df, self.COL_RUSH_SHARE)
-        self._never_share = self._get_input_value(input_df, self.COL_NEVER_SHARE)
+        self._earliest_age = earliest_age
+        self._average_age = average_age
+        self._last_age = last_age
+        self._rush_years = rush_years
+        self._rush_share = rush_share
+        self._never_share = never_share
 
         # Calculate yearly rates
         self._pre_rush_rate = self._calculate_pre_rush_rate() 
@@ -38,24 +38,6 @@ class SCurve():
         # Calculate S-curves
         self.rates_per_year = self.get_rates_per_year_over_building_lifetime() 
         self.s_curve = self.calculate_s_curve() 
-
-    def _get_input_value(self, df, col):
-        """
-        Retrieve a value from a specified column in a Pandas DataFrame.
-
-        Parameters:
-        - df (pd.DataFrame): The input Pandas DataFrame from which to retrieve the value.
-        - col (str): The name of the column from which to retrieve the value.
-
-        Returns:
-        - value: The value from the specified column in the first row of the DataFrame.
-
-        Raises:
-        - KeyError: If the specified column does not exist in the DataFrame.
-        - IndexError: If the DataFrame is empty.
-        """
-        value = df.loc[df.index[0], col]
-        return value
 
     def _calculate_pre_rush_rate(self):
         """

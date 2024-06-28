@@ -1,7 +1,9 @@
-from .database_manager import *
-from .scurve import *
-from .tek import *
+import typing
+from .database_manager import DatabaseManager
+from .scurve import SCurve
+from .tek import TEK
 import re
+
 
 class Buildings():
     """
@@ -31,7 +33,7 @@ class Buildings():
         # Set the class variable in TEK class
         TEK.set_s_curve_params(self.s_curve_params)
             
-    def _s_curve_params(self):
+    def _s_curve_params(self) -> typing.Dict:
         """
         Create a dictionary that holds S-curves and the "never share" parameter per building condition. 
 
@@ -49,19 +51,13 @@ class Buildings():
 
             # Retrieve input parameters for the given building category and condition
             input_params = self.database.get_s_curve_params_per_building_category_and_condition(self.building_category, condition)
-            earliest_age = input_params[self.KEY_EARLIEST_AGE] 
-            average_age = input_params[self.KEY_AVERAGE_AGE]
-            last_age = input_params[self.KEY_LAST_AGE]
-            rush_years = input_params[self.KEY_RUSH_YEARS]
-            rush_share = input_params[self.KEY_RUSH_SHARE]
-            never_share = input_params[self.KEY_NEVER_SHARE] 
             
             # Calculate the S-curve 
-            s = SCurve(earliest_age, average_age, last_age, rush_years, rush_share, never_share)
+            s = SCurve(input_params.earliest_age_for_measure, input_params.average_age_for_measure, input_params.last_age_for_measure, input_params.rush_period_years, input_params.rush_share, input_params.never_share)
             s_curve = s.calculate_s_curve()
             
             # Store the parameters in the dictionary
-            s_curve_params[condition] = [s_curve, never_share]
+            s_curve_params[condition] = [s_curve, input_params.never_share]
         
         return s_curve_params
 

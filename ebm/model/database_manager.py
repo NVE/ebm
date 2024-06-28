@@ -1,5 +1,21 @@
-from .file_handler import FileHandler
+from dataclasses import dataclass
+
 import pandas as pd
+
+from .file_handler import FileHandler
+
+
+@dataclass
+class ScurveParameters:
+    building_category: str
+    condition: str	
+    earliest_age_for_measure: int
+    average_age_for_measure: int
+    rush_period_years: int	
+    last_age_for_measure: int
+    rush_share: float
+    never_share: float
+
 
 class DatabaseManager():
     """
@@ -83,7 +99,8 @@ class DatabaseManager():
         s_curve_params = self.file_handler.get_s_curve_params()
         return s_curve_params
 
-    def get_s_curve_params_per_building_category_and_condition(self, building_category, condition):
+    def get_s_curve_params_per_building_category_and_condition(self, building_category: str, 
+                                                               condition: str) -> ScurveParameters:
         """
         Get input dataframe with S-curve parameters/assumptions and filter it by building category and condition.
 
@@ -105,5 +122,5 @@ class DatabaseManager():
         # Convert the single row to a dictionary
         s_curve_params_dict = s_curve_params_row.to_dict()
 
-        return s_curve_params_dict
+        return ScurveParameters(**s_curve_params_dict)
 

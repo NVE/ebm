@@ -54,7 +54,7 @@ class FileHandler():
             raise ValueError(msg)
         
 
-    def get_building_categories(self):
+    def get_building_categories(self) -> pd.DataFrame:
         """
         Get building categories DataFrame.
 
@@ -64,7 +64,7 @@ class FileHandler():
         building_categories = self.get_file(self.BUILDING_CATEGORIES)
         return building_categories
 
-    def get_building_conditions(self):
+    def get_building_conditions(self) -> pd.DataFrame:
         """
         Get building conditions DataFrame.
 
@@ -84,7 +84,7 @@ class FileHandler():
         tek_id = self.get_file(self.TEK_ID)
         return tek_id
 
-    def get_tek_params(self):
+    def get_tek_params(self) -> pd.DataFrame:
         """
         Get TEK parameters DataFrame.
 
@@ -94,7 +94,7 @@ class FileHandler():
         tek_params = self.get_file(self.TEK_PARAMS)
         return tek_params
     
-    def get_s_curve_params(self):
+    def get_s_curve_params(self) -> pd.DataFrame:
         """
         Get S-curve parameters DataFrame.
 

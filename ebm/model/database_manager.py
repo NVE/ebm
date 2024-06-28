@@ -1,21 +1,6 @@
-from dataclasses import dataclass
-
-import pandas as pd
 
 from .file_handler import FileHandler
-
-
-@dataclass
-class ScurveParameters:
-    building_category: str
-    condition: str	
-    earliest_age_for_measure: int
-    average_age_for_measure: int
-    rush_period_years: int	
-    last_age_for_measure: int
-    rush_share: float
-    never_share: float
-
+from .data_classes import ScurveParameters
 
 class DatabaseManager():
     """
@@ -23,9 +8,15 @@ class DatabaseManager():
     """
 
     # Column names
+    COL_TEK_ID = 'TEK_ID'
     COL_BUILDING_CATEGORY = 'building_category'
     COL_BUILDING_CONDITION = 'condition'
-    COL_TEK_ID = 'TEK_ID'
+    COL_EARLIEST_AGE = 'earliest_age_for_measure'
+    COL_AVERAGE_AGE = 'average_age_for_measure'
+    COL_LAST_AGE = 'last_age_for_measure'
+    COL_RUSH_YEARS = 'rush_period_years'
+    COL_RUSH_SHARE = 'rush_share'
+    COL_NEVER_SHARE = 'never_share'
     
     def __init__(self):
         
@@ -121,6 +112,18 @@ class DatabaseManager():
 
         # Convert the single row to a dictionary
         s_curve_params_dict = s_curve_params_row.to_dict()
-
-        return ScurveParameters(**s_curve_params_dict)
+        
+        # Map the dictionary values to the dataclass attributes
+        scurve_parameters = ScurveParameters(
+            building_category=s_curve_params_dict[self.COL_BUILDING_CATEGORY],
+            condition=s_curve_params_dict[self.COL_BUILDING_CONDITION],
+            earliest_age=s_curve_params_dict[self.COL_EARLIEST_AGE],
+            average_age=s_curve_params_dict[self.COL_AVERAGE_AGE], 
+            rush_years=s_curve_params_dict[self.COL_RUSH_YEARS], 
+            last_age=s_curve_params_dict[self.COL_LAST_AGE],
+            rush_share=s_curve_params_dict[self.COL_RUSH_SHARE],
+            never_share=s_curve_params_dict[self.COL_NEVER_SHARE],
+        )
+        
+        return scurve_parameters 
 

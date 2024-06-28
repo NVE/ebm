@@ -13,14 +13,6 @@ class Buildings():
     #TODO:
     # - add a get_shares_per_tek class that gets shares per tek for all renovation states
 
-    # Keys in S-curve parameter dictionary
-    KEY_EARLIEST_AGE = 'earliest_age_for_measure'
-    KEY_AVERAGE_AGE = 'average_age_for_measure'
-    KEY_LAST_AGE = 'last_age_for_measure'
-    KEY_RUSH_YEARS = 'rush_period_years'
-    KEY_RUSH_SHARE = 'rush_share'
-    KEY_NEVER_SHARE = 'never_share'
-
     def __init__(self, building_category):
         
         self.building_category = building_category
@@ -53,7 +45,8 @@ class Buildings():
             input_params = self.database.get_s_curve_params_per_building_category_and_condition(self.building_category, condition)
             
             # Calculate the S-curve 
-            s = SCurve(input_params.earliest_age_for_measure, input_params.average_age_for_measure, input_params.last_age_for_measure, input_params.rush_period_years, input_params.rush_share, input_params.never_share)
+            s = SCurve(input_params.earliest_age, input_params.average_age, input_params.last_age, 
+                       input_params.rush_years, input_params.rush_share, input_params.never_share)
             s_curve = s.calculate_s_curve()
             
             # Store the parameters in the dictionary

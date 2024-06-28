@@ -92,9 +92,18 @@ class DatabaseManager():
         - condition (str): Building condition.
 
         Returns:
-        - s_curve_params_filtered (pd.DataFrame): Filtered DataFrame containing S-curve parameters.
+        - s_curve_params_dict (dict): Dictionary containing S-curve parameters with column names as keys and 
+                                      corresponding column values as values.
         """
+        # Retrieve input data and filter on building category and condition
         s_curve_params = self.file_handler.get_s_curve_params()
         s_curve_params_filtered = s_curve_params[(s_curve_params[self.COL_BUILDING_CATEGORY] == building_category) & (s_curve_params[self.COL_BUILDING_CONDITION] == condition)]
-        return s_curve_params_filtered
-    
+
+        # Assuming there is only one row in the filtered DataFrame
+        s_curve_params_row = s_curve_params_filtered.iloc[0]
+
+        # Convert the single row to a dictionary
+        s_curve_params_dict = s_curve_params_row.to_dict()
+
+        return s_curve_params_dict
+

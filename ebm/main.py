@@ -3,6 +3,7 @@ from .model.scurve import *
 from .model.buildings import *
 
 import pandas as pd
+import os
 
 # TESTING
 
@@ -17,7 +18,7 @@ def s_curves_to_dataframe(building_category):
     demolition_df = pd.DataFrame(s.s_curve_demolition)
 
     small_measures_df = small_measures_df.rename(columns={'rate': 'small_measures'})
-    rehabilitation_df = rehabilitation_df.rename(columns={'rate': 'rehabilitation'})
+    rehabilitation_df = rehabilitation_df.rename(columns={'rate': 'renovation'})
     demolition_df = demolition_df.rename(columns={'rate': 'demolition'})
 
     merged_df = small_measures_df.merge(rehabilitation_df, on='year').merge(demolition_df, on='year')
@@ -76,14 +77,6 @@ def get_original_condition_shares_per_tek(building_category):
 if __name__ == '__main__':
     df = get_original_condition_shares_per_tek('House')
     print(df)
-
-"""
-house = Buildings('House')
-s = house.get_small_measure_shares_per_tek()
-s = pd.DataFrame(s)
-print(s)
-"""
-
 
 
 

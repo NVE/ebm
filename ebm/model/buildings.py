@@ -1,8 +1,10 @@
 import typing
+import re
+
 from .database_manager import DatabaseManager
 from .scurve import SCurve
 from .tek import TEK
-import re
+from .shares_per_condition import SharesPerCondition
 
 
 class Buildings():
@@ -11,21 +13,20 @@ class Buildings():
     """
     
     #TODO:
-    # - add a get_shares_per_tek class that gets shares per tek for all renovation states
+    # - add method to control tek_list and use it when setting instance var of tek_list
 
     def __init__(self, building_category):
         
         self.building_category = building_category
         self.database = DatabaseManager()
         self.condition_list = self.database.get_condition_list()
-        self.tek_id_list = self.database.get_tek_id_list()
-        self.s_curve_params = self._s_curve_params()
-        self._set_s_curve_per_condition()
+        self.tek_list = self.database.get_tek_list() 
+        self.tek_params = self.database.get_tek_params(self.tek_list)
 
-        # Set the class variable in TEK class
-        TEK.set_s_curve_params(self.s_curve_params)
+        self.scurve_data = self._get_scurve_data()
+        self.shares_per_condition = self.get_shares()
             
-    def _s_curve_params(self) -> typing.Dict:
+    def _get_scurve_data(self) -> typing.Dict:
         """
         Create a dictionary that holds S-curves and the "never share" parameter per building condition. 
 
@@ -37,7 +38,7 @@ class Buildings():
         - s_curve_params (dict): A dictionary where keys are building conditions (str) and values 
                                  are lists containing the S-curve dictionary and the "never share" parameter (float).
         """
-        s_curve_params = {}
+        scurve_data = {}
 
         for condition in self.condition_list:
 
@@ -50,125 +51,53 @@ class Buildings():
             s_curve = s.calculate_s_curve()
             
             # Store the parameters in the dictionary
-            s_curve_params[condition] = [s_curve, input_params.never_share]
+            scurve_data[condition] = [s_curve, input_params.never_share]
         
-        return s_curve_params
+        return scurve_data
 
-    # TODO: create an alternative method to get s curve data. the parameters are not needed in this class, but should be accesible for users
-    def _set_s_curve_per_condition(self):
+    def get_scurve(self, condition: str) -> typing.Dict:
         """
-        Get input parameters for each building condition, calculate the corresponding S-curve
-        and set as instance variable.
+        Get the S-curve data for a specific building condition.
+
+        This method retrieves the S-curve data for a specified building condition from the 
+        `scurve_data` dictionary, which contains the precomputed S-curve for each condition.
+
+        Parameters:
+        - condition (str): The condition for which to retrieve the S-curve data (e.g., 'Renovation', 'Demolition').
 
         Returns:
-        - instance variable of S-curve (dict) per building condition. 
+        - scurve (dict): A dictionary containing the S-curve data for the specified condition.. 
         """
-        for condition in self.condition_list:
-            s_curve = self.s_curve_params[condition][0]
-            
-            # Convert building condition to lowercase with underscores before uppercase letters
-            attr_name = condition.replace(' ', '_').lower()
-            attr_name = f"s_curve_{attr_name}"
+        scurve = self.scurve_data[condition][0]
+        return scurve
 
-            # Create dynamic instance variables
-            setattr(self, attr_name, s_curve)
-    
-    def get_demolition_shares_per_tek(self):
-        """
-        Calculate demolition shares for all TEK's associated with the building.
+    def get_shares(self) -> typing.Dict:
+        """ 
+        Calculate the shares per condition for all TEKs in the building category.
+
+        This method initializes the `SharesPerCondition` class with the TEK list, TEK parameters,
+        and S-curve data, and retrieves the shares per condition for the building category.
 
         Returns:
-        - demolition_shares (dict): A dictionary where each key is a TEK ID and the corresponding 
-                                    value is a list of demolition shares (float) for each year 
-                                    from the start year to the end year.
+        - shares_condition (dict): A dictionary where the keys are the condition names and the values are
+                                   the shares per condition for each TEK.
         """
-        demolition_shares = {}
-        for tek_id in self.tek_id_list:
-            # Create TEK instance for each TEK ID
-            tek = TEK(tek_id)
-            
-            # Calculate annual demolition shares
-            shares = tek.get_shares_demolition()
-            
-            # Store the shares in the dictionary
-            demolition_shares[tek_id] = shares
-        
-        return demolition_shares
-    
-    def get_total_small_measure_shares_per_tek(self):
+        shares_condition = SharesPerCondition(self.tek_list, self.tek_params, self.scurve_data).shares_per_condition
+        return shares_condition   
 
-        total_small_measure_shares = {}
-        for tek_id in self.tek_id_list:
-            # Create TEK instance for each TEK ID
-            tek = TEK(tek_id)
-            
-            # Calculate annual shares for small measures
-            shares = tek.get_shares_small_measure_total()
+    def get_shares_per_condition(self, condition: str) -> typing.Dict:
+        """
+        Get the shares for a specific condition for all TEKs in the building category.
 
-            # Store the shares in the dictionary
-            total_small_measure_shares[tek_id] = shares
-        
-        return total_small_measure_shares
-    
-    def get_total_renovation_shares_per_tek(self):
+        This method retrieves the shares for a specified condition from the `shares_per_condition`
+        dictionary, which contains the shares per condition for each TEK.
 
-        total_renovation_shares = {}
-        for tek_id in self.tek_id_list:
-            # Create TEK instance for each TEK ID
-            tek = TEK(tek_id)
-            
-            # Calculate annual shares for small measures
-            shares = tek.get_shares_renovation_total()
+        Parameters:
+        - condition (str): The condition for which to retrieve the shares (e.g., 'Renovation', 'Demolition').
 
-            # Store the shares in the dictionary
-            total_renovation_shares[tek_id] = shares
-        
-        return total_renovation_shares
-    
-    def get_renovation_shares_per_tek(self):
-        
-        renovation_shares = {}
-        for tek_id in self.tek_id_list:
-            tek = TEK(tek_id)
-            shares = tek.get_shares_renovation()
-            renovation_shares[tek_id] = shares
+        Returns:
+        - shares (dict): A dictionary where the keys are the TEKs and the values are the shares for the specified condition.
 
-        return renovation_shares
-
-    def get_small_measure_shares_per_tek(self):
-        
-        small_measure_shares = {}
-        for tek_id in self.tek_id_list:
-            tek = TEK(tek_id)
-            shares = tek.get_shares_small_measure()
-            small_measure_shares[tek_id] = shares
-
-        return small_measure_shares
-    
-    def get_renovation_and_small_measure_shares_per_tek(self):
-
-        renovation_small_measure_shares = {}
-        for tek_id in self.tek_id_list:
-            tek = TEK(tek_id)
-            shares = tek.get_shares_renovation_and_small_measure()
-            renovation_small_measure_shares[tek_id] = shares
-
-        return renovation_small_measure_shares
-
-    def get_original_condition_shares_per_tek(self):
-
-        original_condition_shares = {}
-        for tek_id in self.tek_id_list:
-            tek = TEK(tek_id)
-            shares = tek.get_shares_original_condition()
-            original_condition_shares[tek_id] = shares
-
-        return original_condition_shares
-
-
-
-
-
-
-      
-
+        """
+        shares = self.shares_per_condition[condition]
+        return shares

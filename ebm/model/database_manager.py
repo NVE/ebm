@@ -1,14 +1,22 @@
 
+import typing
+
 from .file_handler import FileHandler
-from .data_classes import ScurveParameters
+from .data_classes import ScurveParameters, TEKParameters
 
 class DatabaseManager():
     """
     Manages database operations.
     """
 
+    # TODO:
+    # - change all strings to lower case and underscore instead of space
+
     # Column names
-    COL_TEK_ID = 'TEK_ID'
+    COL_TEK = 'TEK'
+    COL_TEK_BUILDING_YEAR = 'building_year'
+    COL_TEK_START_YEAR = 'period_start_year'
+    COL_TEK_END_YEAR = 'period_end_year'
     COL_BUILDING_CATEGORY = 'building_category'
     COL_BUILDING_CONDITION = 'condition'
     COL_EARLIEST_AGE = 'earliest_age_for_measure'
@@ -44,41 +52,59 @@ class DatabaseManager():
         condition_list = building_conditions[self.COL_BUILDING_CONDITION].unique()
         return condition_list
     
-    def get_tek_id_list(self):
+    def get_tek_list(self):
         """
         Get a list of TEK IDs.
 
         Returns:
-        - tek_id_list (list): List of TEK IDs.
+        - tek_list (list): List of TEK IDs.
         """
         tek_id = self.file_handler.get_tek_id()
-        tek_id_list = tek_id[self.COL_TEK_ID].unique()
-        return tek_id_list
+        tek_list = tek_id[self.COL_TEK].unique()
+        return tek_list
     
-    def get_tek_params(self):
+    def get_tek_params(self, tek_list: typing.List[str]):
         """
-        Get dataframe with all TEK parameters.
+        Retrieve TEK parameters for a list of TEK IDs.
 
-        Returns:
-        - tek_params (pd.DataFrame): DataFrame with TEK parameters.
-        """
-        tek_params = self.file_handler.get_tek_params()
-        return tek_params
-    
-    def get_tek_params_per_id(self, tek_id):
-        """
-        Get dataframe with TEK parameters for a specific TEK ID.
+        This method fetches TEK parameters for each TEK ID in the provided list,
+        converts the relevant data to a dictionary, and maps these values to the 
+        corresponding attributes of the TEKParameters dataclass. The resulting 
+        dataclass instances are stored in a dictionary with TEK IDs as keys.
 
         Parameters:
-        - tek_id (str): TEK ID.
+        - tek_list (list of str): List of TEK IDs.
 
         Returns:
-        - tek_params_per_id (pd.DataFrame): DataFrame with TEK parameters for the specified TEK ID.
+        - tek_params (dict): Dictionary where each key is a TEK ID and each value 
+                            is a TEKParameters dataclass instance containing the 
+                            parameters for that TEK ID.
         """
-        tek_params = self.file_handler.get_tek_params()
-        tek_params_per_id = tek_params[tek_params[self.COL_TEK_ID] == tek_id]
+        tek_params = {}
 
-        return tek_params_per_id
+        tek_params_df = self.file_handler.get_tek_params()
+
+        for tek in tek_list:
+            # Filter on TEK ID
+            tek_params_filtered = tek_params_df[tek_params_df[self.COL_TEK] == tek]
+
+            # Assuming there is only one row in the filtered DataFrame
+            tek_params_row = tek_params_filtered.iloc[0]
+
+            # Convert the single row to a dictionary
+            tek_params_dict = tek_params_row.to_dict()
+
+            # Map the dictionary values to the dataclass attributes
+            tek_params_per_id = TEKParameters(
+                tek = tek_params_dict[self.COL_TEK],
+                building_year = tek_params_dict[self.COL_TEK_BUILDING_YEAR],
+                start_year = tek_params_dict[self.COL_TEK_START_YEAR],
+                end_year = tek_params_dict[self.COL_TEK_END_YEAR],
+                )
+
+            tek_params[tek] = tek_params_per_id    
+
+        return tek_params
 
     def get_s_curve_params(self):
         """

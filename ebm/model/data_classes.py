@@ -10,3 +10,10 @@ class ScurveParameters:
     last_age: int
     rush_share: float
     never_share: float
+
+@dataclass
+class TEKParameters:
+    tek: str
+    building_year: int
+    start_year: int
+    end_year: int

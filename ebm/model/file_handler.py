@@ -31,27 +31,33 @@ class FileHandler():
         - file_df (pd.DataFrame): DataFrame containing file data.
         """
         logger.debug(f'get_file {file_name}')
+        
         file_path = os.path.join(self.input_folder, file_name)
-        if file_path.endswith('.xlsx'):
-            try:
+        
+        try:
+            if file_path.endswith('.xlsx'):
                 file_df = pd.read_excel(file_path)
-                return file_df
-            except FileNotFoundError as ex:
-                logger.exception(ex)
-                logger.error(f'Unable to open {file_path}. File not found.')
-                raise
-            except PermissionError as ex:
-                logger.exception(ex)
-                logger.error(f'Unable to open {file_path}. Permission denied.')
-                raise
-            except IOError as ex:
-                logger.exception(ex)
-                logger.error(f'Unable to open {file_path}. Unable to read file.')
-                raise
-        else:
-            msg = f'{file_name} is not of type xlsx'
-            logger.error(msg)
-            raise ValueError(msg)
+            elif file_path.endswith('.csv'):
+                file_df = pd.read_csv(file_path)
+            else:
+                msg = f'{file_name} is not of type xlsx'
+                logger.error(msg)
+                raise ValueError(msg)
+            return file_df
+        except FileNotFoundError as ex:
+            logger.exception(ex)
+            logger.error(f'Unable to open {file_path}. File not found.')
+            raise
+        except PermissionError as ex:
+            logger.exception(ex)
+            logger.error(f'Unable to open {file_path}. Permission denied.')
+            raise
+        except IOError as ex:
+            logger.exception(ex)
+            logger.error(f'Unable to open {file_path}. Unable to read file.')
+            raise
+    
+        
         
 
     def get_building_categories(self) -> pd.DataFrame:

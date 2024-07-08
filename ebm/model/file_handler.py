@@ -3,6 +3,7 @@ import os
 from loguru import logger
 import pandas as pd
 
+
 class FileHandler():
     """
     Handles file operations.
@@ -15,6 +16,9 @@ class FileHandler():
     TEK_ID = 'TEK_ID.xlsx'
     TEK_PARAMS = 'TEK_parameters.xlsx'
     S_CURVES = 's_curves.xlsx'
+    CONSTRUCTION_POPULATION = 'nybygging_befolkning.csv'
+    CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'nybygging_husandeler.csv'
+    CONSTRUCTION_BUILDING_CATEGORY_AREA = 'nybygging_ssb_05940_areal.csv'
 
     def __init__(self):
         
@@ -46,6 +50,7 @@ class FileHandler():
             return file_df
         except FileNotFoundError as ex:
             logger.exception(ex)
+            logger.debug(f'Current directory is {os.getcwd()}')
             logger.error(f'Unable to open {file_path}. File not found.')
             raise
         except PermissionError as ex:
@@ -56,9 +61,6 @@ class FileHandler():
             logger.exception(ex)
             logger.error(f'Unable to open {file_path}. Unable to read file.')
             raise
-    
-        
-        
 
     def get_building_categories(self) -> pd.DataFrame:
         """
@@ -109,7 +111,41 @@ class FileHandler():
         """
         s_curve_params = self.get_file(self.S_CURVES)
         return s_curve_params
-    
+
+    def get_construction_population(self) -> pd.DataFrame:
+        """
+        Get population and household size DataFrame from a file.
+
+        Returns:
+        - construction_population (pd.DataFrame): Dataframe containing population numbers
+          year population household_size
+        """
+        return self.get_file(self.CONSTRUCTION_POPULATION)
+
+    def get_construction_building_category_share(self) -> pd.DataFrame:
+        """
+        Get building category share by year DataFrame from a file.
+
+        The number can be used in conjunction with number of households to calculate total number
+        of buildings of category house and apartment block
+
+        Returns:
+        - construction_population (pd.DataFrame): Dataframe containing population numbers
+          "year", "Andel nye småhus", "Andel nye leiligheter", "Areal nye småhus", "Areal nye leiligheter"
+        """
+        return self.get_file(self.CONSTRUCTION_BUILDING_CATEGORY_SHARE)
+
+    def get_building_category_area(self) -> pd.DataFrame:
+        """
+        Get population and household size DataFrame from a file.
+
+        Returns:
+        - construction_population (pd.DataFrame): Dataframe containing population numbers
+          "area","type of building","2010","2011"
+        """
+        return self.get_file(self.CONSTRUCTION_BUILDING_CATEGORY_AREA)
+
+
 
 
 

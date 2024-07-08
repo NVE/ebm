@@ -4,6 +4,7 @@ import typing
 from .file_handler import FileHandler
 from .data_classes import ScurveParameters, TEKParameters
 
+
 class DatabaseManager():
     """
     Manages database operations.
@@ -27,7 +28,6 @@ class DatabaseManager():
     COL_NEVER_SHARE = 'never_share'
     
     def __init__(self):
-        
         self.file_handler = FileHandler()                    
 
     def get_building_category_list(self):
@@ -152,4 +152,37 @@ class DatabaseManager():
         )
         
         return scurve_parameters 
+
+    def get_construction_population(self) -> pd.DataFrame:
+        """
+        Get construction population DataFrame.
+
+        Returns:
+        - construction_population (pd.DataFrame): Dataframe containing population numbers
+          year population household_size
+        """
+        return self.file_handler.get_construction_population()
+
+    def get_construction_building_category_share(self) -> pd.DataFrame:
+        """
+        Get building category share by year DataFrame from a file.
+
+        The number can be used in conjunction with number of households to calculate total number
+        of buildings of category house and apartment block
+
+        Returns:
+        - construction_population (pd.DataFrame): Dataframe containing population numbers
+          "year", "Andel nye småhus", "Andel nye leiligheter", "Areal nye småhus", "Areal nye leiligheter"
+        """
+        return self.file_handler.get_construction_building_category_share()
+
+    def get_building_category_area(self) -> pd.DataFrame:
+        """
+        Get population and household size DataFrame from a file.
+
+        Returns:
+        - construction_population (pd.DataFrame): Dataframe containing population numbers
+          "area","type of building","2010","2011"
+        """
+        return self.file_handler.get_building_category_area()
 

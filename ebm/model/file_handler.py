@@ -20,8 +20,10 @@ class FileHandler:
     CONSTRUCTION_POPULATION = 'nybygging_befolkning.csv'
     CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'nybygging_husandeler.csv'
     CONSTRUCTION_BUILDING_CATEGORY_AREA = 'nybygging_ssb_05940_areal.csv'
+    CONSTRUCTION_BUILDING_CATEGORY_AREA_BY_TEK = 'areal_parametre.csv'
 
     def __init__(self):
+
         self.input_folder = 'input'
 
     def get_file(self, file_name: str) -> pd.DataFrame:
@@ -143,6 +145,16 @@ class FileHandler:
           "area","type of building","2010","2011"
         """
         return self.get_file(self.CONSTRUCTION_BUILDING_CATEGORY_AREA)
+
+    def get_building_category_area_by_tek(self) -> pd.DataFrame:
+        """
+        Load total area of building_category by TEK from a file.
+
+        Returns:
+        - building_category_area_by_tek (pd.DataFrame): Dataframe containing area numbers
+          "building_category","TEK","area"
+        """
+        return self.get_file(self.CONSTRUCTION_BUILDING_CATEGORY_AREA_BY_TEK)
 
 
 

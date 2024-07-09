@@ -20,6 +20,7 @@ class DatabaseManager():
     COL_TEK_END_YEAR = 'period_end_year'
     COL_BUILDING_CATEGORY = 'building_category'
     COL_BUILDING_CONDITION = 'condition'
+<<<<<<< HEAD
     COL_EARLIEST_AGE = 'earliest_age_for_measure'
     COL_AVERAGE_AGE = 'average_age_for_measure'
     COL_LAST_AGE = 'last_age_for_measure'
@@ -27,8 +28,12 @@ class DatabaseManager():
     COL_RUSH_SHARE = 'rush_share'
     COL_NEVER_SHARE = 'never_share'
     
+=======
+    COL_TEK_ID = 'TEK_ID'
+
+>>>>>>> 0924226 (#1067 Load building category area by tek)
     def __init__(self):
-        self.file_handler = FileHandler()                    
+        self.file_handler = FileHandler()
 
     def get_building_category_list(self):
         """
@@ -40,7 +45,7 @@ class DatabaseManager():
         building_categories = self.file_handler.get_building_categories()
         building_category_list = building_categories[self.COL_BUILDING_CATEGORY].unique()
         return building_category_list
-    
+
     def get_condition_list(self):
         """
         Get a list of building conditions.
@@ -51,8 +56,13 @@ class DatabaseManager():
         building_conditions = self.file_handler.get_building_conditions()
         condition_list = building_conditions[self.COL_BUILDING_CONDITION].unique()
         return condition_list
+<<<<<<< HEAD
     
     def get_tek_list(self):
+=======
+
+    def get_tek_id_list(self):
+>>>>>>> 0924226 (#1067 Load building category area by tek)
         """
         Get a list of TEK IDs.
 
@@ -60,17 +70,36 @@ class DatabaseManager():
         - tek_list (list): List of TEK IDs.
         """
         tek_id = self.file_handler.get_tek_id()
+<<<<<<< HEAD
         tek_list = tek_id[self.COL_TEK].unique()
         return tek_list
     
     def get_tek_params(self, tek_list: typing.List[str]):
+=======
+        tek_id_list = tek_id[self.COL_TEK_ID].unique()
+        return tek_id_list
+
+    def get_tek_params(self):
+>>>>>>> 0924226 (#1067 Load building category area by tek)
         """
         Retrieve TEK parameters for a list of TEK IDs.
 
+<<<<<<< HEAD
         This method fetches TEK parameters for each TEK ID in the provided list,
         converts the relevant data to a dictionary, and maps these values to the 
         corresponding attributes of the TEKParameters dataclass. The resulting 
         dataclass instances are stored in a dictionary with TEK IDs as keys.
+=======
+        Returns:
+        - tek_params (pd.DataFrame): DataFrame with TEK parameters.
+        """
+        tek_params = self.file_handler.get_tek_params()
+        return tek_params
+
+    def get_tek_params_per_id(self, tek_id):
+        """
+        Get dataframe with TEK parameters for a specific TEK ID.
+>>>>>>> 0924226 (#1067 Load building category area by tek)
 
         Parameters:
         - tek_list (list of str): List of TEK IDs.
@@ -185,4 +214,20 @@ class DatabaseManager():
           "area","type of building","2010","2011"
         """
         return self.file_handler.get_building_category_area()
+
+    def get_building_category_area_by_tek(self, building_category=None) -> pd.DataFrame:
+        """
+        get total area of building_category by TEK.
+        Parameters:
+        - building_category (str): optional parameter that filter the returned dataframe by building_category
+        Returns:
+        - building_category_area_by_tek (pd.DataFrame): Dataframe containing area numbers
+          "building_category","TEK","area"
+        """
+
+        df = self.file_handler.get_building_category_area_by_tek()
+        df.loc[df.TEK == '-> TEK49', 'TEK'] = 'PRE_TEK49'
+        if building_category:
+            return df[df.building_category == building_category]
+        return df
 

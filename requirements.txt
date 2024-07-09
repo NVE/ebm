@@ -1,3 +1,6 @@
 pandas
 openpyxl
 loguru
+python-dotenv
+ipython
+numpy

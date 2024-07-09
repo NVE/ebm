@@ -41,7 +41,7 @@ class Buildings():
         scurve_data = {}
 
         # Retrieve dictionary with S-curve parameters for the given building category and condition list
-        scurve_params = self.database.get_scurve_params_per_building_category_and_condition(self.building_category, self.condition_list)
+        scurve_params = self.database.get_scurve_params_per_building_category(self.building_category, self.condition_list)
 
         for condition in self.condition_list:
 

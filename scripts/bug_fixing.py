@@ -12,6 +12,7 @@ def dict_to_df(dict):
 
 # Database method testing
 db = DatabaseManager()
+
 #condition_list = db.get_condition_list()
 #s = db.get_scurve_params_per_building_category_and_condition('House', condition_list)
 #print(s) 

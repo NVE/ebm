@@ -1,10 +1,11 @@
 import os
+import pathlib
 
 from loguru import logger
 import pandas as pd
 
 
-class FileHandler():
+class FileHandler:
     """
     Handles file operations.
     """
@@ -21,7 +22,6 @@ class FileHandler():
     CONSTRUCTION_BUILDING_CATEGORY_AREA = 'nybygging_ssb_05940_areal.csv'
 
     def __init__(self):
-        
         self.input_folder = 'input'
 
     def get_file(self, file_name: str) -> pd.DataFrame:
@@ -35,16 +35,15 @@ class FileHandler():
         - file_df (pd.DataFrame): DataFrame containing file data.
         """
         logger.debug(f'get_file {file_name}')
-        
-        file_path = os.path.join(self.input_folder, file_name)
-        
+        file_path: pathlib.Path = pathlib.Path(self.input_folder) / file_name
+
         try:
-            if file_path.endswith('.xlsx'):
+            if file_path.suffix == '.xlsx':
                 file_df = pd.read_excel(file_path)
-            elif file_path.endswith('.csv'):
+            elif file_path.suffix == '.csv':
                 file_df = pd.read_csv(file_path)
             else:
-                msg = f'{file_name} is not of type xlsx'
+                msg = f'{file_name} is not of type xlsx or csv'
                 logger.error(msg)
                 raise ValueError(msg)
             return file_df

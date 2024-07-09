@@ -118,7 +118,7 @@ class DatabaseManager():
         return scurve_params
 
     def get_scurve_params_per_building_category(self, building_category: str,
-                                                              condition_list: typing.List[str]) -> ScurveParameters:
+                                                condition_list: typing.List[str]) -> ScurveParameters:
         """
         Get S-curve parameters for a given building category and list of conditions.
 

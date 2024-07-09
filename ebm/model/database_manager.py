@@ -83,7 +83,6 @@ class DatabaseManager():
                             parameters for that TEK ID.
         """
         tek_params = {}
-
         tek_params_df = self.file_handler.get_tek_params()
 
         for tek in tek_list:
@@ -119,41 +118,51 @@ class DatabaseManager():
         return scurve_params
 
     def get_scurve_params_per_building_category_and_condition(self, building_category: str,
-                                                              condition: str) -> ScurveParameters:
+                                                              condition_list: typing.List[str]) -> ScurveParameters:
         """
-        Get input dataframe with S-curve parameters/assumptions and filter it by building category and condition.
+        Get S-curve parameters for a given building category and list of conditions.
+
+        This method retrieves S-curve parameters from a data source, filters them by the specified
+        building category and conditions, and converts them into a dictionary of `ScurveParameters` 
+        dataclass instances.
 
         Parameters:
-        - building_category (str): Building category.
-        - condition (str): Building condition.
+        - building_category (str): building category
+        - condition_list (List[str]): list of building conditions 
 
         Returns:
-        - scurve_params_dict (dict): Dictionary containing S-curve parameters with column names as keys and 
-                                      corresponding column values as values.
+        - scurve_params (dict): A dictionary where the keys are the conditions (str) and the values are 
+                                `ScurveParameters` dataclass instances containing the S-curve parameters.
         """
-        # Retrieve input data and filter on building category and condition
-        scurve_params = self.file_handler.get_scurve_params()
-        scurve_params_filtered = scurve_params[(scurve_params[self.COL_BUILDING_CATEGORY] == building_category) & (scurve_params[self.COL_BUILDING_CONDITION] == condition)]
+        scurve_params = {}
+        scurve_params_df = self.file_handler.get_scurve_params()
 
-        # Assuming there is only one row in the filtered DataFrame
-        scurve_params_row = scurve_params_filtered.iloc[0]
+        for condition in condition_list:
 
-        # Convert the single row to a dictionary
-        scurve_params_dict = scurve_params_row.to_dict()
-        
-        # Map the dictionary values to the dataclass attributes
-        scurve_parameters = ScurveParameters(
-            building_category=scurve_params_dict[self.COL_BUILDING_CATEGORY],
-            condition=scurve_params_dict[self.COL_BUILDING_CONDITION],
-            earliest_age=scurve_params_dict[self.COL_EARLIEST_AGE],
-            average_age=scurve_params_dict[self.COL_AVERAGE_AGE], 
-            rush_years=scurve_params_dict[self.COL_RUSH_YEARS], 
-            last_age=scurve_params_dict[self.COL_LAST_AGE],
-            rush_share=scurve_params_dict[self.COL_RUSH_SHARE],
-            never_share=scurve_params_dict[self.COL_NEVER_SHARE],
-        )
-        
-        return scurve_parameters 
+            # Filter dataframe on building category and condition
+            scurve_params_filtered = scurve_params_df[(scurve_params_df[self.COL_BUILDING_CATEGORY] == building_category) & (scurve_params_df[self.COL_BUILDING_CONDITION] == condition)]
+
+            # Assuming there is only one row in the filtered DataFrame
+            scurve_params_row = scurve_params_filtered.iloc[0]
+
+            # Convert the single row to a dictionary
+            scurve_params_dict = scurve_params_row.to_dict()
+            
+            # Map the dictionary values to the dataclass attributes
+            scurve_parameters = ScurveParameters(
+                building_category=scurve_params_dict[self.COL_BUILDING_CATEGORY],
+                condition=scurve_params_dict[self.COL_BUILDING_CONDITION],
+                earliest_age=scurve_params_dict[self.COL_EARLIEST_AGE],
+                average_age=scurve_params_dict[self.COL_AVERAGE_AGE], 
+                rush_years=scurve_params_dict[self.COL_RUSH_YEARS], 
+                last_age=scurve_params_dict[self.COL_LAST_AGE],
+                rush_share=scurve_params_dict[self.COL_RUSH_SHARE],
+                never_share=scurve_params_dict[self.COL_NEVER_SHARE],
+            )
+
+            scurve_params[condition] = scurve_parameters
+
+        return scurve_params 
 
     def get_construction_population(self) -> pd.DataFrame:
         """

@@ -40,18 +40,21 @@ class Buildings():
         """
         scurve_data = {}
 
+        # Retrieve dictionary with S-curve parameters for the given building category and condition list
+        scurve_params = self.database.get_scurve_params_per_building_category_and_condition(self.building_category, self.condition_list)
+
         for condition in self.condition_list:
 
-            # Retrieve input parameters for the given building category and condition
-            input_params = self.database.get_scurve_params_per_building_category_and_condition(self.building_category, condition)
+            # Filter S-curve parameters dictionary on condition
+            scurve_params_condition = scurve_params[condition]
             
             # Calculate the S-curve 
-            s = SCurve(input_params.earliest_age, input_params.average_age, input_params.last_age, 
-                       input_params.rush_years, input_params.rush_share, input_params.never_share)
+            s = SCurve(scurve_params_condition.earliest_age, scurve_params_condition.average_age, scurve_params_condition.last_age, 
+                       scurve_params_condition.rush_years, scurve_params_condition.rush_share, scurve_params_condition.never_share)
             scurve = s.calc_scurve()
             
             # Store the parameters in the dictionary
-            scurve_data[condition] = [scurve, input_params.never_share]
+            scurve_data[condition] = [scurve, scurve_params_condition.never_share]
         
         return scurve_data
 

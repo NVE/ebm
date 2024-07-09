@@ -21,7 +21,7 @@ def main():
     
     def s_curve_params_dict():
         db = DatabaseManager()
-        input = db.get_s_curve_params_per_building_category_and_condition('House', 'Small measure')
+        input = db.get_scurve_params_per_building_category_and_condition('House', 'Small measure')
         print(input)
 
     #s_curve_params_dict()

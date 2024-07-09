@@ -108,18 +108,18 @@ class DatabaseManager():
 
         return tek_params
 
-    def get_s_curve_params(self):
+    def get_scurve_params(self):
         """
         Get input dataframe with S-curve parameters/assumptions.
 
         Returns:
-        - s_curve_params (pd.DataFrame): DataFrame with S-curve parameters.
+        - scurve_params (pd.DataFrame): DataFrame with S-curve parameters.
         """
-        s_curve_params = self.file_handler.get_s_curve_params()
-        return s_curve_params
+        scurve_params = self.file_handler.get_scurve_params()
+        return scurve_params
 
-    def get_s_curve_params_per_building_category_and_condition(self, building_category: str, 
-                                                               condition: str) -> ScurveParameters:
+    def get_scurve_params_per_building_category_and_condition(self, building_category: str,
+                                                              condition: str) -> ScurveParameters:
         """
         Get input dataframe with S-curve parameters/assumptions and filter it by building category and condition.
 
@@ -128,29 +128,29 @@ class DatabaseManager():
         - condition (str): Building condition.
 
         Returns:
-        - s_curve_params_dict (dict): Dictionary containing S-curve parameters with column names as keys and 
+        - scurve_params_dict (dict): Dictionary containing S-curve parameters with column names as keys and 
                                       corresponding column values as values.
         """
         # Retrieve input data and filter on building category and condition
-        s_curve_params = self.file_handler.get_s_curve_params()
-        s_curve_params_filtered = s_curve_params[(s_curve_params[self.COL_BUILDING_CATEGORY] == building_category) & (s_curve_params[self.COL_BUILDING_CONDITION] == condition)]
+        scurve_params = self.file_handler.get_scurve_params()
+        scurve_params_filtered = scurve_params[(scurve_params[self.COL_BUILDING_CATEGORY] == building_category) & (scurve_params[self.COL_BUILDING_CONDITION] == condition)]
 
         # Assuming there is only one row in the filtered DataFrame
-        s_curve_params_row = s_curve_params_filtered.iloc[0]
+        scurve_params_row = scurve_params_filtered.iloc[0]
 
         # Convert the single row to a dictionary
-        s_curve_params_dict = s_curve_params_row.to_dict()
+        scurve_params_dict = scurve_params_row.to_dict()
         
         # Map the dictionary values to the dataclass attributes
         scurve_parameters = ScurveParameters(
-            building_category=s_curve_params_dict[self.COL_BUILDING_CATEGORY],
-            condition=s_curve_params_dict[self.COL_BUILDING_CONDITION],
-            earliest_age=s_curve_params_dict[self.COL_EARLIEST_AGE],
-            average_age=s_curve_params_dict[self.COL_AVERAGE_AGE], 
-            rush_years=s_curve_params_dict[self.COL_RUSH_YEARS], 
-            last_age=s_curve_params_dict[self.COL_LAST_AGE],
-            rush_share=s_curve_params_dict[self.COL_RUSH_SHARE],
-            never_share=s_curve_params_dict[self.COL_NEVER_SHARE],
+            building_category=scurve_params_dict[self.COL_BUILDING_CATEGORY],
+            condition=scurve_params_dict[self.COL_BUILDING_CONDITION],
+            earliest_age=scurve_params_dict[self.COL_EARLIEST_AGE],
+            average_age=scurve_params_dict[self.COL_AVERAGE_AGE], 
+            rush_years=scurve_params_dict[self.COL_RUSH_YEARS], 
+            last_age=scurve_params_dict[self.COL_LAST_AGE],
+            rush_share=scurve_params_dict[self.COL_RUSH_SHARE],
+            never_share=scurve_params_dict[self.COL_NEVER_SHARE],
         )
         
         return scurve_parameters 
@@ -190,9 +190,11 @@ class DatabaseManager():
 
     def get_building_category_area_by_tek(self, building_category=None) -> pd.DataFrame:
         """
-        get total area of building_category by TEK.
+        Get total area of building_category by TEK.
+
         Parameters:
         - building_category (str): optional parameter that filter the returned dataframe by building_category
+
         Returns:
         - building_category_area_by_tek (pd.DataFrame): Dataframe containing area numbers
           "building_category","TEK","area"

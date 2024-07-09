@@ -103,15 +103,15 @@ class FileHandler:
         tek_params = self.get_file(self.TEK_PARAMS)
         return tek_params
     
-    def get_s_curve_params(self) -> pd.DataFrame:
+    def get_scurve_params(self) -> pd.DataFrame:
         """
         Get S-curve parameters DataFrame.
 
         Returns:
-        - s_curve_params (pd.DataFrame): DataFrame containing S-curve parameters.
+        - scurve_params (pd.DataFrame): DataFrame containing S-curve parameters.
         """
-        s_curve_params = self.get_file(self.S_CURVES)
-        return s_curve_params
+        scurve_params = self.get_file(self.S_CURVES)
+        return scurve_params
 
     def get_construction_population(self) -> pd.DataFrame:
         """

@@ -35,23 +35,23 @@ class Buildings():
         is used as an input argument in the TEK class. 
 
         Returns:
-        - s_curve_params (dict): A dictionary where keys are building conditions (str) and values 
-                                 are lists containing the S-curve dictionary and the "never share" parameter (float).
+        - scurve_data (dict): A dictionary where keys are building conditions (str) and values 
+                              are lists containing the S-curve dictionary and the "never share" parameter (float).
         """
         scurve_data = {}
 
         for condition in self.condition_list:
 
             # Retrieve input parameters for the given building category and condition
-            input_params = self.database.get_s_curve_params_per_building_category_and_condition(self.building_category, condition)
+            input_params = self.database.get_scurve_params_per_building_category_and_condition(self.building_category, condition)
             
             # Calculate the S-curve 
             s = SCurve(input_params.earliest_age, input_params.average_age, input_params.last_age, 
                        input_params.rush_years, input_params.rush_share, input_params.never_share)
-            s_curve = s.calculate_s_curve()
+            scurve = s.calc_scurve()
             
             # Store the parameters in the dictionary
-            scurve_data[condition] = [s_curve, input_params.never_share]
+            scurve_data[condition] = [scurve, input_params.never_share]
         
         return scurve_data
 
@@ -97,7 +97,6 @@ class Buildings():
 
         Returns:
         - shares (dict): A dictionary where the keys are the TEKs and the values are the shares for the specified condition.
-
         """
         shares = self.shares_per_condition[condition]
         return shares

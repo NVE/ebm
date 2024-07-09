@@ -31,15 +31,15 @@ class SCurve():
         self._never_share = never_share
 
         # Calculate yearly rates
-        self._pre_rush_rate = self._calculate_pre_rush_rate() 
-        self._rush_rate = self._calculate_rush_rate()
-        self._post_rush_rate = self._calculate_post_rush_rate()
+        self._pre_rush_rate = self._calc_pre_rush_rate() 
+        self._rush_rate = self._calc_rush_rate()
+        self._post_rush_rate = self._calc_post_rush_rate()
         
         # Calculate S-curves
         self.rates_per_year = self.get_rates_per_year_over_building_lifetime() 
-        self.s_curve = self.calculate_s_curve() 
+        self.scurve = self.calc_scurve() 
 
-    def _calculate_pre_rush_rate(self):
+    def _calc_pre_rush_rate(self):
         """
         Calculate the yearly measure rate for the pre-rush period.
 
@@ -52,7 +52,7 @@ class SCurve():
         pre_rush_rate = (1 - self._rush_share - self._never_share) * (0.5 / (self._average_age - self._earliest_age - (self._rush_years/2)))
         return pre_rush_rate
     
-    def _calculate_rush_rate(self):
+    def _calc_rush_rate(self):
         """
         Calculate the yearly measure rate for the rush period.
 
@@ -65,7 +65,7 @@ class SCurve():
         rush_rate = self._rush_share / self._rush_years
         return rush_rate
     
-    def _calculate_post_rush_rate(self):
+    def _calc_post_rush_rate(self):
         """
         Calculate the yearly measure rate for the post-rush period.
 
@@ -119,12 +119,12 @@ class SCurve():
         
         return rates_per_year_dict
 
-    def calculate_s_curve(self):
+    def calc_scurve(self):
         """
         Calculates S-curve by accumulating the yearly measure rates over the building lifetime.
 
         Returns:
-        - s_curve_dict (dict): Dictionary with 'year' and 'rate' keys containing the years and accumulated rates of the S-curve.
+        - scurve_dict (dict): Dictionary with 'year' and 'rate' keys containing the years and accumulated rates of the S-curve.
         """
         years = self.rates_per_year['year']
         rates = self.rates_per_year['rate']
@@ -139,7 +139,7 @@ class SCurve():
         # Use tuples due to immutability
         accumulated_rates = tuple(accumulated_rates)
 
-        s_curve_dict = {'year': years, 'rate': accumulated_rates}
+        scurve_dict = {'year': years, 'rate': accumulated_rates}
 
-        return s_curve_dict
+        return scurve_dict
     

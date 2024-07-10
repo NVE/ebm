@@ -11,20 +11,52 @@ class Buildings():
     """
     Holds all the attributes of a building, with it's associated data and operations.
     """
-    
-    #TODO:
-    # - add method to control tek_list and use it when setting instance var of tek_list
 
-    def __init__(self, building_category):
+    # Constants used in _filter_tek_list. Remove when model is updated with new 2020 data
+    CATEGORY_APARTMENT = 'Apartment block'
+    CATEGORY_HOUSE = 'House'
+    COMMERCIAL_BUILDING = 'COM'
+    RESiDENTIAL_BUILDING = 'RES'
+    APARTMENT_PRE_TEK49 = 'PRE_TEK49_RES1'
+    HOUSE_PRE_TEK49 = 'PRE_TEK49_RES2'
+
+    def __init__(self, building_category: str):
         
         self.building_category = building_category
         self.database = DatabaseManager()
-        self.condition_list = self.database.get_condition_list()
-        self.tek_list = self.database.get_tek_list() 
+        self.tek_list = self._filter_tek_list(self.database.get_tek_list())  
         self.tek_params = self.database.get_tek_params(self.tek_list)
-
+        self.condition_list = self.database.get_condition_list()
         self.scurve_data = self._get_scurve_data()
         self.shares_per_condition = self.get_shares()
+
+    def _filter_tek_list(self, tek_list: typing.List[str]) -> typing.List[str]:
+        """
+        Filters the provided TEK list based on the building category.
+
+        Parameters:
+        - tek_list (List[str]): List of TEK strings to be filtered.
+
+        Returns:
+        - filtered_tek_list (List[str]): Filtered list of TEK strings.
+        """
+        residential_building_list = [self.CATEGORY_APARTMENT, self.CATEGORY_HOUSE]
+        
+        if self.building_category in residential_building_list:
+            # Filter out all TEKs associated with commercial buildings
+            filtered_tek_list = [tek for tek in tek_list if self.COMMERCIAL_BUILDING not in tek]
+
+            # Further filtering based on the specific residential building category
+            if self.building_category == self.CATEGORY_APARTMENT:
+                filtered_tek_list = [tek for tek in filtered_tek_list if tek != self.HOUSE_PRE_TEK49]
+            elif self.building_category == self.CATEGORY_HOUSE:
+                filtered_tek_list = [tek for tek in filtered_tek_list if tek != self.APARTMENT_PRE_TEK49]
+
+        else:
+            # Filter out all TEKs associated with residential buildings
+             filtered_tek_list = [tek for tek in tek_list if self.RESiDENTIAL_BUILDING not in tek]
+
+        return filtered_tek_list
             
     def _get_scurve_data(self) -> typing.Dict:
         """

@@ -19,7 +19,7 @@ def main():
         logger.add(sys.stderr, level="INFO")
 
     file_handler = FileHandler()
-    population = file_handler.get_file('nybygging_befolkning.csv')
+    population = file_handler.get_file('new_buildings_population.csv')
     print(population)
     area_built = file_handler.get_file('nybygging_ssb_05939.csv')
     print(area_built)

@@ -163,20 +163,25 @@ class DatabaseManager():
         - construction_population (pd.DataFrame): Dataframe containing population numbers
           year population household_size
         """
-        return self.file_handler.get_construction_population()
+        new_buildings_population = self.file_handler.get_construction_population()
+        return new_buildings_population
 
-    def get_construction_building_category_share(self) -> pd.DataFrame:
+    def get_new_buildings_category_share(self) -> pd.DataFrame:
         """
-        Get building category share by year DataFrame from a file.
+        Get building category share by year as a DataFrame.
 
         The number can be used in conjunction with number of households to calculate total number
         of buildings of category house and apartment block
 
         Returns:
-        - construction_population (pd.DataFrame): Dataframe containing population numbers
+        - new_buildings_category_share (pd.DataFrame): Dataframe containing population numbers
           "year", "Andel nye småhus", "Andel nye leiligheter", "Areal nye småhus", "Areal nye leiligheter"
         """
-        return self.file_handler.get_construction_building_category_share()
+        df = self.file_handler.get_construction_building_category_share()
+        df['new_house_share'] = df['new_house_share'].astype('float64')
+        df['new_apartment_block_share'] = df['new_apartment_block_share'].astype('float64')
+
+        return df
 
     def get_building_category_area(self) -> pd.DataFrame:
         """

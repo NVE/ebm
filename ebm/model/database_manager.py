@@ -183,7 +183,7 @@ class DatabaseManager():
 
         return df
 
-    def get_building_category_area(self) -> pd.DataFrame:
+    def get_building_category_floor_area(self) -> pd.DataFrame:
         """
         Get population and household size DataFrame from a file.
 
@@ -191,7 +191,13 @@ class DatabaseManager():
         - construction_population (pd.DataFrame): Dataframe containing population numbers
           "area","type of building","2010","2011"
         """
-        return self.file_handler.get_building_category_area()
+
+        df = self.file_handler.get_building_category_area()
+        types = df['type_of_building'].apply(lambda r: pd.Series(r.split(' ', 1)))
+        df[['type_no', 'typename']] = types
+
+        df = df.drop(columns=['type_of_building', 'area'])
+        return df
 
     def get_building_category_area_by_tek(self, building_category=None) -> pd.DataFrame:
         """

@@ -13,8 +13,8 @@ class Buildings():
     """
 
     # Constants used in _filter_tek_list. Remove when model is updated with new 2020 data
-    CATEGORY_APARTMENT = 'Apartment block'
-    CATEGORY_HOUSE = 'House'
+    CATEGORY_APARTMENT = 'apartment_block'
+    CATEGORY_HOUSE = 'house'
     COMMERCIAL_BUILDING = 'COM'
     RESiDENTIAL_BUILDING = 'RES'
     APARTMENT_PRE_TEK49 = 'PRE_TEK49_RES1'

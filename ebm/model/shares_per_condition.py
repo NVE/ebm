@@ -22,9 +22,9 @@ class SharesPerCondition():
     END_YEAR = 2050
 
     # Strings in condition list
-    KEY_SMALL_MEASURE = 'Small measure'
-    KEY_RENOVATION = 'Renovation'
-    KEY_DEMOLITION = 'Demolition'
+    KEY_SMALL_MEASURE = 'small_measure'
+    KEY_RENOVATION = 'renovation'
+    KEY_DEMOLITION = 'demolition'
     KEY_RENOVATION_SMALL_MEASURE = 'renovation_and_small_measure' 
     KEY_ORIGINAL_CONDITION = 'original_condition'
 

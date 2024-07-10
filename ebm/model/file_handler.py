@@ -16,7 +16,7 @@ class FileHandler:
     BUILDING_CONDITIONS = 'building_conditions.xlsx'
     TEK_ID = 'TEK_ID.xlsx'
     TEK_PARAMS = 'TEK_parameters.xlsx'
-    S_CURVES = 's_curves.xlsx'
+    S_CURVES = 'scurve_parameters.xlsx'
     CONSTRUCTION_POPULATION = 'nybygging_befolkning.csv'
     CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'nybygging_husandeler.csv'
     CONSTRUCTION_BUILDING_CATEGORY_AREA = 'nybygging_ssb_05940_areal.csv'

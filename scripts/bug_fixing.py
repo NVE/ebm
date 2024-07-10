@@ -25,8 +25,9 @@ db = DatabaseManager()
 b = Buildings('House')
 tek_list = b.tek_list
 tek_params = b.tek_params
+shares = b.shares_per_condition
 
-#print(og_tek_list)
-print(tek_list)
-print(tek_params)
+df = dict_to_df(shares)
+
+print(df)
 

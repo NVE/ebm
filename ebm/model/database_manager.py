@@ -164,6 +164,7 @@ class DatabaseManager():
           year population household_size
         """
         new_buildings_population = self.file_handler.get_construction_population()
+        new_buildings_population["household_size"] = new_buildings_population['household_size'].astype('float64')
         return new_buildings_population
 
     def get_new_buildings_category_share(self) -> pd.DataFrame:

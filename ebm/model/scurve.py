@@ -1,3 +1,5 @@
+import typing
+
 class SCurve():
     """
     Calculates S-curve per building condition.
@@ -39,7 +41,7 @@ class SCurve():
         self.rates_per_year = self.get_rates_per_year_over_building_lifetime() 
         self.scurve = self.calc_scurve() 
 
-    def _calc_pre_rush_rate(self):
+    def _calc_pre_rush_rate(self) -> float:
         """
         Calculate the yearly measure rate for the pre-rush period.
 
@@ -52,7 +54,7 @@ class SCurve():
         pre_rush_rate = (1 - self._rush_share - self._never_share) * (0.5 / (self._average_age - self._earliest_age - (self._rush_years/2)))
         return pre_rush_rate
     
-    def _calc_rush_rate(self):
+    def _calc_rush_rate(self) -> float:
         """
         Calculate the yearly measure rate for the rush period.
 
@@ -65,7 +67,7 @@ class SCurve():
         rush_rate = self._rush_share / self._rush_years
         return rush_rate
     
-    def _calc_post_rush_rate(self):
+    def _calc_post_rush_rate(self) -> float:
         """
         Calculate the yearly measure rate for the post-rush period.
 
@@ -78,15 +80,15 @@ class SCurve():
         post_rush_rate = (1 - self._rush_share - self._never_share) * (0.5 / (self._last_age - self._average_age - (self._rush_years/2)))
         return post_rush_rate
 
-    def get_rates_per_year_over_building_lifetime(self):
+    def get_rates_per_year_over_building_lifetime(self) -> typing.Tuple:
         """
-        Create a dictionary that holds the yearly measure rates over the building lifetime.
+        Create a list that holds the yearly measure rates over the building lifetime.
 
         This method defines the periods in the S-curve, adds the yearly measure rates to
-        the corresponding periods and stores them in a dictionary. 
+        the corresponding periods, and stores them in a list.
 
         Returns:
-        - rates_per_year_dict (dict): Dictionary with 'Year' and 'Rate' keys containing the years and corresponding rates.
+        - rates_per_year (List): List containing the yearly measure rates over the building lifetime (float or int).
         """
 
         # Define the length of the different periods in the S-curve
@@ -102,8 +104,7 @@ class SCurve():
             post_rush_years = self._building_lifetime - earliest_years - pre_rush_years - rush_years
 
         # Create dict where the yearly rates are placed according to their corresponding period in the buildings lifetime 
-        years = list(range(1, self._building_lifetime + 1))
-        rates = (
+        rates_per_year = (
             [0] * earliest_years + 
             [self._pre_rush_rate] * pre_rush_years +
             [self._rush_rate] * rush_years +
@@ -112,22 +113,21 @@ class SCurve():
         )  
         
         # Use tuples due to immutability
-        years = tuple(years)
-        rates = tuple(rates)
-
-        rates_per_year_dict = {'year': years, 'rate': rates}
+        rates_per_year = tuple(rates_per_year)
         
-        return rates_per_year_dict
+        return rates_per_year
 
-    def calc_scurve(self):
+    def calc_scurve(self) -> typing.Tuple:
         """
-        Calculates S-curve by accumulating the yearly measure rates over the building lifetime.
+        Calculates the S-curve by accumulating the yearly measure rates over the building's lifetime.
+
+        This method iterates over the yearly measure rates, accumulates them, and stores the accumulated
+        rates in a tuple representing the S-curve.
 
         Returns:
-        - scurve_dict (dict): Dictionary with 'year' and 'rate' keys containing the years and accumulated rates of the S-curve.
+        - scurve (Tuple): Tuple containing the accumulated rates of the S-curve (float or int).
         """
-        years = self.rates_per_year['year']
-        rates = self.rates_per_year['rate']
+        rates = self.rates_per_year
         
         # Iterate over the rates and accumulate them in a list
         accumulated_rates = []
@@ -137,9 +137,7 @@ class SCurve():
             accumulated_rates.append(acc_rate)
 
         # Use tuples due to immutability
-        accumulated_rates = tuple(accumulated_rates)
+        scurve = tuple(accumulated_rates)
 
-        scurve_dict = {'year': years, 'rate': accumulated_rates}
-
-        return scurve_dict
+        return scurve
     

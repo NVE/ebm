@@ -6,6 +6,9 @@ from .scurve import SCurve
 from .tek import TEK
 from .shares_per_condition import SharesPerCondition
 
+# TODO: 
+# add years list to scurve dict and shares per condition: years = list(range(1, self._building_lifetime + 1))
+
 
 class Buildings():
     """
@@ -68,7 +71,7 @@ class Buildings():
 
         Returns:
         - scurve_data (dict): A dictionary where keys are building conditions (str) and values 
-                              are lists containing the S-curve dictionary and the "never share" parameter (float).
+                              are lists containing the S-curve tuple and the "never share" parameter (float).
         """
         scurve_data = {}
 
@@ -101,9 +104,13 @@ class Buildings():
         - condition (str): The condition for which to retrieve the S-curve data (e.g., 'Renovation', 'Demolition').
 
         Returns:
-        - scurve (dict): A dictionary containing the S-curve data for the specified condition.. 
+        - scurve (dict): A dictionary containing the S-curve data for the specified condition.
+                         The dictionary has 'year' as keys representing the years in the building
+                         lifetime and 'scurve' as values representing the corresponding S-curve values.
         """
-        scurve = self.scurve_data[condition][0]
+        scurve_list = self.scurve_data[condition][0]
+        year_list = list(range(1, len(scurve_list) + 1))
+        scurve = {'year':year_list, 'scurve':scurve_list}
         return scurve
 
     def get_shares(self) -> typing.Dict:

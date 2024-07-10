@@ -18,8 +18,8 @@ class FileHandler:
     TEK_PARAMS = 'TEK_parameters.xlsx'
     S_CURVES = 's_curves.xlsx'
     CONSTRUCTION_POPULATION = 'new_buildings_population.csv'
-    CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'new_buildings_floor_area.csv'
-    CONSTRUCTION_BUILDING_CATEGORY_AREA = 'nybygging_ssb_05940_areal.csv'
+    CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'new_buildings_house_share.csv'
+    CONSTRUCTION_BUILDING_CATEGORY_AREA = 'new_buildings_floor_area.csv'
     CONSTRUCTION_BUILDING_CATEGORY_AREA_BY_TEK = 'areal_parametre.csv'
 
     def __init__(self):

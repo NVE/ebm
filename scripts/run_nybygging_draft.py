@@ -16,8 +16,8 @@ print('# Nybygging formler')
 
 file_handler = FileHandler()
 
-nybygging_ssb_areal = 'input/nybygging_ssb_05940_areal.csv'
-nybygging_andeler = 'input/new_buildings_floor_area.csv'
+nybygging_ssb_areal = 'input/new_buildings_floor_area.csv'
+nybygging_andeler = 'input/new_buildings_house_share.csv'
 nybygging_befolkning = 'input/new_buildings_population.csv'
 
 print('### Andeler småhus/leiligheter')

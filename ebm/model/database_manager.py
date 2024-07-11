@@ -165,6 +165,7 @@ class DatabaseManager():
         """
         new_buildings_population = self.file_handler.get_construction_population()
         new_buildings_population["household_size"] = new_buildings_population['household_size'].astype('float64')
+        new_buildings_population = new_buildings_population.set_index('year')
         return new_buildings_population
 
     def get_new_buildings_category_share(self) -> pd.DataFrame:
@@ -182,7 +183,7 @@ class DatabaseManager():
         df['new_house_share'] = df['new_house_share'].astype('float64')
         df['new_apartment_block_share'] = df['new_apartment_block_share'].astype('float64')
 
-        return df
+        return df.set_index('year')
 
     def get_building_category_floor_area(self) -> pd.DataFrame:
         """

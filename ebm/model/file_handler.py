@@ -147,13 +147,13 @@ class FileHandler:
         """
         return self.get_file(self.CONSTRUCTION_BUILDING_CATEGORY_AREA)
 
-    def get_building_category_area_by_tek(self) -> pd.DataFrame:
+    def get_area_parameters(self) -> pd.DataFrame:
         """
-        Load total area of building_category by TEK from a file.
+        Get dataframe with area parameters.
 
         Returns:
-        - building_category_area_by_tek (pd.DataFrame): Dataframe containing area numbers
-          "building_category","TEK","area"
+        - area_parameters (pd.DataFrame): Dataframe containing total area (m^2) per
+                                          building category and TEK. 
         """
         return self.get_file(self.AREA_PARAMETERS)
 

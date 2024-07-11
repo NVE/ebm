@@ -143,21 +143,17 @@ class DatabaseManager():
         """
         return self.file_handler.get_building_category_area()
 
-    def get_building_category_area_by_tek(self, building_category=None) -> pd.DataFrame:
+    def get_area_parameters(self) -> pd.DataFrame:
         """
-        Get total area of building_category by TEK.
+        Get total area (m^2) per building category and TEK.
 
         Parameters:
-        - building_category (str): optional parameter that filter the returned dataframe by building_category
+        - building_category (str): Optional parameter that filter the returned dataframe by building_category
 
         Returns:
-        - building_category_area_by_tek (pd.DataFrame): Dataframe containing area numbers
-          "building_category","TEK","area"
+        - area_parameters (pd.DataFrame): Dataframe containing total area (m^2) per
+                                          building category and TEK. 
         """
-
-        df = self.file_handler.get_building_category_area_by_tek()
-        df.loc[df.TEK == '-> TEK49', 'TEK'] = 'PRE_TEK49'
-        if building_category:
-            return df[df.building_category == building_category]
-        return df
+        area_params = self.file_handler.get_area_parameters()
+        return area_params
 

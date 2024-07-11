@@ -4,7 +4,7 @@ import pandas as pd
 # Convert a file from xlsx to csv (with same filename) in same directory
 
 folder_path = 'input'
-filename = 'scurve_parameters'
+filename = 'area_parameters'
 
 def xlsx_to_csv(folder_path, filename):
     source = pathlib.Path(f'{folder_path}/{filename}.xlsx')

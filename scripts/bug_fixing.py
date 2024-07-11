@@ -35,6 +35,6 @@ df = dict_to_df(shares['small_measure'])
 construction_population = db.get_construction_population()
 construction_building_category_share = db.get_construction_building_category_share()
 area = db.get_building_category_area()
-area_by_tek = db.get_building_category_area_by_tek()
+area_by_tek = db.get_area_parameters()
 
 print(area_by_tek)

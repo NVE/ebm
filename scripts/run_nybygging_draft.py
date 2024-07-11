@@ -4,7 +4,6 @@
 import itertools
 import pathlib
 import string
-import typing
 
 from IPython.display import display
 from loguru import logger
@@ -13,6 +12,7 @@ import numpy as np
 import pandas as pd
 
 from ebm.model import DatabaseManager
+from ebm.services.spreadsheet import iter_cells
 
 
 def calculate_households(population: pd.DataFrame) -> pd.DataFrame:
@@ -47,9 +47,7 @@ def calculate_house_floor_area_demolished_by_year() -> pd.DataFrame:
     sheet_ranges = wb.sheetnames
     sheet = wb[sheet_ranges[0]]
     cells = list(iter_cells(first_column='E'))[:41]
-    logger.info(list(string.ascii_uppercase)[4:] + [a + b for a, b in itertools.product(string.ascii_uppercase, repeat=2)][
-                                               :19])
-    logger.info(cells)
+
     a_hus_revet = pd.DataFrame({'demolition': [sheet[f'{c}656'].value for c in cells]}, index=list(range(2010, 2051)))
     a_hus_revet['demolition'] = a_hus_revet['demolition']
     a_hus_revet['demolition_change'] = a_hus_revet.demolition.diff(1).fillna(0)
@@ -82,28 +80,6 @@ def calculate_new_buildings_accumulated(yearly_change_small_house) -> pd.DataFra
     return yearly_change_small_house
 
 
-def iter_cells(first_column: str = 'E', left_padding: str = '') -> typing.Generator[str, None, None]:
-    """ Returns spreadsheet column names from A up to ZZ
-        Parameters:
-        - first_column Letter of the first column to return. Default (E)
-        - left_padding Padding added in front of single letter columns. Default empty
-        Returns:
-        - Generator supplying a column name
-    """
-    if not first_column:
-        first_index = 0
-    elif first_column.upper() not in string.ascii_uppercase:
-        raise ValueError(f'Expected first_column {first_column} in {string.ascii_uppercase}')
-    elif len(first_column) != 1:
-        raise ValueError(f'Expected first_column of length 1 was: {len(first_column)}')
-    else:
-        first_index = string.ascii_uppercase.index(first_column.upper())
-    for cell in string.ascii_uppercase[first_index:]:
-        yield f'{left_padding}{cell}'
-    for a, b in itertools.product(string.ascii_uppercase, repeat=2):
-        yield a+b
-
-
 def main():
     process_new_buildings_house()
 
@@ -115,16 +91,18 @@ def process_new_buildings_house():
 
     facts = households[['population', 'population_change', 'household_size', 'households', 'households_change']]
 
-    demolition = calculate_house_floor_area_demolished_by_year()
+    house_demolition_area = calculate_house_floor_area_demolished_by_year()
 
-    house_change = calculate_house_change(households, database_manager.get_new_buildings_category_share())
-    yearly_built_floor_area_house = calculate_yearly_built_floor_area_house(
-        database_manager.get_building_category_floor_area(),
-        demolition,
-        house_change)
+    buildings_category_share = database_manager.get_new_buildings_category_share()
+    category_floor_area = database_manager.get_building_category_floor_area()
+    house_change = calculate_house_change(households, buildings_category_share)
+
+    yearly_built_floor_area_house = calculate_yearly_built_floor_area_house(category_floor_area,
+                                                                            house_demolition_area,
+                                                                            house_change)
 
     scenario_r_house = pd.concat([
-        demolition['demolition_change'],
+        house_demolition_area['demolition_change'],
         yearly_built_floor_area_house['yearly_new_house_floor_area'],
         calculate_new_buildings_accumulated(yearly_built_floor_area_house)['new_house_accumulated']],
         axis=1)

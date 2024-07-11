@@ -1,18 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import itertools
-import pathlib
-import string
-
 from IPython.display import display
-from loguru import logger
-from openpyxl import load_workbook
 import numpy as np
 import pandas as pd
 
 from ebm.model import DatabaseManager
-from ebm.services.spreadsheet import iter_cells
+from ebm.services.spreadsheet import calculate_house_floor_area_demolished_by_year
 
 
 def calculate_households(population: pd.DataFrame) -> pd.DataFrame:
@@ -38,22 +32,6 @@ def calculate_house_change(population: pd.DataFrame, new_buildings_category_shar
     if 'year' in floor_area.columns:
         floor_area = floor_area.set_index('year')
     return floor_area
-
-
-def calculate_house_floor_area_demolished_by_year() -> pd.DataFrame:
-    p = pathlib.Path(
-        "C:/Users/kenord/OneDrive - Norges vassdrags- og energidirektorat/Dokumenter/regneark/st_bema2019_a_hus.xlsx")
-    wb = load_workbook(filename=p)
-    sheet_ranges = wb.sheetnames
-    sheet = wb[sheet_ranges[0]]
-    cells = list(iter_cells(first_column='E'))[:41]
-
-    a_hus_revet = pd.DataFrame({'demolition': [sheet[f'{c}656'].value for c in cells]}, index=list(range(2010, 2051)))
-    a_hus_revet['demolition'] = a_hus_revet['demolition']
-    a_hus_revet['demolition_change'] = a_hus_revet.demolition.diff(1).fillna(0)
-    a_hus_revet.index = a_hus_revet.index.rename('year')
-
-    return a_hus_revet
 
 
 def calculate_yearly_built_floor_area_house(build_area: pd.DataFrame,
@@ -115,8 +93,8 @@ def process_new_buildings_house():
                                                'households': 'Husholdninger',
                                                'households_change': 'Årlig endring antall boliger',
                                                'demolition_change': 'Årlig revet areal',
-                                               'yearly_new_house_floor_area': 'Årlig nybygget areal',
-                                               'new_house_accumulated': 'Nybygget småhus akkumulert'})
+                                               'house_floor_area_change': 'Årlig nybygget areal',
+                                               'floor_area_change_accumulated': 'Nybygget småhus akkumulert'})
     display(regneark.transpose())
 
 

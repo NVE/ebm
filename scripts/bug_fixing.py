@@ -26,7 +26,7 @@ scurve_params = db.get_scurve_params()
 
 b = Buildings('house', tek_list, tek_params, condition_list, scurve_params)
 shares = b.shares_per_condition
-df = dict_to_df(shares)
+df = dict_to_df(shares['small_measure'])
 
 print(df)
 

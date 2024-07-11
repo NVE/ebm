@@ -54,7 +54,7 @@ class SharesPerCondition():
         self.shares_original_condition = self.calc_shares_original_condition()
 
         self.shares_per_condition = {
-            self.KEY_SMALL_MEASURE: self.shares_demolition,
+            self.KEY_SMALL_MEASURE: self.shares_small_measure,
             self.KEY_RENOVATION: self.shares_renovation,
             self.KEY_RENOVATION_SMALL_MEASURE: self.shares_renovation_and_small_measure,
             self.KEY_DEMOLITION: self.shares_demolition,

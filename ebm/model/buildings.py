@@ -1,15 +1,17 @@
 import typing
-import re
+import pandas as pd
 
-from .database_manager import DatabaseManager
+from .data_classes import TEKParameters, ScurveParameters
 from .scurve import SCurve
-from .tek import TEK
 from .shares_per_condition import SharesPerCondition
 
 # TODO: 
-# - remove _filter_tek_list when model is updated with new 2020 data
-# - add model years to a getter metod for shares_per_condition dictionary
-# - consider moving the tek list filtering method to an own class, so that it can be accessed outside this class
+# - remove _filter_tek_list and _filter_tek_params when the model is updated with new 2020 data.
+# - adjust _filter_scurve_params method to not use class constants. Possible solutions:
+#       - to avoid filtering df on column names (category and condition), change from Dataframe to Dict - something like this = {'building category', {'condition': Parameters}}  
+#       - pass the variables as an input argument for the class (for example as a list). They can be defined outside the class, e.g. in a config
+#       - adjust the variables of the ScurveParameters dataclass to match column names, then there is no need to hardcode them.   
+# - add model years to a getter method for shares_per_condition dictionary, for user readability
 
 
 class Buildings():
@@ -17,13 +19,28 @@ class Buildings():
     Holds all the attributes of a building, with it's associated data and operations.
     """
 
-    def __init__(self, building_category: str):
+    # Variables used to filter S-curve params (_filter_scurve_params)
+    COL_BUILDING_CATEGORY = 'building_category'
+    COL_BUILDING_CONDITION = 'condition'
+    COL_EARLIEST_AGE = 'earliest_age_for_measure'
+    COL_AVERAGE_AGE = 'average_age_for_measure'
+    COL_LAST_AGE = 'last_age_for_measure'
+    COL_RUSH_YEARS = 'rush_period_years'
+    COL_RUSH_SHARE = 'rush_share'
+    COL_NEVER_SHARE = 'never_share'
+
+    def __init__(self, 
+                 building_category: str,
+                 tek_list: typing.List[str],
+                 tek_params: typing.Dict[str, TEKParameters],
+                 condition_list: typing.List[str],
+                 scurve_params: pd.DataFrame):
         
         self.building_category = building_category
-        self.database = DatabaseManager()
-        self.tek_list = self._filter_tek_list(self.database.get_tek_list())  
-        self.tek_params = self.database.get_tek_params(self.tek_list)
-        self.condition_list = self.database.get_condition_list()
+        self.condition_list = condition_list
+        self.tek_list = self._filter_tek_list(tek_list)  
+        self.tek_params = self._filter_tek_params(tek_params)
+        self.scurve_params = self._filter_scurve_params(scurve_params)
         self.scurve_data = self._get_scurve_data()
         self.shares_per_condition = self.get_shares()
 
@@ -62,14 +79,82 @@ class Buildings():
              filtered_tek_list = [tek for tek in tek_list if residential_building not in tek]
 
         return filtered_tek_list
+    
+    def _filter_tek_params(self, tek_params: typing.Dict[str, TEKParameters]):
+        """
+        Filters the TEK parameters to include only those relevant to the current TEK list.
+
+        This method takes a dictionary of TEK parameters and filters it to include only 
+        the parameters for TEKs that are present in the `self.tek_list`. This ensures 
+        that only the relevant TEK parameters are used in subsequent calculations.
+
+        Parameters:
+        - tek_params (Dict[str, TEKParameters]): A dictionary where the keys are TEK identifiers 
+                                                 and the values are TEKParameters objects containing
+                                                 the parameters for each TEK.
+
+        Returns:
+        - filtered_tek_params (Dict[str, TEKParameters]): A dictionary containing only the TEK parameters
+                                                          for the TEKs present in `self.tek_list`.
+        """
+        filtered_tek_params = {}
+        for tek in self.tek_list:
+            filtered_tek_params[tek] = tek_params[tek]    
+
+        return filtered_tek_params
+
+    def _filter_scurve_params(self, scurve_params: pd.DataFrame) -> typing.Dict[str, ScurveParameters]:
+        """
+        Filters S-curve parameters per condition by the building category.
+
+        This method filters a DataFrame containing S-curve parameters to extract data specific to 
+        the building category and conditions listed in `self.condition_list`. The filtered data is 
+        then converted into a dictionary of `ScurveParameters` dataclass instances, one for each condition.
+
+        Parameters:
+        - scurve_params (pd.Dataframe): Dataframe containing the S-Curve parameters.
+
+        Returns:
+        - scurve_params (dict): A dictionary where the keys are the conditions (str) and the values are 
+                                `ScurveParameters` dataclass instances containing the S-curve parameters.
+        """
+        filtered_scurve_params = {}
+
+        for condition in self.condition_list:
+
+            # Filter dataframe on building category and condition
+            scurve_params_filtered = scurve_params[(scurve_params[self.COL_BUILDING_CATEGORY] == self.building_category) &
+                                                   (scurve_params[self.COL_BUILDING_CONDITION] == condition)]
+
+            # Assuming there is only one row in the filtered DataFrame
+            scurve_params_row = scurve_params_filtered.iloc[0]
+
+            # Convert the single row to a dictionary
+            scurve_params_dict = scurve_params_row.to_dict()
             
+            # Map the dictionary values to the dataclass attributes
+            scurve_parameters = ScurveParameters(
+                building_category=scurve_params_dict[self.COL_BUILDING_CATEGORY],
+                condition=scurve_params_dict[self.COL_BUILDING_CONDITION],
+                earliest_age=scurve_params_dict[self.COL_EARLIEST_AGE],
+                average_age=scurve_params_dict[self.COL_AVERAGE_AGE], 
+                rush_years=scurve_params_dict[self.COL_RUSH_YEARS], 
+                last_age=scurve_params_dict[self.COL_LAST_AGE],
+                rush_share=scurve_params_dict[self.COL_RUSH_SHARE],
+                never_share=scurve_params_dict[self.COL_NEVER_SHARE],
+            )
+
+            filtered_scurve_params[condition] = scurve_parameters
+
+        return filtered_scurve_params 
+
     def _get_scurve_data(self) -> typing.Dict:
         """
         Create a dictionary that holds S-curves and the "never share" parameter per building condition. 
 
-        This method retrieves input parameters for each building condition, calculates the S-curve,
-        and stores the S-curve along with the "never share" parameter in a dictionary. The dictionary 
-        is used as an input argument in the TEK class. 
+        This method uses input S-curve parameters for each building condition (self.scurve_params), 
+        calculates the S-curve, and stores the S-curve along with the "never share" parameter in a dictionary.
+        The dictionary is used as an input argument in the TEK class. 
 
         Returns:
         - scurve_data (dict): A dictionary where keys are building conditions (str) and values 
@@ -77,13 +162,10 @@ class Buildings():
         """
         scurve_data = {}
 
-        # Retrieve dictionary with S-curve parameters for the given building category and condition list
-        scurve_params = self.database.get_scurve_params_per_building_category(self.building_category, self.condition_list)
-
         for condition in self.condition_list:
 
             # Filter S-curve parameters dictionary on condition
-            scurve_params_condition = scurve_params[condition]
+            scurve_params_condition = self.scurve_params[condition]
             
             # Calculate the S-curve 
             s = SCurve(scurve_params_condition.earliest_age, scurve_params_condition.average_age, scurve_params_condition.last_age, 

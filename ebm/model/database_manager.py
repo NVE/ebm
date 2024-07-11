@@ -7,7 +7,7 @@ from .file_handler import FileHandler
 from .data_classes import ScurveParameters, TEKParameters
 
 # TODO:
-# - change all strings to lower case and underscore instead of space
+# - add method to change all strings to lower case and underscore instead of space
 
 class DatabaseManager():
     """

@@ -7,21 +7,15 @@ from .tek import TEK
 from .shares_per_condition import SharesPerCondition
 
 # TODO: 
-# add years list to scurve dict and shares per condition: years = list(range(1, self._building_lifetime + 1))
+# - remove _filter_tek_list when model is updated with new 2020 data
+# - add model years to a getter metod for shares_per_condition dictionary
+# - consider moving the tek list filtering method to an own class, so that it can be accessed outside this class
 
 
 class Buildings():
     """
     Holds all the attributes of a building, with it's associated data and operations.
     """
-
-    # Constants used in _filter_tek_list. Remove when model is updated with new 2020 data
-    CATEGORY_APARTMENT = 'apartment_block'
-    CATEGORY_HOUSE = 'house'
-    COMMERCIAL_BUILDING = 'COM'
-    RESiDENTIAL_BUILDING = 'RES'
-    APARTMENT_PRE_TEK49 = 'PRE_TEK49_RES1'
-    HOUSE_PRE_TEK49 = 'PRE_TEK49_RES2'
 
     def __init__(self, building_category: str):
         
@@ -43,21 +37,29 @@ class Buildings():
         Returns:
         - filtered_tek_list (List[str]): Filtered list of TEK strings.
         """
-        residential_building_list = [self.CATEGORY_APARTMENT, self.CATEGORY_HOUSE]
+        # String variables used to filter the tek_list
+        category_apartment = 'apartment_block'
+        category_house = 'house'
+        commercial_building = 'COM'
+        residential_building = 'RES'
+        pre_tek49_apartment = 'PRE_TEK49_RES_1950'
+        pre_tek49_house = 'PRE_TEK49_RES_1940'
+
+        residential_building_list = [category_apartment, category_house]
         
         if self.building_category in residential_building_list:
             # Filter out all TEKs associated with commercial buildings
-            filtered_tek_list = [tek for tek in tek_list if self.COMMERCIAL_BUILDING not in tek]
+            filtered_tek_list = [tek for tek in tek_list if commercial_building not in tek]
 
             # Further filtering based on the specific residential building category
-            if self.building_category == self.CATEGORY_APARTMENT:
-                filtered_tek_list = [tek for tek in filtered_tek_list if tek != self.HOUSE_PRE_TEK49]
-            elif self.building_category == self.CATEGORY_HOUSE:
-                filtered_tek_list = [tek for tek in filtered_tek_list if tek != self.APARTMENT_PRE_TEK49]
+            if self.building_category == category_apartment:
+                filtered_tek_list = [tek for tek in filtered_tek_list if tek != pre_tek49_house]
+            elif self.building_category == category_house:
+                filtered_tek_list = [tek for tek in filtered_tek_list if tek != pre_tek49_apartment]
 
         else:
             # Filter out all TEKs associated with residential buildings
-             filtered_tek_list = [tek for tek in tek_list if self.RESiDENTIAL_BUILDING not in tek]
+             filtered_tek_list = [tek for tek in tek_list if residential_building not in tek]
 
         return filtered_tek_list
             
@@ -142,3 +144,4 @@ class Buildings():
         """
         shares = self.shares_per_condition[condition]
         return shares
+    

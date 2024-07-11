@@ -9,7 +9,6 @@ class FileHandler:
     """
     Handles file operations.
     """
-    #TODO: Add input validtion (loguru)
 
     # Filenames
     BUILDING_CATEGORIES = 'building_categories.xlsx'

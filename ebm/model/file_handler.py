@@ -4,6 +4,8 @@ import pathlib
 from loguru import logger
 import pandas as pd
 
+# TODO: 
+# change so that get_file can read 'any' fileformat? So that filetype (e.g. xlsx) don't need to be specified in filenames.  
 
 class FileHandler:
     """
@@ -11,15 +13,15 @@ class FileHandler:
     """
 
     # Filenames
-    BUILDING_CATEGORIES = 'building_categories.xlsx'
-    BUILDING_CONDITIONS = 'building_conditions.xlsx'
-    TEK_ID = 'TEK_ID.xlsx'
-    TEK_PARAMS = 'TEK_parameters.xlsx'
-    S_CURVES = 'scurve_parameters.xlsx'
+    BUILDING_CATEGORIES = 'building_categories.csv'
+    BUILDING_CONDITIONS = 'building_conditions.csv'
+    TEK_ID = 'TEK_ID.csv'
+    TEK_PARAMS = 'TEK_parameters.csv'
+    SCURVE_PARAMETERS = 'scurve_parameters.csv'
     CONSTRUCTION_POPULATION = 'nybygging_befolkning.csv'
     CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'nybygging_husandeler.csv'
     CONSTRUCTION_BUILDING_CATEGORY_AREA = 'nybygging_ssb_05940_areal.csv'
-    CONSTRUCTION_BUILDING_CATEGORY_AREA_BY_TEK = 'areal_parametre.csv'
+    AREA_PARAMETERS = 'area_parameters.csv'
 
     def __init__(self):
 
@@ -109,7 +111,7 @@ class FileHandler:
         Returns:
         - scurve_params (pd.DataFrame): DataFrame containing S-curve parameters.
         """
-        scurve_params = self.get_file(self.S_CURVES)
+        scurve_params = self.get_file(self.SCURVE_PARAMETERS)
         return scurve_params
 
     def get_construction_population(self) -> pd.DataFrame:
@@ -153,7 +155,7 @@ class FileHandler:
         - building_category_area_by_tek (pd.DataFrame): Dataframe containing area numbers
           "building_category","TEK","area"
         """
-        return self.get_file(self.CONSTRUCTION_BUILDING_CATEGORY_AREA_BY_TEK)
+        return self.get_file(self.AREA_PARAMETERS)
 
 
 

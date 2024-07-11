@@ -28,12 +28,13 @@ b = Buildings('house', tek_list, tek_params, condition_list, scurve_params)
 shares = b.shares_per_condition
 df = dict_to_df(shares['small_measure'])
 
-print(df)
+#print(df)
 
 ########## See area input data ##########
-"""
+
 construction_population = db.get_construction_population()
 construction_building_category_share = db.get_construction_building_category_share()
 area = db.get_building_category_area()
 area_by_tek = db.get_building_category_area_by_tek()
-"""
+
+print(area_by_tek)

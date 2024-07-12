@@ -14,24 +14,25 @@ from ebm.services.spreadsheet import calculate_house_floor_area_demolished_by_ye
 
 
 def create_new_building_dataframe(population: pd.Series,
-                                 household_size: pd.Series,
-                                 building_category_share: pd.DataFrame,
-                                 build_area_sum: pd.DataFrame) -> pd.DataFrame:
-    database_manager = DatabaseManager()
-
+                                  household_size: pd.Series,
+                                  building_category_share: pd.DataFrame,
+                                  build_area_sum: pd.DataFrame,
+                                  yearly_demolished_floor_area: pd.Series,
+                                  average_floor_area=175) -> pd.DataFrame:
     # Befolkningsøkning (Ikke brukt videre)
     population_growth = calculate_population_growth(population)
     households = calculate_households_by_year(household_size, population)
 
     # Årlig endring i antall boliger (brukt Årlig endring i antall småhus)
     households_change = calculate_household_change(households)
-    house_change = calculate_house_change(building_category_share, households_change)
+    house_change = calculate_house_change(building_category_share, households_change, average_floor_area)
 
     ## Årlig endring areal småhus (brukt Årlig nybygget areal småhus)
-    yearly_floor_area_change = calculate_yearly_floor_area_change(building_category_share, house_change)
+    yearly_floor_area_change = calculate_yearly_floor_area_change(building_category_share['new_house_share'] if average_floor_area == 175 else building_category_share['new_apartment_block_share'],
+                                                                  house_change, average_floor_area)
 
     # Årlig revet areal småhus
-    yearly_demolished_floor_area = calculate_floor_area_demolished()
+
     yearly_new_building_floor_area = calculate_yearly_new_building_floor_area(build_area_sum,
                                                                               yearly_floor_area_change,
                                                                               yearly_demolished_floor_area)
@@ -63,26 +64,21 @@ def calculate_yearly_new_building_floor_area(build_area_sum,
                                              yearly_demolished_floor_area) -> pd.Series:
 
     yearly_new_building_floor_area_house = yearly_floor_area_change + yearly_demolished_floor_area  # Årlig nybygget areal småhus (brukt  Nybygget småhus akkumulert)
-    display(yearly_new_building_floor_area_house)
+
     yearly_new_building_floor_area_house.loc[build_area_sum.index.values] = build_area_sum.loc[build_area_sum.index.values]
-    #yearly_new_building_floor_area_house.loc[[2010]] = build_area_sum.loc['Small house', '2010']
-    #yearly_new_building_floor_area_house.loc[[2011]] = build_area_sum.loc['Small house', '2011']
-    display(yearly_new_building_floor_area_house)
+
     return pd.Series(yearly_new_building_floor_area_house, name='new_building_floor_area')
 
 
-def calculate_floor_area_demolished():
+def calculate_floor_area_demolished(filename: str = 'st_bema2019_a_hus.xlsx', row=655):
     # Loading demolition data from spreadsheet. Should be changed to a parameter with calculated data
-    demolition = calculate_house_floor_area_demolished_by_year(
-        pathlib.Path("st_bema2019_a_leil.xlsx"))['demolition']
+    demolition = calculate_house_floor_area_demolished_by_year(pathlib.Path(filename), row=row)['demolition']
     yearly_demolished_floor_area_house = demolition.diff(1)  ## Årlig revet areal småhus
     return pd.Series(yearly_demolished_floor_area_house, name='demolition_change')
 
 
-def calculate_yearly_floor_area_change(building_category_share: pd.Series, house_change: pd.Series) -> pd.Series:
-    building_category_share['floor_area_new_house'] = 75
-    house_average_floor_area = building_category_share['floor_area_new_house']
-    yearly_floor_area_change = house_average_floor_area * house_change
+def calculate_yearly_floor_area_change(building_category_share: pd.Series, house_change: pd.Series, average_floor_area=175) -> pd.Series:
+    yearly_floor_area_change = average_floor_area * house_change
     yearly_floor_area_change.loc[[2010, 2011]] = 0
     return pd.Series(yearly_floor_area_change, name='house_floor_area_change')
 
@@ -92,10 +88,8 @@ def calculate_population_growth(population):
     return pd.Series(population_growth, name='population_growth')
 
 
-def calculate_house_change(building_category_share: pd.DataFrame, households_change: pd.Series) -> pd.Series:
-    house_share = building_category_share['new_house_share']
-    house_share = building_category_share['new_apartment_block_share']
-    #apartment_block_share = building_category_share['new_apartment_block_share']
+def calculate_house_change(building_category_share: pd.DataFrame, households_change: pd.Series, average_floor_area=175) -> pd.Series:
+    house_share = building_category_share['new_house_share'] if average_floor_area == 175 else building_category_share['new_apartment_block_share']
     house_change = households_change * house_share  ## Årlig endring i antall småhus (brukt  Årlig endring areal småhus)
     return pd.Series(house_change, name='house_change')
 
@@ -125,33 +119,39 @@ def main():
     household_size = new_buildings_population['household_size']
     population = new_buildings_population['population']
 
-    #new_building_house = create_new_building_house_dataframe(database_manager, household_size, population)
-    #display(new_building_house.transpose())
+    new_building_house = create_new_building_house_dataframe(database_manager, household_size, population)
+
+    if pathlib.Path('output').is_dir():
+        new_building_house.to_excel('output/new_building_house.xlsx', startcol=4)
 
     new_building_apartment_block = create_new_building_apartment_block_dataframe(database_manager, household_size, population)
 
-    new_building_apartment_block.to_excel('utputt.xlsx')
-    display(new_building_apartment_block.transpose()[['demolition_change', 'house_floor_area_change']])
+    if pathlib.Path('output').is_dir():
+        new_building_apartment_block.to_excel('output/new_building_apartment_block.xlsx', startcol=4)
+    display(new_building_apartment_block.loc['floor_area_change_accumulated'].head())
 
 
 def create_new_building_apartment_block_dataframe(database_manager, household_size, population):
     building_category_share = database_manager.get_new_buildings_category_share()
-    #display( building_category_share['new_house_share'])
-    building_category_share['new_house_share'] = building_category_share['new_apartment_block_share']
-    building_category_share['new_house_share']
 
     build_area = database_manager.get_building_category_floor_area()
     build_area['building_category'] = 'unknown'
-    #build_area.loc[(build_area.type_no >= '111') & (build_area.type_no <= '136'), 'building_category'] = 'Small house'
+    build_area.loc[(build_area.type_no >= '111') & (build_area.type_no <= '136'), 'building_category'] = 'Small house'
     build_area.loc[
-        (build_area.type_no >= '141') & (build_area.type_no <= '146'), 'building_category'] = 'Small house'
+        build_area.type_no >= '141', 'building_category'] = 'Apartment block'
     build_area_sum = build_area.groupby(by='building_category').sum()
 
     apartment_block_area = pd.Series(
-        build_area_sum.loc['Small house', ['2010', '2011']], name='area').astype('float64')
+        build_area_sum.loc['Apartment block', ['2010', '2011']], name='area').astype('float64')
     apartment_block_area.index = apartment_block_area.index.astype('int')  # [2010]
 
-    return create_new_building_dataframe(population, household_size, building_category_share, apartment_block_area)
+    yearly_demolished_floor_area = calculate_floor_area_demolished('st_bema2019_a_leil.xlsx', 655)
+
+    return create_new_building_dataframe(population,
+                                         household_size,
+                                         building_category_share,
+                                         apartment_block_area,
+                                         yearly_demolished_floor_area,  average_floor_area=75)
 
 
 def create_new_building_house_dataframe(database_manager, household_size, population):
@@ -160,14 +160,17 @@ def create_new_building_house_dataframe(database_manager, household_size, popula
     build_area['building_category'] = 'unknown'
     build_area.loc[(build_area.type_no >= '111') & (build_area.type_no <= '136'), 'building_category'] = 'Small house'
     build_area.loc[
-        (build_area.type_no >= '141') & (build_area.type_no <= '146'), 'building_category'] = 'Apartment block'
+        build_area.type_no >= '141', 'building_category'] = 'Apartment block'
     build_area_sum = build_area.groupby(by='building_category').sum()
 
     house = pd.Series(
         build_area_sum.loc['Small house', ['2010', '2011']], name='area').astype('float64')
     house.index = house.index.astype('int')  # [2010]
 
-    new_building_house = create_new_building_dataframe(population, household_size, building_category_share, house)
+    yearly_demolished_floor_area = calculate_floor_area_demolished('st_bema2019_a_hus.xlsx', 656)
+
+    new_building_house = create_new_building_dataframe(population, household_size, building_category_share, house,
+                                                       yearly_demolished_floor_area, average_floor_area=175)
 
     return new_building_house
 

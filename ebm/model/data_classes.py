@@ -17,3 +17,4 @@ class TEKParameters:
     building_year: int
     start_year: int
     end_year: int
+    

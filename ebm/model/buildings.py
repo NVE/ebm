@@ -4,6 +4,7 @@ import pandas as pd
 from .data_classes import TEKParameters, ScurveParameters
 from .scurve import SCurve
 from .shares_per_condition import SharesPerCondition
+from .area_forecast import AreaForecast
 
 # TODO: 
 # - remove _filter_tek_list and _filter_tek_params when the model is updated with new 2020 data.
@@ -34,7 +35,8 @@ class Buildings():
                  tek_list: typing.List[str],
                  tek_params: typing.Dict[str, TEKParameters],
                  condition_list: typing.List[str],
-                 scurve_params: pd.DataFrame):
+                 scurve_params: pd.DataFrame,
+                 area_params: pd.DataFrame):
         
         self.building_category = building_category
         self.condition_list = condition_list
@@ -43,6 +45,7 @@ class Buildings():
         self.scurve_params = self._filter_scurve_params(scurve_params)
         self.scurve_data = self._get_scurve_data()
         self.shares_per_condition = self.get_shares()
+        self.area_params = area_params #TODO: change so that the area params are filtered on building category 
 
     def _filter_tek_list(self, tek_list: typing.List[str]) -> typing.List[str]:
         """
@@ -211,6 +214,7 @@ class Buildings():
         shares_condition = SharesPerCondition(self.tek_list, self.tek_params, self.scurve_data).shares_per_condition
         return shares_condition   
 
+    # TODO: add optional parameters to filter on specific TEKs and Years
     def get_shares_per_condition(self, condition: str) -> typing.Dict:
         """
         Get the shares for a specific condition for all TEKs in the building category.
@@ -227,3 +231,10 @@ class Buildings():
         shares = self.shares_per_condition[condition]
         return shares
     
+    # TODO: remove/adjust so that it works
+    def get_area_per_tek_condition(self):
+
+        area_forecast = AreaForecast(self.building_category, self.area_params, self.tek_list, 
+                                     self.tek_params, self.condition_list, self.shares_per_condition)
+        area_per_tek_conditon = area_forecast.get_area_per_tek()
+        return area_per_tek_conditon

@@ -1,10 +1,9 @@
-
 import typing
 
 import pandas as pd
 
 from .file_handler import FileHandler
-from .data_classes import ScurveParameters, TEKParameters
+from .data_classes import TEKParameters
 
 # TODO:
 # - add method to change all strings to lower case and underscore instead of space

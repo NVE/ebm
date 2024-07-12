@@ -1,3 +1,5 @@
+import typing
+
 from .database_manager import *
 
 class TEK():

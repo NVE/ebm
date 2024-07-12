@@ -1,10 +1,12 @@
-
+import pathlib
 import typing
 
 import pandas as pd
+from openpyxl import load_workbook
 
 from .file_handler import FileHandler
 from .data_classes import ScurveParameters, TEKParameters
+from ..services.spreadsheet import iter_cells
 
 
 class DatabaseManager():
@@ -217,3 +219,19 @@ class DatabaseManager():
             return df[df.building_category == building_category]
         return df
 
+    def load_demolition_floor_area_from_spreadsheet(self, path: pathlib.Path = None, row: int = 656) -> pd.DataFrame:
+        p = pathlib.Path("st_bema2019_a_hus.xlsx")
+        if path:
+            p = path
+        wb = load_workbook(filename=p)
+        sheet_ranges = wb.sheetnames
+        sheet = wb[sheet_ranges[0]]
+        cells = list(iter_cells(first_column='E'))[:41]
+
+        a_hus_revet = pd.DataFrame({'demolition': [sheet[f'{c}{row}'].value for c in cells]}, index=list(range(2010, 2051)))
+        #a_hus_revet = pd.DataFrame({'demolition': [sheet[f'{c}655'].value for c in cells]}, index=list(range(2010, 2051)))
+        a_hus_revet['demolition'] = a_hus_revet['demolition']
+        a_hus_revet['demolition_change'] = a_hus_revet.demolition.diff(1).fillna(0)
+        a_hus_revet.index = a_hus_revet.index.rename('year')
+        print(a_hus_revet)
+        return a_hus_revet

@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 
 from ebm.model import DatabaseManager
-from ebm.services.spreadsheet import calculate_house_floor_area_demolished_by_year
 
 
 def calculate_households(population: pd.DataFrame) -> pd.DataFrame:
@@ -69,7 +68,7 @@ def process_new_buildings_house():
 
     facts = households[['population', 'population_change', 'household_size', 'households', 'households_change']]
 
-    house_demolition_area = calculate_house_floor_area_demolished_by_year()
+    house_demolition_area = database_manager.load_demolition_floor_area_from_spreadsheet()
 
     buildings_category_share = database_manager.get_new_buildings_category_share()
     category_floor_area = database_manager.get_building_category_floor_area()
@@ -112,7 +111,7 @@ def run_notebook():
     yearly_change_small_house = calculate_house_change(households, new_buildings_category_share)
     display(yearly_change_small_house.head())
     print('### Årlig revet areal småhus')
-    floor_area_demolished_by_year = calculate_house_floor_area_demolished_by_year()
+    floor_area_demolished_by_year = load_demolition_floor_area_from_spreadsheet()
     display(floor_area_demolished_by_year.head())
     display(floor_area_demolished_by_year.tail())
     print('### Årlig nybygget areal småhus')

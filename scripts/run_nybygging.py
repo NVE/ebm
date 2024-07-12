@@ -2,15 +2,13 @@
 import argparse
 import os
 import pathlib
-from pprint import pprint as pp
 import sys
 
 from loguru import logger
 import pandas as pd
 from IPython.display import display
 
-from ebm.model import FileHandler, DatabaseManager
-from ebm.services.spreadsheet import calculate_house_floor_area_demolished_by_year
+from ebm.model import DatabaseManager
 
 
 def create_new_building_dataframe(population: pd.Series,
@@ -72,7 +70,7 @@ def calculate_yearly_new_building_floor_area(build_area_sum,
 
 def calculate_floor_area_demolished(filename: str = 'st_bema2019_a_hus.xlsx', row=655):
     # Loading demolition data from spreadsheet. Should be changed to a parameter with calculated data
-    demolition = calculate_house_floor_area_demolished_by_year(pathlib.Path(filename), row=row)['demolition']
+    demolition = DatabaseManager().load_demolition_floor_area_from_spreadsheet(pathlib.Path(filename), row=row)['demolition']
     yearly_demolished_floor_area_house = demolition.diff(1)  ## Årlig revet areal småhus
     return pd.Series(yearly_demolished_floor_area_house, name='demolition_change')
 

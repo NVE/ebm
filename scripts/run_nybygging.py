@@ -70,7 +70,8 @@ def calculate_yearly_new_building_floor_area(build_area_sum,
 
 def calculate_floor_area_demolished(filename: str = 'st_bema2019_a_hus.xlsx', row=655):
     # Loading demolition data from spreadsheet. Should be changed to a parameter with calculated data
-    demolition = DatabaseManager().load_demolition_floor_area_from_spreadsheet(pathlib.Path(filename), row=row)['demolition']
+    demolition = DatabaseManager().load_demolition_floor_area_from_spreadsheet('house' if row == 656 else 'apartment_block')
+
     yearly_demolished_floor_area_house = demolition.diff(1)  ## Årlig revet areal småhus
     return pd.Series(yearly_demolished_floor_area_house, name='demolition_change')
 
@@ -107,7 +108,7 @@ def main():
     arg_parser.add_argument('--debug', action='store_true')
     arguments: argparse.Namespace = arg_parser.parse_args()
 
-    if not arguments.debug and os.environ.get('DEBUG', '') != 'True':
+    if not arguments.debug and os.environ.get('DEBUG', '') != 'True' and False:
         logger.remove()
         logger.add(sys.stderr, level="INFO")
 

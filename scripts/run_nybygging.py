@@ -120,13 +120,27 @@ def main():
 
     new_building_house = create_new_building_house_dataframe(database_manager, household_size, population)
 
-    if pathlib.Path('output').is_dir():
-        new_building_house.to_excel('output/new_building_house.xlsx', startcol=4)
+    if new_building_house.loc['demolition_change'].sum() != 64370906.831874974:
+        logger.warning(f'new_building_house.loc["demolition_change"].sum() {new_building_house.loc["demolition_change"].sum()} != 64370906.831874974')
+    if new_building_house.loc['new_building_floor_area'].sum() != 123739128.72838475:
+        logger.warning(f'new_building_house.new_building_floor_area  {new_building_house.loc["new_building_floor_area"].sum()} != 123739128.72838475')
+    if new_building_house.loc['floor_area_change_accumulated'].sum() != 2630603443.124876:
+        logger.warning(f'new_building_apartment_block.floor_area_change_accumulated  {new_building_house.loc["floor_area_change_accumulated"].sum()} != 2630603443.124876')
 
     new_building_apartment_block = create_new_building_apartment_block_dataframe(database_manager, household_size, population)
 
+    if new_building_apartment_block.loc['demolition_change'].sum() != 12335966.989999998:
+        logger.warning(f'new_building_apartment_block.loc["demolition_change"].sum() != {12335966.989999998}')
+    if new_building_apartment_block.loc['new_building_floor_area'].sum() != 42501448.825284824:
+        logger.warning(f'new_building_apartment_block.new_building_floor_area  {new_building_apartment_block.loc["new_building_floor_area"].sum()} != 42501448.825284824')
+    if new_building_apartment_block.loc['floor_area_change_accumulated'].sum() != 957797360.1858981:
+        logger.warning(f'new_building_apartment_block.floor_area_change_accumulated  {new_building_apartment_block.loc["floor_area_change_accumulated"].sum()} != 957797360.1858981')
+
     if pathlib.Path('output').is_dir():
         new_building_apartment_block.to_excel('output/new_building_apartment_block.xlsx', startcol=4)
+    if pathlib.Path('output').is_dir():
+        new_building_house.to_excel('output/new_building_house.xlsx', startcol=4)
+
     display(new_building_apartment_block.loc['floor_area_change_accumulated'].head())
 
 

@@ -37,8 +37,20 @@ class AreaForecast():
         self.tek_list = tek_list
         self.tek = TEK(tek_params)                                  
         self.condition_list = condition_list            
-        self.shares_per_condition = shares_per_condtion    
-    
+        self.shares_per_condition = shares_per_condtion
+        self.acc_construction_area = _accumulated_construction_area_per_year()
+
+    # TODO: remove method after merge with construction class
+    def _accumulated_construction_area_per_year(self) -> typing.List:
+        """
+        Temporary method to retrieve accumulated construction area per year as list. To be deleted.
+        """
+        df = pd.read_excel('input/temporary_construction_data.xlsx')
+        df = df.melt(id_vars='building_category')
+        df = df[df['building_category'] == self.building_category]
+        acc_construction_area_per_year = df['value'].tolist()
+        return acc_construction_area_per_year
+            
     def _calc_area_pre_construction_per_tek(self, tek: str) -> typing.Dict[str, typing.List]:
         """
         Calculates and distributes the area per condition for a given TEK used prior to construction (defined by the model start year).
@@ -78,7 +90,7 @@ class AreaForecast():
         area_per_tek = {}
         for tek in self.tek_list:
             tek_end_year = self.tek.get_end_year(tek)
-            # Contral that the TEK period is before the model start year (when new buildings are constructed) 
+            # Control that the TEK period is before the model start year (when new buildings are constructed) 
             if tek_end_year < self.start_year:
                 area_per_condition = self._calc_area_pre_construction_per_tek(tek)
                 area_per_tek[tek] = area_per_condition

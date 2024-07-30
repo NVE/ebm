@@ -79,3 +79,5 @@ def control_yearly_rates_scurve(condition):
     print('post_rush_rate:', s._post_rush_rate)
 
 #control_yearly_rates_scurve('renovation')
+
+print(building.acc_construction_area)

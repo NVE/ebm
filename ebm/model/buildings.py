@@ -45,7 +45,7 @@ class Buildings():
         self.scurve_params = self._filter_scurve_params(scurve_params)
         self.scurve_data = self._get_scurve_data()
         self.shares_per_condition = self.get_shares()
-        self.area_params = area_params #TODO: change so that the area params are filtered on building category 
+        self.area_params = area_params #TODO: change so that the area params are filtered on building category? 
 
     def _filter_tek_list(self, tek_list: typing.List[str]) -> typing.List[str]:
         """
@@ -231,10 +231,3 @@ class Buildings():
         shares = self.shares_per_condition[condition]
         return shares
     
-    # TODO: remove/adjust so that it works
-    def get_area_per_tek_condition(self):
-
-        area_forecast = AreaForecast(self.building_category, self.area_params, self.tek_list, 
-                                     self.tek_params, self.condition_list, self.shares_per_condition)
-        area_per_tek_conditon = area_forecast.get_area_per_tek()
-        return area_per_tek_conditon

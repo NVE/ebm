@@ -2,6 +2,9 @@ import typing
 import pandas as pd
 
 class Area():
+    """
+    Holds all area data and getter methods for retrieving them.
+    """
 
     COL_BUILDING_CATEGORY = 'building_category'
     COL_TEK = 'TEK'
@@ -40,6 +43,6 @@ class Area():
         # Filter dataframe on building category and tek
         filtered_area_params = filtered_area_params[filtered_area_params[self.COL_TEK] == tek]
         
-        # Retrieve the are value, assuming there is only one row in the filtered DataFrame
+        # Retrieve the area value, assuming there is only one row in the filtered DataFrame
         area_value = filtered_area_params.iloc[0][self.COL_AREA]
         return area_value

@@ -1,6 +1,7 @@
 import pandas as pd
 
-from ebm.model import DatabaseManager
+from ebm.model.database_manager import DatabaseManager
+from ebm.model.building_category import BuildingCategory
 
 
 class NewBuildings:
@@ -61,10 +62,10 @@ class NewBuildings:
         return pd.Series(yearly_new_building_floor_area_house, name='new_building_floor_area')
 
     @staticmethod
-    def calculate_floor_area_demolished(row=655):
+    def calculate_floor_area_demolished(building_category: BuildingCategory):
         # Loading demolition data from spreadsheet. Should be changed to a parameter with calculated data
-        demolition = DatabaseManager().load_demolition_floor_area_from_spreadsheet(
-            'house' if row == 656 else 'apartment_block')
+        demolition = DatabaseManager().load_demolition_floor_area_from_spreadsheet(building_category)
+
         # Årlig revet areal småhus
         yearly_demolished_floor_area_house = demolition.diff(1)
         return pd.Series(yearly_demolished_floor_area_house, name='demolition_change')

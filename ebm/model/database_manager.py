@@ -4,6 +4,7 @@ import typing
 from loguru import logger
 import pandas as pd
 
+from .building_category import BuildingCategory
 from .demolition import demolition_by_year_all
 from .file_handler import FileHandler
 from .data_classes import ScurveParameters, TEKParameters
@@ -220,10 +221,10 @@ class DatabaseManager():
             return df[df.building_category == building_category]
         return df
 
-    def load_demolition_floor_area_from_spreadsheet(self, building_category: str = 'house') -> pd.Series:
+    def load_demolition_floor_area_from_spreadsheet(self, building_category: BuildingCategory) -> pd.Series:
         logger.debug(f'Loading static demolished floor area for "{building_category}"')
-        if building_category not in demolition_by_year_all.keys():
+        if building_category.name.lower() not in demolition_by_year_all.keys():
             ValueError(f'No such building_category "{building_category}" in demolition.demolition_by_year_all')
-        demolition = pd.Series(demolition_by_year_all.get(building_category), index=range(2010, 2051))
+        demolition = pd.Series(demolition_by_year_all.get(building_category.name.lower()), index=range(2010, 2051))
 
         return demolition

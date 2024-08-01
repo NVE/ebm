@@ -107,23 +107,31 @@ class NewBuildings:
         households = population / household_size
         return pd.Series(households, name='households')
 
-
-
     @staticmethod
     def calculate_yearly_construction(building_category: BuildingCategory = None,
-                                      total_floor_area: int = 1_275_238,
+                                      total_floor_area: int = 0,
                                       yearly_construction_floor_area: collections.abc.Collection[int] = None) -> pd.Series:
-        construction = NewBuildings.calculate_construction(building_category, total_floor_area,
-                                                                           yearly_construction_floor_area)
+        construction = NewBuildings.calculate_construction(building_category=building_category,
+                                                           total_floor_area=total_floor_area,
+                                                            yearly_construction_floor_area=yearly_construction_floor_area)
 
         return construction.kg_arlig_nybygget_akkumulert
 
     @staticmethod
-    def calculate_construction(building_category, total_floor_area, yearly_construction_floor_area):
+    def calculate_construction(building_category: BuildingCategory = None,
+                               total_floor_area: int = 1_275_238,
+                               yearly_construction_floor_area: collections.abc.Collection[int] = None,
+                               yearly_demolition_floor_area: pd.Series = None):
         if not building_category:
             building_category = BuildingCategory.KINDERGARTEN
         if not yearly_construction_floor_area:
-            yearly_construction_floor_area = building_category.yearly_construction_floor_area()  # (97_574, 90_644, 65_847, 62_022, 79_992, )
+            yearly_construction_floor_area = building_category.yearly_construction_floor_area()
+        if not total_floor_area:
+            total_floor_area = building_category.total_floor_area_2010()
+
+        kg_arlig_revet_areal = yearly_demolition_floor_area
+        if not kg_arlig_revet_areal:
+            kg_arlig_revet_areal = NewBuildings.calculate_floor_area_demolished(building_category)
         # Faste tall
         kg_totalt_areal_2010 = pd.Series(data=[total_floor_area], index=[2010])
         logger.debug('kg_totalt_areal (2010)')
@@ -135,7 +143,7 @@ class NewBuildings:
         logger.info(kg_barnehage_nybygget)
         # Eksterne tall
         logger.debug('kg_årlig_revet_areal')
-        kg_arlig_revet_areal = NewBuildings.calculate_floor_area_demolished(BuildingCategory.KINDERGARTEN)
+
         # logger.info(kg_arlig_revet_areal)
         befolkning: pd.DataFrame = pd.read_csv('C:/Users/kenord/dev2/Energibruksmodell/input/nybygging_befolkning.csv',
                                                dtype={"household_size": "float64"})

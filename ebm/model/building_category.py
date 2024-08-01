@@ -22,7 +22,24 @@ class BuildingCategory(Enum):
     def yearly_construction_floor_area(self):
         if self == BuildingCategory.KINDERGARTEN:
             return 97_574, 90_644, 65_847, 62_022, 79_992,
-        raise NotImplementedError(f'calculate_construction does not support category {self.name} (yet)')
+        if self == BuildingCategory.UNIVERSITY:
+            return 112_747, 49_205, 44_100, 34_766, 84_340,
+        if self == BuildingCategory.OFFICE:
+            return 443_334, 355_103, 649_466, 531_348, 320_478,
+
+        raise NotImplementedError(f'yearly_construction_floor_area does not support category {self.name} (yet)')
+
+    def total_floor_area_2010(self) -> int:
+        if self == BuildingCategory.KINDERGARTEN:
+            return 1_275_238
+        if self == BuildingCategory.SCHOOL:
+            return 13_884_666
+        if self == BuildingCategory.UNIVERSITY:
+            return 2_440_242
+        if self == BuildingCategory.OFFICE:
+            return 26_769_695
+        raise NotImplementedError(f'total_floor_area_2010 does not support building category {self.name} (yet)')
+
 
     @staticmethod
     def from_string(category_name: str) -> 'BuildingCategory':

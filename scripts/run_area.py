@@ -18,11 +18,13 @@ building_list = ['apartment_block', 'house',
 
 house_tek_list = ['PRE_TEK49_RES_1940', 'TEK49_RES', 'TEK69_RES_1976', 'TEK69_RES_1986', 'TEK87_RES', 'TEK97_RES', 'TEK07', 'TEK10', 'TEK17', 'TEK21']
 
+# input arguments and function variables
 start_year = 2010
 end_year = 2050
 building_category = 'house'
 full_condition_list = ['small_measure', 'renovation', 'renovation_and_small_measure', 'demolition', 'original_condition']
-tek_wo_construction = 'TEK87_RES'
+# updated when changing building category
+tek_wo_construction = 'TEK87_RES'   
 tek_w_construction = 'TEK17' 
 
 def dict_to_df(dict, add_year_index=False):
@@ -74,19 +76,22 @@ def calc_area_construction_tek(tek):
     df = dict_to_df(area_with_construction_tek, True)
     df = df.round(0).astype(int)
     df['total'] = df['small_measure'] + df['renovation'] + df['renovation_and_small_measure'] + df['demolition'] + df['original_condition']
+    #df = df.transpose()
     print(df)
 
-print(f'Area with construction for: {tek_w_construction}')
-calc_area_construction_tek(tek_w_construction)
+#print(f'Area with construction for: {tek_w_construction}')
+#calc_area_construction_tek(tek_w_construction)
 
 def calc_area_construction():
-    area_with_construction = area_forecast.calc_area_with_construction_per_tek()
+    area_with_construction = area_forecast.calc_area_with_construction()
     area_with_construction_df = dict_to_df(area_with_construction)
     print(area_with_construction_df)
 
-print(f'Area with construction for all TEKs')
-calc_area_construction()
+#print(f'Area with construction for all TEKs')
+#calc_area_construction()
 
+area = area_forecast.calc_area()
+print(dict_to_df(area))
 
 ###### other stuff #####
 

@@ -40,7 +40,6 @@ class AreaForecast():
         self.tek = TEK(tek_params)                                  
         self.condition_list = condition_list            
         self.shares_per_condition = shares_per_condtion
-        self.acc_construction_area = self._accumulated_construction_area_per_year()
 
     # TODO: remove method after merge with construction class
     def _accumulated_construction_area_per_year(self) -> typing.List:
@@ -100,7 +99,7 @@ class AreaForecast():
         per year as values.
         
         Returns:
-        - area_per_tek (Dict): A dictionary where the keys are TEK values and the values are dictionaries of area per condition.   
+        - area_per_tek (Dict): A dictionary where the keys are TEK identifiers and the values are dictionaries of area per condition.   
         """
         # Dictionary to be filled with area per condition over model years for each TEK  
         area_per_tek = {}
@@ -193,7 +192,7 @@ class AreaForecast():
             area_per_condition[condition] = area_per_year    
         return area_per_condition  
 
-    def calc_area_with_construction_per_tek(self) -> typing.Dict[str, typing.Dict[str, typing.List]]:
+    def calc_area_with_construction(self) -> typing.Dict[str, typing.Dict[str, typing.List]]:
         """
         Calculates the area per condition for all TEK's used in periods with construction of new buildings.
 
@@ -204,7 +203,7 @@ class AreaForecast():
         dictionary as values, where the nested dictionary contains conditions as keys and lists of area per year as values.
 
         Returns:
-        - area_per_tek (dict): A dictionary where keys are TEK values and values are dictionaries with conditions as keys 
+        - area_per_tek (dict): A dictionary where keys are TEK identifies and values are dictionaries with conditions as keys 
                                and lists of area per year as values.
         """
         # Dictionary to be filled with area per condition over model years for each TEK  
@@ -221,6 +220,30 @@ class AreaForecast():
 
         return area_per_tek
 
+    def calc_area(self) -> typing.Dict[str, typing.Dict[str, typing.List]]:
+        """
+        Calculates area per condition over the model years for all TEKs.
+
+        This method calculates and retrieves the area per condition over model years for TEKs with and without construction
+        and combines them into a single dictionary.
+
+        Returns:
+        - area (dict): A dictionary where keys are TEK identifies and values are dictionaries with conditions as keys 
+                       and lists of area per year as values.
+        """
+        # Calculate and retrieve area per condition over model years for TEKs with and without construction
+        area_pre_construction = self.calc_area_pre_construction()
+        area_with_construction = self.calc_area_with_construction()
+
+        #TODO: add check to control if same TEK's are present in both dictonaries, then raise ValueError
+
+        # Combine dictionaries 
+        area = area_pre_construction.copy()
+        for tek in area_with_construction:
+            area[tek] = area_with_construction[tek]
+        
+        return area
+    
             
             
 

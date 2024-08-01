@@ -1,3 +1,4 @@
+import collections.abc
 import itertools
 
 import numpy as np
@@ -107,10 +108,14 @@ class NewBuildings:
         return pd.Series(households, name='households')
 
     @staticmethod
-    def calculate_construction(building_category: BuildingCategory = None) -> pd.Series:
-        bc = building_category if building_category else BuildingCategory.KINDERGARTEN
-        if bc != BuildingCategory.KINDERGARTEN:
-            raise NotImplementedError(f'calculate_construction does not support category {bc}')
+    def calculate_construction(building_category: BuildingCategory = None,
+                               yearly_construction_floor_area: collections.abc.Collection[int] = None) -> pd.Series:
+        if not building_category:
+            building_category = BuildingCategory.KINDERGARTEN
+        if building_category != BuildingCategory.KINDERGARTEN:
+            raise NotImplementedError(f'calculate_construction does not support category {building_category} (yet)')
+        if not yearly_construction_floor_area:
+            yearly_construction_floor_area = building_category.yearly_construction_floor_area() #(97_574, 90_644, 65_847, 62_022, 79_992, )
 
         # Faste tall
         kg_totalt_areal_2010 = pd.Series(data=[1_275_238], index=[2010])
@@ -119,8 +124,10 @@ class NewBuildings:
         logger.info(kg_totalt_areal_2010)
 
         logger.debug('kg_barnehage_nybygget (2010-2014)')
-        kg_barnehage_nybygget = pd.Series(data=[97_574, 90_644, 65_847, 62_022, 79_992],
-                                          index=[2010, 2011, 2012, 2013, 2014])
+        kg_barnehage_nybygget = pd.Series(
+            data=yearly_construction_floor_area,
+            index=[year for year in range(2010, 2010 + len(yearly_construction_floor_area))])
+
         logger.info(kg_barnehage_nybygget)
 
         # Eksterne tall

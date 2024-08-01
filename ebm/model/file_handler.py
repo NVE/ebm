@@ -4,23 +4,24 @@ import pathlib
 from loguru import logger
 import pandas as pd
 
+# TODO: 
+# change so that get_file can read 'any' fileformat? So that filetype (e.g. xlsx) don't need to be specified in filenames.  
 
 class FileHandler:
     """
     Handles file operations.
     """
-    #TODO: Add input validtion (loguru)
 
     # Filenames
-    BUILDING_CATEGORIES = 'building_categories.xlsx'
-    BUILDING_CONDITIONS = 'building_conditions.xlsx'
-    TEK_ID = 'TEK_ID.xlsx'
-    TEK_PARAMS = 'TEK_parameters.xlsx'
-    S_CURVES = 's_curves.xlsx'
+    BUILDING_CATEGORIES = 'building_categories.csv'
+    BUILDING_CONDITIONS = 'building_conditions.csv'
+    TEK_ID = 'TEK_ID.csv'
+    TEK_PARAMS = 'TEK_parameters.csv'
+    SCURVE_PARAMETERS = 'scurve_parameters.csv'
     CONSTRUCTION_POPULATION = 'nybygging_befolkning.csv'
     CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'nybygging_husandeler.csv'
     CONSTRUCTION_BUILDING_CATEGORY_AREA = 'nybygging_ssb_05940_areal.csv'
-    CONSTRUCTION_BUILDING_CATEGORY_AREA_BY_TEK = 'areal_parametre.csv'
+    AREA_PARAMETERS = 'area_parameters.csv'
 
     def __init__(self):
 
@@ -103,15 +104,15 @@ class FileHandler:
         tek_params = self.get_file(self.TEK_PARAMS)
         return tek_params
     
-    def get_s_curve_params(self) -> pd.DataFrame:
+    def get_scurve_params(self) -> pd.DataFrame:
         """
         Get S-curve parameters DataFrame.
 
         Returns:
-        - s_curve_params (pd.DataFrame): DataFrame containing S-curve parameters.
+        - scurve_params (pd.DataFrame): DataFrame containing S-curve parameters.
         """
-        s_curve_params = self.get_file(self.S_CURVES)
-        return s_curve_params
+        scurve_params = self.get_file(self.SCURVE_PARAMETERS)
+        return scurve_params
 
     def get_construction_population(self) -> pd.DataFrame:
         """
@@ -146,15 +147,15 @@ class FileHandler:
         """
         return self.get_file(self.CONSTRUCTION_BUILDING_CATEGORY_AREA)
 
-    def get_building_category_area_by_tek(self) -> pd.DataFrame:
+    def get_area_parameters(self) -> pd.DataFrame:
         """
-        Load total area of building_category by TEK from a file.
+        Get dataframe with area parameters.
 
         Returns:
-        - building_category_area_by_tek (pd.DataFrame): Dataframe containing area numbers
-          "building_category","TEK","area"
+        - area_parameters (pd.DataFrame): Dataframe containing total area (m^2) per
+                                          building category and TEK. 
         """
-        return self.get_file(self.CONSTRUCTION_BUILDING_CATEGORY_AREA_BY_TEK)
+        return self.get_file(self.AREA_PARAMETERS)
 
 
 

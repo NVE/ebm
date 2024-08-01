@@ -22,25 +22,25 @@ class SharesPerCondition():
     END_YEAR = 2050
 
     # Strings in condition list
-    KEY_SMALL_MEASURE = 'Small measure'
-    KEY_RENOVATION = 'Renovation'
-    KEY_DEMOLITION = 'Demolition'
+    KEY_SMALL_MEASURE = 'small_measure'
+    KEY_RENOVATION = 'renovation'
+    KEY_DEMOLITION = 'demolition'
     KEY_RENOVATION_SMALL_MEASURE = 'renovation_and_small_measure' 
     KEY_ORIGINAL_CONDITION = 'original_condition'
 
     def __init__(self, 
                  tek_list: typing.List[str], 
                  tek_params: typing.Dict[str, TEKParameters], 
-                 scurve_data: typing.Dict[str, typing.List[typing.Tuple[typing.Dict[str, float], float]]]):
+                 scurve_data: typing.Dict[str, typing.List[typing.Tuple[typing.Tuple[float], float]]]):
         
         self.tek_list = tek_list
         self.tek = TEK(tek_params)
         self.scurve_data = scurve_data
 
         # Define S-curve parameter attributes 
-        self.s_curve_small_measure = self.scurve_data[self.KEY_SMALL_MEASURE][0]
-        self.s_curve_renovation = self.scurve_data[self.KEY_RENOVATION][0]
-        self.s_curve_demolition = self.scurve_data[self.KEY_DEMOLITION][0]
+        self.scurve_small_measure = self.scurve_data[self.KEY_SMALL_MEASURE][0]
+        self.scurve_renovation = self.scurve_data[self.KEY_RENOVATION][0]
+        self.scurve_demolition = self.scurve_data[self.KEY_DEMOLITION][0]
         self.never_share_small_measure = self.scurve_data[self.KEY_SMALL_MEASURE][1]
         self.never_share_renovation = self.scurve_data[self.KEY_RENOVATION][1]
         self.never_share_demolition = self.scurve_data[self.KEY_DEMOLITION][1]
@@ -54,7 +54,7 @@ class SharesPerCondition():
         self.shares_original_condition = self.calc_shares_original_condition()
 
         self.shares_per_condition = {
-            self.KEY_SMALL_MEASURE: self.shares_demolition,
+            self.KEY_SMALL_MEASURE: self.shares_small_measure,
             self.KEY_RENOVATION: self.shares_renovation,
             self.KEY_RENOVATION_SMALL_MEASURE: self.shares_renovation_and_small_measure,
             self.KEY_DEMOLITION: self.shares_demolition,
@@ -97,11 +97,11 @@ class SharesPerCondition():
                     share = 0
                 elif building_year == year - 1:
                     # Set share to the current rate/share if the building year is equal to year-1
-                    rate = self.s_curve_demolition['rate'][building_age - 1]
+                    rate = self.scurve_demolition[building_age - 1]
                 else:
                     # Get rates/shares from the demolition S-curve based on building age
-                    rate = self.s_curve_demolition['rate'][building_age - 1]
-                    prev_rate = self.s_curve_demolition['rate'][building_age - 2]
+                    rate = self.scurve_demolition[building_age - 1]
+                    prev_rate = self.scurve_demolition[building_age - 2]
 
                     # Calculate percentage share by subtracting rate from previous year's rate
                     share = rate - prev_rate   
@@ -149,7 +149,7 @@ class SharesPerCondition():
                     share = 0
                 else:
                     # Get Small measure share from S-curve and demolition share for current year
-                    small_measure_share = self.s_curve_small_measure['rate'][building_age - 1]
+                    small_measure_share = self.scurve_small_measure[building_age - 1]
                     demolition_share = self.shares_demolition[tek][idx] 
                     
                     # Calculate max limit for doing a renovation measure (small measure or rehabilitation)
@@ -192,7 +192,7 @@ class SharesPerCondition():
                     share = 0
                 else:
                     # Get renovation share from S-curve and demolition share for current year
-                    renovation_share = self.s_curve_renovation['rate'][building_age - 1]
+                    renovation_share = self.scurve_renovation[building_age - 1]
                     demolition_share = self.shares_demolition[tek][idx]                
                     
                     # Calculate max limit for doing a renovation measure (small measure or renovation)

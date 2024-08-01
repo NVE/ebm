@@ -19,6 +19,11 @@ class BuildingCategory(Enum):
     def __str__(self):
         return self.name.lower().replace('_', ' ')
 
+    def yearly_construction_floor_area(self):
+        if self == BuildingCategory.KINDERGARTEN:
+            return 97_574, 90_644, 65_847, 62_022, 79_992,
+        raise NotImplementedError(f'calculate_construction does not support category {self.name} (yet)')
+
     @staticmethod
     def from_string(category_name: str) -> 'BuildingCategory':
         """Create an enum object from category name

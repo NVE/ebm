@@ -20,7 +20,7 @@ def csv_to_xlsx(folder_path, filename):
     target = pathlib.Path(f'{folder_path}/{filename}.xlsx')
 
     df = pd.read_csv(source)
-    df.to_excel(target, index=False)
+    #df.to_excel(target, index=False)
 
     print(df)
 

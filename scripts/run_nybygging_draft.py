@@ -1,228 +1,135 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
-
-import itertools
-import pathlib
-import string
-
-from IPython.display import display, Markdown, display_markdown
-from openpyxl import load_workbook
+from IPython.display import display
 import numpy as np
 import pandas as pd
 
-from ebm.model import FileHandler
-
-
-print('# Nybygging formler')
-
-file_handler = FileHandler()
-
-nybygging_ssb_antall = 'C:/Users/kenord/dev2/Energibruksmodell/input/nybygging_ssb_05939_antall.csv'
-nybygging_ssb_areal = 'C:/Users/kenord/dev2/Energibruksmodell/input/nybygging_ssb_05940_areal.csv'
-nybygging_andeler = 'C:/Users/kenord/dev2/Energibruksmodell/input/nybygging_husandeler.csv'
-nybygging_befolkning = 'C:/Users/kenord/dev2/Energibruksmodell/input/nybygging_befolkning.csv'
-
-
-build_count = pd.read_csv(nybygging_ssb_antall)
-build_count[['building_category']] = 'unknown'
-
-build_count = build_count.rename(columns={'H1': 'type of building'})
-
-types = build_count['type of building'].apply(lambda r: pd.Series(r.split(' ', 1)))
-
-build_count[['typeno', 'typename']] = types
-
-build_count = build_count.drop(columns=['type of building'])
-
-build_count.loc[(build_count.typeno>='111') & (build_count.typeno<='136'), 'building_category'] = 'Small house'
-build_count.loc[(build_count.typeno>='141') & (build_count.typeno<='146'), 'building_category'] = 'Appartment block'
-
-display(build_count)
-
-display_markdown('### Summer for antall nybygg')
-
-# In[4]:
-
-
-build_count_sum = build_count.groupby(by='building_category').sum().stack()
-build_count_sum.loc[['Appartment block', 'Small house'], '2011':'2011']
-
-print('### Areal nybygg')
-
-build_area = pd.read_csv(nybygging_ssb_areal)
-types = build_area['type of building'].apply(lambda r: pd.Series(r.split(' ', 1)))
-
-build_area[['typeno', 'typename']] = types
-
-build_area = build_area.drop(columns=['type of building', 'area'])
-#build_area = build_area.set_index(['typeno'])
-
-build_area['building_category'] = 'unknown'
-build_area.loc[(build_area.typeno>='111') & (build_area.typeno<='136'), 'building_category'] = 'Small house'
-build_area.loc[(build_area.typeno>='141') & (build_area.typeno<='146'), 'building_category'] = 'Appartment block'
-
-display(build_area)
-build_area_sum = build_area.groupby(by='building_category').sum()
-display(build_area_sum)
-display(598_834 - 591891)
-
-print('### Andeler småhus/leiligheter')
-
-
-andeler = pd.read_csv(nybygging_andeler, dtype={"Andel nye småhus": "float64", 'Andel nye leiligheter': 'float64'})
-pd.set_option('display.float_format', '{:.15f}'.format)
-#andeler['Andel nye småhus'] = 1-andeler['Andel nye leiligheter']
-
-andeler = andeler.rename(columns={'årstall': 'year'})
-
-display(andeler)
-
-
-# In[ ]:
-
-
-print('### Husholdninger (scenario)')
-
-# In[7]:
-
-
-
-befolkning = pd.read_csv(nybygging_befolkning, dtype={"household_size": "float64"})
-display(befolkning.sample(7))
-befolkning['households'] = (befolkning['population'] / befolkning['household_size'])
-befolkning['population_change'] = befolkning.population.diff(1) / befolkning.population.shift(1)
-befolkning['households_change'] = befolkning.households.diff(1)
-befolkning['building_change'] = befolkning.households
-2_587_275
-18_691
-
-display(befolkning[befolkning.year==2024])
-display(5472086 / 2.115)
-display(befolkning)
-
-
-
-print('### Årling endring antall småhus')
-
-# In[8]:
-
-
-yearly_change_small_house = befolkning.merge(andeler, left_on='year', right_on='year') 
-yearly_change_small_house['Årlig endring antall småhus'] = ((yearly_change_small_house['households_change'] *yearly_change_small_house['Andel nye småhus'])).fillna(0)
-yearly_change_small_house = yearly_change_small_house[['year', 'Årlig endring antall småhus', 'Areal nye småhus', 'Andel nye småhus']]
-yearly_change_small_house = yearly_change_small_house.set_index('year')
-display(yearly_change_small_house)
-
-
-print('### Årlig endring areal småhus')
-
-
-
-
-
-display(((yearly_change_small_house['Årlig endring antall småhus']*yearly_change_small_house['Areal nye småhus'])))
-yearly_change_small_house['Årlig endring areal småhus'] = ((yearly_change_small_house['Årlig endring antall småhus']*yearly_change_small_house['Areal nye småhus'])).fillna(0)
-yearly_change_small_house = yearly_change_small_house[['Årlig endring antall småhus', 'Årlig endring areal småhus', 'Areal nye småhus']]
-
-
-
-if 'year' in yearly_change_small_house.columns:
-    yearly_change_small_house = yearly_change_small_house.set_index('year')
-display(yearly_change_small_house)
-
-print('### Årlig revet areal småhus')
-
-
-
-
-
-p = pathlib.Path("C:/Users/kenord/OneDrive - Norges vassdrags- og energidirektorat/Dokumenter/regneark/st_bema2019_a_hus.xlsx")
-
-wb = load_workbook(filename=p)
-sheet_ranges = wb.sheetnames
-
-sheet = wb[sheet_ranges[0]]
-
-
-cells = list(string.ascii_uppercase)[4:] + [a+b for a,b in itertools.product(string.ascii_uppercase, repeat=2)][:19]
-
-area_demolition_house = sheet['F656'].value - sheet['E656'].value
-
-display(area_demolition_house)
-
-a_hus_revet = pd.DataFrame({'revet': [sheet[f'{c}656'].value for c in cells]}, index=list(range(2010, 2051)))
-a_hus_revet['revet'] = a_hus_revet['revet']
-a_hus_revet['revet_change'] = a_hus_revet.revet.diff(1).fillna(0)
-a_hus_revet.index = a_hus_revet.index.rename('year')
-
-display(a_hus_revet.head())
-display(a_hus_revet.tail())
-
-
-print('-----------------')
-print('### Årlig nybygget areal småhus')
-print('-----------------')
-
-
-
-build_area = pd.read_csv(nybygging_ssb_areal)
-types = build_area['type of building'].apply(lambda r: pd.Series(r.split(' ', 1)))
-
-build_area[['typeno', 'typename']] = types
-
-build_area = build_area.drop(columns=['type of building', 'area'])
-
-
-build_area['building_category'] = 'unknown'
-build_area.loc[(build_area.typeno>='111') & (build_area.typeno<='136'), 'building_category'] = 'Small house'
-build_area.loc[(build_area.typeno>='141') & (build_area.typeno<='146'), 'building_category'] = 'Appartment block'
-
-display(build_area)
-build_area_sum = build_area.groupby(by='building_category').sum()
-display(build_area_sum)
-
-
-# In[12]:
-
-
-
-years = pd.Series({ y: np.float64(0) for y in range(2012, 2051)})
-
-padded_build_area_sum = pd.DataFrame(pd.concat([build_area_sum.loc['Small house'].loc[['2010', '2011']], years]), columns=['area'])
-
-display(padded_build_area_sum.head())
-display(yearly_change_small_house.columns)
-display(yearly_change_small_house['Årlig endring areal småhus'])
-
-a_hus_revet['revet_change'] = a_hus_revet['revet_change'].fillna(0)
-
-yearly_change_small_house[yearly_change_small_house.index > 2011]['Årlig endring areal småhus']
-
-
-yearly_change_small_house['Årlig nybygget areal småhus'] = yearly_change_small_house['Årlig endring areal småhus'] + a_hus_revet['revet_change']
-
-yearly_change_small_house.loc[2010, 'Årlig nybygget areal småhus'] = build_area_sum.loc['Small house']['2010']
-yearly_change_small_house.loc[2011, 'Årlig nybygget areal småhus'] = build_area_sum.loc['Small house']['2011']
-
-print('## Nybygget småhus akkumulert')
-
-# In[13]:
-
-
-display(yearly_change_small_house.head())
-
-yearly_change_small_house['Nybygget småhus akkumultert'] = yearly_change_small_house['Årlig nybygget areal småhus'].cumsum()
-
-display(yearly_change_small_house)
-
-
-# In[15]:
-
-
-display(build_area_sum)
-
-build_area_sum[build_area_sum.index == 'Small house']['2010']
-build_area_sum.loc['Small house']['2010']
+from ebm.model import DatabaseManager
+
+
+def calculate_households(population: pd.DataFrame) -> pd.DataFrame:
+    population['households'] = (population['population'] / population['household_size'])
+    population['population_change'] = population.population.diff(1) / population.population.shift(1)
+    population['households_change'] = population.households.diff(1)
+    population['building_change'] = population.households
+    return population
+
+
+def calculate_house_change(population: pd.DataFrame, new_buildings_category_share: pd.DataFrame) -> pd.DataFrame:
+    floor_area = population.merge(new_buildings_category_share, left_on='year', right_on='year')
+    floor_area['yearly_change_house_count'] = (
+        (floor_area['households_change'] * floor_area['new_house_share'])).fillna(0)
+
+    floor_area = floor_area[['yearly_change_house_count', 'floor_area_new_house', 'new_house_share']]
+
+    floor_area['yearly_change_floor_area_house'] = (
+        (floor_area['yearly_change_house_count'] *
+         floor_area['floor_area_new_house'])).fillna(0)
+    floor_area = floor_area[
+        ['yearly_change_house_count', 'yearly_change_floor_area_house', 'floor_area_new_house']]
+    if 'year' in floor_area.columns:
+        floor_area = floor_area.set_index('year')
+    return floor_area
+
+
+def calculate_yearly_built_floor_area_house(build_area: pd.DataFrame,
+                                            floor_area_demolished_by_year: pd.DataFrame,
+                                            yearly_change_small_house: pd.DataFrame) -> pd.DataFrame:
+    build_area['building_category'] = 'unknown'
+    build_area.loc[(build_area.type_no >= '111') & (build_area.type_no <= '136'), 'building_category'] = 'Small house'
+    build_area.loc[
+        (build_area.type_no >= '141') & (build_area.type_no <= '146'), 'building_category'] = 'Apartment block'
+    build_area_sum = build_area.groupby(by='building_category').sum()
+
+    yearly_change_small_house['yearly_new_house_floor_area'] = \
+        yearly_change_small_house['yearly_change_floor_area_house'] + floor_area_demolished_by_year['demolition_change']
+    yearly_change_small_house.loc[2010, 'yearly_new_house_floor_area'] = build_area_sum.loc['Small house']['2010']
+    yearly_change_small_house.loc[2011, 'yearly_new_house_floor_area'] = build_area_sum.loc['Small house']['2011']
+    return yearly_change_small_house
+
+
+def calculate_new_buildings_accumulated(yearly_change_small_house) -> pd.DataFrame:
+    yearly_change_small_house['new_house_accumulated'] = yearly_change_small_house[
+        'yearly_new_house_floor_area'].cumsum()
+    # In the Bema_2019 spreadsheet the value for 2010 is empty. Using zero instead. This will prevent NaN issues later.
+    yearly_change_small_house.loc[2010, 'new_house_accumulated'] = 0
+    return yearly_change_small_house
+
+
+def main():
+    process_new_buildings_house()
+
+
+def process_new_buildings_house():
+    database_manager = DatabaseManager()
+    population = database_manager.get_construction_population()
+    households = calculate_households(population=population)
+
+    facts = households[['population', 'population_change', 'household_size', 'households', 'households_change']]
+
+    house_demolition_area = database_manager.load_demolition_floor_area_from_spreadsheet()
+
+    buildings_category_share = database_manager.get_new_buildings_category_share()
+    category_floor_area = database_manager.get_building_category_floor_area()
+    house_change = calculate_house_change(households, buildings_category_share)
+
+    yearly_built_floor_area_house = calculate_yearly_built_floor_area_house(category_floor_area,
+                                                                            house_demolition_area,
+                                                                            house_change)
+
+    scenario_r_house = pd.concat([
+        house_demolition_area['demolition_change'],
+        yearly_built_floor_area_house['yearly_new_house_floor_area'],
+        calculate_new_buildings_accumulated(yearly_built_floor_area_house)['new_house_accumulated']],
+        axis=1)
+
+    regneark = pd.merge(left=facts, right=scenario_r_house, left_index=True, right_index=True)
+
+    regneark = regneark.rename(axis=1, mapper={'population': 'Befolkning',
+                                               'population_change': 'Befolkningsøkning',
+                                               'household_size': 'Pers/Hushold',
+                                               'households': 'Husholdninger',
+                                               'households_change': 'Årlig endring antall boliger',
+                                               'demolition_change': 'Årlig revet areal',
+                                               'house_floor_area_change': 'Årlig nybygget areal',
+                                               'floor_area_change_accumulated': 'Nybygget småhus akkumulert'})
+    display(regneark.transpose())
+
+
+def run_notebook():
+    print('# Nybygging formler')
+    database_manager = DatabaseManager()
+    print('### Andeler småhus/leiligheter')
+    new_buildings_category_share = database_manager.get_new_buildings_category_share()
+    display(new_buildings_category_share.head())
+    print('### Husholdninger (scenario)')
+    households = calculate_households(database_manager.get_construction_population())
+    display(households[households.year == 2024])
+    display(households.head())
+    print('### Årlig endring antall småhus')
+    yearly_change_small_house = calculate_house_change(households, new_buildings_category_share)
+    display(yearly_change_small_house.head())
+    print('### Årlig revet areal småhus')
+    floor_area_demolished_by_year = load_demolition_floor_area_from_spreadsheet()
+    display(floor_area_demolished_by_year.head())
+    display(floor_area_demolished_by_year.tail())
+    print('### Årlig nybygget areal småhus')
+    build_area_sum = calculate_yearly_built_floor_area_house(
+        database_manager.get_building_category_floor_area(),
+        floor_area_demolished_by_year,
+        yearly_change_small_house)
+    display(build_area_sum.head())
+    padded_build_area_sum = pd.DataFrame(pd.concat([
+        build_area_sum.loc['Small house'].loc[['2010', '2011']],
+        pd.Series({y: np.float64(0) for y in range(2012, 2051)})]), columns=['area'])
+    display(padded_build_area_sum.head())
+    display(padded_build_area_sum.tail())
+    print('## Nybygget småhus akkumulert')
+    yearly_change_small_house = calculate_new_buildings_accumulated(yearly_change_small_house)
+    display(yearly_change_small_house.head())
+    display(yearly_change_small_house.head())
+
+
+if __name__ == '__main__':
+    main()

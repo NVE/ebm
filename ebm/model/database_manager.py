@@ -172,10 +172,11 @@ class DatabaseManager():
         area_params = self.file_handler.get_area_parameters()
         return area_params
 
-    def load_demolition_floor_area_from_spreadsheet(self, building_category: BuildingCategory) -> pd.Series:
+    @staticmethod
+    def load_demolition_floor_area_from_spreadsheet(building_category: BuildingCategory) -> pd.Series:
         logger.debug(f'Loading static demolished floor area for "{building_category}"')
         if building_category.name.lower() not in demolition_by_year_all.keys():
-            ValueError(f'No such building_category "{building_category}" in demolition.demolition_by_year_all')
+            raise ValueError(f'No such building_category "{building_category}" in demolition.demolition_by_year_all')
         demolition = pd.Series(demolition_by_year_all.get(building_category.name.lower()), index=range(2010, 2051))
 
         return demolition

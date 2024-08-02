@@ -12,6 +12,25 @@ from ebm.model import DatabaseManager, BuildingCategory
 from ebm.model.new_buildings import NewBuildings
 
 
+def calculate_more_construction():
+    for building_category in [BuildingCategory.KINDERGARTEN,
+                              BuildingCategory.SCHOOL,
+                              BuildingCategory.UNIVERSITY,
+                              BuildingCategory.OFFICE,
+                              BuildingCategory.RETAIL,
+                              BuildingCategory.HOTEL,
+                              BuildingCategory.HOSPITAL,
+                              BuildingCategory.NURSING_HOME,
+                              BuildingCategory.CULTURE,
+                              BuildingCategory.SPORTS,
+                              BuildingCategory.STORAGE_REPAIRS]:
+
+        df = NewBuildings.calculate_construction(building_category=building_category, yearly_construction_floor_area=None, total_floor_area=None)
+        transposed = df.transpose()
+        transposed.insert(0, 'building_category', str(building_category))
+        yield transposed
+
+
 def main():
     """ Program used to test nybygging calculation main function """
     arg_parser = argparse.ArgumentParser()
@@ -58,7 +77,9 @@ def main():
     apartment_blocks = new_building_apartment_block
     apartment_blocks.insert(0, 'building_category', 'apartment_block')
 
-    construction_df = pd.concat([houses, apartment_blocks])
+    more_construction = list(calculate_more_construction())
+
+    construction_df = pd.concat([houses, apartment_blocks] + more_construction)
 
     construction_df.to_excel('output/construction.xlsx', startcol=4)
     display(new_building_apartment_block)

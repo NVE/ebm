@@ -215,12 +215,12 @@ class NewBuildings:
         kg_arlig_nybygget_akkumulert = kg_barnehage_nybygget.cumsum()
 
         construction = pd.DataFrame(data={
-            'kg_totalt_areal_2010': kg_totalt_areal_2010,
-            'kg_arlig_revet_areal': kg_arlig_revet_areal,
-            'kg_barnehage_nybygget': kg_barnehage_nybygget,
-            'kg_barnehagevekst': kg_barnehagevekst,
-            'kg_arlig_nybygget_akkumulert': kg_arlig_nybygget_akkumulert,
-            'kg_floor_area_population': kg_floor_area_population
+            'total_floor_area': kg_totalt_areal_2010,
+            'house_change': kg_barnehagevekst,
+            'demolition_change': kg_arlig_revet_areal,
+            'floor_area_change': kg_barnehage_nybygget,
+            'floor_area_change_accumulated': kg_arlig_nybygget_akkumulert,
+            'floor_area_population': kg_floor_area_population
         }, index=[year for year in range(2010, 2051)])
 
         return construction

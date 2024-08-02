@@ -7,8 +7,6 @@ from ebm.model.database_manager import DatabaseManager
 from ebm.model.buildings import Buildings
 from ebm.model.area_forecast import AreaForecast
 
-#pd.set_option("display.max_columns", None)
-#pd.set_option("display.max_rows", None)
 
 # help list
 building_list = ['apartment_block', 'house',

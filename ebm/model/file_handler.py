@@ -16,9 +16,9 @@ class FileHandler:
     TEK_ID = 'TEK_ID.csv'
     TEK_PARAMS = 'TEK_parameters.csv'
     SCURVE_PARAMETERS = 'scurve_parameters.csv'
-    CONSTRUCTION_POPULATION = 'nybygging_befolkning.csv'
-    CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'nybygging_husandeler.csv'
-    CONSTRUCTION_BUILDING_CATEGORY_AREA = 'nybygging_ssb_05940_areal.csv'
+    CONSTRUCTION_POPULATION = 'new_buildings_population.csv'
+    CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'new_buildings_house_share.csv'
+    CONSTRUCTION_BUILDING_CATEGORY_AREA = 'new_buildings_floor_area.csv'
     AREA_PARAMETERS = 'area_parameters.csv'
 
     def __init__(self):

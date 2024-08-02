@@ -7,8 +7,6 @@ from .building_category import BuildingCategory
 from .demolition import demolition_by_year_all
 from .file_handler import FileHandler
 from .data_classes import TEKParameters
-from ..services.spreadsheet import iter_cells
-from ..services.spreadsheet import iter_cells
 
 # TODO:
 # - add method to change all strings to lower case and underscore instead of space

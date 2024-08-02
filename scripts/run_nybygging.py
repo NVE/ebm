@@ -51,6 +51,16 @@ def main():
     if pathlib.Path('output').is_dir():
         new_building_house.to_excel('output/new_building_house.xlsx', startcol=4)
 
+    houses = new_building_house
+    houses.insert(0, 'building_category', 'house')
+    houses.to_excel('output/construction.xlsx', startcol=4)
+
+    apartment_blocks = new_building_apartment_block
+    apartment_blocks.insert(0, 'building_category', 'apartment_block')
+
+    construction_df = pd.concat([houses, apartment_blocks])
+
+    construction_df.to_excel('output/construction.xlsx', startcol=4)
     display(new_building_apartment_block)
     display(new_building_apartment_block.loc['floor_area_change_accumulated'].head())
 

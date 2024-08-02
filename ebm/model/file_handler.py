@@ -4,8 +4,6 @@ import pathlib
 from loguru import logger
 import pandas as pd
 
-# TODO: 
-# change so that get_file can read 'any' fileformat? So that filetype (e.g. xlsx) don't need to be specified in filenames.  
 
 class FileHandler:
     """
@@ -18,9 +16,9 @@ class FileHandler:
     TEK_ID = 'TEK_ID.csv'
     TEK_PARAMS = 'TEK_parameters.csv'
     SCURVE_PARAMETERS = 'scurve_parameters.csv'
-    CONSTRUCTION_POPULATION = 'nybygging_befolkning.csv'
-    CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'nybygging_husandeler.csv'
-    CONSTRUCTION_BUILDING_CATEGORY_AREA = 'nybygging_ssb_05940_areal.csv'
+    CONSTRUCTION_POPULATION = 'new_buildings_population.csv'
+    CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'new_buildings_house_share.csv'
+    CONSTRUCTION_BUILDING_CATEGORY_AREA = 'new_buildings_floor_area.csv'
     AREA_PARAMETERS = 'area_parameters.csv'
 
     def __init__(self):
@@ -153,7 +151,7 @@ class FileHandler:
 
         Returns:
         - area_parameters (pd.DataFrame): Dataframe containing total area (m^2) per
-                                          building category and TEK. 
+                                          building category and TEK.
         """
         return self.get_file(self.AREA_PARAMETERS)
 

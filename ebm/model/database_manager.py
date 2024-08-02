@@ -1,7 +1,10 @@
 import typing
 
+from loguru import logger
 import pandas as pd
 
+from .building_category import BuildingCategory
+from .demolition import demolition_by_year_all
 from .file_handler import FileHandler
 from .data_classes import TEKParameters
 
@@ -117,22 +120,29 @@ class DatabaseManager():
         - construction_population (pd.DataFrame): Dataframe containing population numbers
           year population household_size
         """
-        return self.file_handler.get_construction_population()
+        new_buildings_population = self.file_handler.get_construction_population()
+        new_buildings_population["household_size"] = new_buildings_population['household_size'].astype('float64')
+        new_buildings_population = new_buildings_population.set_index('year')
+        return new_buildings_population
 
-    def get_construction_building_category_share(self) -> pd.DataFrame:
+    def get_new_buildings_category_share(self) -> pd.DataFrame:
         """
-        Get building category share by year DataFrame from a file.
+        Get building category share by year as a DataFrame.
 
         The number can be used in conjunction with number of households to calculate total number
         of buildings of category house and apartment block
 
         Returns:
-        - construction_population (pd.DataFrame): Dataframe containing population numbers
+        - new_buildings_category_share (pd.DataFrame): Dataframe containing population numbers
           "year", "Andel nye småhus", "Andel nye leiligheter", "Areal nye småhus", "Areal nye leiligheter"
         """
-        return self.file_handler.get_construction_building_category_share()
+        df = self.file_handler.get_construction_building_category_share()
+        df['new_house_share'] = df['new_house_share'].astype('float64')
+        df['new_apartment_block_share'] = df['new_apartment_block_share'].astype('float64')
 
-    def get_building_category_area(self) -> pd.DataFrame:
+        return df.set_index('year')
+
+    def get_building_category_floor_area(self) -> pd.DataFrame:
         """
         Get population and household size DataFrame from a file.
 
@@ -140,7 +150,13 @@ class DatabaseManager():
         - construction_population (pd.DataFrame): Dataframe containing population numbers
           "area","type of building","2010","2011"
         """
-        return self.file_handler.get_building_category_area()
+
+        df = self.file_handler.get_building_category_area()
+        types = df['type_of_building'].apply(lambda r: pd.Series(r.split(' ', 1)))
+        df[['type_no', 'typename']] = types
+
+        df = df.drop(columns=['type_of_building', 'area'])
+        return df
 
     def get_area_parameters(self) -> pd.DataFrame:
         """
@@ -151,8 +167,16 @@ class DatabaseManager():
 
         Returns:
         - area_parameters (pd.DataFrame): Dataframe containing total area (m^2) per
-                                          building category and TEK. 
+                                          building category and TEK.
         """
         area_params = self.file_handler.get_area_parameters()
         return area_params
 
+    @staticmethod
+    def load_demolition_floor_area_from_spreadsheet(building_category: BuildingCategory) -> pd.Series:
+        logger.debug(f'Loading static demolished floor area for "{building_category}"')
+        if building_category.name.lower() not in demolition_by_year_all.keys():
+            raise ValueError(f'No such building_category "{building_category}" in demolition.demolition_by_year_all')
+        demolition = pd.Series(demolition_by_year_all.get(building_category.name.lower()), index=range(2010, 2051))
+
+        return demolition

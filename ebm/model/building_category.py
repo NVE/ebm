@@ -1,7 +1,8 @@
-from enum import Enum
+from enum import Enum, unique, IntEnum
 
 
-class BuildingCategory(Enum):
+@unique
+class BuildingCategory(IntEnum):
     HOUSE = 1
     APARTMENT_BLOCK = 2
     KINDERGARTEN = 3
@@ -16,58 +17,58 @@ class BuildingCategory(Enum):
     SPORTS = 12
     STORAGE_REPAIRS = 13
 
-    def __str__(self):
-        return self.name.lower().replace('_', ' ')
+#    def __str__(self):
+#        return self.name.lower().replace('_', ' ')
 
     def yearly_construction_floor_area(self):
         if self == BuildingCategory.KINDERGARTEN:
-            return 97_574, 90_644, 65_847, 62_022, 79_992,
+            return 97574, 90644, 65847, 62022, 79992,
         if self == BuildingCategory.UNIVERSITY:
-            return 112_747, 49_205, 44_100, 34_766, 84_340,
+            return 112747, 49205, 44100, 34766, 84340,
         if self == BuildingCategory.OFFICE:
-            return 443_334, 355_103, 649_466, 531_348, 320_478,
+            return 443334, 355103, 649466, 531348, 320478,
         if self == BuildingCategory.SCHOOL:
-            return 281_884, 206_298, 224_638, 295_082, 256_470,
+            return 281884, 206298, 224638, 295082, 256470,
         if self == BuildingCategory.RETAIL:
-            return 555_903, 586_000, 640_545, 636_006, 687_111
+            return 555903, 586000, 640545, 636006, 687111
         if self == BuildingCategory.HOTEL:
-            return 166_371,	157_465, 133_144,69_857, 174_050
+            return 166371,	157465, 133144,69857, 174050
         if self == BuildingCategory.HOSPITAL:
-            return 67_455, 33_747, 9_477, 30_942, 10_821
+            return 67455, 33747, 9477, 30942, 10821
         if self == BuildingCategory.NURSING_HOME:
-            return 69_803, 60_648, 47_932, 84_639, 90_631
+            return 69803, 60648, 47932, 84639, 90631
         if self == BuildingCategory.CULTURE:
-            return 43_646, 72_625, 73_971, 50_951, 47_282
+            return 43646, 72625, 73971, 50951, 47282
         if self == BuildingCategory.SPORTS:
-            return 137_744, 146_106, 173_818, 185_307, 119_111
+            return 137744, 146106, 173818, 185307, 119111
         if self == BuildingCategory.STORAGE_REPAIRS:
-            return 33_755, 33_755, 33_755, 33_755, 33_755,
+            return 33755, 33755, 33755, 33755, 33755,
 
         raise NotImplementedError(f'yearly_construction_floor_area does not support category {self.name} (yet)')
 
     def total_floor_area_2010(self) -> int:
         if self == BuildingCategory.KINDERGARTEN:
-            return 1_275_238
+            return 1275238
         if self == BuildingCategory.SCHOOL:
-            return 13_884_666
+            return 13884666
         if self == BuildingCategory.UNIVERSITY:
-            return 2_440_242
+            return 2440242
         if self == BuildingCategory.OFFICE:
-            return 26_769_695
+            return 26769695
         if self == BuildingCategory.RETAIL:
-            return 30_378_557
+            return 30378557
         if self == BuildingCategory.HOTEL:
-            return 5_714_517
+            return 5714517
         if self == BuildingCategory.HOSPITAL:
-            return 4_752_999
+            return 4752999
         if self == BuildingCategory.NURSING_HOME:
-            return 5_215_597
+            return 5215597
         if self == BuildingCategory.CULTURE:
-            return 2_899_338
+            return 2899338
         if self == BuildingCategory.SPORTS:
-            return 2_323_323
+            return 2323323
         if self == BuildingCategory.STORAGE_REPAIRS:
-            return 29_328_483
+            return 29328483
 
         raise NotImplementedError(f'total_floor_area_2010 does not support building category {self.name} (yet)')
 

@@ -18,7 +18,7 @@ class FileHandler:
     SCURVE_PARAMETERS = 'scurve_parameters.csv'
     CONSTRUCTION_POPULATION = 'new_buildings_population.csv'
     CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'new_buildings_house_share.csv'
-    CONSTRUCTION_BUILDING_CATEGORY_AREA = 'new_buildings_floor_area.csv'
+    CONSTRUCTION_BUILDING_CATEGORY_AREA = 'construction_building_category_yearly.csv'
     AREA_PARAMETERS = 'area_parameters.csv'
 
     def __init__(self):
@@ -143,7 +143,8 @@ class FileHandler:
         - construction_population (pd.DataFrame): Dataframe containing population numbers
           "area","type of building","2010","2011"
         """
-        return self.get_file(self.CONSTRUCTION_BUILDING_CATEGORY_AREA)
+        return pd.read_csv('input/'+self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
+                           index_col=0, header=0)
 
     def get_area_parameters(self) -> pd.DataFrame:
         """

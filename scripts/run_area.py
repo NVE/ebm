@@ -8,6 +8,7 @@ from ebm.model.shares_per_condition import SharesPerCondition
 from ebm.model.scurve import SCurve
 from ebm.model.area import Area
 from ebm.model.area_forecast import AreaForecast
+from ebm.model.building_condition import BuildingCondition
 
 #pd.set_option("display.max_columns", None)
 #pd.set_option("display.max_rows", None)

@@ -137,10 +137,9 @@ class DatabaseManager():
           "year", "Andel nye småhus", "Andel nye leiligheter", "Areal nye småhus", "Areal nye leiligheter"
         """
         df = self.file_handler.get_construction_building_category_share()
-        df['new_house_share'] = df['new_house_share'].astype('float64')
-        df['new_apartment_block_share'] = df['new_apartment_block_share'].astype('float64')
-
-        return df.set_index('year')
+        df['year'] = df['year'].astype(int)
+        df = df.set_index('year')
+        return df
 
     def get_building_category_floor_area(self) -> pd.DataFrame:
         """
@@ -152,10 +151,6 @@ class DatabaseManager():
         """
 
         df = self.file_handler.get_building_category_area()
-        types = df['type_of_building'].apply(lambda r: pd.Series(r.split(' ', 1)))
-        df[['type_no', 'typename']] = types
-
-        df = df.drop(columns=['type_of_building', 'area'])
         return df
 
     def get_area_parameters(self) -> pd.DataFrame:

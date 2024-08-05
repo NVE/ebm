@@ -90,14 +90,7 @@ def create_new_building_apartment_block_dataframe(database_manager, household_si
     building_category_share = database_manager.get_new_buildings_category_share()
 
     build_area = database_manager.get_building_category_floor_area()
-    build_area['building_category'] = 'unknown'
-    build_area.loc[(build_area.type_no >= '111') & (build_area.type_no <= '136'), 'building_category'] = 'Small house'
-    build_area.loc[build_area.type_no >= '141', 'building_category'] = 'Apartment block'
-    build_area_sum = build_area.groupby(by='building_category').sum()
-
-    apartment_block_area = pd.Series(
-        build_area_sum.loc['Apartment block', ['2010', '2011']], name='area').astype('float64')
-    apartment_block_area.index = apartment_block_area.index.astype('int')  # [2010]
+    apartment_block_area = build_area['apartment_block'].dropna()
 
     new_buildings = NewBuildings()
     yearly_demolished_floor_area = new_buildings.calculate_floor_area_demolished(BuildingCategory.APARTMENT_BLOCK) #'st_bema2019_a_leil.xlsx',
@@ -114,15 +107,7 @@ def create_new_building_house_dataframe(database_manager, household_size, popula
     new_buildings = NewBuildings()
     building_category_share = database_manager.get_new_buildings_category_share()
     build_area = database_manager.get_building_category_floor_area()
-    build_area['building_category'] = 'unknown'
-    build_area.loc[(build_area.type_no >= '111') & (build_area.type_no <= '136'), 'building_category'] = 'Small house'
-    build_area.loc[
-        build_area.type_no >= '141', 'building_category'] = 'Apartment block'
-    build_area_sum = build_area.groupby(by='building_category').sum()
-
-    house = pd.Series(
-        build_area_sum.loc['Small house', ['2010', '2011']], name='area').astype('float64')
-    house.index = house.index.astype('int')  # [2010]
+    house_floor_area = build_area['apartment_block'].dropna()
 
     yearly_demolished_floor_area = new_buildings.calculate_floor_area_demolished(BuildingCategory.HOUSE) # filename = 'st_bema2019_a_hus.xlsx',
 
@@ -130,7 +115,7 @@ def create_new_building_house_dataframe(database_manager, household_size, popula
         population,
         household_size,
         building_category_share,
-        house,
+        house_floor_area,
         yearly_demolished_floor_area, average_floor_area=175)
 
     return new_building_house

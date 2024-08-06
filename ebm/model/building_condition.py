@@ -1,27 +1,48 @@
 import typing
 
-from enum import Enum, unique
+from enum import StrEnum, unique, auto
 
 @unique
-class BuildingCondition(Enum):
-    SMALL_MEASURE = 1
-    RENOVATION = 2
-    RENOVATION_AND_SMALL_MEASURE = 3
-    DEMOLITION = 4
-    ORIGINAL_CONDITION = 5
+class BuildingCondition(StrEnum):
+    SMALL_MEASURE = auto() 
+    RENOVATION = auto()
+    RENOVATION_AND_SMALL_MEASURE = auto()
+    DEMOLITION = auto()
+    ORIGINAL_CONDITION = auto()
 
-    def __str__(self):
-        return self.name.lower()
-    
+    @classmethod
+    def _missing_(cls, value: str):
+        """
+        Attempts to create an enum member from a given value by normalizing the string.
+
+        This method is called when a value is not found in the enumeration. It converts the input value 
+        to lowercase, replaces spaces and hyphens with underscores, and then checks if this transformed 
+        value matches the value of any existing enum member.
+
+        Parameters:
+        - value (str): The input value to convert and check against existing enum members.
+
+        Returns:
+        - Enum member: The corresponding enum member if a match is found.
+
+        Raises:
+        - ValueError: If no matching enum member is found.
+        """
+        value = value.lower().replace(' ', '_').replace('-', '_')
+        for member in cls:
+            if member.value == value:
+                return member
+        return ValueError(f'No such building condition: {value}')
+
     @staticmethod
     def get_scruve_condition_list() -> typing.List[str]:
         """
-        Retrieves a list with the building conditions used in S-curve calculatons (in lower case). 
+        Retrieves a list with the building conditions used in S-curve calculations (in lower case). 
         
         Returns:
         - condition_list (list[str]): list of building conditions
         """
-        condition_list = [BuildingCondition(value).name.lower() for value in [1,2,4]]
+        condition_list = [BuildingCondition.SMALL_MEASURE.value, BuildingCondition.RENOVATION.value, BuildingCondition.DEMOLITION.value]
         return condition_list
     
     @staticmethod
@@ -32,5 +53,5 @@ class BuildingCondition(Enum):
         Returns:
         - condition_list (list[str]): list of building conditions 
         """
-        condition_list = [condition.name.lower() for condition in iter(BuildingCondition)]
+        condition_list = [condition.value for condition in iter(BuildingCondition)]
         return condition_list

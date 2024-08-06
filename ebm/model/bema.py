@@ -1,13 +1,14 @@
 import itertools
+import typing
 
 from loguru import logger
-from openpyxl import load_workbook, Workbook
+from openpyxl import load_workbook
 import pandas as pd
+from openpyxl.worksheet.worksheet import Worksheet
 
 from ebm.model import BuildingCategory
 from ebm.services.spreadsheet import iter_cells
 
-spreadsheet_location = 'C:/Users/kenord/OneDrive - Norges vassdrags- og energidirektorat/Dokumenter/regneark/st_bema2019_nybygging.xlsx'
 
 construction_building_category_rows = {
     BuildingCategory.HOUSE: 11,
@@ -26,7 +27,7 @@ construction_building_category_rows = {
 }
 
 
-def load_row_series(sheet, row=104) -> pd.Series:
+def load_row_series(sheet: Worksheet, row: int = 104) -> pd.Series:
     logger.debug(f'loading {row=}')
     title = sheet[f'D{row}'].value
     years = []
@@ -45,7 +46,7 @@ def load_row_series(sheet, row=104) -> pd.Series:
     return accumulated_construction
 
 
-def load_building_category(sheet, start_row_no=97):
+def load_building_category(sheet: Worksheet, start_row_no: int = 97) -> typing.Dict[str, pd.Series]:
     column_letters = list(itertools.islice(iter_cells('E'), 0, 41))
     column_years = [year for year in range(2010, 2051)]
     return {
@@ -61,19 +62,19 @@ def load_building_category(sheet, start_row_no=97):
     }
 
 
-def load_construction_df(sheet, start_row: int) -> pd.DataFrame:
+def load_construction_df(sheet: Worksheet, start_row: int) -> pd.DataFrame:
     foo = load_building_category(sheet, start_row)
     return pd.DataFrame(data=foo)
 
 
-def load_construction_building_category(sheet: Workbook, building_category: BuildingCategory) -> pd.DataFrame:
-    logger.debug(building_category)
-    b_c = construction_building_category_rows.get(building_category)
-    series = load_building_category(sheet, b_c)
-    return pd.DataFrame(data=series)
+def load_construction_building_category(sheet: Worksheet, building_category: BuildingCategory) -> pd.DataFrame:
+    logger.debug(f'Loading {building_category=}')
+    building_category_rows = construction_building_category_rows.get(building_category)
+    dict_of_series = load_building_category(sheet, building_category_rows)
+    return pd.DataFrame(data=dict_of_series)
 
 
-def load_bema_construction(filename=spreadsheet_location):
+def load_bema_construction(filename) -> Worksheet:
     wb = load_workbook(filename)
     worksheet_name = 'Nybygging' if 'Nybygging' in wb.sheetnames else wb.sheetnames[0]
     sheet = wb[worksheet_name]  # wb['Nybygging']  # Nybygging

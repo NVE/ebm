@@ -1,21 +1,21 @@
-from enum import Enum, unique, IntEnum
+from enum import Enum, unique, IntEnum, StrEnum
 
 
 @unique
-class BuildingCategory(IntEnum):
-    HOUSE = 1
-    APARTMENT_BLOCK = 2
-    KINDERGARTEN = 3
-    SCHOOL = 4
-    UNIVERSITY = 5
-    OFFICE = 6
-    RETAIL = 7
-    HOTEL = 8
-    HOSPITAL = 9
-    NURSING_HOME = 10
-    CULTURE = 11
-    SPORTS = 12
-    STORAGE_REPAIRS = 13
+class BuildingCategory(StrEnum):
+    HOUSE = 'house'
+    APARTMENT_BLOCK = 'apartment_block'
+    KINDERGARTEN = 'kindergarten'
+    SCHOOL = 'school'
+    UNIVERSITY = 'university'
+    OFFICE = 'office'
+    RETAIL = 'retail'
+    HOTEL = 'hotel'
+    HOSPITAL = 'hospital'
+    NURSING_HOME = 'nursing_home'
+    CULTURE = 'culture'
+    SPORTS = 'sports'
+    STORAGE_REPAIRS = 'storage_repairs'
 
 #    def __str__(self):
 #        return self.name.lower().replace('_', ' ')

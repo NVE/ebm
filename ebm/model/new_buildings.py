@@ -116,7 +116,7 @@ class NewBuildings:
             total_floor_area=total_floor_area,
             yearly_construction_floor_area=yearly_construction_floor_area)
 
-        return construction.accumulated_constructed_floor_area
+        return construction
 
     @staticmethod
     def calculate_construction(building_category: BuildingCategory = None,
@@ -157,11 +157,11 @@ class NewBuildings:
         logger.debug(
             f'{total_floor_area.loc[2010]=} - {demolished_floor_area.loc[2011]=} + {constructed_floor_area.loc[2011]=}')
         logger.debug('sum 1 364 963')
-        logger.info(f'{tall=}')
-        logger.info(total_floor_area.loc[2011])
+        logger.debug(f'{tall=}')
+        logger.debug(total_floor_area.loc[2011])
         # Barnehage totalareal 2012 - 2015
         logger.debug('kg_totalt_areal_2011 ')
-        logger.info(total_floor_area.loc[2011])
+        logger.debug(total_floor_area.loc[2011])
         logger.debug('=+F41-G46+G47')
         logger.debug(
             f'{total_floor_area.loc[2011]=} - {demolished_floor_area.loc[2012]=} + {constructed_floor_area.loc[2012]=}')

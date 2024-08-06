@@ -12,9 +12,33 @@ from loguru import logger
 
 from ebm.model import BuildingCategory
 from ebm.model.new_buildings import NewBuildings
-from model.bema import load_construction_building_category
+from ebm.model.bema import load_construction_building_category
 
 logger.info = pprint
+
+
+def main():
+    """ Program used to test nybygging calculation main function """
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument('--debug', action='store_true')
+    arg_parser.add_argument('building_categories', type=str, nargs='*', default=[str(b) for b in iter(BuildingCategory)])
+    arg_parser.add_argument('--precision', type=int, default=10)
+    arguments: argparse.Namespace = arg_parser.parse_args()
+
+    if not arguments.debug and os.environ.get('DEBUG', '') != 'True':
+        logger.remove()
+        logger.add(sys.stderr, level="INFO")
+
+    precision = arguments.precision
+    error_count = 0
+    for b_category in arguments.building_categories:
+        building_category: BuildingCategory = BuildingCategory.from_string(b_category)
+        logger.info(f'Checking {building_category=}')
+        expected: pd.Series = load_accumulated_constructed_floor_area(building_category)
+
+        error_count = validate_building_category_construction(building_category, expected, precision) + error_count
+
+    sys.exit(error_count)
 
 
 def load_accumulated_constructed_floor_area(building_category: BuildingCategory) -> collections.abc.Collection:
@@ -29,33 +53,26 @@ def load_accumulated_constructed_floor_area(building_category: BuildingCategory)
     return df.accumulated_constructed_floor_area
 
 
-def main():
-    """ Program used to test nybygging calculation main function """
-    arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--debug', action='store_true')
-    arg_parser.add_argument('building_category', type=str, nargs='?', default='university')
-    arg_parser.add_argument('--precision', type=int, default=10)
-    arguments: argparse.Namespace = arg_parser.parse_args()
+def validate_building_category_construction(building_category, expected_values, precision: int = 0) -> int:
+    if building_category == 'house':
+        logger.warning('Skipping House')
+        return 0
+    if building_category == 'apartment_block':
+        logger.warning('Skipping House')
+        return 0
+    yearly_constructed = NewBuildings.calculate_yearly_construction(building_category=building_category)
+    construction_floor_area = yearly_constructed.accumulated_constructed_floor_area
 
-    if not arguments.debug and os.environ.get('DEBUG', '') != 'True' and False:
-        logger.remove()
-        logger.add(sys.stderr, level="INFO")
-
-    building_category: BuildingCategory = BuildingCategory.from_string(arguments.building_category)
-    expected_values: pd.Series = load_accumulated_constructed_floor_area(building_category)
-
-    construction_floor_area = NewBuildings.calculate_yearly_construction(building_category=building_category)
-    precision = arguments.precision
     error_count = 0
     for (year, cfa), expected_value in zip(construction_floor_area.items(), expected_values):
         if round(cfa, precision) != round(expected_value, precision):
             error_count = error_count + 1
-            logger.error(f'Expected {expected_value} was {round(cfa)} {building_category.name} {year=} {cfa=}')
+            logger.error(f'Expected {expected_value} was {cfa} {building_category.name} {year=} {cfa=}')
             logger.debug(f'The difference is {expected_value - round(cfa)}')
+            logger.debug(f'{yearly_constructed.loc[year]}')
         else:
             logger.debug(f'Found expected value {expected_value} {year=} {cfa=}')
-
-    sys.exit(error_count)
+    return error_count
 
 
 if __name__ == '__main__':

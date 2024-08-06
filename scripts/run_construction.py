@@ -33,6 +33,7 @@ def main():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--debug', action='store_true')
     arg_parser.add_argument('building_category', type=str, nargs='?', default='university')
+    arg_parser.add_argument('--precision', type=int, default=10)
     arguments: argparse.Namespace = arg_parser.parse_args()
 
     if not arguments.debug and os.environ.get('DEBUG', '') != 'True' and False:
@@ -45,10 +46,10 @@ def main():
     construction_floor_area = NewBuildings.calculate_yearly_construction(
         building_category=building_category
     )
-
+    precision = arguments.precision
     error_count = 0
     for (year, cfa), expected_value in zip(construction_floor_area.items(), expected_values):
-        if round(cfa) != round(expected_value):
+        if round(cfa, precision) != round(expected_value, precision):
             error_count = error_count + 1
             logger.error(f'Expected {expected_value} was {round(cfa)} {building_category.name} {year=} {cfa=}')
             logger.debug(f'The difference is {expected_value - round(cfa)}')

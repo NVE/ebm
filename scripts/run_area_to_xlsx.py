@@ -9,8 +9,6 @@ from ebm.model.area_forecast import AreaForecast
 from ebm.model.building_condition import BuildingCondition
 
 
-#pd.set_option("display.max_columns", None)
-#pd.set_option("display.max_rows", None)
 
 # help list
 building_list = ['apartment_block', 'house',

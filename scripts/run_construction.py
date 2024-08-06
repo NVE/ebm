@@ -34,9 +34,8 @@ def main():
     for b_category in arguments.building_categories:
         building_category: BuildingCategory = BuildingCategory.from_string(b_category)
         logger.info(f'Checking {building_category=}')
-        expected: pd.Series = load_accumulated_constructed_floor_area(building_category)
 
-        error_count = validate_building_category_construction(building_category, expected, precision) + error_count
+        error_count = validate_accumulated_constructed_floor_area(building_category, precision) + error_count
 
     sys.exit(error_count)
 
@@ -53,13 +52,16 @@ def load_accumulated_constructed_floor_area(building_category: BuildingCategory)
     return df.accumulated_constructed_floor_area
 
 
-def validate_building_category_construction(building_category, expected_values, precision: int = 0) -> int:
+def validate_accumulated_constructed_floor_area(building_category, precision: int = 0) -> int:
     if building_category == 'house':
         logger.warning('Skipping House')
         return 0
     if building_category == 'apartment_block':
         logger.warning('Skipping House')
         return 0
+
+    expected_values: pd.Series = load_accumulated_constructed_floor_area(building_category)
+
     yearly_constructed = NewBuildings.calculate_yearly_construction(building_category=building_category)
     construction_floor_area = yearly_constructed.accumulated_constructed_floor_area
 

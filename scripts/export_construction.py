@@ -18,7 +18,6 @@ def main():
     sheet = wb[worksheet_name]  # wb['Nybygging']  # Nybygging
 
     for building_category in list(BuildingCategory):
-    #if 1 == 1:
         logger.debug(building_category)
         df = load_construction_building_category(sheet, building_category)
         print('===', '  '.join(building_category.name.split()), '===')

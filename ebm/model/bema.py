@@ -4,7 +4,6 @@ from loguru import logger
 from openpyxl import load_workbook, Workbook
 import pandas as pd
 
-#from ebm.model.building_category import BuildingCategory
 from ebm.model import BuildingCategory
 from ebm.services.spreadsheet import iter_cells
 
@@ -79,10 +78,4 @@ def load_bema_construction(filename=spreadsheet_location):
     worksheet_name = 'Nybygging' if 'Nybygging' in wb.sheetnames else wb.sheetnames[0]
     sheet = wb[worksheet_name]  # wb['Nybygging']  # Nybygging
 
-    return sheet
-
-    df = load_construction_df(sheet, start_row)
-
-    print('===', '  '.join(building_category.name.split()), '===')
-    rich.pretty.pprint(df.transpose())
     return sheet

@@ -3,6 +3,7 @@ import collections.abc
 import os
 import sys
 
+import pandas as pd
 from dotenv import load_dotenv
 from openpyxl import load_workbook, Workbook
 from openpyxl.worksheet.worksheet import Worksheet
@@ -16,7 +17,7 @@ from model.bema import load_construction_building_category
 logger.info = pprint
 
 
-def load_expected_yearly_constructed(building_category: BuildingCategory) -> collections.abc.Collection:
+def load_accumulated_constructed_floor_area(building_category: BuildingCategory) -> collections.abc.Collection:
     load_dotenv()
     spreadsheet_name = os.environ.get('BEMA_SPREADSHEET')
 
@@ -40,8 +41,8 @@ def main():
         logger.remove()
         logger.add(sys.stderr, level="INFO")
 
-    building_category = BuildingCategory.from_string(arguments.building_category)
-    expected_values = load_expected_yearly_constructed(building_category)
+    building_category: BuildingCategory = BuildingCategory.from_string(arguments.building_category)
+    expected_values: pd.Series = load_accumulated_constructed_floor_area(building_category)
 
     construction_floor_area = NewBuildings.calculate_yearly_construction(building_category=building_category)
     precision = arguments.precision

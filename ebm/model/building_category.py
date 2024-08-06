@@ -72,7 +72,6 @@ class BuildingCategory(StrEnum):
 
         raise NotImplementedError(f'total_floor_area_2010 does not support building category {self.name} (yet)')
 
-
     @staticmethod
     def from_string(category_name: str) -> 'BuildingCategory':
         """Create an enum object from category name
@@ -85,9 +84,9 @@ class BuildingCategory(StrEnum):
         Raises:
             ValueError: category_name not found in BuildingCategory
         """
-        search = category_name.upper().replace(' ', '')
+        search = category_name.lower().replace(' ', '').replace('_','')
         for building_category in iter(BuildingCategory):
-            if search == building_category.name.replace('_', ''):
+            if search == building_category.value.lower().replace('_', ''):
                 return building_category
         raise ValueError(f'No such building category {category_name}')
 

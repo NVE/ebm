@@ -6,6 +6,8 @@ from loguru import logger
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.buildings import Buildings
 from ebm.model.area_forecast import AreaForecast
+from ebm.model.building_condition import BuildingCondition
+
 
 
 # help list
@@ -17,17 +19,19 @@ building_list = ['apartment_block', 'house',
 start_year = 2010
 end_year = 2050
 building_category = 'house'
-full_condition_list = ['small_measure', 'renovation', 'renovation_and_small_measure', 'demolition', 'original_condition']
 
 # Load necessary input arguments
 db = DatabaseManager()
 buildling_category_list = db.get_building_category_list()
 tek_list = db.get_tek_list()
 tek_params = db.get_tek_params(tek_list)
-condition_list = db.get_condition_list()
 scurve_params = db.get_scurve_params()
 area_params = db.get_area_parameters()
-building = Buildings(building_category, tek_list, tek_params, condition_list, scurve_params, area_params)
+
+scurve_condition_list = BuildingCondition.get_scruve_condition_list()
+full_condition_list = BuildingCondition.get_full_condition_list()
+
+building = Buildings(building_category, tek_list, tek_params, scurve_condition_list, scurve_params, area_params)
 tek_list = building.tek_list   # get filtered tek list for given building category
 shares_per_condition = building.get_shares()
 

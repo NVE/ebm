@@ -34,12 +34,12 @@ class Buildings():
                  building_category: str,
                  tek_list: typing.List[str],
                  tek_params: typing.Dict[str, TEKParameters],
-                 condition_list: typing.List[str],
+                 scurve_condition_list: typing.List[str],
                  scurve_params: pd.DataFrame,
                  area_params: pd.DataFrame):
         
         self.building_category = building_category
-        self.condition_list = condition_list
+        self.scurve_condition_list = scurve_condition_list
         self.tek_list = self._filter_tek_list(tek_list)  
         self.tek_params = self._filter_tek_params(tek_params)
         self.scurve_params = self._filter_scurve_params(scurve_params)
@@ -123,7 +123,7 @@ class Buildings():
         """
         filtered_scurve_params = {}
 
-        for condition in self.condition_list:
+        for condition in self.scurve_condition_list:
 
             # Filter dataframe on building category and condition
             scurve_params_filtered = scurve_params[(scurve_params[self.COL_BUILDING_CATEGORY] == self.building_category) &
@@ -165,7 +165,7 @@ class Buildings():
         """
         scurve_data = {}
 
-        for condition in self.condition_list:
+        for condition in self.scurve_condition_list:
 
             # Filter S-curve parameters dictionary on condition
             scurve_params_condition = self.scurve_params[condition]

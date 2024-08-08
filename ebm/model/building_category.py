@@ -1,5 +1,6 @@
 from enum import Enum, unique, IntEnum, StrEnum
 
+from loguru import logger
 
 @unique
 class BuildingCategory(StrEnum):
@@ -21,6 +22,7 @@ class BuildingCategory(StrEnum):
 #        return self.name.lower().replace('_', ' ')
 
     def yearly_construction_floor_area(self):
+        logger.warning('Using static yearly_construction_floor_area')
         if self == BuildingCategory.KINDERGARTEN:
             return 97574, 90644, 65847, 62022, 79992,
         if self == BuildingCategory.UNIVERSITY:
@@ -46,7 +48,11 @@ class BuildingCategory(StrEnum):
 
         raise NotImplementedError(f'yearly_construction_floor_area does not support category {self.name} (yet)')
 
+    def is_residential(self) -> bool:
+        return self == BuildingCategory.HOUSE or self == BuildingCategory.APARTMENT_BLOCK
+
     def total_floor_area_2010(self) -> int:
+        logger.warning('Using static total_floor_area_2010')
         if self == BuildingCategory.KINDERGARTEN:
             return 1275238
         if self == BuildingCategory.SCHOOL:

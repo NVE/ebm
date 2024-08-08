@@ -1,18 +1,18 @@
 import argparse
-import collections.abc
 import os
 import sys
+import typing
 
 import pandas as pd
 from dotenv import load_dotenv
+from loguru import logger
 from openpyxl import load_workbook, Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 from rich.pretty import pprint
-from loguru import logger
 
 from ebm.model import BuildingCategory
-from ebm.model.new_buildings import NewBuildings
 from ebm.model.bema import load_construction_building_category
+from ebm.model.new_buildings import NewBuildings
 
 ROUND_PRECISION = 3
 
@@ -23,9 +23,12 @@ def main():
     """ Program used to test nybygging calculation main function """
     load_dotenv()
 
+    default_building_categories: typing.List[str] = [str(b) for b in iter(BuildingCategory)]
+
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--debug', action='store_true')
-    arg_parser.add_argument('building_categories', type=str, nargs='*', default=[str(b) for b in iter(BuildingCategory)])
+
+    arg_parser.add_argument('building_categories', type=str, nargs='*', default=default_building_categories)
     arguments: argparse.Namespace = arg_parser.parse_args()
 
     if not arguments.debug and os.environ.get('DEBUG', '') != 'True':
@@ -50,7 +53,7 @@ def load_accumulated_constructed_floor_area(building_category: BuildingCategory)
     wb: Workbook = load_workbook(spreadsheet_name)
     sheet_name: Worksheet = wb[wb.sheetnames[0]]
 
-    df = load_construction_building_category(sheet=sheet_name, building_category=building_category)
+    df = load_construction_building_category(worksheet=sheet_name, building_category=building_category)
 
     return df.accumulated_constructed_floor_area
 
@@ -65,9 +68,14 @@ def validate_accumulated_constructed_floor_area(building_category) -> int:
 
     expected_values: pd.Series = load_accumulated_constructed_floor_area(building_category)
 
-    yearly_constructed = NewBuildings.calculate_construction(building_category=building_category,
-                                                             total_floor_area=0,
-                                                             yearly_demolition_floor_area=None)
+    # Prerequisites for calculate_construction
+    demolition_floor_area = NewBuildings.calculate_floor_area_demolished(building_category)
+    construction_floor_area = building_category.yearly_construction_floor_area()
+    yearly_constructed = NewBuildings.calculate_commercial_construction(
+        building_category=building_category,
+        total_floor_area=building_category.total_floor_area_2010(),
+        yearly_construction_floor_area=construction_floor_area,
+        demolition_floor_area=demolition_floor_area)
 
     construction_floor_area = yearly_constructed.accumulated_constructed_floor_area
     years = construction_floor_area.index

@@ -7,7 +7,7 @@ from loguru import logger
 import rich.pretty
 from dotenv import load_dotenv
 
-from model.bema import load_construction_building_category, BuildingCategory
+from ebm.model.bema import load_construction_building_category, BuildingCategory
 
 
 def main():
@@ -18,6 +18,7 @@ def main():
     arg_parser.add_argument('worksheet', type=str, nargs='?', default=None)
 
     arguments = arg_parser.parse_args()
+    logger.debug('loading bema')
     spreadsheet_name = arguments.spreadsheet
     if not spreadsheet_name:
         raise ValueError('Please provide a filename argument or use the environment variable BEMA_SPREADSHEET')

@@ -13,8 +13,11 @@ from rich.pretty import pprint
 from ebm.model import BuildingCategory
 from ebm.model.bema import load_construction_building_category
 from ebm.model.new_buildings import NewBuildings
+from model import DatabaseManager, Buildings
+from model.area_forecast import AreaForecast
+from model.building_condition import BuildingCondition
 
-ROUND_PRECISION = 3
+ROUND_PRECISION = 10
 
 logger.info = pprint
 
@@ -36,13 +39,19 @@ def main():
         logger.add(sys.stderr, level="INFO")
 
     error_count = 0
+    categories_with_errors = []
     for b_category in arguments.building_categories:
         building_category: BuildingCategory = BuildingCategory.from_string(b_category)
         logger.info(f'Checking {building_category=}')
 
-        error_count = validate_accumulated_constructed_floor_area(building_category) + error_count
+        category_error_count = validate_accumulated_constructed_floor_area(building_category)
+        if category_error_count > 0:
+            logger.error(f'Got {category_error_count} errors for category {building_category}')
+            categories_with_errors.append((building_category, category_error_count))
+        error_count = category_error_count + error_count
     if error_count > 0:
         logger.error(f'Got {error_count} errors in total')
+        logger.error(f'{categories_with_errors=}')
 
     sys.exit(error_count)
 
@@ -71,6 +80,14 @@ def validate_accumulated_constructed_floor_area(building_category) -> int:
     # Prerequisites for calculate_construction
     demolition_floor_area = NewBuildings.calculate_floor_area_demolished(building_category)
     construction_floor_area = building_category.yearly_construction_floor_area()
+
+    db = DatabaseManager()
+
+    area_forecast = build_area_forecast(building_category, db)
+
+    demolition_floor_area = pd.Series(area_forecast.calc_total_demolition_area_per_year(),
+                                      index=[y for y in range(2010, 2050 + 1)])
+
     yearly_constructed = NewBuildings.calculate_commercial_construction(
         building_category=building_category,
         total_floor_area=building_category.total_floor_area_2010(),
@@ -85,11 +102,40 @@ def validate_accumulated_constructed_floor_area(building_category) -> int:
         if round(current_value, ROUND_PRECISION) != round(expected_value, ROUND_PRECISION):
             error_count = error_count + 1
             logger.error(f'Expected {expected_value} got {current_value} {building_category.name} {year=} ')
-            logger.debug(f'The difference is {expected_value - current_value}')
+            logger.debug(f'The difference is {expected_value - current_value}. {ROUND_PRECISION=}')
             logger.debug(f'{yearly_constructed.loc[year]}')
         else:
             logger.debug(f'Found expected value {expected_value} {year=} {current_value=}')
     return error_count
+
+
+def build_area_forecast(building_category: BuildingCategory, db: DatabaseManager) -> AreaForecast:
+    """
+    This function makes and AreaForecast object for a building category using configuration and input
+    from DatabaseManager
+
+    Args:
+        building_category: building category used for AreaForecast and Building i.e `kindergarten`
+        db: common DatabaseManager
+
+    Returns: AreaForcast
+
+    """
+    tek_list = db.get_tek_list()
+    tek_params = db.get_tek_params(tek_list)
+    scurve_params = db.get_scurve_params()
+    area_params = db.get_area_parameters()
+    scurve_condition_list = BuildingCondition.get_scruve_condition_list()
+    building = Buildings(building_category, tek_list, tek_params, scurve_condition_list, scurve_params, area_params)
+    tek_list = building.tek_list  # get filtered tek list for given building category
+    shares_per_condition = building.get_shares()
+    tek_params = db.get_tek_params(tek_list)
+    full_condition_list = BuildingCondition.get_full_condition_list()
+
+    area_forecast = AreaForecast(model_start_year=2010, end_year=2050, building_category=building_category,
+                                 area_params=area_params, tek_list=tek_list, tek_params=tek_params,
+                                 condition_list=full_condition_list, shares_per_condtion=shares_per_condition)
+    return area_forecast
 
 
 if __name__ == '__main__':

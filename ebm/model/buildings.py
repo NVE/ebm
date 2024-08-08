@@ -1,12 +1,13 @@
 import typing
+
 import pandas as pd
 
 from .data_classes import TEKParameters, ScurveParameters
 from .scurve import SCurve
 from .shares_per_condition import SharesPerCondition
-from .area_forecast import AreaForecast
 
-# TODO: 
+
+# TODO:
 # - remove _filter_tek_list and _filter_tek_params when the model is updated with new 2020 data.
 # - adjust _filter_scurve_params method to not use class constants. Possible solutions:
 #       - to avoid filtering df on column names (category and condition), change from Dataframe to Dict - something like this = {'building category', {'condition': Parameters}}  
@@ -124,6 +125,11 @@ class Buildings():
         filtered_scurve_params = {}
 
         for condition in self.scurve_condition_list:
+            if not scurve_params.building_category.str.contains(self.building_category).any():
+                msg = 'Unknown building_category "{}" encountered when setting up scurve parameters'.format(
+                    self.building_category
+                )
+                raise KeyError(msg)
 
             # Filter dataframe on building category and condition
             scurve_params_filtered = scurve_params[(scurve_params[self.COL_BUILDING_CATEGORY] == self.building_category) &
@@ -166,7 +172,9 @@ class Buildings():
         scurve_data = {}
 
         for condition in self.scurve_condition_list:
-
+            if condition not in self.scurve_params:
+                msg = f'Encounted unknown condition {condition} while making scurve'
+                raise ValueError(msg)
             # Filter S-curve parameters dictionary on condition
             scurve_params_condition = self.scurve_params[condition]
             

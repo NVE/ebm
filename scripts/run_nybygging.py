@@ -50,11 +50,11 @@ def main():
     new_building_house = create_new_building_house_dataframe(database_manager, household_size, population)
 
     if new_building_house.loc['demolition_change'].sum() != 64370906.831874974:
-        logger.warning(f'new_building_house.loc["demolition_change"].sum() {new_building_house.loc["demolition_change"].sum()} != 64370906.831874974')
+        logger.warning(f'{new_building_house.loc["demolition_change"].sum()=} != 64370906.831874974')
     if new_building_house.loc['new_building_floor_area'].sum() != 123739128.72838475:
-        logger.warning(f'new_building_house.new_building_floor_area  {new_building_house.loc["new_building_floor_area"].sum()} != 123739128.72838475')
+        logger.warning(f'{new_building_house.loc["new_building_floor_area"].sum()=} != 123739128.72838475')
     if new_building_house.loc['floor_area_change_accumulated'].sum() != 2630603443.124876:
-        logger.warning(f'new_building_apartment_block.floor_area_change_accumulated  {new_building_house.loc["floor_area_change_accumulated"].sum()} != 2630603443.124876')
+        logger.warning(f'{new_building_house.loc["floor_area_change_accumulated"].sum()=} != 2630603443.124876')
 
     new_building_apartment_block = create_new_building_apartment_block_dataframe(database_manager, household_size, population)
 
@@ -107,7 +107,7 @@ def create_new_building_house_dataframe(database_manager, household_size, popula
     new_buildings = NewBuildings()
     building_category_share = database_manager.get_new_buildings_category_share()
     build_area = database_manager.get_building_category_floor_area()
-    house_floor_area = build_area['apartment_block'].dropna()
+    house_floor_area = build_area[BuildingCategory.HOUSE].dropna()
 
     yearly_demolished_floor_area = new_buildings.calculate_floor_area_demolished(BuildingCategory.HOUSE) # filename = 'st_bema2019_a_hus.xlsx',
 

@@ -2,6 +2,10 @@ import typing
 
 import pandas as pd
 
+from ebm.model.building_category import BuildingCategory
+from ebm.model.database_manager import DatabaseManager
+from .area_forecast import AreaForecast
+from .building_condition import BuildingCondition
 from .data_classes import TEKParameters, ScurveParameters
 from .scurve import SCurve
 from .shares_per_condition import SharesPerCondition
@@ -238,4 +242,63 @@ class Buildings():
         """
         shares = self.shares_per_condition[condition]
         return shares
-    
+
+    def build_area_forecast(self, database_manager, start_year: int = 2010, end_year: int = 2050):
+        """
+        Build a AreaForcast object from the Building object. Reuse building_category, tek_list, shares_per_condtion from
+            the Buildings (self) object.
+
+        Parameters
+        ----------
+        database_manager: ebm.model.DatabaseManager
+            used to load area_params and tek_params
+        start_year: int, default 2010
+        end_year: int, default 2050
+
+        Returns area_forecast: AreaForecast
+        -------
+
+        """
+        area_parameters = database_manager.get_area_parameters()
+        tek_params = database_manager.get_tek_params(self.tek_list)
+        shares = self.get_shares()
+
+        area_forecast = AreaForecast(
+            model_start_year=start_year, end_year=end_year,
+            building_category=self.building_category,
+            area_params=area_parameters,
+            tek_list=self.tek_list,
+            tek_params=tek_params,
+            condition_list=BuildingCondition.get_full_condition_list(),
+            shares_per_condtion=shares)
+        return area_forecast
+
+    @staticmethod
+    def build_buildings(building_category: BuildingCategory, database_manager: DatabaseManager) -> 'Buildings':
+        """
+        Builds a Buildings object for building_category and read configuration from DatabaseManager.
+          the DatabaseManager must implement .get_tek_list() .get_area_parameters() db.get_scurve_params()
+          .get_area_parameters()
+
+        Parameters
+        ----------
+        building_category: BuildingCategory
+        database_manager: DatabaseManager
+
+        Returns building: Buildings
+        -------
+
+        """
+
+        tek_list = database_manager.get_tek_list()
+        tek_params = database_manager.get_tek_params(tek_list)
+        scurve_params = database_manager.get_scurve_params()
+        area_params = database_manager.get_area_parameters()
+        scurve_condition_list = BuildingCondition.get_scruve_condition_list()
+        building = Buildings(building_category=building_category,
+                             tek_list=tek_list,
+                             tek_params=tek_params,
+                             scurve_condition_list=scurve_condition_list,
+                             scurve_params=scurve_params,
+                             area_params=area_params)
+        return building

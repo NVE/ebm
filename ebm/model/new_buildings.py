@@ -6,8 +6,8 @@ import pandas as pd
 from loguru import logger
 from pandas import Series
 
-from ebm.model.database_manager import DatabaseManager
 from ebm.model.building_category import BuildingCategory
+from ebm.model.database_manager import DatabaseManager
 
 
 class NewBuildings:
@@ -206,7 +206,7 @@ class NewBuildings:
                 household_size=None,
                 building_category_share=None,
                 build_area_sum=None,
-                yearly_demolished_floor_area=None,
+                yearly_demolished_floor_area=demolition_floor_area,
                 average_floor_area=None
             )
         return NewBuildings.calculate_commercial_construction(

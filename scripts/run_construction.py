@@ -1,4 +1,5 @@
 import argparse
+import collections.abc
 import os
 import sys
 import typing
@@ -14,8 +15,6 @@ from ebm.model import BuildingCategory
 from ebm.model.bema import load_construction_building_category
 from ebm.model.new_buildings import NewBuildings
 from model import DatabaseManager, Buildings
-from model.area_forecast import AreaForecast
-from model.building_condition import BuildingCondition
 
 ROUND_PRECISION = 10
 
@@ -38,9 +37,28 @@ def main():
         logger.remove()
         logger.add(sys.stderr, level="INFO")
 
+    building_categories = arguments.building_categories
+
+    error_count = validate_building_categories(building_categories)
+    sys.exit(error_count)
+
+
+def validate_building_categories(building_categories: collections.abc.Iterable[BuildingCategory | str]):
+    """
+    Validate building categories accumulated constructed floor area using the function
+    validate_accumulated_constructed_floor_area()
+
+    Parameters
+    ----------
+    building_categories Iterable of BuildingCategory that needs validation
+
+    Returns error_count total number of errors found
+    -------
+
+    """
     error_count = 0
     categories_with_errors = []
-    for b_category in arguments.building_categories:
+    for b_category in building_categories:
         building_category: BuildingCategory = BuildingCategory.from_string(b_category)
         logger.info(f'Checking {building_category=}')
 
@@ -52,8 +70,7 @@ def main():
     if error_count > 0:
         logger.error(f'Got {error_count} errors in total')
         logger.error(f'{categories_with_errors=}')
-
-    sys.exit(error_count)
+    return error_count
 
 
 def load_accumulated_constructed_floor_area(building_category: BuildingCategory) -> pd.Series:
@@ -78,15 +95,9 @@ def validate_accumulated_constructed_floor_area(building_category) -> int:
     expected_values: pd.Series = load_accumulated_constructed_floor_area(building_category)
 
     # Prerequisites for calculate_construction
-    demolition_floor_area = NewBuildings.calculate_floor_area_demolished(building_category)
+    database_manager = DatabaseManager()
     construction_floor_area = building_category.yearly_construction_floor_area()
-
-    db = DatabaseManager()
-
-    area_forecast = build_area_forecast(building_category, db)
-
-    demolition_floor_area = pd.Series(area_forecast.calc_total_demolition_area_per_year(),
-                                      index=[y for y in range(2010, 2050 + 1)])
+    demolition_floor_area = extract_demolition_floor_area(building_category, database_manager)
 
     yearly_constructed = NewBuildings.calculate_commercial_construction(
         building_category=building_category,
@@ -109,33 +120,28 @@ def validate_accumulated_constructed_floor_area(building_category) -> int:
     return error_count
 
 
-def build_area_forecast(building_category: BuildingCategory, db: DatabaseManager) -> AreaForecast:
+def extract_demolition_floor_area(building_category: BuildingCategory,
+                                  database_manager: DatabaseManager = None) -> pd.Series:
     """
-    This function makes and AreaForecast object for a building category using configuration and input
-    from DatabaseManager
+    Extracts demolition_floor_area calculated from AreaForecast.
 
     Args:
         building_category: building category used for AreaForecast and Building i.e `kindergarten`
-        db: common DatabaseManager
+        database_manager: common DatabaseManager
 
-    Returns: AreaForcast
-
+    Returns: demolition_floor_area: pd.Series
+        with years as the index
     """
-    tek_list = db.get_tek_list()
-    tek_params = db.get_tek_params(tek_list)
-    scurve_params = db.get_scurve_params()
-    area_params = db.get_area_parameters()
-    scurve_condition_list = BuildingCondition.get_scruve_condition_list()
-    building = Buildings(building_category, tek_list, tek_params, scurve_condition_list, scurve_params, area_params)
-    tek_list = building.tek_list  # get filtered tek list for given building category
-    shares_per_condition = building.get_shares()
-    tek_params = db.get_tek_params(tek_list)
-    full_condition_list = BuildingCondition.get_full_condition_list()
 
-    area_forecast = AreaForecast(model_start_year=2010, end_year=2050, building_category=building_category,
-                                 area_params=area_params, tek_list=tek_list, tek_params=tek_params,
-                                 condition_list=full_condition_list, shares_per_condtion=shares_per_condition)
-    return area_forecast
+    db = database_manager if database_manager else DatabaseManager()
+
+    buildings = Buildings.build_buildings(building_category, db)
+    area_forecast = buildings.build_area_forecast(db, start_year=2010, end_year=2050)
+
+    years = [y for y in range(2010, 2050 + 1)]
+    demolition_floor_area = pd.Series(data=area_forecast.calc_total_demolition_area_per_year(),
+                                      index=years)
+    return demolition_floor_area
 
 
 if __name__ == '__main__':

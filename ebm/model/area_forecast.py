@@ -8,7 +8,7 @@ from .data_classes import TEKParameters
 from .tek import TEK
 
 
-#TODO:
+# TODO:
 # - Got to evaluate if get_area_per_condition method should only be limited to TEKs before 'nybygging', or integrated with the rest of TEKs 
 
 # Comments:
@@ -138,7 +138,7 @@ class AreaForecast():
 
         return total_demolition_per_year
     
-    def _calc_area_with_construction_tek(self, tek: str) -> typing.Dict[str, typing.List]:
+    def _calc_area_with_construction_tek(self, tek: str, accumulated_constructed_floor_area: typing.List) -> typing.Dict[str, typing.List]:
         """
         Calculates the area per condition for a given TEK used in a period with construction of new buildings.
 
@@ -152,7 +152,6 @@ class AreaForecast():
         - area_per_condition (dict): A dictionary with conditions as keys and lists of area per year as values.
         """
         # Retrieve accumulated construction area per year (TODO: edit after merge with construction class)
-        acc_construction_area = self._accumulated_construction_area_per_year()
 
         model_years = [*range(self.model_start_year, self.end_year+1)]
         tek_start_year = self.tek.get_start_year(tek)
@@ -174,7 +173,7 @@ class AreaForecast():
                 elif tek_start_year <= self.model_start_year <= tek_end_year:
                         # Get area and new construction area in the model start year
                         area_start_year = self.area.get_area_per_building_category_tek(self.building_category, tek)
-                        construction_start_year = acc_construction_area[0]
+                        construction_start_year = accumulated_constructed_floor_area[0]
                         area = share * (area_start_year + construction_start_year)
                 # Distinct calculation if the TEK period begins after the start year of the model horizon
                 else:
@@ -182,9 +181,9 @@ class AreaForecast():
                     idx_tek_start_year = model_years.index(tek_start_year)
                     idx_tek_end_year = model_years.index(tek_end_year) 
                     # Retrieve construction area for specific model years used in calculation
-                    construction_year_before_tek_period = acc_construction_area[idx_tek_start_year - 1]
-                    construction_tek_end_year = acc_construction_area[idx_tek_end_year]
-                    construction_current_year = acc_construction_area[idx]
+                    construction_year_before_tek_period = accumulated_constructed_floor_area[idx_tek_start_year - 1]
+                    construction_tek_end_year = accumulated_constructed_floor_area[idx_tek_end_year]
+                    construction_current_year = accumulated_constructed_floor_area[idx]
                     # Accumuluated construction area is only added in the years of the TEK period    
                     if tek_start_year <= year <= tek_end_year:
                         area = share * (construction_current_year - construction_year_before_tek_period)
@@ -196,7 +195,7 @@ class AreaForecast():
             area_per_condition[condition] = area_per_year    
         return area_per_condition  
 
-    def calc_area_with_construction(self) -> typing.Dict[str, typing.Dict[str, typing.List]]:
+    def calc_area_with_construction(self, accumulated_constructed_floor_area: typing.List[float]) -> typing.Dict[str, typing.Dict[str, typing.List]]:
         """
         Calculates the area per condition for all TEK's used in periods with construction of new buildings.
 
@@ -211,8 +210,6 @@ class AreaForecast():
                                and lists of area per year as values.
         """
         # Dictionary to be filled with area per condition over model years for each TEK
-        acc_construction_area = self._accumulated_construction_area_per_year()
-
         area_per_tek = {}
         for tek in self.tek_list:
             # Retrieve the start and end year of the TEK period
@@ -221,7 +218,7 @@ class AreaForecast():
             # Control that the model start year is within the TEK period or prior to it, as construction starts in the model start year
             if (tek_start_year <= self.model_start_year <= tek_end_year) or (self.model_start_year <= tek_start_year):
                 # Calculate the area per condition for TEKs used in periods with construction 
-                area_per_condition = self._calc_area_with_construction_tek(tek)
+                area_per_condition = self._calc_area_with_construction_tek(tek, accumulated_constructed_floor_area)
                 area_per_tek[tek] = area_per_condition
 
         return area_per_tek

@@ -1,12 +1,13 @@
 import typing
 
-from loguru import logger
 import pandas as pd
+from loguru import logger
 
 from .building_category import BuildingCategory
+from .data_classes import TEKParameters
 from .demolition import demolition_by_year_all
 from .file_handler import FileHandler
-from .data_classes import TEKParameters
+
 
 # TODO:
 # - add method to change all strings to lower case and underscore instead of space
@@ -141,7 +142,7 @@ class DatabaseManager():
         df = df.set_index('year')
         return df
 
-    def get_building_category_floor_area(self) -> pd.DataFrame:
+    def get_building_category_floor_area(self, building_category: BuildingCategory) -> pd.Series:
         """
         Get population and household size DataFrame from a file.
 
@@ -149,9 +150,10 @@ class DatabaseManager():
         - construction_population (pd.DataFrame): Dataframe containing population numbers
           "area","type of building","2010","2011"
         """
-
         df = self.file_handler.get_building_category_area()
-        return df
+
+        building_category_floor_area = df[building_category].dropna()
+        return building_category_floor_area
 
     def get_area_parameters(self) -> pd.DataFrame:
         """

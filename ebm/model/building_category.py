@@ -1,6 +1,7 @@
-from enum import Enum, unique, IntEnum, StrEnum
+from enum import unique, StrEnum
 
 from loguru import logger
+
 
 @unique
 class BuildingCategory(StrEnum):
@@ -23,29 +24,6 @@ class BuildingCategory(StrEnum):
 
     def yearly_construction_floor_area(self):
         logger.warning('Using static yearly_construction_floor_area')
-        if self == BuildingCategory.KINDERGARTEN:
-            return 97574, 90644, 65847, 62022, 79992,
-        if self == BuildingCategory.UNIVERSITY:
-            return 112747, 49205, 44100, 34766, 84340,
-        if self == BuildingCategory.OFFICE:
-            return 443334, 355103, 649466, 531348, 320478,
-        if self == BuildingCategory.SCHOOL:
-            return 281884, 206298, 224638, 295082, 256470,
-        if self == BuildingCategory.RETAIL:
-            return 555903, 586000, 640545, 636006, 687111
-        if self == BuildingCategory.HOTEL:
-            return 166371,	157465, 133144,69857, 174050
-        if self == BuildingCategory.HOSPITAL:
-            return 67455, 33747, 9477, 30942, 10821
-        if self == BuildingCategory.NURSING_HOME:
-            return 69803, 60648, 47932, 84639, 90631
-        if self == BuildingCategory.CULTURE:
-            return 43646, 72625, 73971, 50951, 47282
-        if self == BuildingCategory.SPORTS:
-            return 137744, 146106, 173818, 185307, 119111
-        if self == BuildingCategory.STORAGE_REPAIRS:
-            return 33755, 33755, 33755, 33755, 33755,
-
         raise NotImplementedError(f'yearly_construction_floor_area does not support category {self.name} (yet)')
 
     def is_residential(self) -> bool:
@@ -90,9 +68,8 @@ class BuildingCategory(StrEnum):
         Raises:
             ValueError: category_name not found in BuildingCategory
         """
-        search = category_name.lower().replace(' ', '').replace('_','')
+        search = category_name.lower().replace(' ', '').replace('_', '')
         for building_category in iter(BuildingCategory):
             if search == building_category.value.lower().replace('_', ''):
                 return building_category
         raise ValueError(f'No such building category {category_name}')
-

@@ -1,14 +1,10 @@
 import pandas as pd
 
-from loguru import logger
-
-from ebm.model.database_manager import DatabaseManager
-from ebm.model.buildings import Buildings
-from ebm.model.shares_per_condition import SharesPerCondition
-from ebm.model.scurve import SCurve
-from ebm.model.area import Area
 from ebm.model.area_forecast import AreaForecast
 from ebm.model.building_condition import BuildingCondition
+from ebm.model.buildings import Buildings
+from ebm.model.database_manager import DatabaseManager
+from ebm.model.scurve import SCurve
 
 #pd.set_option("display.max_columns", None)
 #pd.set_option("display.max_rows", None)
@@ -83,13 +79,15 @@ def calc_area_construction_tek(tek):
 #print(f'Area with construction for: {tek_w_construction}')
 #calc_area_construction_tek(tek_w_construction)
 
-def calc_area_construction():
+
+def calc_area_construction(area_forecast):
     area_with_construction = area_forecast.calc_area_with_construction()
     area_with_construction_df = dict_to_df(area_with_construction)
     print(area_with_construction_df)
 
+
 #print(f'Area with construction for all TEKs')
-#calc_area_construction()
+calc_area_construction(area_forecast)
 
 area = area_forecast.calc_area()
 print(dict_to_df(area))

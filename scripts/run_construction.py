@@ -16,7 +16,7 @@ from ebm.model.bema import load_construction_building_category
 from ebm.model.new_buildings import NewBuildings
 from model import DatabaseManager, Buildings
 
-ROUND_PRECISION = 10
+ROUND_PRECISION = 4
 
 logger.info = pprint
 
@@ -85,31 +85,19 @@ def load_accumulated_constructed_floor_area(building_category: BuildingCategory)
 
 
 def validate_accumulated_constructed_floor_area(building_category) -> int:
-    if building_category == 'house':
-        logger.warning('Skipping House')
-        return 0
-    if building_category == 'apartment_block':
-        logger.warning('Skipping House')
-        return 0
-
     expected_values: pd.Series = load_accumulated_constructed_floor_area(building_category)
 
     # Prerequisites for calculate_construction
     database_manager = DatabaseManager()
-    construction_floor_area = building_category.yearly_construction_floor_area()
     demolition_floor_area = extract_demolition_floor_area(building_category, database_manager)
 
-    yearly_constructed = NewBuildings.calculate_commercial_construction(
-        building_category=building_category,
-        total_floor_area=building_category.total_floor_area_2010(),
-        yearly_construction_floor_area=construction_floor_area,
-        demolition_floor_area=demolition_floor_area)
+    yearly_constructed = NewBuildings.calculate_construction(building_category, demolition_floor_area, database_manager)
 
-    construction_floor_area = yearly_constructed.accumulated_constructed_floor_area
-    years = construction_floor_area.index
+    constructed_floor_area = yearly_constructed.accumulated_constructed_floor_area
+    years = constructed_floor_area.index
 
     error_count = 0
-    for year, current_value, expected_value in zip(years, construction_floor_area, expected_values):
+    for year, current_value, expected_value in zip(years, constructed_floor_area, expected_values):
         if round(current_value, ROUND_PRECISION) != round(expected_value, ROUND_PRECISION):
             error_count = error_count + 1
             logger.error(f'Expected {expected_value} got {current_value} {building_category.name} {year=} ')

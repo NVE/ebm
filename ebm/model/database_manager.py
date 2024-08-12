@@ -142,7 +142,7 @@ class DatabaseManager():
         df = df.set_index('year')
         return df
 
-    def accumulated_constructed_floor_area(self, building_category: BuildingCategory) -> pd.Series:
+    def get_building_category_floor_area(self, building_category: BuildingCategory) -> pd.Series:
         """
         Get population and household size DataFrame from a file.
 

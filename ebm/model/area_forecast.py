@@ -195,7 +195,7 @@ class AreaForecast():
             area_per_condition[condition] = area_per_year    
         return area_per_condition  
 
-    def calc_area_with_construction(self, accumulated_constructed_floor_area: typing.List[float]) -> typing.Dict[str, typing.Dict[str, typing.List]]:
+    def calc_area_with_construction(self, accumulated_constructed_floor_area: typing.List[float] = None) -> typing.Dict[str, typing.Dict[str, typing.List]]:
         """
         Calculates the area per condition for all TEK's used in periods with construction of new buildings.
 
@@ -210,6 +210,9 @@ class AreaForecast():
                                and lists of area per year as values.
         """
         # Dictionary to be filled with area per condition over model years for each TEK
+        if not accumulated_constructed_floor_area:
+            accumulated_constructed_floor_area = self._accumulated_construction_area_per_year()
+
         area_per_tek = {}
         for tek in self.tek_list:
             # Retrieve the start and end year of the TEK period

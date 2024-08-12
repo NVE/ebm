@@ -6,6 +6,7 @@ import typing
 
 import pandas as pd
 from dotenv import load_dotenv
+from ebm.model.new_buildings import ConstructionCalculator
 from loguru import logger
 from openpyxl import load_workbook, Workbook
 from openpyxl.worksheet.worksheet import Worksheet
@@ -13,7 +14,6 @@ from rich.pretty import pprint
 
 from ebm.model import BuildingCategory
 from ebm.model.bema import load_construction_building_category
-from ebm.model.new_buildings import NewBuildings
 from model import DatabaseManager, Buildings
 
 ROUND_PRECISION = 4
@@ -91,7 +91,7 @@ def validate_accumulated_constructed_floor_area(building_category) -> int:
     database_manager = DatabaseManager()
     demolition_floor_area = extract_demolition_floor_area(building_category, database_manager)
 
-    yearly_constructed = NewBuildings.calculate_construction(building_category, demolition_floor_area, database_manager)
+    yearly_constructed = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area, database_manager)
 
     constructed_floor_area = yearly_constructed.accumulated_constructed_floor_area
     years = constructed_floor_area.index

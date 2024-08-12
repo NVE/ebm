@@ -9,7 +9,7 @@ from ebm.model.building_category import BuildingCategory
 from ebm.model.database_manager import DatabaseManager
 
 
-class NewBuildings:
+class ConstructionCalculator:
     def calculate_residential_construction(self, population: pd.Series,
                                            household_size: pd.Series,
                                            building_category_share: pd.Series,
@@ -238,7 +238,7 @@ class NewBuildings:
             build_area_sum = pd.Series(
                 data=yearly_construction_floor_area, index=range(2010, 2010+len(yearly_construction_floor_area)))
 
-            return NewBuildings().calculate_residential_construction(
+            return ConstructionCalculator().calculate_residential_construction(
                 yearly_demolished_floor_area=demolition_floor_area,
                 population=population,
                 household_size=household_size,
@@ -246,7 +246,7 @@ class NewBuildings:
                 build_area_sum=build_area_sum,
                 average_floor_area=average_floor_area)
 
-        return NewBuildings.calculate_commercial_construction(
+        return ConstructionCalculator.calculate_commercial_construction(
             building_category=building_category,
             total_floor_area=total_floor_area,
             constructed_floor_area=yearly_construction_floor_area,

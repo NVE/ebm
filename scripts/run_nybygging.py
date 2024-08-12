@@ -6,10 +6,10 @@ import sys
 
 import pandas as pd
 from IPython.display import display
+from ebm.model.new_buildings import ConstructionCalculator
 from loguru import logger
 
 from ebm.model import DatabaseManager, BuildingCategory
-from ebm.model.new_buildings import NewBuildings
 
 SPREADSHEET_START_COLUMN = 2
 
@@ -28,9 +28,9 @@ def calculate_more_construction():
                               BuildingCategory.CULTURE,
                               BuildingCategory.SPORTS,
                               BuildingCategory.STORAGE_REPAIRS]:
-        demolition_floor_area = NewBuildings.calculate_floor_area_demolished(building_category)
+        demolition_floor_area = ConstructionCalculator.calculate_floor_area_demolished(building_category)
 
-        df = NewBuildings.calculate_commercial_construction(
+        df = ConstructionCalculator.calculate_commercial_construction(
             building_category=building_category,
             total_floor_area=area_parameters[area_parameters.building_category == building_category].area.sum(),
             constructed_floor_area=DatabaseManager().get_building_category_floor_area(building_category),
@@ -105,7 +105,7 @@ def create_new_building_apartment_block_dataframe(database_manager, household_si
 
     apartment_block_area = database_manager.get_building_category_floor_area(BuildingCategory.APARTMENT_BLOCK)
 
-    new_buildings = NewBuildings()
+    new_buildings = ConstructionCalculator()
     yearly_demolished_floor_area = new_buildings.calculate_floor_area_demolished(BuildingCategory.APARTMENT_BLOCK) #'st_bema2019_a_leil.xlsx',
 
     return new_buildings.calculate_residential_construction(
@@ -117,7 +117,7 @@ def create_new_building_apartment_block_dataframe(database_manager, household_si
 
 
 def create_new_building_house_dataframe(database_manager, household_size, population):
-    new_buildings = NewBuildings()
+    new_buildings = ConstructionCalculator()
     building_category_share = database_manager.get_new_buildings_category_share()['new_house_share']
     house_floor_area = database_manager.get_building_category_floor_area(BuildingCategory.HOUSE)
 

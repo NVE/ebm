@@ -1,3 +1,4 @@
+""" Program to calculate total floor area including construction"""
 import pandas as pd
 
 from ebm.model import Buildings, BuildingCategory, NewBuildings
@@ -23,5 +24,3 @@ for tek, building_condition in result.items():
     df = pd.DataFrame(data=building_condition, index=[y for y in range(2010, 2051)])
     print(tek)
     print(df)
-
-

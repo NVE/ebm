@@ -6,10 +6,10 @@ import sys
 
 import pandas as pd
 from IPython.display import display
-from ebm.model.new_buildings import ConstructionCalculator
 from loguru import logger
 
 from ebm.model import DatabaseManager, BuildingCategory
+from ebm.model.construction import ConstructionCalculator
 
 SPREADSHEET_START_COLUMN = 2
 

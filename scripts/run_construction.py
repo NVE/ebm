@@ -6,7 +6,6 @@ import typing
 
 import pandas as pd
 from dotenv import load_dotenv
-from ebm.model.new_buildings import ConstructionCalculator
 from loguru import logger
 from openpyxl import load_workbook, Workbook
 from openpyxl.worksheet.worksheet import Worksheet
@@ -14,6 +13,7 @@ from rich.pretty import pprint
 
 from ebm.model import BuildingCategory
 from ebm.model.bema import load_construction_building_category
+from ebm.model.construction import ConstructionCalculator
 from model import DatabaseManager, Buildings
 
 ROUND_PRECISION = 4

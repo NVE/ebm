@@ -1,7 +1,8 @@
 """ Program to calculate total floor area including construction"""
 import pandas as pd
 
-from ebm.model import Buildings, BuildingCategory, ConstructionCalculator
+from ebm.model import Buildings, BuildingCategory
+from ebm.model.construction import ConstructionCalculator
 from ebm.model.database_manager import DatabaseManager
 
 database_manager = DatabaseManager()

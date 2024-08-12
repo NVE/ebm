@@ -211,6 +211,7 @@ class AreaForecast():
         """
         # Dictionary to be filled with area per condition over model years for each TEK
         if not accumulated_constructed_floor_area:
+            logger.warning('Empty accumulated_constructed_floor_area! Using temporary_construction_data.xlsx fallback')
             accumulated_constructed_floor_area = self._accumulated_construction_area_per_year()
 
         area_per_tek = {}

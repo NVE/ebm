@@ -9,7 +9,6 @@ Dette er en instruks for hvordan man kommer i gang med EBM modellen. Det er et p
 1. *Clone* et repository fra Energibruksmodellen på Azure Devops 
 2. Opprette eget Virtuel Environment (*venv*) i prosjektmappen
 3. Opprette *.env* fil med nødvendige miljøvariabler
-4. Oppdater innstillinger i VS code 
 
 Du trenger kun å gjennomføre dette når du kloner et repository (*repo*) til arbeidsmappen din. Etter du har klonet repo den første gangen, så kan du bytte til ny branch i VS code og beholde de nødvendige filene og instillingene du trenger for å kjøre skript. Stegene er de samme uavhengig av om man jobber lokalt eller på e-srv, men dersom man jobber lokalt må man også installere nødvendige programmer først. Hvis du ikke har installert nødvendige programmer lokalt, så gjennomfør stegene i den veiledningen først.
 
@@ -123,7 +122,10 @@ Dette gjelder kun dersom du skal arbeide lokalt og ikke på e-srv.
     - Excel Viewer (Ikke must, men praktisk for å se input csv.filer)
 <br>
 
-4. (Valgfritt) Logg inn og sync instillinger i VS code. Anbefales, da instillingene dine vil bli lagret på profilen din. 
+4. Sett user name og user email i Git. Dette kan være nødvendig å gjøre første gang for å klone repositories og/eller committe changes to branch. For å sette dette kan du skrive følgende kommandoer i terminalen i VS code: ``git config --global user.name <your username>`` og ``git config --global user.name <your mail>``. 
+<br>
+
+5. (Valgfritt) Logg inn og sync instillinger i VS code. Anbefales, da instillingene dine vil bli lagret på profilen din. 
     - Velg "Account" nederst i venstre hjørne
     - Trykk på "Backup and sync settings"
     - Logg inn med Microsoft kontoen din

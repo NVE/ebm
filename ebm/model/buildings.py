@@ -264,7 +264,8 @@ class Buildings():
         shares = self.get_shares()
 
         area_forecast = AreaForecast(
-            model_start_year=start_year, end_year=end_year,
+            model_start_year=start_year, 
+            model_end_year=end_year,
             building_category=self.building_category,
             area_params=area_parameters,
             tek_list=self.tek_list,
@@ -282,12 +283,12 @@ class Buildings():
 
         Parameters
         ----------
-        building_category: BuildingCategory
-        database_manager: DatabaseManager
+        - building_category: BuildingCategory
+        - database_manager: DatabaseManager
 
-        Returns building: Buildings
+        Returns 
         -------
-
+        - building: Buildings
         """
 
         tek_list = database_manager.get_tek_list()

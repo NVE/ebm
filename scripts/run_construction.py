@@ -14,7 +14,7 @@ from rich.pretty import pprint
 from ebm.model import BuildingCategory
 from ebm.model.bema import load_construction_building_category
 from ebm.model.construction import ConstructionCalculator
-from model import DatabaseManager, Buildings
+from ebm.model import DatabaseManager, Buildings
 
 ROUND_PRECISION = 4
 

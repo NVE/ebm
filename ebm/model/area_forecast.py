@@ -27,7 +27,7 @@ class AreaForecast():
 
     def __init__(self,
                  model_start_year: int,
-                 end_year: int,
+                 model_end_year: int,
                  building_category: str,
                  area_params: pd.DataFrame,
                  tek_list: typing.List[str],   
@@ -36,7 +36,7 @@ class AreaForecast():
                  shares_per_condtion: typing.Dict) -> None:
 
         self.model_start_year = model_start_year
-        self.end_year = end_year
+        self.model_end_year = model_end_year
         self.building_category = building_category
         self.area = Area(area_params)
         self.tek_list = tek_list
@@ -153,7 +153,7 @@ class AreaForecast():
         """
         # Retrieve accumulated construction area per year (TODO: edit after merge with construction class)
 
-        model_years = [*range(self.model_start_year, self.end_year+1)]
+        model_years = [*range(self.model_start_year, self.model_end_year+1)]
         tek_start_year = self.tek.get_start_year(tek)
         tek_end_year = self.tek.get_end_year(tek)       
 
@@ -227,6 +227,7 @@ class AreaForecast():
 
         return area_per_tek
 
+    # TODO: 
     def calc_area(self) -> typing.Dict[str, typing.Dict[str, typing.List]]:
         """
         Calculates area per condition over the model years for all TEKs.

@@ -1,4 +1,5 @@
 import argparse
+import collections.abc
 import os
 import sys
 import typing
@@ -12,9 +13,10 @@ from rich.pretty import pprint
 
 from ebm.model import BuildingCategory
 from ebm.model.bema import load_construction_building_category
-from ebm.model.new_buildings import NewBuildings
+from ebm.model.construction import ConstructionCalculator
+from model import DatabaseManager, Buildings
 
-ROUND_PRECISION = 3
+ROUND_PRECISION = 4
 
 logger.info = pprint
 
@@ -35,16 +37,40 @@ def main():
         logger.remove()
         logger.add(sys.stderr, level="INFO")
 
+    building_categories = arguments.building_categories
+
+    error_count = validate_building_categories(building_categories)
+    sys.exit(error_count)
+
+
+def validate_building_categories(building_categories: collections.abc.Iterable[BuildingCategory | str]):
+    """
+    Validate building categories accumulated constructed floor area using the function
+    validate_accumulated_constructed_floor_area()
+
+    Parameters
+    ----------
+    building_categories Iterable of BuildingCategory that needs validation
+
+    Returns error_count total number of errors found
+    -------
+
+    """
     error_count = 0
-    for b_category in arguments.building_categories:
+    categories_with_errors = []
+    for b_category in building_categories:
         building_category: BuildingCategory = BuildingCategory.from_string(b_category)
         logger.info(f'Checking {building_category=}')
 
-        error_count = validate_accumulated_constructed_floor_area(building_category) + error_count
+        category_error_count = validate_accumulated_constructed_floor_area(building_category)
+        if category_error_count > 0:
+            logger.error(f'Got {category_error_count} errors for category {building_category}')
+            categories_with_errors.append((building_category, category_error_count))
+        error_count = category_error_count + error_count
     if error_count > 0:
         logger.error(f'Got {error_count} errors in total')
-
-    sys.exit(error_count)
+        logger.error(f'{categories_with_errors=}')
+    return error_count
 
 
 def load_accumulated_constructed_floor_area(building_category: BuildingCategory) -> pd.Series:
@@ -59,37 +85,51 @@ def load_accumulated_constructed_floor_area(building_category: BuildingCategory)
 
 
 def validate_accumulated_constructed_floor_area(building_category) -> int:
-    if building_category == 'house':
-        logger.warning('Skipping House')
-        return 0
-    if building_category == 'apartment_block':
-        logger.warning('Skipping House')
-        return 0
-
     expected_values: pd.Series = load_accumulated_constructed_floor_area(building_category)
 
     # Prerequisites for calculate_construction
-    demolition_floor_area = NewBuildings.calculate_floor_area_demolished(building_category)
-    construction_floor_area = building_category.yearly_construction_floor_area()
-    yearly_constructed = NewBuildings.calculate_commercial_construction(
-        building_category=building_category,
-        total_floor_area=building_category.total_floor_area_2010(),
-        yearly_construction_floor_area=construction_floor_area,
-        demolition_floor_area=demolition_floor_area)
+    database_manager = DatabaseManager()
+    demolition_floor_area = extract_demolition_floor_area(building_category, database_manager)
 
-    construction_floor_area = yearly_constructed.accumulated_constructed_floor_area
-    years = construction_floor_area.index
+    yearly_constructed = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area, database_manager)
+
+    constructed_floor_area = yearly_constructed.accumulated_constructed_floor_area
+    years = constructed_floor_area.index
 
     error_count = 0
-    for year, current_value, expected_value in zip(years, construction_floor_area, expected_values):
+    for year, current_value, expected_value in zip(years, constructed_floor_area, expected_values):
         if round(current_value, ROUND_PRECISION) != round(expected_value, ROUND_PRECISION):
             error_count = error_count + 1
             logger.error(f'Expected {expected_value} got {current_value} {building_category.name} {year=} ')
-            logger.debug(f'The difference is {expected_value - current_value}')
+            logger.debug(f'The difference is {expected_value - current_value}. {ROUND_PRECISION=}')
             logger.debug(f'{yearly_constructed.loc[year]}')
         else:
             logger.debug(f'Found expected value {expected_value} {year=} {current_value=}')
     return error_count
+
+
+def extract_demolition_floor_area(building_category: BuildingCategory,
+                                  database_manager: DatabaseManager = None) -> pd.Series:
+    """
+    Extracts demolition_floor_area calculated from AreaForecast.
+
+    Args:
+        building_category: building category used for AreaForecast and Building i.e `kindergarten`
+        database_manager: common DatabaseManager
+
+    Returns: demolition_floor_area: pd.Series
+        with years as the index
+    """
+
+    db = database_manager if database_manager else DatabaseManager()
+
+    buildings = Buildings.build_buildings(building_category, db)
+    area_forecast = buildings.build_area_forecast(db, start_year=2010, end_year=2050)
+
+    years = [y for y in range(2010, 2050 + 1)]
+    demolition_floor_area = pd.Series(data=area_forecast.calc_total_demolition_area_per_year(),
+                                      index=years)
+    return demolition_floor_area
 
 
 if __name__ == '__main__':

@@ -26,9 +26,9 @@ hotel,demolition,50,100,30,130,0.7,0.05
 hospital,small_measure,3,20,20,50,0.8,0.01
 hospital,renovation,10,55,30,90,0.7,0.05
 hospital,demolition,50,100,30,130,0.7,0.05
-nursinghome,small_measure,3,20,20,50,0.8,0.01
-nursinghome,renovation,5,45,40,80,0.7,0.05
-nursinghome,demolition,50,100,30,130,0.7,0.05
+nursing_home,small_measure,3,20,20,50,0.8,0.01
+nursing_home,renovation,5,45,40,80,0.7,0.05
+nursing_home,demolition,50,100,30,130,0.7,0.05
 culture,small_measure,3,20,20,50,0.8,0.01
 culture,renovation,5,65,40,100,0.75,0.05
 culture,demolition,50,100,30,130,0.7,0.05

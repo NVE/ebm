@@ -13,7 +13,7 @@ from ebm.model.building_condition import BuildingCondition
 # help list
 building_list = ['apartment_block', 'house',
                  'kindergarten', 'school', 'university', 'office', 'retail', 'hotel',
-                 'hospital', 'nursinghome', 'culture', 'sports', 'storage_repairs']
+                 'hospital', 'nursing_home', 'culture', 'sports', 'storage_repairs']
 
 # input arguments and function variables
 start_year = 2010

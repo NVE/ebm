@@ -4,17 +4,19 @@ import os
 import pathlib
 import sys
 
-from loguru import logger
 import pandas as pd
 from IPython.display import display
+from loguru import logger
 
 from ebm.model import DatabaseManager, BuildingCategory
-from ebm.model.new_buildings import NewBuildings
+from ebm.model.construction import ConstructionCalculator
 
 SPREADSHEET_START_COLUMN = 2
 
 
 def calculate_more_construction():
+    database_manager = DatabaseManager()
+    area_parameters = database_manager.get_area_parameters()
     for building_category in [BuildingCategory.KINDERGARTEN,
                               BuildingCategory.SCHOOL,
                               BuildingCategory.UNIVERSITY,
@@ -26,12 +28,12 @@ def calculate_more_construction():
                               BuildingCategory.CULTURE,
                               BuildingCategory.SPORTS,
                               BuildingCategory.STORAGE_REPAIRS]:
-        demolition_floor_area = NewBuildings.calculate_floor_area_demolished(building_category)
+        demolition_floor_area = ConstructionCalculator.calculate_floor_area_demolished(building_category)
 
-        df = NewBuildings.calculate_commercial_construction(
+        df = ConstructionCalculator.calculate_commercial_construction(
             building_category=building_category,
-            yearly_construction_floor_area=None,
-            total_floor_area=None,
+            total_floor_area=area_parameters[area_parameters.building_category == building_category].area.sum(),
+            constructed_floor_area=DatabaseManager().get_building_category_floor_area(building_category),
             demolition_floor_area=demolition_floor_area)
 
         transposed = df.transpose()
@@ -57,21 +59,21 @@ def main():
 
     new_building_house = create_new_building_house_dataframe(database_manager, household_size, population)
 
-    if new_building_house.loc['demolished_floor_area'].sum() != 64370906.831874974:
-        logger.warning(f'{new_building_house.loc["demolished_floor_area"].sum()=} != 64370906.831874974')
-    if new_building_house.loc['constructed_floor_area'].sum() != 123739128.72838475:
-        logger.warning(f'{new_building_house.loc["constructed_floor_area"].sum()=} != 123739128.72838475')
-    if new_building_house.loc['accumulated_constructed_floor_area'].sum() != 2630603443.124876:
-        logger.warning(f'{new_building_house.loc["accumulated_constructed_floor_area"].sum()=} != 2630603443.124876')
+    if new_building_house['demolished_floor_area'].sum() != 64370906.831874974:
+        logger.warning(f'{new_building_house["demolished_floor_area"].sum()=} != 64370906.831874974')
+    if new_building_house['constructed_floor_area'].sum() != 123739128.72838475:
+        logger.warning(f'{new_building_house["constructed_floor_area"].sum()=} != 123739128.72838475')
+    if new_building_house['accumulated_constructed_floor_area'].sum() != 2630603443.124876:
+        logger.warning(f'{new_building_house["accumulated_constructed_floor_area"].sum()=} != 2630603443.124876')
 
     new_building_apartment_block = create_new_building_apartment_block_dataframe(database_manager, household_size, population)
 
-    if new_building_apartment_block.loc['demolished_floor_area'].sum() != 12335966.989999998:
+    if new_building_apartment_block['demolished_floor_area'].sum() != 12335966.989999998:
         logger.warning(f'new_building_apartment_block.loc["demolished_floor_area"].sum() != {12335966.989999998}')
-    if new_building_apartment_block.loc['constructed_floor_area'].sum() != 42501448.825284824:
-        logger.warning(f'new_building_apartment_block.new_building_floor_area  {new_building_apartment_block.loc["new_building_floor_area"].sum()} != 42501448.825284824')
-    if new_building_apartment_block.loc['accumulated_constructed_floor_area'].sum() != 957797360.1858981:
-        logger.warning(f'new_building_apartment_block.accumulated_constructed_floor_area  {new_building_apartment_block.loc["accumulated_constructed_floor_area"].sum()} != 957797360.1858981')
+    if new_building_apartment_block['constructed_floor_area'].sum() != 42501448.825284824:
+        logger.warning(f'new_building_apartment_block.new_building_floor_area  {new_building_apartment_block["new_building_floor_area"].sum()} != 42501448.825284824')
+    if new_building_apartment_block['accumulated_constructed_floor_area'].sum() != 957797360.1858981:
+        logger.warning(f'new_building_apartment_block.accumulated_constructed_floor_area  {new_building_apartment_block["accumulated_constructed_floor_area"].sum()} != 957797360.1858981')
 
     if pathlib.Path('output').is_dir():
         new_building_apartment_block.to_excel('output/new_building_apartment_block.xlsx',
@@ -95,16 +97,15 @@ def main():
     construction_df.to_excel('output/construction.xlsx',
                              startcol=SPREADSHEET_START_COLUMN)
     display(new_building_apartment_block)
-    display(new_building_apartment_block.loc['accumulated_constructed_floor_area'].head())
+    display(new_building_apartment_block['accumulated_constructed_floor_area'].head())
 
 
 def create_new_building_apartment_block_dataframe(database_manager, household_size, population):
-    building_category_share = database_manager.get_new_buildings_category_share()
+    building_category_share = database_manager.get_new_buildings_category_share()['new_apartment_block_share']
 
-    build_area = database_manager.get_building_category_floor_area()
-    apartment_block_area = build_area['apartment_block'].dropna()
+    apartment_block_area = database_manager.get_building_category_floor_area(BuildingCategory.APARTMENT_BLOCK)
 
-    new_buildings = NewBuildings()
+    new_buildings = ConstructionCalculator()
     yearly_demolished_floor_area = new_buildings.calculate_floor_area_demolished(BuildingCategory.APARTMENT_BLOCK) #'st_bema2019_a_leil.xlsx',
 
     return new_buildings.calculate_residential_construction(
@@ -116,10 +117,9 @@ def create_new_building_apartment_block_dataframe(database_manager, household_si
 
 
 def create_new_building_house_dataframe(database_manager, household_size, population):
-    new_buildings = NewBuildings()
-    building_category_share = database_manager.get_new_buildings_category_share()
-    build_area = database_manager.get_building_category_floor_area()
-    house_floor_area = build_area[BuildingCategory.HOUSE].dropna()
+    new_buildings = ConstructionCalculator()
+    building_category_share = database_manager.get_new_buildings_category_share()['new_house_share']
+    house_floor_area = database_manager.get_building_category_floor_area(BuildingCategory.HOUSE)
 
     yearly_demolished_floor_area = new_buildings.calculate_floor_area_demolished(BuildingCategory.HOUSE) # filename = 'st_bema2019_a_hus.xlsx',
 

@@ -20,7 +20,6 @@ from ebm.services.spreadsheet import iter_cells
 # - need to add a method for retrieving correct BEMA colums according to modelyears when reading excel file
 # - add modelyears filtering in the methods 
 
-
 def get_building_category_sheet(building_category: BuildingCategory, area_sheet: bool = True) -> str:
     """
     Returns the sheet name of the A or R sheet of a building category.
@@ -156,7 +155,7 @@ def validate_data(building_category: BuildingCategory, data_name: str, df1: pd.D
     #else:
     #    logger.info(f'No difference between data (decimal precision: {precision})')
 
-def load_bema_area(building_category: BuildingCategory, database_manger: Buildings, start_row: int = 551):
+def load_bema_area(building_category: BuildingCategory, database_manager: Buildings, start_row: int = 551):
     """
     Retrieves area forecast data per building category from the BEMA model and formats it to a dataframe that are compatible for validation.  
     """
@@ -321,7 +320,7 @@ def load_bema_shares(building_category: BuildingCategory, database_manager: Buil
     bema_rates = pd.concat(df_list)
     return bema_rates
 
-def validate_shares(building_category: BuildingCategory, database_manager: DatabaseManager, precision: int = 3):
+def validate_shares(building_category: BuildingCategory, database_manager: DatabaseManager, precision: int = 5):
     """
     Validate shares data from EBM and BEMA model. 
     """    
@@ -332,12 +331,3 @@ def validate_shares(building_category: BuildingCategory, database_manager: Datab
     join_cols = ['building_condition', 'tek', 'year']
     
     validate_data(building_category, data_name, ebm_shares, bema_shares, join_cols, precision)
-
-
-# TEST RUN
-database_manager = DatabaseManager()
-#building_category = BuildingCategory.HOUSE
-
-for building_category in BuildingCategory:
-    validate_shares(building_category, database_manager, precision=5)
-    validate_area(building_category, database_manager)

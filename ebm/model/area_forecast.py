@@ -209,6 +209,7 @@ class AreaForecast():
         - area_per_tek (dict): A dictionary where keys are TEK identifies and values are dictionaries with conditions as keys 
                                and lists of area per year as values.
         """
+        # TODO: remove self.var and transform pd. series to list to work with rest of script
         # Dictionary to be filled with area per condition over model years for each TEK
         if not accumulated_constructed_floor_area:
             logger.warning('Empty accumulated_constructed_floor_area! Using temporary_construction_data.xlsx fallback')
@@ -228,7 +229,7 @@ class AreaForecast():
         return area_per_tek
 
     # TODO: 
-    def calc_area(self) -> typing.Dict[str, typing.Dict[str, typing.List]]:
+    def calc_area(self, accumulated_constructed_floor_area: typing.List[float] = None) -> typing.Dict[str, typing.Dict[str, typing.List]]:
         """
         Calculates area per condition over the model years for all TEKs.
 
@@ -241,7 +242,7 @@ class AreaForecast():
         """
         # Calculate and retrieve area per condition over model years for TEKs with and without construction
         area_pre_construction = self.calc_area_pre_construction()
-        area_with_construction = self.calc_area_with_construction()
+        area_with_construction = self.calc_area_with_construction(accumulated_constructed_floor_area)
 
         #TODO: add check to control if same TEK's are present in both dictonaries, then raise ValueError
 

@@ -11,6 +11,7 @@ from ebm.model.building_condition import BuildingCondition
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.buildings import Buildings
 from ebm.model.area_forecast import AreaForecast
+from ebm.model.construction import ConstructionCalculator
 
 from ebm.services.spreadsheet import iter_cells
 
@@ -78,6 +79,7 @@ def xlsx_to_df(workbook: str, sheet: str, header: int, usecols: str = 'E:AS', nr
    
 def load_bema_area(building_category: BuildingCategory, database_manger: Buildings, start_row: int = 551):
     """
+    Retrieves area forecast data per building category from the BEMA model and formats it to a dataframe that are compatible for validation.  
     """
     # Retrieve workbook and sheet names 
     workbook = os.environ.get('BEMA_SPREADSHEET')
@@ -87,14 +89,18 @@ def load_bema_area(building_category: BuildingCategory, database_manger: Buildin
     building = Buildings.build_buildings(building_category, database_manager)
     tek_list = building.tek_list
 
-    df_list = []
-    # row number for first header in sheet
-    header = start_row  
+    # define row number for first header in sheet
+    if building_category == BuildingCategory.STORAGE_REPAIRS:
+        header = 552
+    else:
+        header = start_row  
+    
     # number of rows between headers/tables in sheet
     skip_rows = 9
     # the order in which conditions are listed in bema   
     bema_sorted_condition_list = ['original_condition','small_measure','renovation','renovation_and_small_measure','demolition']       
-    
+  
+    df_list = []
     for tek in tek_list:
         # read data from excel
         df = xlsx_to_df(workbook, sheet=sheet, header=header, usecols="E:AS", nrows=5)
@@ -104,7 +110,8 @@ def load_bema_area(building_category: BuildingCategory, database_manger: Buildin
         df['tek'] = tek
         df = pd.melt(df, id_vars=['tek','building_condition'], var_name='year')
         df.rename(columns={'value':'bema_value'}, inplace=True)
-        
+        df['year'] = df['year'].astype(int)
+
         # append dataframes to list
         df_list.append(df)
 
@@ -117,16 +124,25 @@ def load_bema_area(building_category: BuildingCategory, database_manger: Buildin
 
 def get_ebm_area(building_category: BuildingCategory, database_manager, start_year: int = 2010, end_year: int = 2050):
     """
+    Retrieves area forecast data per building category from the EBM model and formats it to a dataframe that are compatible for validation.  
     """
+    modelyears = [*range(start_year, end_year + 1)]
+
+    # Retrieve area data
     building = Buildings.build_buildings(building_category, database_manager)
+    area_forecast = building.build_area_forecast(database_manager)
+    demolition_floor_area = pd.Series(data=area_forecast.calc_total_demolition_area_per_year(), index=modelyears)
+    yearly_constructed = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area, database_manager)
+    constructed_floor_area = list(yearly_constructed.accumulated_constructed_floor_area)
+    area_forecast = building.build_area_forecast(database_manager, start_year, end_year)  
+    area = area_forecast.calc_area(constructed_floor_area)
+
     tek_list = building.tek_list
-    area_forecast = building.build_area_forecast(database_manager, start_year, end_year) #TODO: get constructed area first 
-    area = area_forecast.calc_area()
      
     df_list = []  
     for tek in tek_list:
         df = pd.DataFrame(area[tek])
-        df['year'] = range(start_year, end_year + 1)
+        df['year'] = modelyears
         df['tek'] = tek
         df = pd.melt(df, id_vars=['tek','year'], var_name='building_condition')
         df = df[['tek', 'building_condition', 'year', 'value']]
@@ -136,32 +152,95 @@ def get_ebm_area(building_category: BuildingCategory, database_manager, start_ye
     ebm_area = pd.concat(df_list)
     return ebm_area  
 
-def control_area(building_category: BuildingCategory, database_manager: DatabaseManager, precision: int = 5):
+def validate_data(building_category: BuildingCategory, data_name: str, df1: pd.DataFrame, df2: pd.DataFrame, join_cols: typing.List[str], precision=5):
     """
+    Compare values between two dataframes. 
+
+    Parameters:
+    - building_category (BuildingCategory): Building category being analyzed.
+    - data_name (str): Name of the dataset being validated.
+    - df1 (pd.DataFrame): First dataframe to compare, e.g. EBM data.
+    - df2 (pd.DataFrame): Second dataframe to compare, e.g. BEMA data.
+    - join_cols (List[str]): List of column names to join on.
+    - precision (int): Decimal precision for comparing values.
+
+    Raises:
+    - ValueError: If there are issues with the join columns, data types, or row counts.
+
+    Logs warnings if any data is left out during the join.
     """
-    logger.debug(f'Controlling area data for building category {building_category}')
+    # Check that all join columns are present in both dataframes
+    missing_in_df1 = [col for col in join_cols if col not in df1.columns]
+    missing_in_df2 = [col for col in join_cols if col not in df2.columns]
+    
+    if missing_in_df1:
+        raise ValueError(f"The following join columns are missing in df1: {missing_in_df1}")
+    
+    if missing_in_df2:
+        raise ValueError(f"The following join columns are missing in df2: {missing_in_df2}")
+    
+    # Ensure the data types of the join columns match between the two dataframes
+    for col in join_cols:
+        if df1[col].dtype != df2[col].dtype:
+            raise ValueError(f"Data type mismatch for column '{col}': df1 is {df1[col].dtype}, df2 is {df2[col].dtype}")
+    
+    # Verify that the number of rows in both dataframes is the same
+    if len(df1) != len(df2):
+        raise ValueError(f"Row count mismatch: df1 has {len(df1)} rows, df2 has {len(df2)} rows")
+    
+    # Perform anti-join checks to identify any left-out data before merging
+    df1_not_in_df2 = df1.merge(df2, on=join_cols, how='left', indicator=True).loc[lambda x: x['_merge'] == 'left_only']
+    df2_not_in_df1 = df2.merge(df1, on=join_cols, how='left', indicator=True).loc[lambda x: x['_merge'] == 'left_only']
 
-    bema_area = load_bema_area(building_category, database_manager)
-    ebm_area = get_ebm_area(building_category, database_manager)
+    if not df1_not_in_df2.empty:
+        logger.warning(f"Rows in df1 but not in df2: {len(df1_not_in_df2)}")
+        logger.debug(f"Missing rows from df2: \n{df1_not_in_df2}")
 
-    df = pd.merge(ebm_area, bema_area, on = ['tek', 'building_condition', 'year'], how='inner')
+    if not df2_not_in_df1.empty:
+        logger.warning(f"Rows in df2 but not in df1: {len(df2_not_in_df1)}")
+        logger.debug(f"Missing rows from df1: \n{df2_not_in_df1}")
+
+    # Check row count differences and raise error if they differ
+    if len(df1) != len(df2):
+        raise ValueError(f"Row count mismatch: df1 has {len(df1)} rows, df2 has {len(df2)} rows. See logs for details.")
+
+    # Perform inner join for value comparison
+    df = pd.merge(df2, df1, on = join_cols, how='inner')
+
+    # Compare values between EBM and BEMA data
     df['IDENTICAL'] = df['ebm_value'] == df['bema_value']
     df['DIFFERENCE'] = round(df['ebm_value'], precision) - round(df['bema_value'], precision)
 
-    diff = df[df['IDENTICAL'] == False]
+    if precision is None:
+        diff = df[df['IDENTICAL'] == False]
+    else:
+        diff = df[df['DIFFERENCE'] > 0]
 
     n_diff = len(diff)
     if n_diff > 0:
-        logger.info(f'Number of different values: {n_diff}')
-        n_dec = len(diff[diff['DIFFERENCE'] > 0])
-        logger.info(f'Number of values with {precision} decimals difference: {n_dec}')
-    else:
-        logger.debug(f'No difference between data')
+        logger.error(f'Number of different valules (decimal precision: {precision}): {n_diff}')
+        diff.to_excel(f'output/validate_{data_name}_{building_category}.xlsx', index=False)
+    #else:
+    #    logger.info(f'No difference between data (decimal precision: {precision})')
+
+def validate_area(building_category: BuildingCategory, database_manager: DatabaseManager, precision: int = 5):
+    """
+    Validate area data from EBM and BEMA model. 
+    """
+    logger.info(f'Controlling Area data. Building category: {building_category}')
+    
+    bema_area = load_bema_area(building_category, database_manager)
+    ebm_area = get_ebm_area(building_category, database_manager)
+
+    data_name = 'area'
+    join_cols = ['tek', 'building_condition', 'year']
+    
+    validate_data(building_category, data_name, ebm_area, bema_area, join_cols, precision)
 
 
+# TEST RUN
 database_manager = DatabaseManager()
-building_category = BuildingCategory.HOUSE
+#building_category = BuildingCategory.STORAGE_REPAIRS
 
-control_area(building_category, database_manager)
-
-
+for building_category in BuildingCategory:
+    validate_area(building_category, database_manager)

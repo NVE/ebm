@@ -15,6 +15,12 @@ from ebm.model.construction import ConstructionCalculator
 
 from ebm.services.spreadsheet import iter_cells
 
+# Possible adjustment: could use modelyears to filter the desired data to compare, but this requires some changes:
+# - need to add modelyears to the EBM dictionaries/list that is retrieved, so that they can be filtered
+# - need to add a method for retrieving correct BEMA colums according to modelyears when reading excel file
+# - add modelyears filtering in the methods 
+
+
 def get_building_category_sheet(building_category: BuildingCategory, area_sheet: bool = True) -> str:
     """
     Returns the sheet name of the A or R sheet of a building category.
@@ -76,81 +82,6 @@ def xlsx_to_df(workbook: str, sheet: str, header: int, usecols: str = 'E:AS', nr
                     nrows = nrows                  
                     )
     return df
-   
-def load_bema_area(building_category: BuildingCategory, database_manger: Buildings, start_row: int = 551):
-    """
-    Retrieves area forecast data per building category from the BEMA model and formats it to a dataframe that are compatible for validation.  
-    """
-    # Retrieve workbook and sheet names 
-    workbook = os.environ.get('BEMA_SPREADSHEET')
-    sheet = get_building_category_sheet(building_category, area_sheet=True)
-
-    # Get tek_list from buildings class
-    building = Buildings.build_buildings(building_category, database_manager)
-    tek_list = building.tek_list
-
-    # define row number for first header in sheet
-    if building_category == BuildingCategory.STORAGE_REPAIRS:
-        header = 552
-    else:
-        header = start_row  
-    
-    # number of rows between headers/tables in sheet
-    skip_rows = 9
-    # the order in which conditions are listed in bema   
-    bema_sorted_condition_list = ['original_condition','small_measure','renovation','renovation_and_small_measure','demolition']       
-  
-    df_list = []
-    for tek in tek_list:
-        # read data from excel
-        df = xlsx_to_df(workbook, sheet=sheet, header=header, usecols="E:AS", nrows=5)
-    
-        # format dataframe
-        df['building_condition'] = bema_sorted_condition_list
-        df['tek'] = tek
-        df = pd.melt(df, id_vars=['tek','building_condition'], var_name='year')
-        df.rename(columns={'value':'bema_value'}, inplace=True)
-        df['year'] = df['year'].astype(int)
-
-        # append dataframes to list
-        df_list.append(df)
-
-        # increase header number for next iteration
-        header = header + skip_rows
-    
-    # concat all tables into one dataframe ordered by tek
-    bema_area = pd.concat(df_list)
-    return bema_area
-
-def get_ebm_area(building_category: BuildingCategory, database_manager, start_year: int = 2010, end_year: int = 2050):
-    """
-    Retrieves area forecast data per building category from the EBM model and formats it to a dataframe that are compatible for validation.  
-    """
-    modelyears = [*range(start_year, end_year + 1)]
-
-    # Retrieve area data
-    building = Buildings.build_buildings(building_category, database_manager)
-    area_forecast = building.build_area_forecast(database_manager)
-    demolition_floor_area = pd.Series(data=area_forecast.calc_total_demolition_area_per_year(), index=modelyears)
-    yearly_constructed = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area, database_manager)
-    constructed_floor_area = list(yearly_constructed.accumulated_constructed_floor_area)
-    area_forecast = building.build_area_forecast(database_manager, start_year, end_year)  
-    area = area_forecast.calc_area(constructed_floor_area)
-
-    tek_list = building.tek_list
-     
-    df_list = []  
-    for tek in tek_list:
-        df = pd.DataFrame(area[tek])
-        df['year'] = modelyears
-        df['tek'] = tek
-        df = pd.melt(df, id_vars=['tek','year'], var_name='building_condition')
-        df = df[['tek', 'building_condition', 'year', 'value']]
-        df.rename(columns={'value':'ebm_value'}, inplace=True)
-        df_list.append(df)
-
-    ebm_area = pd.concat(df_list)
-    return ebm_area  
 
 def validate_data(building_category: BuildingCategory, data_name: str, df1: pd.DataFrame, df2: pd.DataFrame, join_cols: typing.List[str], precision=5):
     """
@@ -169,6 +100,8 @@ def validate_data(building_category: BuildingCategory, data_name: str, df1: pd.D
 
     Logs warnings if any data is left out during the join.
     """
+    logger.info(f'{building_category} - Validating {data_name} data. Decimal precision {precision}')
+
     # Check that all join columns are present in both dataframes
     missing_in_df1 = [col for col in join_cols if col not in df1.columns]
     missing_in_df2 = [col for col in join_cols if col not in df2.columns]
@@ -218,17 +151,98 @@ def validate_data(building_category: BuildingCategory, data_name: str, df1: pd.D
 
     n_diff = len(diff)
     if n_diff > 0:
-        logger.error(f'Number of different valules (decimal precision: {precision}): {n_diff}')
+        logger.error(f'{building_category} - Number of different {data_name} values (decimal precision: {precision}): {n_diff}')
         diff.to_excel(f'output/validate_{data_name}_{building_category}.xlsx', index=False)
     #else:
     #    logger.info(f'No difference between data (decimal precision: {precision})')
 
+def load_bema_area(building_category: BuildingCategory, database_manger: Buildings, start_row: int = 551):
+    """
+    Retrieves area forecast data per building category from the BEMA model and formats it to a dataframe that are compatible for validation.  
+    """
+    # Retrieve workbook and sheet names 
+    workbook = os.environ.get('BEMA_SPREADSHEET')
+    sheet = get_building_category_sheet(building_category, area_sheet=True)
+
+    # Get tek_list from buildings class
+    building = Buildings.build_buildings(building_category, database_manager)
+    tek_list = building.tek_list
+
+    # define row number for first header in sheet
+    if building_category == BuildingCategory.STORAGE_REPAIRS:
+        header = 552
+    else:
+        header = start_row  
+    
+    # Number of rows between headers/tables in sheet
+    skip_rows = 9
+
+    # The order in which conditions are listed in bema   
+    bema_sorted_condition_list = ['original_condition','small_measure','renovation','renovation_and_small_measure','demolition']       
+  
+    df_list = []
+    for tek in tek_list:
+        # read data from excel
+        df = xlsx_to_df(workbook, sheet=sheet, header=header, usecols="E:AS", nrows=5)
+    
+        # format dataframe
+        df['building_condition'] = bema_sorted_condition_list
+        df['tek'] = tek
+        df = pd.melt(df, id_vars=['tek','building_condition'], var_name='year')
+        df.rename(columns={'value':'bema_value'}, inplace=True)
+        df['year'] = df['year'].astype(int)
+
+        # append dataframes to list
+        df_list.append(df)
+
+        # increase header number for next iteration
+        header = header + skip_rows
+    
+    # concat all tables into one dataframe ordered by tek
+    bema_area = pd.concat(df_list)
+    return bema_area
+
+def get_ebm_area(building_category: BuildingCategory, database_manager, start_year: int = 2010, end_year: int = 2050):
+    """
+    Retrieves area forecast data per building category from the EBM model and formats it to a dataframe that are compatible for validation.  
+    """
+    modelyears = [*range(start_year, end_year + 1)]
+
+    # Retrieve area data
+    building = Buildings.build_buildings(building_category, database_manager)
+    area_forecast = building.build_area_forecast(database_manager)
+    demolition_floor_area = pd.Series(data=area_forecast.calc_total_demolition_area_per_year(), index=modelyears)
+    yearly_constructed = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area, database_manager)
+    constructed_floor_area = list(yearly_constructed.accumulated_constructed_floor_area)
+    area_forecast = building.build_area_forecast(database_manager, start_year, end_year)  
+    area = area_forecast.calc_area(constructed_floor_area)
+
+    tek_list = building.tek_list
+     
+    df_list = []  
+    for tek in tek_list:
+        # Filter data and transform to df
+        df = pd.DataFrame(area[tek])
+
+        # Control that length of dataframe matches number of modelyears
+        if len(df) != len(modelyears): 
+            raise ValueError(f'Length of dataframe does not match number of modelyears. Length of df: {len(df)}. Number of modelyears {len(modelyears)}')
+
+        # Format dataframe for validation/merge with BEMA data
+        df['year'] = modelyears
+        df['tek'] = tek
+        df = pd.melt(df, id_vars=['tek','year'], var_name='building_condition')
+        df = df[['tek', 'building_condition', 'year', 'value']]
+        df.rename(columns={'value':'ebm_value'}, inplace=True)
+        df_list.append(df)
+
+    ebm_area = pd.concat(df_list)
+    return ebm_area  
+
 def validate_area(building_category: BuildingCategory, database_manager: DatabaseManager, precision: int = 5):
     """
     Validate area data from EBM and BEMA model. 
-    """
-    logger.info(f'Controlling Area data. Building category: {building_category}')
-    
+    """    
     bema_area = load_bema_area(building_category, database_manager)
     ebm_area = get_ebm_area(building_category, database_manager)
 
@@ -237,10 +251,93 @@ def validate_area(building_category: BuildingCategory, database_manager: Databas
     
     validate_data(building_category, data_name, ebm_area, bema_area, join_cols, precision)
 
+def get_ebm_shares(building_category: BuildingCategory, database_manager: DatabaseManager, start_year: int = 2010, end_year: int = 2050):
+    """
+    """
+    modelyears = [*range(start_year, end_year + 1)]
+    
+    building = Buildings.build_buildings(building_category, database_manager)
+    shares = building.get_shares()
+
+    df_list = []
+    for condition in BuildingCondition:
+        # Filter data and transform to df
+        df = pd.DataFrame(shares[condition])
+        
+        # Control that length of dataframe matches number of modelyears
+        if len(df) != len(modelyears): 
+            raise ValueError(f'Length of dataframe does not match number of modelyears. Length of df: {len(df)}. Number of modelyears {len(modelyears)}')
+        
+        # Format dataframe for validation/merge with BEMA data
+        df['year'] = modelyears
+        df['building_condition'] = condition
+        df = pd.melt(df, id_vars=['building_condition','year'], var_name='tek')
+        df = df[['building_condition', 'tek', 'year', 'value']]
+        df.rename(columns={'value':'ebm_value'}, inplace=True)
+
+        df_list.append(df)
+
+    ebm_rates = pd.concat(df_list)
+    return ebm_rates 
+
+def load_bema_shares(building_category: BuildingCategory, database_manager: Buildings, start_row: int = 20):
+    """
+    """
+    # Retrieve workbook and sheet names 
+    workbook = os.environ.get('BEMA_SPREADSHEET')
+    sheet = get_building_category_sheet(building_category, area_sheet=False)
+    
+    # Create building object to get length of TEK's for given building category
+    building = Buildings.build_buildings(building_category, database_manager)
+    tek_list = building.tek_list
+    
+    # Number of TEK's define the number of rows with data per condition in BEMA sheet
+    n_tek = len(tek_list)
+
+    # Number of rows between headers/tables in sheet
+    skip_rows = n_tek + 3 
+
+    # Define row number for first header in sheet
+    header = start_row
+    
+    df_list = []
+    for condition in BuildingCondition:
+        # Read data from excel
+        df = xlsx_to_df(workbook, sheet=sheet, header=header, usecols="E:AS", nrows=n_tek)
+        
+        # Format dataframe for validation/merge with EBM data
+        df['building_condition'] = condition
+        df['tek'] = tek_list
+        df = pd.melt(df, id_vars=['building_condition', 'tek'], var_name='year')
+        df['year'] = df['year'].astype(int)
+        df.rename(columns={'value':'bema_value'}, inplace=True)
+        df.sort_values(by=['building_condition', 'tek', 'year'], inplace=True)
+        df.reset_index(drop=True, inplace=True)
+        df_list.append(df)
+        
+        # Increase header number for next iteration
+        header = header + skip_rows
+    
+    bema_rates = pd.concat(df_list)
+    return bema_rates
+
+def validate_shares(building_category: BuildingCategory, database_manager: DatabaseManager, precision: int = 3):
+    """
+    Validate shares data from EBM and BEMA model. 
+    """    
+    ebm_shares = get_ebm_shares(building_category, database_manager)
+    bema_shares = load_bema_shares(building_category, database_manager)
+
+    data_name = 'shares'
+    join_cols = ['building_condition', 'tek', 'year']
+    
+    validate_data(building_category, data_name, ebm_shares, bema_shares, join_cols, precision)
+
 
 # TEST RUN
 database_manager = DatabaseManager()
-#building_category = BuildingCategory.STORAGE_REPAIRS
+#building_category = BuildingCategory.HOUSE
 
 for building_category in BuildingCategory:
+    validate_shares(building_category, database_manager, precision=5)
     validate_area(building_category, database_manager)

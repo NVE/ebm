@@ -1,12 +1,29 @@
 import itertools
+import os
 import typing
 
+import pandas as pd
 from loguru import logger
 from openpyxl.worksheet.worksheet import Worksheet
-import pandas as pd
 
 from ebm.model import BuildingCategory
 from ebm.services.spreadsheet import iter_cells
+
+START_ROWS_CONSTRUCTION_BUILDING_CATEGORY = {
+    BuildingCategory.HOUSE: 11,
+    BuildingCategory.APARTMENT_BLOCK: 23,
+    BuildingCategory.KINDERGARTEN: 41,
+    BuildingCategory.SCHOOL: 55,
+    BuildingCategory.UNIVERSITY: 69,
+    BuildingCategory.OFFICE: 83,
+    BuildingCategory.RETAIL: 97,
+    BuildingCategory.HOTEL: 111,
+    BuildingCategory.HOSPITAL: 125,
+    BuildingCategory.NURSING_HOME: 139,
+    BuildingCategory.CULTURE: 153,
+    BuildingCategory.SPORTS: 167,
+    BuildingCategory.STORAGE_REPAIRS: 182
+}
 
 
 def load_row_series(worksheet: Worksheet, row: int = 104) -> pd.Series:
@@ -72,14 +89,16 @@ def load_building_category_from_rows(worksheet: Worksheet, start_row_no: int = 9
     }
 
 
-def load_construction_building_category(worksheet: Worksheet, building_category: BuildingCategory) -> pd.DataFrame:
+def load_construction_building_category(building_category: BuildingCategory,
+                                        spreadsheet: str = '', worksheet: str = 'Nybygging') -> pd.DataFrame:
     """ Load rows related to construction for the supplied building_category from worksheet. The function
         assume the worksheet is formatted like `BEMA 2019-Tekniske kommentarer.xlsm`. With `house` starting at E11
         `kindergarten` at E41 and so on.
 
             Args:
-                worksheet (Worksheet) the worksheet to retrieve
                 building_category (BuildingCategory)
+                spreadsheet (str) spreadsheet file
+                worksheet (str) worksheet name, default(Nybygging)
 
             Returns:
                   construction_df (pd.DataFrame)
@@ -98,24 +117,27 @@ def load_construction_building_category(worksheet: Worksheet, building_category:
             Raises:
                 KeyError: Invalid building_category
             """
-    start_rows_construction_building_category = {
-        BuildingCategory.HOUSE: 11,
-        BuildingCategory.APARTMENT_BLOCK: 23,
-        BuildingCategory.KINDERGARTEN: 41,
-        BuildingCategory.SCHOOL: 55,
-        BuildingCategory.UNIVERSITY: 69,
-        BuildingCategory.OFFICE: 83,
-        BuildingCategory.RETAIL: 97,
-        BuildingCategory.HOTEL: 111,
-        BuildingCategory.HOSPITAL: 125,
-        BuildingCategory.NURSING_HOME: 139,
-        BuildingCategory.CULTURE: 153,
-        BuildingCategory.SPORTS: 167,
-        BuildingCategory.STORAGE_REPAIRS: 182
-    }
+    filename = spreadsheet if spreadsheet else os.environ.get('BEMA_SPREADSHEET')
 
-    logger.debug(f'Loading rows for {building_category=}')
-    building_category_rows = start_rows_construction_building_category.get(building_category)
+    start_row = START_ROWS_CONSTRUCTION_BUILDING_CATEGORY.get(building_category) - 1
+    end_row = start_row + 13
 
-    dict_of_series = load_building_category_from_rows(worksheet, building_category_rows)
-    return pd.DataFrame(data=dict_of_series)
+    rows_to_skip = [i for i in range(3, 350) if i >= end_row or i < start_row]
+    more_rows = [0, 1, start_row + 2, start_row + 3, start_row + 4, start_row + 8, start_row + 9, start_row + 10]
+    rows_to_skip = more_rows + rows_to_skip
+    logger.debug(f'{filename=} {start_row=}')
+    names = ['year', 'total_floor_area', 'building_growth', 'demolished_floor_area', 'constructed_floor_area',
+             'accumulated_constructed_floor_area', 'construction_rate', 'floor_area_over_population_growth']
+    df = pd.read_excel(filename,
+                       usecols='D:AS',
+                       header=None,
+                       skiprows=rows_to_skip,
+                       sheet_name=worksheet)
+
+    # Switch columns and rows of the dataframe then set index to year
+    df_transposed = df.transpose().iloc[1:].copy()
+    df_transposed.columns = names
+    df_transposed.year = df_transposed.year.astype(int)
+    df_transposed = df_transposed.set_index('year')
+
+    return df_transposed

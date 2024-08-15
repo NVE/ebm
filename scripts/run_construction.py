@@ -7,14 +7,12 @@ import typing
 import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
-from openpyxl import load_workbook, Workbook
-from openpyxl.worksheet.worksheet import Worksheet
 from rich.pretty import pprint
 
 from ebm.model import BuildingCategory
+from ebm.model import DatabaseManager, Buildings
 from ebm.model.bema import load_construction_building_category
 from ebm.model.construction import ConstructionCalculator
-from ebm.model import DatabaseManager, Buildings
 
 ROUND_PRECISION = 4
 
@@ -70,16 +68,16 @@ def validate_building_categories(building_categories: collections.abc.Iterable[B
     if error_count > 0:
         logger.error(f'Got {error_count} errors in total')
         logger.error(f'{categories_with_errors=}')
+        #
+        # Skrive diff til dataframe.
+        #
     return error_count
 
 
 def load_accumulated_constructed_floor_area(building_category: BuildingCategory) -> pd.Series:
     spreadsheet_name = os.environ.get('BEMA_SPREADSHEET')
 
-    wb: Workbook = load_workbook(spreadsheet_name)
-    sheet_name: Worksheet = wb[wb.sheetnames[0]]
-
-    df = load_construction_building_category(worksheet=sheet_name, building_category=building_category)
+    df = load_construction_building_category(building_category=building_category, spreadsheet=spreadsheet_name)
 
     return df.accumulated_constructed_floor_area
 
@@ -91,7 +89,9 @@ def validate_accumulated_constructed_floor_area(building_category) -> int:
     database_manager = DatabaseManager()
     demolition_floor_area = extract_demolition_floor_area(building_category, database_manager)
 
-    yearly_constructed = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area, database_manager)
+    yearly_constructed = ConstructionCalculator.calculate_construction(building_category,
+                                                                       demolition_floor_area,
+                                                                       database_manager)
 
     constructed_floor_area = yearly_constructed.accumulated_constructed_floor_area
     years = constructed_floor_area.index

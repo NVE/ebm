@@ -9,7 +9,7 @@ import pandas as pd
 
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.building_category import BuildingCategory
-from ebm.model.bema_validation import validate_shares, validate_area
+from ebm.model.bema_validation import validate_scurves, validate_shares, validate_area
 
 def main():
     
@@ -18,7 +18,7 @@ def main():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--debug', action='store_true')
     arg_parser.add_argument('building_categories', type=str, nargs='*', default=default_building_categories)
-    arg_parser.add_argument('--validate', type=str, choices=['shares', 'area', '*'], nargs='?', default='*')
+    arg_parser.add_argument('--validate', type=str, choices=['scurves', 'shares', 'area', '*'], nargs='?', default='*')
     arguments: argparse.Namespace = arg_parser.parse_args()
     
     if not arguments.debug or os.environ.get('DEBUG', '') != 'True':
@@ -29,6 +29,9 @@ def main():
     
     for b_category in arguments.building_categories:
         building_category: BuildingCategory = BuildingCategory.from_string(b_category)
+        
+        if arguments.validate in ['scurves', '*']:
+            validate_scurves(building_category, database_manager)
 
         if arguments.validate in ['shares', '*']:
             validate_shares(building_category, database_manager)

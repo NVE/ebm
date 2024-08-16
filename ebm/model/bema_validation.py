@@ -56,7 +56,7 @@ def get_building_category_sheet(building_category: BuildingCategory, area_sheet:
     
     return sheet
 
-def xlsx_to_df(workbook: str, sheet: str, header: int, usecols: str = 'E:AS', nrows: int = 5):
+def xlsx_to_df(workbook: str, sheet: str, header: int, usecols: str = 'E:AS', n_rows: int = 5):
     """
     Reads an excel sheet and returns a dataframe based on the input arguments.
 
@@ -78,7 +78,7 @@ def xlsx_to_df(workbook: str, sheet: str, header: int, usecols: str = 'E:AS', nr
                     sheet_name = sheet,              
                     header = header - 1,  # number of rows to skip before header, e.g. header= 7, then row 8 is used as header 
                     usecols = usecols,                
-                    nrows = nrows                  
+                    nrows = n_rows                  
                     )
     return df
 
@@ -155,7 +155,7 @@ def validate_data(building_category: BuildingCategory, data_name: str, df1: pd.D
     #else:
     #    logger.info(f'No difference between data (decimal precision: {precision})')
 
-def load_bema_area(building_category: BuildingCategory, database_manager: Buildings, start_row: int = 551):
+def load_bema_area(building_category: BuildingCategory, database_manager: Buildings, start_row: int = 551, n_rows = 5, usecols: str = "E:AS"):
     """
     Retrieves area forecast data per building category from the BEMA model and formats it to a dataframe that are compatible for validation.  
     """
@@ -182,7 +182,7 @@ def load_bema_area(building_category: BuildingCategory, database_manager: Buildi
     df_list = []
     for tek in tek_list:
         # read data from excel
-        df = xlsx_to_df(workbook, sheet=sheet, header=header, usecols="E:AS", nrows=5)
+        df = xlsx_to_df(workbook, sheet=sheet, header=header, usecols=usecols, n_rows=n_rows)
     
         # format dataframe
         df['building_condition'] = bema_sorted_condition_list
@@ -279,7 +279,7 @@ def get_ebm_shares(building_category: BuildingCategory, database_manager: Databa
     ebm_rates = pd.concat(df_list)
     return ebm_rates 
 
-def load_bema_shares(building_category: BuildingCategory, database_manager: Buildings, start_row: int = 20):
+def load_bema_shares(building_category: BuildingCategory, database_manager: Buildings, start_row: int = 20, usecols: str = "E:AS"):
     """
     """
     # Retrieve workbook and sheet names 
@@ -302,7 +302,7 @@ def load_bema_shares(building_category: BuildingCategory, database_manager: Buil
     df_list = []
     for condition in BuildingCondition:
         # Read data from excel
-        df = xlsx_to_df(workbook, sheet=sheet, header=header, usecols="E:AS", nrows=n_tek)
+        df = xlsx_to_df(workbook, sheet=sheet, header=header, usecols=usecols, n_rows=n_tek)
         
         # Format dataframe for validation/merge with EBM data
         df['building_condition'] = condition
@@ -331,3 +331,77 @@ def validate_shares(building_category: BuildingCategory, database_manager: Datab
     join_cols = ['building_condition', 'tek', 'year']
     
     validate_data(building_category, data_name, ebm_shares, bema_shares, join_cols, precision)
+
+def get_ebm_scurves(building_category: BuildingCategory, database_manager: DatabaseManager):
+    """
+    """    
+    building = Buildings.build_buildings(building_category, database_manager)
+    scurve_condition_list = BuildingCondition.get_scruve_condition_list()
+
+    df_list = []
+    for condition in scurve_condition_list:
+        scurve = building.get_scurve(condition)
+        df = pd.DataFrame(scurve)
+        df['building_condition'] = condition
+        df = df[['building_condition', 'year', 'scurve']]
+        df.rename(columns={'scurve':'ebm_value'}, inplace=True)
+
+        df_list.append(df)
+
+    ebm_scurves = pd.concat(df_list)
+    ebm_scurves.reset_index(drop=True, inplace=True)
+
+    return ebm_scurves
+
+def load_bema_scurves(building_category: BuildingCategory, start_row: int = 11, n_rows: int = 6, usecols: str = 'E:ED'):
+    """
+    """
+    # Retrieve workbook and sheet names 
+    workbook = os.environ.get('BEMA_SPREADSHEET')
+    sheet = get_building_category_sheet(building_category, area_sheet=False) 
+
+    # Read data from excel
+    df = xlsx_to_df(workbook, sheet=sheet, header=start_row, usecols=usecols, n_rows=n_rows)
+
+    # Drop unwanted rows
+    df = df.drop([0, 2, 4])
+
+    # Add building_condition col
+    bema_sorted_condition_list = ['demolition', 'small_measure', 'renovation']
+    df['building_condition'] = bema_sorted_condition_list
+
+    # Format dataframe for validation/merge with EBM data
+    df = pd.melt(df, id_vars=['building_condition'], var_name='year', value_name='bema_value')
+    df.sort_values(by=['building_condition', 'year'], inplace=True)
+    df['year'] = df['year'].astype(int)
+
+    return df
+
+def validate_scurves(building_category: BuildingCategory, database_manager: DatabaseManager, precision: int = 5):
+    """
+    Validate scurve data from EBM and BEMA model. 
+    """    
+    ebm_scurves = get_ebm_scurves(building_category, database_manager)
+    bema_scurves = load_bema_scurves(building_category)
+
+    data_name = 'scurves'
+    join_cols = ['building_condition', 'year']
+    
+    validate_data(building_category, data_name, ebm_scurves, bema_scurves, join_cols, precision)
+
+# TODO
+def get_ebm_rush_rates(building_category: BuildingCategory, database_manager: DatabaseManager):
+    """
+    """
+    scurve_condition_list = BuildingCondition.get_scruve_condition_list()
+    building = Buildings.build_buildings(building_category, database_manager)
+
+    #condition = scurve_condition_list[0]
+    #scurve = building.build_scurve(condition)
+
+
+if __name__ == '__main__':
+    database_manager = DatabaseManager()
+    building_category = BuildingCategory.HOUSE
+    
+    get_ebm_rush_rates(building_category, database_manager)

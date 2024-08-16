@@ -179,6 +179,7 @@ class Buildings():
             if condition not in self.scurve_params:
                 msg = f'Encounted unknown condition {condition} while making scurve'
                 raise ValueError(msg)
+            
             # Filter S-curve parameters dictionary on condition
             scurve_params_condition = self.scurve_params[condition]
             
@@ -243,7 +244,30 @@ class Buildings():
         shares = self.shares_per_condition[condition]
         return shares
 
-    def build_area_forecast(self, database_manager, start_year: int = 2010, end_year: int = 2050):
+    def build_scurve(self, building_condition: BuildingCondition):
+        """
+        Build a SCurve object from the Building object. Reuse scurve_params from the Buildings (self) object.
+
+        Parameters:
+        - building_condition (str): The condition to create Scurve object for.
+
+        Returns:
+        - scurve: SCurve 
+        """
+        # Get relevant ScurveParameters dataclass from filtering scurve_params dictionary on building condition
+        scurve_params_condition = self.scurve_params[building_condition]
+            
+        # Create the SCurve object
+        scurve = SCurve(scurve_params_condition.earliest_age, 
+                   scurve_params_condition.average_age, 
+                   scurve_params_condition.last_age,
+                   scurve_params_condition.rush_years, 
+                   scurve_params_condition.rush_share,
+                   scurve_params_condition.never_share)
+        
+        return scurve
+
+    def build_area_forecast(self, database_manager: DatabaseManager, start_year: int = 2010, end_year: int = 2050):
         """
         Build a AreaForcast object from the Building object. Reuse building_category, tek_list, shares_per_condtion from
             the Buildings (self) object.

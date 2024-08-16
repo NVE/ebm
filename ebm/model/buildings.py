@@ -258,12 +258,13 @@ class Buildings():
         scurve_params_condition = self.scurve_params[building_condition]
             
         # Create the SCurve object
-        scurve = SCurve(scurve_params_condition.earliest_age, 
-                   scurve_params_condition.average_age, 
-                   scurve_params_condition.last_age,
-                   scurve_params_condition.rush_years, 
-                   scurve_params_condition.rush_share,
-                   scurve_params_condition.never_share)
+        scurve = SCurve(
+            scurve_params_condition.earliest_age,
+            scurve_params_condition.average_age,
+            scurve_params_condition.last_age,
+            scurve_params_condition.rush_years,
+            scurve_params_condition.rush_share,
+            scurve_params_condition.never_share)
         
         return scurve
 
@@ -281,7 +282,6 @@ class Buildings():
 
         Returns area_forecast: AreaForecast
         -------
-
         """
         area_parameters = database_manager.get_area_parameters()
         tek_params = database_manager.get_tek_params(self.tek_list)

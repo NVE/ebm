@@ -389,19 +389,64 @@ def validate_scurves(building_category: BuildingCategory, database_manager: Data
     
     validate_data(building_category, data_name, ebm_scurves, bema_scurves, join_cols, precision)
 
-# TODO
 def get_ebm_rush_rates(building_category: BuildingCategory, database_manager: DatabaseManager):
     """
     """
     scurve_condition_list = BuildingCondition.get_scruve_condition_list()
     building = Buildings.build_buildings(building_category, database_manager)
 
-    #condition = scurve_condition_list[0]
-    #scurve = building.build_scurve(condition)
+    rate_dict = {}
+    for condition in scurve_condition_list:
+        scurve = building.build_scurve(condition)
+        pre_rush_rate = scurve._pre_rush_rate
+        rush_rate = scurve._rush_rate
+        post_rush_rate = scurve._post_rush_rate
+        r_dict = {
+            'pre_rush_rate':pre_rush_rate,
+            'rush_rate':rush_rate,
+            'post_rush_rate':post_rush_rate
+        } 
+        rate_dict[condition] = r_dict
 
+    # Format df for validation/merge with BEMA data
+    rush_rates = pd.DataFrame(rate_dict)
+    rush_rates.reset_index(inplace=True, names='rate_type')
+    rush_rates = pd.melt(rush_rates, id_vars='rate_type', var_name='building_condition', value_name='ebm_value')
+    rush_rates = rush_rates[['building_condition', 'rate_type', 'ebm_value']]
+
+    return rush_rates
+
+def load_bema_rush_rates(building_category: BuildingCategory, database_manager: DatabaseManager, start_row: int = 4, n_rows: int = 3, usecols: str = 'L:N'):
+    """
+    """
+    # Retrieve workbook and sheet names 
+    workbook = os.environ.get('BEMA_SPREADSHEET')
+    sheet = get_building_category_sheet(building_category, area_sheet=False) 
+
+    # Fromat df for validation/merge with EBM data
+    df = xlsx_to_df(workbook, sheet=sheet, header=start_row, usecols=usecols, n_rows=n_rows)
+    bema_sorted_condition_list = ['small_measure', 'renovation', 'demolition']
+    df['building_condition'] = bema_sorted_condition_list
+    df.rename(columns={'Før rushet':'pre_rush_rate', 'I rushet':'rush_rate', 'Etter rushet':'post_rush_rate'}, inplace=True)
+    df = pd.melt(df, id_vars='building_condition', var_name='rate_type', value_name='bema_value')
+    
+    return df
+
+def validate_rush_rates(building_category: BuildingCategory, database_manager: DatabaseManager, precision: int = 5):
+    """
+    Validate yearly rush rates from EBM and BEMA model. 
+    """    
+    ebm_rush_rates = get_ebm_rush_rates(building_category, database_manager)
+    bema_rush_rates = load_bema_rush_rates(building_category, database_manager)
+
+    data_name = 'scurves'
+    join_cols = ['building_condition', 'rate_type']
+    
+    validate_data(building_category, data_name, ebm_rush_rates, bema_rush_rates, join_cols, precision)
 
 if __name__ == '__main__':
     database_manager = DatabaseManager()
-    building_category = BuildingCategory.HOUSE
+    #building_category = BuildingCategory.APARTMENT_BLOCK
     
-    get_ebm_rush_rates(building_category, database_manager)
+    for building_category in BuildingCategory:
+        validate_rush_rates(building_category, database_manager)

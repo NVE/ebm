@@ -56,16 +56,18 @@ def get_building_category_sheet(building_category: BuildingCategory, area_sheet:
     
     return sheet
 
-def xlsx_to_df(workbook: str, sheet: str, header: int, usecols: str = 'E:AS', n_rows: int = 5):
+def xlsx_to_df(workbook: str, sheet: str, header: int, usecols = 'E:AS', n_rows: int = 5, skiprows = None, names = None):
     """
     Reads an excel sheet and returns a dataframe based on the input arguments.
 
     Parameters:
-    - workbook: excel file path
-    - sheet: excel file sheet
-    - header: row number to be used as header/columns in the dataframe
-    - usecols: columns to use, can be str (e.g. 'A:E'), list of int or str
-    - nrows: number of rows to include from header row 
+    - workbook (str): excel file path
+    - sheet (str): excel file sheet
+    - header (int): Row number (0-indexed) to be used as header/columns in the dataframe
+    - usecols: columns to use. Datatype: can be str (e.g. 'A:E'), list of int's or str's
+    - nrows (int): number of rows to include from header row 
+    - skiprows: line numbers to skip (0-indexed) or number of lines to skip (int) at the start of the file
+    - names (list): list of column names to use. Must match number of columns (usecols)
 
     Returns:
     - df: pandas dataframe
@@ -73,12 +75,18 @@ def xlsx_to_df(workbook: str, sheet: str, header: int, usecols: str = 'E:AS', n_
     if workbook is None:
         workbook = os.environ.get('BEMA_SPREADSHEET')
 
+    if header != None:
+        # Number of rows to skip before header. E.g. header= 7, then row 8 is used as header 
+        header = header - 1
+
     df = pd.read_excel(
                     workbook,                       
                     sheet_name = sheet,              
-                    header = header - 1,  # number of rows to skip before header, e.g. header= 7, then row 8 is used as header 
-                    usecols = usecols,                
-                    nrows = n_rows                  
+                    header = header,  
+                    usecols = usecols,
+                    nrows = n_rows,
+                    skiprows = skiprows,
+                    names = names                                
                     )
     return df
 
@@ -444,9 +452,86 @@ def validate_rush_rates(building_category: BuildingCategory, database_manager: D
     
     validate_data(building_category, data_name, ebm_rush_rates, bema_rush_rates, join_cols, precision)
 
+def get_ebm_construction(building_category: BuildingCategory, database_manager, start_year: int = 2010, end_year: int = 2050):
+    """
+    Retrieve accumulated construction data per building category from the EBM model and format it to a dataframe that is compatible for validation.  
+    """
+    modelyears = [*range(start_year, end_year + 1)]
+
+    # Retrieve construction data
+    building = Buildings.build_buildings(building_category, database_manager)
+    area_forecast = building.build_area_forecast(database_manager)
+    demolition_floor_area = pd.Series(data=area_forecast.calc_total_demolition_area_per_year(), index=modelyears)
+    yearly_constructed = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area, database_manager)
+    constructed_floor_area = yearly_constructed.accumulated_constructed_floor_area
+
+    # Convert series to df and format for validation/merge with BEMA data
+    df = constructed_floor_area.to_frame().reset_index(names='year')
+    df.rename(columns={'accumulated_constructed_floor_area':'ebm_value'}, inplace=True)
+
+    return df  
+
+def load_bema_construction(building_category: BuildingCategory, start_year: int = 2010, end_year: int = 2050, sheet: str = 'Nybygging', usecols: str = 'E:AS'):
+    """
+    Retrieve accumulated construction data per building category from the BEMA model and format it to a dataframe that is compatible for validation.  
+    """
+    # Dict with row nr for data to be read per building category
+    data_row_construction_building_category = {
+        BuildingCategory.HOUSE: 18,
+        BuildingCategory.APARTMENT_BLOCK: 30,
+        BuildingCategory.KINDERGARTEN: 48,
+        BuildingCategory.SCHOOL: 62,
+        BuildingCategory.UNIVERSITY: 76,
+        BuildingCategory.OFFICE: 90,
+        BuildingCategory.RETAIL: 104,
+        BuildingCategory.HOTEL: 118,
+        BuildingCategory.HOSPITAL: 132,
+        BuildingCategory.NURSING_HOME: 146,
+        BuildingCategory.CULTURE: 160,
+        BuildingCategory.SPORTS: 174,
+        BuildingCategory.STORAGE_REPAIRS: 189
+    }
+    
+    # Retrieve workbook
+    workbook = os.environ.get('BEMA_SPREADSHEET') 
+
+    # List with all row numbers in excel sheet (0-indexed) 
+    skiprows = [*range(0, 295)]
+
+    # Index of row with data to be read
+    data_row_idx = data_row_construction_building_category[building_category] - 1
+
+    # Alter skiprows so that the desired row is read / don't skip the data row
+    del skiprows[data_row_idx]
+
+    # Modelyears list to be used as columns
+    modelyears = [*range(start_year, end_year + 1)]
+
+    # Format df for validation/merge with EBM data
+    df = xlsx_to_df(workbook, sheet, header=None, usecols=usecols, n_rows=None, skiprows=skiprows, names=modelyears)
+    df = pd.melt(df, var_name='year', value_name='bema_value')
+
+    return df
+
+def validate_construction(building_category: BuildingCategory, database_manager: DatabaseManager, precision: int = 5):
+    """
+    Validate accumulated constructed floor area from EBM and BEMA model. 
+    """    
+    ebm_construction = get_ebm_construction(building_category, database_manager)
+    bema_construction = load_bema_construction(building_category)
+
+    data_name = 'construction'
+    join_cols = ['year']
+    
+    validate_data(building_category, data_name, ebm_construction, bema_construction, join_cols, precision)
+
+
 if __name__ == '__main__':
     database_manager = DatabaseManager()
-    #building_category = BuildingCategory.APARTMENT_BLOCK
+    #building_category = BuildingCategory.KINDERGARTEN
     
     for building_category in BuildingCategory:
-        validate_rush_rates(building_category, database_manager)
+        logger.info(building_category)
+        validate_construction(building_category, database_manager)
+        
+

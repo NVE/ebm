@@ -1,40 +1,26 @@
-import pandas as pd
+import argparse
+import sys
+import typing
+import os
 
 from loguru import logger
+from dotenv import load_dotenv
+import pandas as pd
 
 from ebm.model.database_manager import DatabaseManager
-from ebm.model.buildings import Buildings
-from ebm.model.shares_per_condition import SharesPerCondition
-from ebm.model.scurve import SCurve
+from ebm.model.building_category import BuildingCategory
+from ebm.model.bema_validation import *
 
-building_list = ['apartment_block', 'house',
-                 'kindergarten', 'school', 'university', 'office', 'retail', 'hotel',
-                 'hospital', 'nursinghome', 'culture', 'sports', 'storage_repairs']
+database_manager = DatabaseManager()
+building_category = BuildingCategory.APARTMENT_BLOCK
 
-def dict_to_df(dict):
-    df = pd.DataFrame(dict)
-    return df
+ebm_rates = get_ebm_rush_rates(building_category, database_manager)
+bema_rates = load_bema_rush_rates(building_category, database_manager)
 
-# Shares workflow:
+ebm_scurves = get_ebm_scurves(building_category, database_manager) 
+bema_scurves = load_bema_scurves(building_category)
 
-db = DatabaseManager()
-buildling_category_list = db.get_building_category_list()
-tek_list = db.get_tek_list()
-tek_params = db.get_tek_params(tek_list)
-condition_list = db.get_condition_list()
-scurve_params = db.get_scurve_params()
-
-b = Buildings('house', tek_list, tek_params, condition_list, scurve_params)
-shares = b.shares_per_condition
-df = dict_to_df(shares['small_measure'])
-
-#print(df)
-
-########## See area input data ##########
-
-construction_population = db.get_construction_population()
-construction_building_category_share = db.get_construction_building_category_share()
-area = db.get_building_category_area()
-area_by_tek = db.get_area_parameters()
-
-print(area_by_tek)
+logger.info(f'BEMA')
+print(bema_rates)
+logger.info(f'EBM')
+print(ebm_rates)

@@ -33,7 +33,7 @@ def get_building_category_sheet(building_category: BuildingCategory, area_sheet:
     """
     building_category_sheets = {
             BuildingCategory.HOUSE: ['A hus', 'R hus'],
-            BuildingCategory.APARTMENT_BLOCK: ['A leil', 'R hus'],
+            BuildingCategory.APARTMENT_BLOCK: ['A leil', 'R leil'],
             BuildingCategory.KINDERGARTEN: ['A bhg', 'R bhg'],
             BuildingCategory.SCHOOL: ['A skole', 'R skole'],
             BuildingCategory.UNIVERSITY: ['A uni', 'R uni'],
@@ -648,10 +648,12 @@ def validate_construction(building_category: BuildingCategory, database_manager:
 
 if __name__ == '__main__':
     database_manager = DatabaseManager()
-    #building_category = BuildingCategory.KINDERGARTEN
+    building_category = BuildingCategory.APARTMENT_BLOCK
+    
+    #load_bema_rush_rates(building_category, database_manager)
     
     for building_category in BuildingCategory:
         logger.info(building_category)
         validate_construction(building_category, database_manager)
-        
+    
 

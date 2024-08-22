@@ -22,16 +22,14 @@ from ebm.services.spreadsheet import iter_cells
 
 def get_building_category_sheet(building_category: BuildingCategory, area_sheet: bool = True) -> str:
     """
-    Returns the sheet name of the A or R sheet of a building category.
-
+    Returns the appropriate sheet name based on the building category and area sheet type.
+    
     Parameters:
     - building_category: An instance of BuildingCategory.
-    - area_sheet (bool): True or False. 
-        - True: return A sheet name. 
-        - False: return R sheet name 
+    - area_sheet (bool): Determines whether to return the area sheet ('A') or rates sheet ('R') name. Defaults to True for the area sheet.
 
     Returns:
-    - sheet (str): name of the A or R sheet
+    - sheet (str): The sheet name corresponding to the building category and sheet type.
     """
     building_category_sheets = {
             BuildingCategory.HOUSE: ['A hus', 'R hus'],
@@ -70,7 +68,7 @@ def xlsx_to_df(workbook: str, sheet: str, header: int, usecols = 'E:AS', n_rows:
     - names (list): list of column names to use. Must match number of columns (usecols)
 
     Returns:
-    - df: pandas dataframe
+    - df (pd.Dataframe): Data loaded from the Excel sheet.
     """
     if workbook is None:
         workbook = os.environ.get('BEMA_SPREADSHEET')
@@ -105,7 +103,9 @@ def validate_data(building_category: BuildingCategory, data_name: str, df1: pd.D
     Raises:
     - ValueError: If there are issues with the join columns, data types, or row counts.
 
-    Logs warnings if any data is left out during the join.
+    Logs:
+    - Warnings if rows are missing during the join.
+    - Errors if significant differences are found.
     """
     logger.info(f'{building_category} - Validating {data_name} data. Decimal precision {precision}')
 
@@ -165,7 +165,17 @@ def validate_data(building_category: BuildingCategory, data_name: str, df1: pd.D
 
 def load_bema_area(building_category: BuildingCategory, database_manager: Buildings, start_row: int = 551, n_rows = 5, usecols: str = "E:AS"):
     """
-    Retrieves area forecast data per building category from the BEMA model and formats it to a dataframe that are compatible for validation.  
+    Retrieves area forecast data per building category from the BEMA model and formats it to a dataframe that are compatible for validation.
+
+    Parameters:
+    - building_category (BuildingCategory): The building category to load data for.
+    - database_manager (Buildings): The database manager instance for accessing building data.
+    - start_row (int, optional): The starting row for reading the area data. Defaults to 551.
+    - n_rows (int, optional): Number of rows to read per TEK condition. Defaults to 5.
+    - usecols (str, optional): Columns to read from the Excel sheet. Defaults to "E:AS".
+
+    Returns:
+    - pd.DataFrame: Formatted BEMA area data.  
     """
     # Retrieve workbook and sheet names 
     workbook = os.environ.get('BEMA_SPREADSHEET')
@@ -212,6 +222,15 @@ def load_bema_area(building_category: BuildingCategory, database_manager: Buildi
 def get_ebm_area(building_category: BuildingCategory, database_manager, start_year: int = 2010, end_year: int = 2050):
     """
     Retrieves area forecast data per building category from the EBM model and formats it to a dataframe that are compatible for validation.  
+    
+    Parameters:
+    - building_category (BuildingCategory): The building category being analyzed.
+    - database_manager: The database manager instance for accessing building data.
+    - start_year (int, optional): The starting year for the forecast. Defaults to 2010.
+    - end_year (int, optional): The ending year for the forecast. Defaults to 2050.
+
+    Returns:
+    - pd.DataFrame: The formatted DataFrame containing the EBM area data.
     """
     modelyears = [*range(start_year, end_year + 1)]
 
@@ -248,7 +267,12 @@ def get_ebm_area(building_category: BuildingCategory, database_manager, start_ye
 
 def validate_area(building_category: BuildingCategory, database_manager: DatabaseManager, precision: int = 5):
     """
-    Validate area data from EBM and BEMA model. 
+    Validates area data by comparing EBM and BEMA model results for a given building category. 
+
+    Parameters:
+    - building_category (BuildingCategory): The building category being validated.
+    - database_manager (DatabaseManager): The database manager instance.
+    - precision (int, optional): Decimal precision for comparing values. Defaults to 5.   
     """    
     bema_area = load_bema_area(building_category, database_manager)
     ebm_area = get_ebm_area(building_category, database_manager)
@@ -260,6 +284,16 @@ def validate_area(building_category: BuildingCategory, database_manager: Databas
 
 def get_ebm_shares(building_category: BuildingCategory, database_manager: DatabaseManager, start_year: int = 2010, end_year: int = 2050):
     """
+    Retrieves and formats shares data from the EBM model for a given building category and returns it as a DataFrame.
+
+    Parameters:
+    - building_category (BuildingCategory): The building category being analyzed.
+    - database_manager (DatabaseManager): The database manager instance for accessing building data.
+    - start_year (int, optional): The starting year for the forecast. Defaults to 2010.
+    - end_year (int, optional): The ending year for the forecast. Defaults to 2050.
+
+    Returns:
+    - pd.DataFrame: The formatted DataFrame containing the EBM shares data.
     """
     modelyears = [*range(start_year, end_year + 1)]
     
@@ -289,6 +323,16 @@ def get_ebm_shares(building_category: BuildingCategory, database_manager: Databa
 
 def load_bema_shares(building_category: BuildingCategory, database_manager: Buildings, start_row: int = 20, usecols: str = "E:AS"):
     """
+    Loads shares data from the BEMA model for a given building category, formats it, and returns it as a DataFrame for validation.
+
+    Parameters:
+    - building_category (BuildingCategory): The building category being analyzed.
+    - database_manager (Buildings): The database manager instance for accessing building data.
+    - start_row (int, optional): The row number in the sheet where data begins. Defaults to 20.
+    - usecols (str, optional): Columns to be read from the sheet. Defaults to "E:AS".
+
+    Returns:
+    - pd.DataFrame: The formatted DataFrame containing the BEMA shares data.
     """
     # Retrieve workbook and sheet names 
     workbook = os.environ.get('BEMA_SPREADSHEET')
@@ -330,7 +374,12 @@ def load_bema_shares(building_category: BuildingCategory, database_manager: Buil
 
 def validate_shares(building_category: BuildingCategory, database_manager: DatabaseManager, precision: int = 5):
     """
-    Validate shares data from EBM and BEMA model. 
+    Validates shares data by comparing EBM and BEMA model results for a given building category.
+
+    Parameters:
+    - building_category (BuildingCategory): The building category being validated.
+    - database_manager (DatabaseManager): The database manager instance for accessing building data.
+    - precision (int, optional): Decimal precision for comparing values. Defaults to 5.
     """    
     ebm_shares = get_ebm_shares(building_category, database_manager)
     bema_shares = load_bema_shares(building_category, database_manager)
@@ -342,6 +391,14 @@ def validate_shares(building_category: BuildingCategory, database_manager: Datab
 
 def get_ebm_scurves(building_category: BuildingCategory, database_manager: DatabaseManager):
     """
+    Retrieves and formats S-curve data from the EBM model for a given building category and returns it as a DataFrame.
+
+    Parameters:
+    - building_category (BuildingCategory): The building category being analyzed.
+    - database_manager (DatabaseManager): The database manager instance for accessing building data.
+
+    Returns:
+    - pd.DataFrame: The formatted DataFrame containing the EBM S-curve data.
     """    
     building = Buildings.build_buildings(building_category, database_manager)
     scurve_condition_list = BuildingCondition.get_scruve_condition_list()
@@ -363,6 +420,16 @@ def get_ebm_scurves(building_category: BuildingCategory, database_manager: Datab
 
 def load_bema_scurves(building_category: BuildingCategory, start_row: int = 11, n_rows: int = 6, usecols: str = 'E:ED'):
     """
+    Loads S-curve data from the BEMA model for a given building category, formats it, and returns it as a DataFrame for validation.
+
+    Parameters:
+    - building_category (BuildingCategory): The building category being analyzed.
+    - start_row (int, optional): The row number in the sheet where data begins. Defaults to 11.
+    - n_rows (int, optional): Number of rows to read. Defaults to 6.
+    - usecols (str, optional): Columns to be read from the sheet. Defaults to 'E:ED'.
+
+    Returns:
+    - pd.DataFrame: The formatted DataFrame containing the BEMA S-curve data.
     """
     # Retrieve workbook and sheet names 
     workbook = os.environ.get('BEMA_SPREADSHEET')
@@ -387,7 +454,12 @@ def load_bema_scurves(building_category: BuildingCategory, start_row: int = 11, 
 
 def validate_scurves(building_category: BuildingCategory, database_manager: DatabaseManager, precision: int = 5):
     """
-    Validate scurve data from EBM and BEMA model. 
+    Validates S-curve data by comparing EBM and BEMA model results for a given building category.
+
+    Parameters:
+    - building_category (BuildingCategory): The building category being validated.
+    - database_manager (DatabaseManager): The database manager instance for accessing building data.
+    - precision (int, optional): Decimal precision for comparing values. Defaults to 5.
     """    
     ebm_scurves = get_ebm_scurves(building_category, database_manager)
     bema_scurves = load_bema_scurves(building_category)
@@ -399,6 +471,14 @@ def validate_scurves(building_category: BuildingCategory, database_manager: Data
 
 def get_ebm_rush_rates(building_category: BuildingCategory, database_manager: DatabaseManager):
     """
+    Retrieves and formats yearly rush rates from the EBM model for a given building category and returns it as a DataFrame.
+
+    Parameters:
+    - building_category (BuildingCategory): The building category being analyzed.
+    - database_manager (DatabaseManager): The database manager instance for accessing building data.
+
+    Returns:
+    - pd.DataFrame: The formatted DataFrame containing the EBM rush rate data.
     """
     scurve_condition_list = BuildingCondition.get_scruve_condition_list()
     building = Buildings.build_buildings(building_category, database_manager)
@@ -426,6 +506,17 @@ def get_ebm_rush_rates(building_category: BuildingCategory, database_manager: Da
 
 def load_bema_rush_rates(building_category: BuildingCategory, database_manager: DatabaseManager, start_row: int = 4, n_rows: int = 3, usecols: str = 'L:N'):
     """
+    Loads rush rate data from the BEMA model for a given building category, formats it, and returns it as a DataFrame for validation.
+
+    Parameters:
+    - building_category (BuildingCategory): The building category being analyzed.
+    - database_manager (DatabaseManager): The database manager instance for accessing building data.
+    - start_row (int, optional): The row number in the sheet where data begins. Defaults to 4.
+    - n_rows (int, optional): Number of rows to read. Defaults to 3.
+    - usecols (str, optional): Columns to be read from the sheet. Defaults to 'L:N'.
+
+    Returns:
+    - pd.DataFrame: The formatted DataFrame containing the BEMA rush rate data.
     """
     # Retrieve workbook and sheet names 
     workbook = os.environ.get('BEMA_SPREADSHEET')
@@ -442,19 +533,33 @@ def load_bema_rush_rates(building_category: BuildingCategory, database_manager: 
 
 def validate_rush_rates(building_category: BuildingCategory, database_manager: DatabaseManager, precision: int = 5):
     """
-    Validate yearly rush rates from EBM and BEMA model. 
+    Validates yearly rush rates by comparing EBM and BEMA model results for a given building category.
+
+    Parameters:
+    - building_category (BuildingCategory): The building category being validated.
+    - database_manager (DatabaseManager): The database manager instance for accessing building data.
+    - precision (int, optional): Decimal precision for comparing values. Defaults to 5
     """    
     ebm_rush_rates = get_ebm_rush_rates(building_category, database_manager)
     bema_rush_rates = load_bema_rush_rates(building_category, database_manager)
 
-    data_name = 'scurves'
+    data_name = 'rush_rates'
     join_cols = ['building_condition', 'rate_type']
     
     validate_data(building_category, data_name, ebm_rush_rates, bema_rush_rates, join_cols, precision)
 
 def get_ebm_construction(building_category: BuildingCategory, database_manager, start_year: int = 2010, end_year: int = 2050):
     """
-    Retrieve accumulated construction data per building category from the EBM model and format it to a dataframe that is compatible for validation.  
+    Retrieve accumulated construction data per building category from the EBM model and format it to a DataFrame that is compatible for validation.
+
+    Parameters:
+    - building_category (BuildingCategory): The building category being analyzed.
+    - database_manager (DatabaseManager): The database manager instance for accessing building data.
+    - start_year (int, optional): The starting year of the data to be retrieved. Defaults to 2010.
+    - end_year (int, optional): The ending year of the data to be retrieved. Defaults to 2050.
+
+    Returns:
+    - pd.DataFrame: The formatted DataFrame containing the accumulated construction data from the EBM model.  
     """
     modelyears = [*range(start_year, end_year + 1)]
 
@@ -473,7 +578,17 @@ def get_ebm_construction(building_category: BuildingCategory, database_manager, 
 
 def load_bema_construction(building_category: BuildingCategory, start_year: int = 2010, end_year: int = 2050, sheet: str = 'Nybygging', usecols: str = 'E:AS'):
     """
-    Retrieve accumulated construction data per building category from the BEMA model and format it to a dataframe that is compatible for validation.  
+    Retrieve accumulated construction data per building category from the BEMA model and format it to a DataFrame that is compatible for validation.
+
+    Parameters:
+    - building_category (BuildingCategory): The building category being analyzed.
+    - start_year (int, optional): The starting year of the data to be retrieved. Defaults to 2010.
+    - end_year (int, optional): The ending year of the data to be retrieved. Defaults to 2050.
+    - sheet (str, optional): The sheet name in the workbook containing the data. Defaults to 'Nybygging'.
+    - usecols (str, optional): The range of columns to be read from the sheet. Defaults to 'E:AS'.
+
+    Returns:
+    - pd.DataFrame: The formatted DataFrame containing the accumulated construction data from the BEMA model.
     """
     # Dict with row nr for data to be read per building category
     data_row_construction_building_category = {
@@ -515,7 +630,12 @@ def load_bema_construction(building_category: BuildingCategory, start_year: int 
 
 def validate_construction(building_category: BuildingCategory, database_manager: DatabaseManager, precision: int = 5):
     """
-    Validate accumulated constructed floor area from EBM and BEMA model. 
+    Validate accumulated constructed floor area from EBM and BEMA models for a given building category.
+
+    Parameters:
+    - building_category (BuildingCategory): The building category being validated.
+    - database_manager (DatabaseManager): The database manager instance for accessing building data.
+    - precision (int, optional): Decimal precision for comparing values. Defaults to 5.
     """    
     ebm_construction = get_ebm_construction(building_category, database_manager)
     bema_construction = load_bema_construction(building_category)

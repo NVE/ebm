@@ -26,14 +26,14 @@ class AreaForecast():
     DEMOLITION = 'demolition'
 
     def __init__(self,
-                 model_start_year: int,
-                 model_end_year: int,
                  building_category: str,
                  area_params: pd.DataFrame,
                  tek_list: typing.List[str],   
                  tek_params: typing.Dict[str, TEKParameters], 
                  condition_list: typing.List[str],
-                 shares_per_condtion: typing.Dict) -> None:
+                 shares_per_condtion: typing.Dict,
+                 model_start_year: int = 2010,
+                 model_end_year: int = 2050,) -> None:
 
         self.model_start_year = model_start_year
         self.model_end_year = model_end_year

@@ -12,9 +12,6 @@ class SCurve():
     # - create instance variables dynamically from column names? or change to constans? -> change to constans for now
     # - change name of methods to be more accurate, e.g. the current s-curve method (snakk med Benedicte)
     # - change s_curve method to only return a list of shares? The year key in the dict is not necessary in further calculations. -> YES, change this.
-
-    # Column names
-    BUILDING_LIFETIME = 130
     
     def __init__(self, 
                  earliest_age: int,
@@ -22,9 +19,10 @@ class SCurve():
                  last_age: int,
                  rush_years: int,
                  rush_share: float,
-                 never_share: float):
+                 never_share: float,
+                 building_lifetime: int = 130):
 
-        self._building_lifetime = self.BUILDING_LIFETIME
+        self._building_lifetime = building_lifetime
         self._earliest_age = earliest_age
         self._average_age = average_age
         self._last_age = last_age

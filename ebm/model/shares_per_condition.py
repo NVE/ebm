@@ -17,10 +17,6 @@ class SharesPerCondition():
     # - add checks to control calculations, for example control total values and that original condition should not exceed 100%
     # - make code less repetative (e.g for loops on tek_list -> change to own method?)
 
-    # Model parameters
-    START_YEAR = 2010
-    END_YEAR = 2050
-
     # Strings in condition list
     KEY_SMALL_MEASURE = 'small_measure'
     KEY_RENOVATION = 'renovation'
@@ -31,11 +27,15 @@ class SharesPerCondition():
     def __init__(self, 
                  tek_list: typing.List[str], 
                  tek_params: typing.Dict[str, TEKParameters], 
-                 scurve_data: typing.Dict[str, typing.List[typing.Tuple[typing.Tuple[float], float]]]):
+                 scurve_data: typing.Dict[str, typing.List[typing.Tuple[typing.Tuple[float], float]]],
+                 model_start_year: int = 2010,
+                 model_end_year: int = 2050):
         
         self.tek_list = tek_list
         self.tek = TEK(tek_params)
         self.scurve_data = scurve_data
+        self.model_start_year = model_start_year
+        self.model_end_year = model_end_year
 
         # Define S-curve parameter attributes 
         self.scurve_small_measure = self.scurve_data[self.KEY_SMALL_MEASURE][0]
@@ -89,10 +89,10 @@ class SharesPerCondition():
             shares = []
 
             # Iterate over years from start to end year
-            for year in range(self.START_YEAR, self.END_YEAR + 1):
+            for year in range(self.model_start_year, self.model_end_year + 1):
                 building_age = year - building_year
                 
-                if year == self.START_YEAR or building_year >= year:
+                if year == self.model_start_year or building_year >= year:
                     # Set share to 0 in the start year and if the building isn't buildt yet
                     share = 0
                 elif building_year == year - 1:
@@ -140,7 +140,7 @@ class SharesPerCondition():
             building_year = self.tek.get_building_year(tek)
             shares =  []
 
-            for idx, year in enumerate(range(self.START_YEAR, self.END_YEAR + 1)):
+            for idx, year in enumerate(range(self.model_start_year, self.model_end_year + 1)):
                 
                 building_age = year - building_year
 
@@ -184,7 +184,7 @@ class SharesPerCondition():
             building_year = self.tek.get_building_year(tek)
             shares =  []
 
-            for idx, year in enumerate(range(self.START_YEAR, self.END_YEAR + 1)):
+            for idx, year in enumerate(range(self.model_start_year, self.model_end_year + 1)):
                 building_age = year - building_year
 
                 if building_year >= year:
@@ -229,7 +229,7 @@ class SharesPerCondition():
             building_year = self.tek.get_building_year(tek)
             shares =  []
 
-            for idx, year in enumerate(range(self.START_YEAR, self.END_YEAR + 1)):
+            for idx, year in enumerate(range(self.model_start_year, self.model_end_year + 1)):
 
                 if building_year >= year:
                     # Set share to 0 if the building isn't buildt yet
@@ -271,7 +271,7 @@ class SharesPerCondition():
             building_year = self.tek.get_building_year(tek)
             shares =  []
 
-            for idx, year in enumerate(range(self.START_YEAR, self.END_YEAR + 1)):
+            for idx, year in enumerate(range(self.model_start_year, self.model_end_year + 1)):
 
                 if building_year >= year:
                     # Set share to 0 if the building isn't buildt yet
@@ -306,7 +306,7 @@ class SharesPerCondition():
             building_year = self.tek.get_building_year(tek)
             shares =  []
 
-            for idx, year in enumerate(range(self.START_YEAR, self.END_YEAR + 1)):
+            for idx, year in enumerate(range(self.model_start_year, self.model_end_year + 1)):
 
                 if building_year >= year:
                     # Set share to 0 if the building isn't buildt yet
@@ -341,9 +341,9 @@ class SharesPerCondition():
             tek_start_year = self.tek.get_start_year(tek)
             shares =  []
 
-            for idx, year in enumerate(range(self.START_YEAR, self.END_YEAR + 1)):
+            for idx, year in enumerate(range(self.model_start_year, self.model_end_year + 1)):
                 # Set share to 0 in years before the start year of the TEK if the TEK start year is after the start year of the model horizon
-                if (tek_start_year > self.START_YEAR) and (year < tek_start_year ):
+                if (tek_start_year > self.model_start_year) and (year < tek_start_year ):
                     share = 0
                 else:
                     share_small_measure = self.shares_small_measure[tek][idx]

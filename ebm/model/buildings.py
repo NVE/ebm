@@ -268,7 +268,7 @@ class Buildings():
         
         return scurve
 
-    def build_area_forecast(self, database_manager: DatabaseManager, start_year: int = 2010, end_year: int = 2050):
+    def build_area_forecast(self, database_manager: DatabaseManager, model_start_year: int = 2010, model_end_year: int = 2050):
         """
         Build a AreaForcast object from the Building object. Reuse building_category, tek_list, shares_per_condtion from
             the Buildings (self) object.
@@ -277,8 +277,8 @@ class Buildings():
         ----------
         database_manager: ebm.model.DatabaseManager
             used to load area_params and tek_params
-        start_year: int, default 2010
-        end_year: int, default 2050
+        model_start_year: int, default 2010
+        model_end_year: int, default 2050
 
         Returns area_forecast: AreaForecast
         -------
@@ -288,8 +288,8 @@ class Buildings():
         shares = self.get_shares()
 
         area_forecast = AreaForecast(
-            model_start_year=start_year, 
-            model_end_year=end_year,
+            model_start_year=model_start_year, 
+            model_end_year=model_end_year,
             building_category=self.building_category,
             area_params=area_parameters,
             tek_list=self.tek_list,

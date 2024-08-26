@@ -11,6 +11,7 @@ from .file_handler import FileHandler
 
 # TODO:
 # - add method to change all strings to lower case and underscore instead of space
+# - change column strings used in methods to constants 
 
 class DatabaseManager():
     """

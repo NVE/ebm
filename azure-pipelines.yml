@@ -4,7 +4,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
 trigger:
-- 1235-kjorbar-ebm-for-sprint7
+- main
 
 pool:
   vmImage: ubuntu-latest

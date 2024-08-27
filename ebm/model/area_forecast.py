@@ -6,10 +6,7 @@ from loguru import logger
 from .area import Area
 from .data_classes import TEKParameters
 from .tek import TEK
-
-
-# TODO:
-# - Got to evaluate if get_area_per_condition method should only be limited to TEKs before 'nybygging', or integrated with the rest of TEKs 
+ 
 
 # Comments:
 # - condition_list: must contain all 5 conditions -> must update input data of condition_list or hardcode, and adjust methods for scurve in buildings
@@ -26,14 +23,14 @@ class AreaForecast():
     DEMOLITION = 'demolition'
 
     def __init__(self,
-                 model_start_year: int,
-                 model_end_year: int,
                  building_category: str,
                  area_params: pd.DataFrame,
                  tek_list: typing.List[str],   
                  tek_params: typing.Dict[str, TEKParameters], 
                  condition_list: typing.List[str],
-                 shares_per_condtion: typing.Dict) -> None:
+                 shares_per_condtion: typing.Dict,
+                 model_start_year: int = 2010,
+                 model_end_year: int = 2050,) -> None:
 
         self.model_start_year = model_start_year
         self.model_end_year = model_end_year
@@ -43,18 +40,6 @@ class AreaForecast():
         self.tek = TEK(tek_params)                                  
         self.condition_list = condition_list            
         self.shares_per_condition = shares_per_condtion
-
-    # TODO: remove method after merge with construction class
-    def _accumulated_construction_area_per_year(self) -> typing.List:
-        """
-        Temporary method to retrieve accumulated construction area per year as list. To be deleted.
-        """
-        logger.warning('Using AreaForecast::_accumulated_construction_area_per_year to load data from input/temporary_construction_data.xlsx')
-        df = pd.read_excel('input/temporary_construction_data.xlsx')
-        df = df.melt(id_vars='building_category')
-        df = df[df['building_category'] == self.building_category]
-        acc_construction_area_per_year = df['value'].tolist()
-        return acc_construction_area_per_year
             
     def _calc_area_pre_construction_tek(self, tek: str) -> typing.Dict[str, typing.List]:
         """
@@ -147,6 +132,8 @@ class AreaForecast():
 
         Parameters:
         - tek (str): The TEK identifier to filter on.
+        - accumulated_constructed_floor_area (list): List with accumulated construction per year of the model horizon, 
+                                                     which can be retrieved from the ConstructionCalculator class.
 
         Returns:
         - area_per_condition (dict): A dictionary with conditions as keys and lists of area per year as values.
@@ -209,12 +196,7 @@ class AreaForecast():
         - area_per_tek (dict): A dictionary where keys are TEK identifies and values are dictionaries with conditions as keys 
                                and lists of area per year as values.
         """
-        # TODO: remove self.var and transform pd. series to list to work with rest of script
         # Dictionary to be filled with area per condition over model years for each TEK
-        if not accumulated_constructed_floor_area:
-            logger.warning('Empty accumulated_constructed_floor_area! Using temporary_construction_data.xlsx fallback')
-            accumulated_constructed_floor_area = self._accumulated_construction_area_per_year()
-
         area_per_tek = {}
         for tek in self.tek_list:
             # Retrieve the start and end year of the TEK period
@@ -228,7 +210,6 @@ class AreaForecast():
 
         return area_per_tek
 
-    
     def calc_area(self, accumulated_constructed_floor_area: typing.List[float] = None) -> typing.Dict[str, typing.Dict[str, typing.List]]:
         """
         Calculates area per condition over the model years for all TEKs.
@@ -253,8 +234,3 @@ class AreaForecast():
         
         return area
     
-            
-            
-
-        
-        

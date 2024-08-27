@@ -124,7 +124,7 @@ def extract_demolition_floor_area(building_category: BuildingCategory,
     db = database_manager if database_manager else DatabaseManager()
 
     buildings = Buildings.build_buildings(building_category, db)
-    area_forecast = buildings.build_area_forecast(db, start_year=2010, end_year=2050)
+    area_forecast = buildings.build_area_forecast(db, model_start_year=2010, model_end_year=2050)
 
     years = [y for y in range(2010, 2050 + 1)]
     demolition_floor_area = pd.Series(data=area_forecast.calc_total_demolition_area_per_year(),

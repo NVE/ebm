@@ -61,7 +61,8 @@ class FileHandler:
             logger.exception(ex)
             logger.error(f'Unable to open {file_path}. Unable to read file.')
             raise
-
+    
+    #TODO: remove?
     def get_building_categories(self) -> pd.DataFrame:
         """
         Get building categories DataFrame.
@@ -72,6 +73,7 @@ class FileHandler:
         building_categories = self.get_file(self.BUILDING_CATEGORIES)
         return building_categories
 
+    #TODO: remove
     def get_building_conditions(self) -> pd.DataFrame:
         """
         Get building conditions DataFrame.

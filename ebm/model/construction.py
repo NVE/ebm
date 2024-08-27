@@ -10,6 +10,7 @@ from ebm.model.database_manager import DatabaseManager
 
 
 class ConstructionCalculator:
+    
     def calculate_residential_construction(self, population: pd.Series,
                                            household_size: pd.Series,
                                            building_category_share: pd.Series,

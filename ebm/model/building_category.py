@@ -28,7 +28,8 @@ class BuildingCategory(StrEnum):
 
     def is_residential(self) -> bool:
         return self == BuildingCategory.HOUSE or self == BuildingCategory.APARTMENT_BLOCK
-
+    
+    #TODO: remove
     def total_floor_area_2010(self) -> int:
         logger.warning('Using static total_floor_area_2010')
         if self == BuildingCategory.KINDERGARTEN:

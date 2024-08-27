@@ -28,6 +28,7 @@ class DatabaseManager():
     def __init__(self):
         self.file_handler = FileHandler()
 
+    #TODO: remove and remove building category input csv file?
     def get_building_category_list(self):
         """
         Get a list of building categories.
@@ -39,6 +40,7 @@ class DatabaseManager():
         building_category_list = building_categories[self.COL_BUILDING_CATEGORY].unique()
         return building_category_list
 
+    #TODO: remove
     def get_condition_list(self):
         """
         Get a list of building conditions.

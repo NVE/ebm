@@ -228,7 +228,7 @@ class AreaForecast():
 
         return area_per_tek
 
-    # TODO: 
+    
     def calc_area(self, accumulated_constructed_floor_area: typing.List[float] = None) -> typing.Dict[str, typing.Dict[str, typing.List]]:
         """
         Calculates area per condition over the model years for all TEKs.

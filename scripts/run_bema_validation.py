@@ -12,6 +12,7 @@ from ebm.model.building_category import BuildingCategory
 from ebm.model.bema_validation import validate_rush_rates, validate_scurves, validate_shares, validate_construction, validate_area
 
 def main():
+    load_dotenv()
     
     default_building_categories: typing.List[str] = [str(b) for b in iter(BuildingCategory)]
 
@@ -21,7 +22,7 @@ def main():
     arg_parser.add_argument('--validate', type=str, choices=['rush_rates', 'scurves', 'shares', 'construction', 'area', '*'], nargs='?', default='*')
     arguments: argparse.Namespace = arg_parser.parse_args()
     
-    if not arguments.debug or os.environ.get('DEBUG', '') != 'True':
+    if not arguments.debug and os.environ.get('DEBUG', '') != 'True':
         logger.remove()
         logger.add(sys.stderr, level="INFO")
     

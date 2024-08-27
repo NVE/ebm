@@ -55,3 +55,7 @@ class BuildingCondition(StrEnum):
         """
         condition_list = [condition.value for condition in iter(BuildingCondition)]
         return condition_list
+    
+if __name__ == '__main__':
+    for building_condition in BuildingCondition:
+        print(building_condition)

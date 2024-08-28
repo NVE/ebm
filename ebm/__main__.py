@@ -2,6 +2,7 @@ import argparse
 import os
 import pathlib
 import sys
+import textwrap
 import typing
 
 import pandas as pd
@@ -37,6 +38,7 @@ def main() -> int:
 
     arg_parser = argparse.ArgumentParser(prog='calculate-area-forecast',
                                          description=f'Calculate EBM area forecast v{__version__}',
+                                         formatter_class=argparse.RawTextHelpFormatter
                                          )
     arg_parser.add_argument('--version', '-v', action='version', version=f'calculate-area-forcast {__version__}')
     arg_parser.add_argument('--debug', '-d', action='store_true',
@@ -44,9 +46,9 @@ def main() -> int:
 
     default_path = pathlib.Path('output/ebm_area_forecast.xlsx')
     arg_parser.add_argument('filename', nargs='?', type=str, default=default_path,
-                            help=f'The location of the name of  file you want to be written. default: {default_path} ' +
-                            'If the file already exists the program will terminate without overwriting the file. Use ' +
-                            '- to write to console')
+                            help=textwrap.dedent(f'''The location of the file you want to be written. default: {default_path}
+    If the file already exists the program will terminate without overwriting. 
+    Use "-" to output to the console instead'''))
     arg_parser.add_argument('--force', '-f', action='store_true',
                             help='Write to <filename> even if it already exists')
     arg_parser.add_argument('--open', '-o', action='store_true',
@@ -56,10 +58,10 @@ def main() -> int:
                                  'Default: "," Special characters like ; should be quoted ";"')
 
     arg_parser.add_argument('building_categories', nargs='*', type=str, default=default_building_categories,
-                            help=f"""
-                            One or more of the following building categories 
-                                {", ".join(default_building_categories)}""".replace('\n', '').strip()
-                            )
+                            help=textwrap.dedent(f"""
+                            One or more of the following building categories: 
+                                {", ".join(default_building_categories)}"""
+                            ))
     arg_parser.add_argument('--start_year', nargs='?', type=int, default=2010,
                             help='Forecast start year. default: 2010, all other values are invalid')
     arg_parser.add_argument('--end_year', nargs='?', type=int, default=2050,

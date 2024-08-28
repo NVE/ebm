@@ -6,7 +6,7 @@ from ebm.model.construction import ConstructionCalculator
 database_manager = DatabaseManager()
 building_category = BuildingCategory.HOUSE
 
-buildings = Buildings.build_buildings(building_category=building_category, database_manager=database_manager)
+buildings = Buildings.build_buildings(building_category=building_category)
 
 area_forecast = buildings.build_area_forecast(database_manager)
 

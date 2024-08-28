@@ -299,7 +299,8 @@ class Buildings():
         return area_forecast
 
     @staticmethod
-    def build_buildings(building_category: BuildingCategory, database_manager: DatabaseManager) -> 'Buildings':
+    def build_buildings(building_category: BuildingCategory,
+                        database_manager: DatabaseManager = None) -> 'Buildings':
         """
         Builds a Buildings object for building_category and read configuration from DatabaseManager.
           the DatabaseManager must implement .get_tek_list() .get_area_parameters() db.get_scurve_params()
@@ -314,11 +315,11 @@ class Buildings():
         -------
         - building: Buildings
         """
-
-        tek_list = database_manager.get_tek_list()
-        tek_params = database_manager.get_tek_params(tek_list)
-        scurve_params = database_manager.get_scurve_params()
-        area_params = database_manager.get_area_parameters()
+        dm = database_manager if database_manager else DatabaseManager()
+        tek_list = dm.get_tek_list()
+        tek_params = dm.get_tek_params(tek_list)
+        scurve_params = dm.get_scurve_params()
+        area_params = dm.get_area_parameters()
         scurve_condition_list = BuildingCondition.get_scruve_condition_list()
         building = Buildings(building_category=building_category,
                              tek_list=tek_list,

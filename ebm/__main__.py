@@ -60,13 +60,16 @@ def main() -> int:
     arguments = arg_parser.parse_args()
 
     start_year, end_year = arguments.start_year, arguments.end_year
+    output_filename = pathlib.Path(arguments.filename)
+    force_overwrite = arguments.force
+
     validate_years(end_year, start_year)
+    make_output_directory(output_filename.parent)
+    if output_filename.is_file() and output_filename != default_path and not force_overwrite:
+        logger.error(f'{output_filename} already exists.')
+        return 1
 
     database_manager = DatabaseManager()
-
-    output_filename = pathlib.Path(arguments.filename)
-    make_output_directory(output_filename.parent)
-
 
     logger.debug('Load area forecast')
 
@@ -220,4 +223,5 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
 
 
 if __name__ == '__main__':
-    main()
+    exit_code = main()
+    sys.exit(exit_code)

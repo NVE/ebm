@@ -15,34 +15,47 @@ from ebm.model.construction import ConstructionCalculator
 from ebm.model.database_manager import DatabaseManager
 
 
-def main():
+def main() -> int:
+    """
+    Main function to execute the script.
+
+    This function serves as the entry point for the script. It handles argument parsing,
+    initializes necessary components, and orchestrates the main workflow of the script.
+
+    Returns
+    -------
+    exit code : int
+        zero when the program exits gracefully
+    """
+    load_dotenv()
+    if not getattr(sys.argv, '--debug', '') and os.environ.get('DEBUG', '') != 'True':
+        logger.remove()
+        logger.add(sys.stderr, level="INFO")
+
+    default_building_categories: typing.List[str] = [str(b) for b in iter(BuildingCategory)]
     logger.debug(f'Starting {sys.executable} {__file__}')
-    arg_parser = argparse.ArgumentParser(description=f'Calculate EBM area forecast v{__version__}')
-    arg_parser.add_argument('--version', action='store_true')
+    arg_parser = argparse.ArgumentParser(prog='foobar', description=f'Calculate EBM area forecast v{__version__}')
+    arg_parser.add_argument('--version', action='version', version=f'calculate-area-forcast {__version__}')
     arg_parser.add_argument('--debug', action='store_true')
 
     arg_parser.add_argument('filename', nargs='?', type=str, default='output/ebm_area_forecast.xlsx')
+    arg_parser.add_argument('building_categories', nargs='*', type=str,
+                            choices=default_building_categories,
+                            default=default_building_categories)
+
     arg_parser.add_argument('--start_year', nargs='?', type=int, default=2010)
     arg_parser.add_argument('--end_year', nargs='?', type=int, default=2050)
 
     arguments = arg_parser.parse_args()
-    load_dotenv()
-    if not arguments.debug and os.environ.get('DEBUG', '') != 'True':
-        logger.remove()
-        logger.add(sys.stderr, level="INFO")
 
-    if arguments.version:
-        logger.info(f'ebm/energibruksmodell {__version__}')
-        sys.exit(0)
     start_year, end_year = arguments.start_year, arguments.end_year
-
-    validate_arguments(end_year, start_year)
+    validate_years(end_year, start_year)
 
     database_manager = DatabaseManager()
 
     output_filename = pathlib.Path(arguments.filename)
+    make_output_directory(output_filename.parent)
 
-    validate_output_directory(output_filename.parent)
 
     logger.debug('Load area forecast')
 
@@ -96,13 +109,47 @@ def area_forecast_result_to_dataframe(building_category: BuildingCategory,
     return dataframe
 
 
-def validate_output_directory(output_directory):
+def make_output_directory(output_directory: pathlib.Path) -> None:
+    """
+        Creates the output directory if it does not exist.
+
+        Parameters
+        ----------
+        output_directory : pathlib.Path
+            The path to the output directory.
+        Raises
+        -------
+        IOError
+            The output_directory exists, but it is a file.
+        Returns
+        -------
+        None
+    """
+    if output_directory.is_file():
+        raise IOError(f'{output_directory} is a file')
     if not output_directory.is_dir():
         logger.debug(f'Creating output directory {output_directory}')
         output_directory.mkdir()
 
 
-def validate_arguments(end_year, start_year):
+def validate_years(end_year, start_year):
+    """
+    Validates the start and end year arguments.
+
+    Parameters
+    ----------
+    end_year : int
+        The end year to validate.
+    start_year : int
+        The start year to validate.
+
+    Raises
+    ------
+    ValueError
+        If `start_year` is greater than or equal to `end_year`.
+        If `end_year` is not exactly 40 years after `start_year`.
+        If `start_year` is not 2010 or `end_year` is not 2050.
+    """
     if start_year >= end_year:
         msg = f'Unexpected input start year ({start_year} is greater than end year ({end_year})'
         raise ValueError(msg)
@@ -118,7 +165,33 @@ def validate_arguments(end_year, start_year):
         raise ValueError(msg)
 
 
-def calculate_building_category_area_forecast(building_category, database_manager, start_year, end_year):
+def calculate_building_category_area_forecast(building_category: BuildingCategory,
+                                              database_manager: DatabaseManager,
+                                              start_year: int,
+                                              end_year: int) -> typing.Dict[str, list[float]]:
+    """
+    Calculates the area forecast for a given building category from start to end year (including).
+
+    Parameters
+    ----------
+    building_category : BuildingCategory
+        The category of buildings for which the area forecast is to be calculated.
+    database_manager : DatabaseManager
+        The database manager used to interact with the database.
+    start_year : int
+        The starting year of the forecast period.
+    end_year : int
+        The ending year of the forecast period.
+
+    Returns
+    -------
+    dict
+        A dictionary where keys are strings representing different area categories and values are lists of floats representing the forecasted areas for each year in the specified period.
+
+    Notes
+    -----
+    This function builds the buildings for the specified category, calculates the area forecast, and accounts for demolition and construction over the specified period.
+    """
     buildings = Buildings.build_buildings(building_category=building_category,
                                           database_manager=database_manager)
     years = [y for y in range(start_year, end_year + 1)]

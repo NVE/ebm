@@ -35,7 +35,9 @@ def main() -> int:
     default_building_categories: typing.List[str] = [str(b) for b in iter(BuildingCategory)]
     logger.debug(f'Starting {sys.executable} {__file__}')
 
-    arg_parser = argparse.ArgumentParser(prog='foobar', description=f'Calculate EBM area forecast v{__version__}')
+    arg_parser = argparse.ArgumentParser(prog='calculate-area-forecast',
+                                         description=f'Calculate EBM area forecast v{__version__}',
+                                         )
     arg_parser.add_argument('--version', '-v', action='version', version=f'calculate-area-forcast {__version__}')
     arg_parser.add_argument('--debug', '-d', action='store_true',
                             help='Run in debug mode. (Extra information written to stdout)')
@@ -225,11 +227,13 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
     Returns
     -------
     dict
-        A dictionary where keys are strings representing different area categories and values are lists of floats representing the forecasted areas for each year in the specified period.
+        A dictionary where keys are strings representing different area categories and values are lists of floats
+            representing the forecasted areas for each year in the specified period.
 
     Notes
     -----
-    This function builds the buildings for the specified category, calculates the area forecast, and accounts for demolition and construction over the specified period.
+    This function builds the buildings for the specified category, calculates the area forecast, and accounts for
+        demolition and construction over the specified period.
     """
     buildings = Buildings.build_buildings(building_category=building_category,
                                           database_manager=database_manager)

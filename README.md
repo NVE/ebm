@@ -25,6 +25,9 @@ To use your venv you need to activate it
 (Your command prompt starts with C:\ where C is any letter from A-Z)
 `\venv\Scripts\active.bat`
 
+###
+`python -m pip install pandas openpyxl loguru python-dotenv rich`
+
 ### Download energibruksmodell module from here
   https://pkgs.dev.azure.com/NVE-devops/Energibruksmodell/_apis/packaging/feeds/a3118afb-b44a-4e53-83af-0d4657833457/pypi/packages/energibruksmodell/versions/0.7.6/energibruksmodell-0.7.6-py3-none-any.whl/content
 

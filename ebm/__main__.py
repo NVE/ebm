@@ -1,10 +1,12 @@
 import argparse
+import os
 import pathlib
 import sys
 import typing
 
 import pandas as pd
 import rich.pretty
+from dotenv import load_dotenv
 from loguru import logger
 
 from ebm.__version__ import __version__
@@ -18,10 +20,15 @@ def main():
     logger.debug(f'Starting {sys.executable} {__file__}')
     arg_parser = argparse.ArgumentParser(description=f'Calculate EBM area forecast v{__version__}')
     arg_parser.add_argument('--version', action='store_true')
-    arg_parser.add_argument('start_year', nargs='?', type=int, default=2010)
-    arg_parser.add_argument('end_year', nargs='?', type=int, default=2050)
+    arg_parser.add_argument('--debug', action='store_true')
+    arg_parser.add_argument('--start_year', nargs='?', type=int, default=2010)
+    arg_parser.add_argument('--end_year', nargs='?', type=int, default=2050)
 
     arguments = arg_parser.parse_args()
+    load_dotenv()
+    if not arguments.debug and os.environ.get('DEBUG', '') != 'True':
+        logger.remove()
+        logger.add(sys.stderr, level="INFO")
 
     if arguments.version:
         logger.info(f'ebm/energibruksmodell {__version__}')
@@ -92,7 +99,6 @@ def calculate_building_category_area_forecast(building_category, database_manage
 
     constructed_floor_area = yearly_constructed.accumulated_constructed_floor_area
     forecast: typing.Dict = area_forecast.calc_area([v for v in constructed_floor_area])
-    #rich.pretty.pprint(forecast)
 
     return forecast
 

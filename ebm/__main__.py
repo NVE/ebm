@@ -42,7 +42,7 @@ def main() -> int:
 
     default_path = pathlib.Path('output/ebm_area_forecast.xlsx')
     arg_parser.add_argument('filename', nargs='?', type=str, default=default_path,
-                            help=f'The location of the name of  file you want to be written. default: {default_path}' +
+                            help=f'The location of the name of  file you want to be written. default: {default_path} ' +
                             'If the file already exists the program will terminate without overwriting the file.')
     arg_parser.add_argument('--force', '-f', action='store_true',
                             help='Write to <filename> even if it already exists')
@@ -89,7 +89,10 @@ def main() -> int:
             output = pd.concat([output, df])
 
     logger.debug(f'Writing to {output_filename}')
-    output.to_excel(output_filename)
+
+    excel_writer = pd.ExcelWriter(output_filename, engine='openpyxl')
+    output.to_excel(excel_writer, sheet_name='area forecast', merge_cells=False)
+    excel_writer.close()
 
     if open_after_writing:
         os.startfile(output_filename, 'open')

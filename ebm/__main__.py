@@ -48,6 +48,10 @@ def main() -> int:
                             help='Write to <filename> even if it already exists')
     arg_parser.add_argument('--open', '-o', action='store_true',
                             help='Attempt opening <filename> after writing')
+    arg_parser.add_argument('--csv-delimiter', '--delimiter', '-e', type=str, default=',',
+                            help='A single character to be used for separating columns when writing csv. ' +
+                                 'Default: "," Special characters like ; should be quoted ";"')
+
     arg_parser.add_argument('building_categories', nargs='*', type=str, default=default_building_categories,
                             help=f"""
                             One or more of the following building categories 
@@ -64,6 +68,10 @@ def main() -> int:
     output_filename = pathlib.Path(arguments.filename)
     force_overwrite = arguments.force
     open_after_writing = arguments.open
+
+    # `;` Will normally be interpreted as line end when typed in a shell. If the
+    # delimiter is empty make the assumption that the user used ;. An empty delimiter is not valid anyway.
+    csv_delimiter = arguments.csv_delimiter if arguments.csv_delimiter else ';'
 
     validate_years(end_year, start_year)
     make_output_directory(output_filename.parent)
@@ -90,9 +98,12 @@ def main() -> int:
 
     logger.debug(f'Writing to {output_filename}')
 
-    excel_writer = pd.ExcelWriter(output_filename, engine='openpyxl')
-    output.to_excel(excel_writer, sheet_name='area forecast', merge_cells=False)
-    excel_writer.close()
+    if output_filename.suffix == '.csv':
+        output.to_csv(output_filename, sep=csv_delimiter)
+    else:
+        excel_writer = pd.ExcelWriter(output_filename, engine='openpyxl')
+        output.to_excel(excel_writer, sheet_name='area forecast', merge_cells=False)
+        excel_writer.close()
 
     if open_after_writing:
         os.startfile(output_filename, 'open')

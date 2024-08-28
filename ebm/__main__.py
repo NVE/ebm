@@ -34,17 +34,28 @@ def main() -> int:
 
     default_building_categories: typing.List[str] = [str(b) for b in iter(BuildingCategory)]
     logger.debug(f'Starting {sys.executable} {__file__}')
+
     arg_parser = argparse.ArgumentParser(prog='foobar', description=f'Calculate EBM area forecast v{__version__}')
-    arg_parser.add_argument('--version', action='version', version=f'calculate-area-forcast {__version__}')
-    arg_parser.add_argument('--debug', action='store_true')
+    arg_parser.add_argument('--version', '-v', action='version', version=f'calculate-area-forcast {__version__}')
+    arg_parser.add_argument('--debug', '-d', action='store_true',
+                            help='Run in debug mode. (Extra information written to stdout)')
 
-    arg_parser.add_argument('filename', nargs='?', type=str, default='output/ebm_area_forecast.xlsx')
-    arg_parser.add_argument('building_categories', nargs='*', type=str,
-                            choices=default_building_categories,
-                            default=default_building_categories)
+    default_path = pathlib.Path('output/ebm_area_forecast.xlsx')
+    arg_parser.add_argument('filename', nargs='?', type=str, default=default_path,
+                            help=f'The location of the name of  file you want to be written. default: {default_path}' +
+                            'If the file already exists the program will terminate without overwriting the file.')
+    arg_parser.add_argument('--force', '-f', action='store_true',
+                            help='Write to <filename> even if it already exists')
 
-    arg_parser.add_argument('--start_year', nargs='?', type=int, default=2010)
-    arg_parser.add_argument('--end_year', nargs='?', type=int, default=2050)
+    arg_parser.add_argument('building_categories', nargs='*', type=str, default=default_building_categories,
+                            help=f"""
+                            One or more of the following building categories 
+                                {", ".join(default_building_categories)}""".replace('\n', '').strip()
+                            )
+    arg_parser.add_argument('--start_year', nargs='?', type=int, default=2010,
+                            help='Forecast start year. default: 2010, all other values are invalid')
+    arg_parser.add_argument('--end_year', nargs='?', type=int, default=2050,
+                            help='Forecast end year (including). default: 2050, any other values are invalid')
 
     arguments = arg_parser.parse_args()
 

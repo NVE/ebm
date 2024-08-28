@@ -46,7 +46,8 @@ def main() -> int:
                             'If the file already exists the program will terminate without overwriting the file.')
     arg_parser.add_argument('--force', '-f', action='store_true',
                             help='Write to <filename> even if it already exists')
-
+    arg_parser.add_argument('--open', '-o', action='store_true',
+                            help='Attempt opening <filename> after writing')
     arg_parser.add_argument('building_categories', nargs='*', type=str, default=default_building_categories,
                             help=f"""
                             One or more of the following building categories 
@@ -62,6 +63,7 @@ def main() -> int:
     start_year, end_year = arguments.start_year, arguments.end_year
     output_filename = pathlib.Path(arguments.filename)
     force_overwrite = arguments.force
+    open_after_writing = arguments.open
 
     validate_years(end_year, start_year)
     make_output_directory(output_filename.parent)
@@ -88,6 +90,9 @@ def main() -> int:
 
     logger.debug(f'Writing to {output_filename}')
     output.to_excel(output_filename)
+
+    if open_after_writing:
+        os.startfile(output_filename, 'open')
     sys.exit(0)
 
 

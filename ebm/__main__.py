@@ -5,7 +5,6 @@ import sys
 import typing
 
 import pandas as pd
-import rich.pretty
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -21,6 +20,8 @@ def main():
     arg_parser = argparse.ArgumentParser(description=f'Calculate EBM area forecast v{__version__}')
     arg_parser.add_argument('--version', action='store_true')
     arg_parser.add_argument('--debug', action='store_true')
+
+    arg_parser.add_argument('filename', nargs='?', type=str, default='output/ebm_area_forecast.xlsx')
     arg_parser.add_argument('--start_year', nargs='?', type=int, default=2010)
     arg_parser.add_argument('--end_year', nargs='?', type=int, default=2050)
 
@@ -38,30 +39,61 @@ def main():
     validate_arguments(end_year, start_year)
 
     database_manager = DatabaseManager()
-    building_category = BuildingCategory.HOUSE
-    output_directory = pathlib.Path('output')
-    output_file = output_directory / 'ebm_area_forecast.xlsx'
 
-    validate_output_directory(output_directory)
+    output_filename = pathlib.Path(arguments.filename)
 
-    result = calculate_building_category_area_forecast(
-        building_category=building_category,
-        database_manager=database_manager,
-        start_year=arguments.start_year,
-        end_year=arguments.end_year)
+    validate_output_directory(output_filename.parent)
+
+    logger.debug('Load area forecast')
+
     output = None
-    for tek, conditions in result.items():
-        df = pd.DataFrame(data=conditions, index=pd.MultiIndex.from_tuples([(str(building_category), tek, y, ) for y in range(start_year, end_year +1)], names=['building_category', 'tek', 'year']))
-        if output is not None:
-            output = pd.concat([output, df])
-        else:
-            output = df
-        rich.pretty.pprint(tek)
-        rich.pretty.pprint(df)
+    for building_category in iter(BuildingCategory):
+        result = calculate_building_category_area_forecast(building_category=building_category,
+                                                           database_manager=database_manager,
+                                                           start_year=start_year,
+                                                           end_year=end_year)
 
-    rich.pretty.pprint(output)
-    output.to_excel(output_file)
+        df = area_forecast_result_to_dataframe(building_category, result, start_year, end_year)
+        if output is None:
+            output = df
+        else:
+            output = pd.concat([output, df])
+
+    logger.debug(f'Writing to {output_filename}')
+    output.to_excel(output_filename)
     sys.exit(0)
+
+
+def area_forecast_result_to_dataframe(building_category: BuildingCategory,
+                                      forecast: typing.Dict[str, list],
+                                      start_year: int,
+                                      end_year: int) -> pd.DataFrame:
+    """
+    Create a dataframe from a forecast
+
+    Parameters
+    ----------
+    building_category : BuildingCategory
+    forecast : Dict[str, list[float]]
+    start_year : int (2010)
+    end_year : int (2050)
+
+    Returns dataframe : pd.Dataframe
+        A dataframe of all area values in forecast indexed by building_category, tek and year
+    -------
+
+    """
+    dataframe = None
+    for tek, conditions in forecast.items():
+        index_rows = [(str(building_category), tek, y,) for y in range(start_year, end_year + 1)]
+        index_names = ['building_category', 'tek', 'year']
+        df = pd.DataFrame(data=conditions,
+                          index=pd.MultiIndex.from_tuples(index_rows, names=index_names))
+        if dataframe is not None:
+            dataframe = pd.concat([dataframe, df])
+        else:
+            dataframe = df
+    return dataframe
 
 
 def validate_output_directory(output_directory):

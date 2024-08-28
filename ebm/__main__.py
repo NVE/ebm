@@ -66,6 +66,7 @@ def main() -> int:
 
     start_year, end_year = arguments.start_year, arguments.end_year
     output_filename = pathlib.Path(arguments.filename)
+    building_categories = [BuildingCategory.from_string(b_c) for b_c in arguments.building_categories]
     force_overwrite = arguments.force
     open_after_writing = arguments.open
 
@@ -84,7 +85,7 @@ def main() -> int:
     logger.debug('Load area forecast')
 
     output = None
-    for building_category in iter(BuildingCategory):
+    for building_category in building_categories:
         result = calculate_building_category_area_forecast(building_category=building_category,
                                                            database_manager=database_manager,
                                                            start_year=start_year,

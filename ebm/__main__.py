@@ -62,6 +62,8 @@ def main() -> int:
                             One or more of the following building categories: 
                                 {", ".join(default_building_categories)}"""
                             ))
+    arg_parser.add_argument('--create-default-input', type=str, default='',
+                            help='')
     arg_parser.add_argument('--start_year', nargs='?', type=int, default=2010,
                             help='Forecast start year. default: 2010, all other values are invalid')
     arg_parser.add_argument('--end_year', nargs='?', type=int, default=2050,
@@ -86,6 +88,12 @@ def main() -> int:
         return 1
 
     database_manager = DatabaseManager()
+
+    missing_files = database_manager.file_handler.check_for_missing_files()
+    if missing_files:
+        print('Use --create-missing-input to create an input directory with default files in the current directory',
+              file=sys.stderr)
+        return 2
 
     logger.debug('Load area forecast')
 

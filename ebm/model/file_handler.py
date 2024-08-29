@@ -1,8 +1,9 @@
 import os
 import pathlib
+import typing
 
-from loguru import logger
 import pandas as pd
+from loguru import logger
 
 
 class FileHandler:
@@ -158,7 +159,39 @@ class FileHandler:
         """
         return self.get_file(self.AREA_PARAMETERS)
 
+    def _check_is_file(self, filename : str) -> bool:
+        """
+        Check if the filename is a file in self.input_folder
 
+        Parameters
+        ----------
+        filename : str
 
+        Returns
+        -------
+        file_exists : bool
+        """
+        return (pathlib.Path(self.input_folder) / filename).is_file()
 
+    def check_for_missing_files(self) -> typing.List[str]:
+        """
+        Returns a list of required files that are not present in self.input_folder
+
+        Returns
+        -------
+        missing_files : List[str]
+        """
+        # self.BUILDING_CONDITIONS is deprecated so it should be excluded from here
+        files_to_check = [self.BUILDING_CATEGORIES, self.TEK_ID, self.TEK_PARAMS,
+                          self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
+                          self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
+                          self.AREA_PARAMETERS]
+        missing_files = [file for file in files_to_check if not self._check_is_file(file)]
+        if missing_files:
+            plural = 's' if len(missing_files) != 1 else ''
+            msg = f'{len(missing_files)} required file{plural} missing from {self.input_folder}'
+            logger.error(msg)
+            for f in missing_files:
+                logger.error(f'Could not find {f}')
+        return missing_files
 

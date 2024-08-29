@@ -196,7 +196,7 @@ class FileHandler:
                 logger.error(f'Could not find {f}')
         return missing_files
 
-    def create_missing_input_files(self, input_directory: pathlib.Path()) -> None:
+    def create_missing_input_files(self, input_directory: pathlib.Path) -> None:
         """
         Creates any input files missing in input_directory
 

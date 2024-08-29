@@ -208,6 +208,8 @@ class FileHandler:
         -------
         None
         """
+        if input_directory.is_file():
+            raise NotADirectoryError(f'{input_directory} is a file')
         if not input_directory.is_dir():
             logger.debug(f'{input_directory} is not a directory')
             input_directory.mkdir()
@@ -222,6 +224,7 @@ class FileHandler:
                 logger.error(f'Source file {source_file} does not exist!')
                 continue
             shutil.copy(source_file, target_file)
+            logger.info(f'Created {target_file}')
 
 
 

@@ -102,25 +102,24 @@ options:
 ### Running as code
 ```python
 
-from pprint import pprint as pp
-import pandas as pd
 from ebm.model import BuildingCategory, Buildings, DatabaseManager
 from ebm.model.construction import ConstructionCalculator
 
-years = [y for y in range(2010, 2050 + 1)]
-
 database_manager = DatabaseManager()
-building_category = BuildingCategory.HOUSE
-buildings = Buildings.build_buildings(building_category=building_category, database_manager=database_manager)
+
+buildings = Buildings.build_buildings(building_category=BuildingCategory.HOUSE)
+
 area_forecast = buildings.build_area_forecast(database_manager)
 
-demolition_floor_area = pd.Series(data=area_forecast.calc_total_demolition_area_per_year(), index=years)
-yearly_constructed = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area, database_manager)
+demolished_floor_area = area_forecast.calc_total_demolition_area_per_year()
 
-constructed_floor_area = [v for v in yearly_constructed.accumulated_constructed_floor_area]
-forecast = area_forecast.calc_area_with_construction(constructed_floor_area)
+yearly_constructed = ConstructionCalculator.calculate_construction_as_list(
+    building_category=BuildingCategory.HOUSE,
+    demolition_floor_area=demolished_floor_area)
 
-pp(forecast)
+forecast = area_forecast.calc_area_with_construction(yearly_constructed)
+
+print(forecast)
 
 
 ```

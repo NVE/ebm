@@ -1,4 +1,3 @@
-
 from ebm.model import BuildingCategory, Buildings, DatabaseManager
 from ebm.model.construction import ConstructionCalculator
 

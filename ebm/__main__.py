@@ -45,6 +45,7 @@ def main() -> int:
     building_categories = [BuildingCategory.from_string(b_c) for b_c in arguments.building_categories]
     force_overwrite = arguments.force
     open_after_writing = arguments.open
+    horizontal_years = arguments.horizontal
     # `;` Will normally be interpreted as line end when typed in a shell. If the
     # delimiter is empty make the assumption that the user used ;. An empty delimiter is not valid anyway.
     csv_delimiter = arguments.csv_delimiter if arguments.csv_delimiter else ';'
@@ -74,8 +75,10 @@ def main() -> int:
                                                            database_manager=database_manager,
                                                            start_year=start_year,
                                                            end_year=end_year)
-
-        df = area_forecast_result_to_dataframe(building_category, result, start_year, end_year)
+        if horizontal_years:
+            df = area_forecast_result_to_horisontal_dataframe(building_category, result, start_year, end_year)
+        else:
+            df = area_forecast_result_to_dataframe(building_category, result, start_year, end_year)
         if output is None:
             output = df
         else:
@@ -154,6 +157,8 @@ def make_arguments(default_path: pathlib.Path) -> argparse.Namespace:
                             help='Forecast start year. default: 2010, all other values are invalid')
     arg_parser.add_argument('--end_year', nargs='?', type=int, default=2050,
                             help='Forecast end year (including). default: 2050, any other values are invalid')
+    arg_parser.add_argument('--horizontal', action='store_true',
+                            help='Show years horizontal (left to right)')
     arguments = arg_parser.parse_args()
     return arguments
 
@@ -188,6 +193,39 @@ def area_forecast_result_to_dataframe(building_category: BuildingCategory,
         else:
             dataframe = df
     return dataframe
+
+
+def area_forecast_result_to_horisontal_dataframe(building_category: BuildingCategory,
+                                                 forecast: typing.Dict[str, list],
+                                                 start_year: int,
+                                                 end_year: int) -> pd.DataFrame:
+    """
+    Create a dataframe from a forecast with years listed horisontally from 2010-2050
+
+    Parameters
+    ----------
+    building_category : BuildingCategory
+    forecast : Dict[str, list[float]]
+    start_year : int (2010)
+    end_year : int (2050)
+
+    Returns dataframe : pd.Dataframe
+        A dataframe of all area values in forecast indexed by building_category, tek and year
+    -------
+
+    """
+    rows = []
+    for tek in forecast.keys():
+        for condition, numbers in forecast.get(tek).items():
+            row = [str(building_category), tek, condition]
+            for number, year in zip(numbers, range(start_year, end_year + 1)):
+                row.append(number)
+            rows.append(row)
+
+    df = pd.DataFrame(data=rows)
+    df.columns = ['building_category', 'TEK', 'building_condition'] + [y for y in range(start_year, end_year + 1)]
+
+    return df.set_index(['building_category', 'TEK', 'building_condition'])
 
 
 def make_output_directory(output_directory: pathlib.Path) -> None:

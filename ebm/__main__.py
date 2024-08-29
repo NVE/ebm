@@ -41,11 +41,12 @@ def main() -> int:
 
     # Make local variable from arguments for clarity
     start_year, end_year = arguments.start_year, arguments.end_year
-    output_filename = pathlib.Path(arguments.filename)
+    output_filename = pathlib.Path(arguments.output_file)
     building_categories = [BuildingCategory.from_string(b_c) for b_c in arguments.building_categories]
     force_overwrite = arguments.force
     open_after_writing = arguments.open
     horizontal_years = arguments.horizontal
+    create_input = arguments.create_input
     # `;` Will normally be interpreted as line end when typed in a shell. If the
     # delimiter is empty make the assumption that the user used ;. An empty delimiter is not valid anyway.
     csv_delimiter = arguments.csv_delimiter if arguments.csv_delimiter else ';'
@@ -59,10 +60,13 @@ def main() -> int:
 
     database_manager = DatabaseManager()
 
+    # Create input directory if requested
+    if create_input:
+        database_manager.file_handler.create_missing_input_files(pathlib.Path('input'))
     # Make sure all required files exists
     missing_files = database_manager.file_handler.check_for_missing_files()
     if missing_files:
-        print('Use --create-missing-input to create an input directory with default files in the current directory',
+        print('Use --create-input to create an input directory with default files in the current directory',
               file=sys.stderr)
         return 2
 
@@ -134,7 +138,7 @@ def make_arguments(default_path: pathlib.Path) -> argparse.Namespace:
     arg_parser.add_argument('--version', '-v', action='version', version=f'calculate-area-forcast {__version__}')
     arg_parser.add_argument('--debug', '-d', action='store_true',
                             help='Run in debug mode. (Extra information written to stdout)')
-    arg_parser.add_argument('filename', nargs='?', type=str, default=default_path,
+    arg_parser.add_argument('output_file', nargs='?', type=str, default=default_path,
                             help=textwrap.dedent(
                                 f'''The location of the file you want to be written. default: {default_path}
     If the file already exists the program will terminate without overwriting. 
@@ -151,8 +155,8 @@ def make_arguments(default_path: pathlib.Path) -> argparse.Namespace:
                             One or more of the following building categories: 
                                 {", ".join(default_building_categories)}"""
                                                  ))
-    arg_parser.add_argument('--create-default-input', type=str, default='',
-                            help='')
+    arg_parser.add_argument('--create-input', action='store_true',
+                            help='Create input directory with all required files in the current working directory')
     arg_parser.add_argument('--start_year', nargs='?', type=int, default=2010,
                             help='Forecast start year. default: 2010, all other values are invalid')
     arg_parser.add_argument('--end_year', nargs='?', type=int, default=2050,

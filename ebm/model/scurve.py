@@ -6,12 +6,8 @@ class SCurve():
     """ 
 
     #TODO: 
-    # - move building_lifetime to congif?
     # - add negative values checks
-    # - change input_df so that the class takes the parameters or datastructure with params, where dtype is pre-defined. Filtering can be done in DB manager.
-    # - create instance variables dynamically from column names? or change to constans? -> change to constans for now
     # - change name of methods to be more accurate, e.g. the current s-curve method (snakk med Benedicte)
-    # - change s_curve method to only return a list of shares? The year key in the dict is not necessary in further calculations. -> YES, change this.
     
     def __init__(self, 
                  earliest_age: int,
@@ -138,4 +134,18 @@ class SCurve():
         scurve = tuple(accumulated_rates)
 
         return scurve
-    
+
+if __name__ == '__main__':
+
+    from ebm.model.buildings import Buildings
+    from ebm.model.building_category import BuildingCategory
+    from ebm.model.database_manager import DatabaseManager
+    from ebm.model.building_condition import BuildingCondition
+
+    database_manager = DatabaseManager()
+    building_category = BuildingCategory.HOUSE
+
+    building = Buildings.build_buildings(building_category, database_manager)
+    building.scurve_data
+
+    #TODO: use DB manager to get relevant data to run s-curve class from here

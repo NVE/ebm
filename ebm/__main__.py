@@ -29,7 +29,7 @@ def main() -> int:
         zero when the program exits gracefully
     """
     load_dotenv()
-    if not getattr(sys.argv, '--debug', '') and os.environ.get('DEBUG', '') != 'True':
+    if '--debug' not in sys.argv and os.environ.get('DEBUG', '') != 'True':
         logger.remove()
         logger.add(sys.stderr, level="INFO")
 
@@ -95,7 +95,7 @@ def main() -> int:
               file=sys.stderr)
         return 2
 
-    logger.debug('Load area forecast')
+    logger.info('Loading area forecast')
 
     output = None
     for building_category in building_categories:
@@ -114,14 +114,17 @@ def main() -> int:
     if str(output_filename) == '-':
         try:
             print(output.to_markdown())
+
         except ImportError:
             print(output.to_string())
     elif output_filename.suffix == '.csv':
         output.to_csv(output_filename, sep=csv_delimiter)
+        logger.info(f'Wrote {output_filename}')
     else:
         excel_writer = pd.ExcelWriter(output_filename, engine='openpyxl')
         output.to_excel(excel_writer, sheet_name='area forecast', merge_cells=False)
         excel_writer.close()
+        logger.info(f'Wrote {output_filename}')
 
     if open_after_writing:
         os.startfile(output_filename, 'open')

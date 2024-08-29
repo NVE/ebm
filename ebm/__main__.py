@@ -63,6 +63,8 @@ def main() -> int:
     # Create input directory if requested
     if create_input:
         database_manager.file_handler.create_missing_input_files(pathlib.Path('input'))
+        logger.info('Finished creating input')
+        return 0
     # Make sure all required files exists
     missing_files = database_manager.file_handler.check_for_missing_files()
     if missing_files:

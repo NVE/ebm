@@ -268,7 +268,10 @@ class Buildings():
         
         return scurve
 
-    def build_area_forecast(self, database_manager: DatabaseManager, model_start_year: int = 2010, model_end_year: int = 2050):
+    def build_area_forecast(self,
+                            database_manager: DatabaseManager,
+                            model_start_year: int = 2010,
+                            model_end_year: int = 2050) -> AreaForecast:
         """
         Build a AreaForcast object from the Building object. Reuse building_category, tek_list, shares_per_condtion from
             the Buildings (self) object.
@@ -283,8 +286,9 @@ class Buildings():
         Returns area_forecast: AreaForecast
         -------
         """
-        area_parameters = database_manager.get_area_parameters()
-        tek_params = database_manager.get_tek_params(self.tek_list)
+        dm = database_manager if database_manager else DatabaseManager()
+        area_parameters = dm.get_area_parameters()
+        tek_params = dm.get_tek_params(self.tek_list)
         shares = self.get_shares()
 
         area_forecast = AreaForecast(

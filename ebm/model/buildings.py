@@ -227,7 +227,9 @@ class Buildings():
         shares_condition = SharesPerCondition(self.tek_list, self.tek_params, self.scurve_data).shares_per_condition
         return shares_condition   
 
-    # TODO: add optional parameters to filter on specific TEKs and Years
+    # TODO: 
+    # - add optional parameters to filter on specific TEKs and Years
+    # - use BuildingCondition, so that the missing function can handle typo's for condition
     def get_shares_per_condition(self, condition: str) -> typing.Dict:
         """
         Get the shares for a specific condition for all TEKs in the building category.

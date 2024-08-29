@@ -1,8 +1,8 @@
 import typing
 
-from .data_classes import TEKParameters
-from .tek import TEK
-from .database_manager import *
+from ebm.model.data_classes import TEKParameters
+from ebm.model.tek import TEK
+from ebm.model.building_condition import BuildingCondition
 
 class SharesPerCondition():
     """
@@ -10,19 +10,10 @@ class SharesPerCondition():
     """
     
     # TODO: 
-    # - move constants to config
     # - add start and end year as input arguments, as they should be defined outside the class
-    # - condition keys should be same format, e.g. lower case and underscores. Fix in DB manager. 
     # - add negative values checks 
     # - add checks to control calculations, for example control total values and that original condition should not exceed 100%
     # - make code less repetative (e.g for loops on tek_list -> change to own method?)
-
-    # Strings in condition list
-    KEY_SMALL_MEASURE = 'small_measure'
-    KEY_RENOVATION = 'renovation'
-    KEY_DEMOLITION = 'demolition'
-    KEY_RENOVATION_SMALL_MEASURE = 'renovation_and_small_measure' 
-    KEY_ORIGINAL_CONDITION = 'original_condition'
 
     def __init__(self, 
                  tek_list: typing.List[str], 
@@ -38,12 +29,12 @@ class SharesPerCondition():
         self.model_end_year = model_end_year
 
         # Define S-curve parameter attributes 
-        self.scurve_small_measure = self.scurve_data[self.KEY_SMALL_MEASURE][0]
-        self.scurve_renovation = self.scurve_data[self.KEY_RENOVATION][0]
-        self.scurve_demolition = self.scurve_data[self.KEY_DEMOLITION][0]
-        self.never_share_small_measure = self.scurve_data[self.KEY_SMALL_MEASURE][1]
-        self.never_share_renovation = self.scurve_data[self.KEY_RENOVATION][1]
-        self.never_share_demolition = self.scurve_data[self.KEY_DEMOLITION][1]
+        self.scurve_small_measure = self.scurve_data[BuildingCondition.SMALL_MEASURE][0]
+        self.scurve_renovation = self.scurve_data[BuildingCondition.RENOVATION][0]
+        self.scurve_demolition = self.scurve_data[BuildingCondition.DEMOLITION][0]
+        self.never_share_small_measure = self.scurve_data[BuildingCondition.SMALL_MEASURE][1]
+        self.never_share_renovation = self.scurve_data[BuildingCondition.RENOVATION][1]
+        self.never_share_demolition = self.scurve_data[BuildingCondition.DEMOLITION][1]
         
         self.shares_demolition = self.calc_shares_demolition()
         self.shares_small_measure_total = self.calc_shares_small_measure_total()
@@ -54,11 +45,11 @@ class SharesPerCondition():
         self.shares_original_condition = self.calc_shares_original_condition()
 
         self.shares_per_condition = {
-            self.KEY_SMALL_MEASURE: self.shares_small_measure,
-            self.KEY_RENOVATION: self.shares_renovation,
-            self.KEY_RENOVATION_SMALL_MEASURE: self.shares_renovation_and_small_measure,
-            self.KEY_DEMOLITION: self.shares_demolition,
-            self.KEY_ORIGINAL_CONDITION: self.shares_original_condition
+            BuildingCondition.SMALL_MEASURE: self.shares_small_measure,
+            BuildingCondition.RENOVATION: self.shares_renovation,
+            BuildingCondition.RENOVATION_AND_SMALL_MEASURE: self.shares_renovation_and_small_measure,
+            BuildingCondition.DEMOLITION: self.shares_demolition,
+            BuildingCondition.ORIGINAL_CONDITION: self.shares_original_condition
         }
         
     def calc_shares_demolition(self) -> typing.Dict:
@@ -356,6 +347,24 @@ class SharesPerCondition():
             tek_shares[tek] = shares
         return tek_shares     
         
+
+
+if __name__ == '__main__':
+    
+    from ebm.model.buildings import Buildings
+    from ebm.model.building_category import BuildingCategory
+    from ebm.model.database_manager import DatabaseManager
+
+    database_manager = DatabaseManager()
+    building_category = BuildingCategory.HOUSE
+    condition = BuildingCondition
+
+    building = Buildings.build_buildings(building_category, database_manager)
+    shares = building.get_shares()
+    shares = building.get_shares_per_condition('small_measure')
+   
+    print(shares)
+
 
 
 

@@ -21,9 +21,9 @@ class FileHandler:
     CONSTRUCTION_BUILDING_CATEGORY_AREA = 'construction_building_category_yearly.csv'
     AREA_PARAMETERS = 'area_parameters.csv'
 
-    def __init__(self):
+    def __init__(self, input_folder: str = 'input'):
 
-        self.input_folder = 'input'
+        self.input_folder = input_folder
 
     def get_file(self, file_name: str) -> pd.DataFrame:
         """

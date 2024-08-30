@@ -62,12 +62,6 @@ def main() -> int:
         # Exit with 0 for success. The assumption is that the user would like to review the input before proceeding.
         return 0
 
-    make_output_directory(output_filename.parent)
-    if output_filename.is_file() and output_filename != default_path and not force_overwrite:
-        # If the file already exists and is not the default, display error and exit unless --force was used.
-        logger.error(f'{output_filename} already exists.')
-        return 1
-
     # Make sure all required files exists
     missing_files = database_manager.file_handler.check_for_missing_files()
     if missing_files:
@@ -76,6 +70,12 @@ def main() -> int:
     """.strip(),
               file=sys.stderr)
         return 2
+
+    make_output_directory(output_filename.parent)
+    if output_filename.is_file() and output_filename != default_path and not force_overwrite:
+        # If the file already exists and is not the default, display error and exit unless --force was used.
+        logger.error(f'{output_filename} already exists.')
+        return 1
 
     logger.info('Loading area forecast')
 

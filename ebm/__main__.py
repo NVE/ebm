@@ -211,7 +211,7 @@ def area_forecast_result_to_horisontal_dataframe(building_category: BuildingCate
                                                  start_year: int,
                                                  end_year: int) -> pd.DataFrame:
     """
-    Create a dataframe from a forecast with years listed horisontally from 2010-2050
+    Create a dataframe from a forecast with years listed horizontally from 2010-2050
 
     Parameters
     ----------

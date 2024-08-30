@@ -2,22 +2,20 @@ import typing
 
 import pandas as pd
 
-from ebm.model.building_category import BuildingCategory
-from ebm.model.database_manager import DatabaseManager
+from .building_category import BuildingCategory
+from .database_manager import DatabaseManager
 from .area_forecast import AreaForecast
 from .building_condition import BuildingCondition
-from .data_classes import TEKParameters, ScurveParameters
+from .data_classes import TEKParameters
+from .filter_tek import FilterTek
+from .filter_scurve_params import FilterScurveParams
 from .scurve import SCurve
 from .shares_per_condition import SharesPerCondition
-from .filter_tek import FilterTek
+
 
 
 # TODO:
 # - remove _filter_tek_list and _filter_tek_params when the model is updated with new 2020 data.
-# - adjust _filter_scurve_params method to not use class constants. Possible solutions:
-#       - to avoid filtering df on column names (category and condition), change from Dataframe to Dict - something like this = {'building category', {'condition': Parameters}}  
-#       - pass the variables as an input argument for the class (for example as a list). They can be defined outside the class, e.g. in a config
-#       - adjust the variables of the ScurveParameters dataclass to match column names, then there is no need to hardcode them.   
 # - add model years to a getter method for shares_per_condition dictionary, for user readability
 
 
@@ -25,16 +23,6 @@ class Buildings():
     """
     Holds all the attributes of a building, with it's associated data and operations.
     """
-
-    # Variables used to filter S-curve params (_filter_scurve_params)
-    COL_BUILDING_CATEGORY = 'building_category'
-    COL_BUILDING_CONDITION = 'condition'
-    COL_EARLIEST_AGE = 'earliest_age_for_measure'
-    COL_AVERAGE_AGE = 'average_age_for_measure'
-    COL_LAST_AGE = 'last_age_for_measure'
-    COL_RUSH_YEARS = 'rush_period_years'
-    COL_RUSH_SHARE = 'rush_share'
-    COL_NEVER_SHARE = 'never_share'
 
     def __init__(self, 
                  building_category: str,
@@ -46,62 +34,12 @@ class Buildings():
         
         self.building_category = building_category
         self.scurve_condition_list = scurve_condition_list
-        self.tek_list = FilterTek.get_filtered_list(building_category, tek_list)  
+        self.tek_list = FilterTek.get_filtered_list(self.building_category, tek_list)  
         self.tek_params = FilterTek.get_filtered_params(self.tek_list, tek_params)
-        self.scurve_params = self._filter_scurve_params(scurve_params)
+        self.scurve_params = FilterScurveParams.filter(self.building_category, self.scurve_condition_list, scurve_params) 
         self.scurve_data = self._get_scurve_data()
         self.shares_per_condition = self.get_shares()
         self.area_params = area_params #TODO: change so that the area params are filtered on building category? 
-
-    def _filter_scurve_params(self, scurve_params: pd.DataFrame) -> typing.Dict[str, ScurveParameters]:
-        """
-        Filters S-curve parameters per condition by the building category.
-
-        This method filters a DataFrame containing S-curve parameters to extract data specific to 
-        the building category and conditions listed in `self.condition_list`. The filtered data is 
-        then converted into a dictionary of `ScurveParameters` dataclass instances, one for each condition.
-
-        Parameters:
-        - scurve_params (pd.Dataframe): Dataframe containing the S-Curve parameters.
-
-        Returns:
-        - scurve_params (dict): A dictionary where the keys are the conditions (str) and the values are 
-                                `ScurveParameters` dataclass instances containing the S-curve parameters.
-        """
-        filtered_scurve_params = {}
-
-        for condition in self.scurve_condition_list:
-            if not scurve_params.building_category.str.contains(self.building_category).any():
-                msg = 'Unknown building_category "{}" encountered when setting up scurve parameters'.format(
-                    self.building_category
-                )
-                raise KeyError(msg)
-
-            # Filter dataframe on building category and condition
-            scurve_params_filtered = scurve_params[(scurve_params[self.COL_BUILDING_CATEGORY] == self.building_category) &
-                                                   (scurve_params[self.COL_BUILDING_CONDITION] == condition)]
-
-            # Assuming there is only one row in the filtered DataFrame
-            scurve_params_row = scurve_params_filtered.iloc[0]
-
-            # Convert the single row to a dictionary
-            scurve_params_dict = scurve_params_row.to_dict()
-            
-            # Map the dictionary values to the dataclass attributes
-            scurve_parameters = ScurveParameters(
-                building_category=scurve_params_dict[self.COL_BUILDING_CATEGORY],
-                condition=scurve_params_dict[self.COL_BUILDING_CONDITION],
-                earliest_age=scurve_params_dict[self.COL_EARLIEST_AGE],
-                average_age=scurve_params_dict[self.COL_AVERAGE_AGE], 
-                rush_years=scurve_params_dict[self.COL_RUSH_YEARS], 
-                last_age=scurve_params_dict[self.COL_LAST_AGE],
-                rush_share=scurve_params_dict[self.COL_RUSH_SHARE],
-                never_share=scurve_params_dict[self.COL_NEVER_SHARE],
-            )
-
-            filtered_scurve_params[condition] = scurve_parameters
-
-        return filtered_scurve_params 
 
     def _get_scurve_data(self) -> typing.Dict:
         """

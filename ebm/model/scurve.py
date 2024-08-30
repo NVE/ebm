@@ -134,18 +134,3 @@ class SCurve():
         scurve = tuple(accumulated_rates)
 
         return scurve
-
-if __name__ == '__main__':
-
-    from ebm.model.buildings import Buildings
-    from ebm.model.building_category import BuildingCategory
-    from ebm.model.database_manager import DatabaseManager
-    from ebm.model.building_condition import BuildingCondition
-
-    database_manager = DatabaseManager()
-    building_category = BuildingCategory.HOUSE
-
-    building = Buildings.build_buildings(building_category, database_manager)
-    building.scurve_data
-
-    #TODO: use DB manager to get relevant data to run s-curve class from here

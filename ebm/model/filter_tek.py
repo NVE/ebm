@@ -5,7 +5,7 @@ from ebm.model.data_classes import TEKParameters
 
 class FilterTek:
     """
-    Temporary class for filtering TEK lists and parameters. 
+    Utility class for filtering TEK lists and parameters. 
     """
 
     CATEGORY_APARTMENT = 'apartment_block'

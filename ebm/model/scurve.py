@@ -1,4 +1,5 @@
 import typing
+import pandas as pd
 
 class SCurve():
     """
@@ -7,7 +8,7 @@ class SCurve():
 
     #TODO: 
     # - add negative values checks
-    # - change name of methods to be more accurate, e.g. the current s-curve method (snakk med Benedicte)
+    # - add check to control that defined periods match building lifetime index in get_rates_per_year
     
     def __init__(self, 
                  earliest_age: int,
@@ -32,7 +33,6 @@ class SCurve():
         self._post_rush_rate = self._calc_post_rush_rate()
         
         # Calculate S-curves
-        self.rates_per_year = self.get_rates_per_year_over_building_lifetime() 
         self.scurve = self.calc_scurve() 
 
     def _calc_pre_rush_rate(self) -> float:
@@ -74,15 +74,16 @@ class SCurve():
         post_rush_rate = (1 - self._rush_share - self._never_share) * (0.5 / (self._last_age - self._average_age - (self._rush_years/2)))
         return post_rush_rate
 
-    def get_rates_per_year_over_building_lifetime(self) -> typing.Tuple:
+    def get_rates_per_year_over_building_lifetime(self) -> pd.Series:
         """
-        Create a list that holds the yearly measure rates over the building lifetime.
+        Create a series that holds the yearly measure rates over the building lifetime.
 
         This method defines the periods in the S-curve, adds the yearly measure rates to
-        the corresponding periods, and stores them in a list.
+        the corresponding periods, and stores them in a pandas Series.
 
         Returns:
-        - rates_per_year (List): List containing the yearly measure rates over the building lifetime (float or int).
+        - rates_per_year (pd.Series): A Series containing the yearly measure rates over the building lifetime 
+                                      with an index representing the age from 1 to the building lifetime.
         """
 
         # Define the length of the different periods in the S-curve
@@ -97,7 +98,7 @@ class SCurve():
             last_years = 0 
             post_rush_years = self._building_lifetime - earliest_years - pre_rush_years - rush_years
 
-        # Create dict where the yearly rates are placed according to their corresponding period in the buildings lifetime 
+        # Create list where the yearly rates are placed according to their corresponding period in the buildings lifetime 
         rates_per_year = (
             [0] * earliest_years + 
             [self._pre_rush_rate] * pre_rush_years +
@@ -106,31 +107,25 @@ class SCurve():
             [0] * last_years
         )  
         
-        # Use tuples due to immutability
-        rates_per_year = tuple(rates_per_year)
-        
+        # Create a pd.Series with an index from 1 to building_lifetime 
+        index = range(1, self._building_lifetime + 1)
+        rates_per_year = pd.Series(rates_per_year, index=index)
+        rates_per_year.index.name = 'age'
+
         return rates_per_year
 
-    def calc_scurve(self) -> typing.Tuple:
+    def calc_scurve(self) -> pd.Series:
         """
         Calculates the S-curve by accumulating the yearly measure rates over the building's lifetime.
 
-        This method iterates over the yearly measure rates, accumulates them, and stores the accumulated
-        rates in a tuple representing the S-curve.
+        This method returns a pandas Series representing the S-curve, where each value corresponds 
+        to the accumulated rate up to that age.
 
         Returns:
-        - scurve (Tuple): Tuple containing the accumulated rates of the S-curve (float or int).
+        - scurve (pd.Series): A Series containing the accumulated rates of the S-curve 
+                              with an index representing the age from 1 to the building lifetime.
         """
-        rates = self.rates_per_year
-        
-        # Iterate over the rates and accumulate them in a list
-        accumulated_rates = []
-        acc_rate = 0
-        for rate in rates:
-            acc_rate += rate
-            accumulated_rates.append(acc_rate)
-
-        # Use tuples due to immutability
-        scurve = tuple(accumulated_rates)
-
+        # Get rates_per_year and accumulate them over the building lifetime
+        rates_per_year = self.get_rates_per_year_over_building_lifetime() 
+        scurve = rates_per_year.cumsum()
         return scurve

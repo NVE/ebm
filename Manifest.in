@@ -1,0 +1,2 @@
+include ebm/data/*.csv
+recursive-include ebm *.py

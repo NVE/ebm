@@ -29,56 +29,29 @@ def main() -> int:
         zero when the program exits gracefully
     """
     load_dotenv()
-    if not getattr(sys.argv, '--debug', '') and os.environ.get('DEBUG', '') != 'True':
+    if '--debug' not in sys.argv and os.environ.get('DEBUG', '') != 'True':
         logger.remove()
         logger.add(sys.stderr, level="INFO")
 
-    default_building_categories: typing.List[str] = [str(b) for b in iter(BuildingCategory)]
+    default_path = pathlib.Path('output/ebm_area_forecast.xlsx')
+
     logger.debug(f'Starting {sys.executable} {__file__}')
 
-    arg_parser = argparse.ArgumentParser(prog='calculate-area-forecast',
-                                         description=f'Calculate EBM area forecast v{__version__}',
-                                         formatter_class=argparse.RawTextHelpFormatter
-                                         )
-    arg_parser.add_argument('--version', '-v', action='version', version=f'calculate-area-forcast {__version__}')
-    arg_parser.add_argument('--debug', '-d', action='store_true',
-                            help='Run in debug mode. (Extra information written to stdout)')
+    arguments = make_arguments(default_path)
 
-    default_path = pathlib.Path('output/ebm_area_forecast.xlsx')
-    arg_parser.add_argument('filename', nargs='?', type=str, default=default_path,
-                            help=textwrap.dedent(f'''The location of the file you want to be written. default: {default_path}
-    If the file already exists the program will terminate without overwriting. 
-    Use "-" to output to the console instead'''))
-    arg_parser.add_argument('--force', '-f', action='store_true',
-                            help='Write to <filename> even if it already exists')
-    arg_parser.add_argument('--open', '-o', action='store_true',
-                            help='Attempt opening <filename> after writing')
-    arg_parser.add_argument('--csv-delimiter', '--delimiter', '-e', type=str, default=',',
-                            help='A single character to be used for separating columns when writing csv. ' +
-                                 'Default: "," Special characters like ; should be quoted ";"')
-
-    arg_parser.add_argument('building_categories', nargs='*', type=str, default=default_building_categories,
-                            help=textwrap.dedent(f"""
-                            One or more of the following building categories: 
-                                {", ".join(default_building_categories)}"""
-                            ))
-    arg_parser.add_argument('--start_year', nargs='?', type=int, default=2010,
-                            help='Forecast start year. default: 2010, all other values are invalid')
-    arg_parser.add_argument('--end_year', nargs='?', type=int, default=2050,
-                            help='Forecast end year (including). default: 2050, any other values are invalid')
-
-    arguments = arg_parser.parse_args()
-
+    # Make local variable from arguments for clarity
     start_year, end_year = arguments.start_year, arguments.end_year
-    output_filename = pathlib.Path(arguments.filename)
+    output_filename = pathlib.Path(arguments.output_file)
     building_categories = [BuildingCategory.from_string(b_c) for b_c in arguments.building_categories]
     force_overwrite = arguments.force
     open_after_writing = arguments.open
-
+    horizontal_years = arguments.horizontal
+    create_input = arguments.create_input
     # `;` Will normally be interpreted as line end when typed in a shell. If the
     # delimiter is empty make the assumption that the user used ;. An empty delimiter is not valid anyway.
     csv_delimiter = arguments.csv_delimiter if arguments.csv_delimiter else ';'
 
+    # Make sure everything is working as expected
     validate_years(end_year, start_year)
     make_output_directory(output_filename.parent)
     if output_filename.is_file() and output_filename != default_path and not force_overwrite:
@@ -87,16 +60,31 @@ def main() -> int:
 
     database_manager = DatabaseManager()
 
-    logger.debug('Load area forecast')
+    # Create input directory if requested
+    if create_input:
+        database_manager.file_handler.create_missing_input_files(pathlib.Path('input'))
+        logger.info('Finished creating input')
+        return 0
+    # Make sure all required files exists
+    missing_files = database_manager.file_handler.check_for_missing_files()
+    if missing_files:
+        print('Use --create-input to create an input directory with default files in the current directory',
+              file=sys.stderr)
+        return 2
+
+    logger.info('Loading area forecast')
 
     output = None
+
     for building_category in building_categories:
         result = calculate_building_category_area_forecast(building_category=building_category,
                                                            database_manager=database_manager,
                                                            start_year=start_year,
                                                            end_year=end_year)
-
-        df = area_forecast_result_to_dataframe(building_category, result, start_year, end_year)
+        if horizontal_years:
+            df = area_forecast_result_to_horisontal_dataframe(building_category, result, start_year, end_year)
+        else:
+            df = area_forecast_result_to_dataframe(building_category, result, start_year, end_year)
         if output is None:
             output = df
         else:
@@ -106,18 +94,79 @@ def main() -> int:
     if str(output_filename) == '-':
         try:
             print(output.to_markdown())
+
         except ImportError:
             print(output.to_string())
     elif output_filename.suffix == '.csv':
         output.to_csv(output_filename, sep=csv_delimiter)
+        logger.info(f'Wrote {output_filename}')
     else:
         excel_writer = pd.ExcelWriter(output_filename, engine='openpyxl')
         output.to_excel(excel_writer, sheet_name='area forecast', merge_cells=False)
         excel_writer.close()
+        logger.info(f'Wrote {output_filename}')
 
     if open_after_writing:
         os.startfile(output_filename, 'open')
     sys.exit(0)
+
+
+def make_arguments(default_path: pathlib.Path) -> argparse.Namespace:
+    """
+    Create and parse command-line arguments for the area forecast calculation.
+
+    Parameters
+    ----------
+    default_path : pathlib.Path
+        Default path for the output file.
+
+    Returns
+    -------
+    argparse.Namespace
+        Parsed command-line arguments.
+
+    Notes
+    -----
+    The function sets up an argument parser with various options including version, debug mode,
+    filename, force write, open file after writing, CSV delimiter, building categories,
+    creating default input, start year, and end year.
+    """
+
+    default_building_categories: typing.List[str] = [str(b) for b in iter(BuildingCategory)]
+    arg_parser = argparse.ArgumentParser(prog='calculate-area-forecast',
+                                         description=f'Calculate EBM area forecast v{__version__}',
+                                         formatter_class=argparse.RawTextHelpFormatter
+                                         )
+    arg_parser.add_argument('--version', '-v', action='version', version=f'calculate-area-forcast {__version__}')
+    arg_parser.add_argument('--debug', '-d', action='store_true',
+                            help='Run in debug mode. (Extra information written to stdout)')
+    arg_parser.add_argument('output_file', nargs='?', type=str, default=default_path,
+                            help=textwrap.dedent(
+                                f'''The location of the file you want to be written. default: {default_path}
+    If the file already exists the program will terminate without overwriting. 
+    Use "-" to output to the console instead'''))
+    arg_parser.add_argument('--force', '-f', action='store_true',
+                            help='Write to <filename> even if it already exists')
+    arg_parser.add_argument('--open', '-o', action='store_true',
+                            help='Attempt opening <filename> after writing')
+    arg_parser.add_argument('--csv-delimiter', '--delimiter', '-e', type=str, default=',',
+                            help='A single character to be used for separating columns when writing csv. ' +
+                                 'Default: "," Special characters like ; should be quoted ";"')
+    arg_parser.add_argument('building_categories', nargs='*', type=str, default=default_building_categories,
+                            help=textwrap.dedent(f"""
+                            One or more of the following building categories: 
+                                {", ".join(default_building_categories)}"""
+                                                 ))
+    arg_parser.add_argument('--create-input', action='store_true',
+                            help='Create input directory with all required files in the current working directory')
+    arg_parser.add_argument('--start_year', nargs='?', type=int, default=2010,
+                            help='Forecast start year. default: 2010, all other values are invalid')
+    arg_parser.add_argument('--end_year', nargs='?', type=int, default=2050,
+                            help='Forecast end year (including). default: 2050, any other values are invalid')
+    arg_parser.add_argument('--horizontal', action='store_true',
+                            help='Show years horizontal (left to right)')
+    arguments = arg_parser.parse_args()
+    return arguments
 
 
 def area_forecast_result_to_dataframe(building_category: BuildingCategory,
@@ -150,6 +199,39 @@ def area_forecast_result_to_dataframe(building_category: BuildingCategory,
         else:
             dataframe = df
     return dataframe
+
+
+def area_forecast_result_to_horisontal_dataframe(building_category: BuildingCategory,
+                                                 forecast: typing.Dict[str, list],
+                                                 start_year: int,
+                                                 end_year: int) -> pd.DataFrame:
+    """
+    Create a dataframe from a forecast with years listed horisontally from 2010-2050
+
+    Parameters
+    ----------
+    building_category : BuildingCategory
+    forecast : Dict[str, list[float]]
+    start_year : int (2010)
+    end_year : int (2050)
+
+    Returns dataframe : pd.Dataframe
+        A dataframe of all area values in forecast indexed by building_category, tek and year
+    -------
+
+    """
+    rows = []
+    for tek in forecast.keys():
+        for condition, numbers in forecast.get(tek).items():
+            row = [str(building_category), tek, condition]
+            for number, year in zip(numbers, range(start_year, end_year + 1)):
+                row.append(number)
+            rows.append(row)
+
+    df = pd.DataFrame(data=rows)
+    df.columns = ['building_category', 'TEK', 'building_condition'] + [y for y in range(start_year, end_year + 1)]
+
+    return df.set_index(['building_category', 'TEK', 'building_condition'])
 
 
 def make_output_directory(output_directory: pathlib.Path) -> None:

@@ -1,8 +1,10 @@
 import os
 import pathlib
+import shutil
+import typing
 
-from loguru import logger
 import pandas as pd
+from loguru import logger
 
 
 class FileHandler:
@@ -22,8 +24,11 @@ class FileHandler:
     AREA_PARAMETERS = 'area_parameters.csv'
 
     def __init__(self):
-
         self.input_folder = 'input'
+        self.files_to_check = [self.BUILDING_CATEGORIES, self.TEK_ID, self.TEK_PARAMS,
+                          self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
+                          self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
+                          self.AREA_PARAMETERS]
 
     def get_file(self, file_name: str) -> pd.DataFrame:
         """
@@ -158,7 +163,68 @@ class FileHandler:
         """
         return self.get_file(self.AREA_PARAMETERS)
 
+    def _check_is_file(self, filename : str) -> bool:
+        """
+        Check if the filename is a file in self.input_folder
 
+        Parameters
+        ----------
+        filename : str
+
+        Returns
+        -------
+        file_exists : bool
+        """
+        return (pathlib.Path(self.input_folder) / filename).is_file()
+
+    def check_for_missing_files(self) -> typing.List[str]:
+        """
+        Returns a list of required files that are not present in self.input_folder
+
+        Returns
+        -------
+        missing_files : List[str]
+        """
+        # self.BUILDING_CONDITIONS is deprecated so it should be excluded from here
+
+        missing_files = [file for file in self.files_to_check if not self._check_is_file(file)]
+        if missing_files:
+            plural = 's' if len(missing_files) != 1 else ''
+            msg = f'{len(missing_files)} required file{plural} missing from {self.input_folder}'
+            logger.error(msg)
+            for f in missing_files:
+                logger.error(f'Could not find {f}')
+        return missing_files
+
+    def create_missing_input_files(self, input_directory: pathlib.Path) -> None:
+        """
+        Creates any input files missing in input_directory
+
+        Parameters
+        -------
+        input_directory : target directory for input files
+
+        Returns
+        -------
+        None
+        """
+        if input_directory.is_file():
+            raise NotADirectoryError(f'{input_directory} is a file')
+        if not input_directory.is_dir():
+            logger.debug(f'{input_directory} is not a directory')
+            input_directory.mkdir()
+        for file in self.files_to_check:
+            logger.debug(f'Create input file {file}')
+            target_file = input_directory / file
+            source_file = pathlib.Path(__file__).parent.parent / 'data' / file
+            if target_file.is_file():
+                logger.warning(f'Skipping existing file {target_file}')
+                continue
+            if not source_file.is_file():
+                logger.error(f'Source file {source_file} does not exist!')
+                continue
+            shutil.copy(source_file, target_file)
+            logger.info(f'Created {target_file}')
 
 
 

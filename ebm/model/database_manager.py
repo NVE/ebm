@@ -180,3 +180,7 @@ class DatabaseManager():
         demolition = pd.Series(demolition_by_year_all.get(building_category.name.lower()), index=range(2010, 2051))
 
         return demolition
+
+    def validate_database(self):
+        missing_files = self.file_handler.check_for_missing_files()
+        return True

@@ -143,7 +143,7 @@ def make_arguments(default_path: pathlib.Path) -> argparse.Namespace:
                                          formatter_class=argparse.RawTextHelpFormatter
                                          )
     arg_parser.add_argument('--version', '-v', action='version', version=f'calculate-area-forcast {__version__}')
-    arg_parser.add_argument('--debug', '-d', action='store_true',
+    arg_parser.add_argument('--debug', action='store_true',
                             help='Run in debug mode. (Extra information written to stdout)')
     arg_parser.add_argument('output_file', nargs='?', type=str, default=default_path,
                             help=textwrap.dedent(
@@ -168,7 +168,7 @@ def make_arguments(default_path: pathlib.Path) -> argparse.Namespace:
                             help='Forecast start year. default: 2010, all other values are invalid')
     arg_parser.add_argument('--end_year', nargs='?', type=int, default=2050,
                             help='Forecast end year (including). default: 2050, any other values are invalid')
-    arg_parser.add_argument('--horizontal', action='store_true',
+    arg_parser.add_argument('--horizontal', '--horisontal', action='store_true',
                             help='Show years horizontal (left to right)')
     arguments = arg_parser.parse_args()
     return arguments

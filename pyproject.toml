@@ -27,9 +27,6 @@ Repository = "https://NVE-devops@dev.azure.com/NVE-devops/Energibruksmodell/_git
 
 [tool.setuptools]
 packages = ["ebm"]
-#[tool.setuptools.packages.find]
-#include = ["ebm*"]
-#include_package_data = true
 [project.scripts]
 calculate-area-forecast = "ebm.__main__:main"
 [tool.setuptools.dynamic]

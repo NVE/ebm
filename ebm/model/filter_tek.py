@@ -1,8 +1,7 @@
 import typing
 
-import pandas as pd
-
 from ebm.model.building_category import BuildingCategory
+from ebm.model.data_classes import TEKParameters
 
 class FilterTek:
 
@@ -44,16 +43,28 @@ class FilterTek:
         return filtered_tek_list
     
 
-    #TODO: add static method for filtering tek_params
+    @staticmethod
+    def get_filtered_params(tek_list: typing.List[str], tek_params: typing.Dict[str, TEKParameters]) -> typing.Dict[str, TEKParameters]:
+        """
+        Filters the TEK parameters to include only those relevant to the provided TEK list.
 
-if __name__ == '__main__':
+        This method takes a dictionary of TEK parameters and filters it to include only 
+        the parameters for TEKs that are present in the `tek_list`. This ensures that 
+        only the relevant TEK parameters are retained for use in subsequent calculations.
 
-    from ebm.model.building_category import BuildingCategory
-    from ebm.model.database_manager import DatabaseManager
-    
-    building_category = BuildingCategory.HOUSE
-    database_manager = DatabaseManager()
-    tek_list = database_manager.get_tek_list()
-    print(tek_list)
-    tek_list = FilterTek.get_filtered_list(building_category, tek_list)
-    print(tek_list)
+        Parameters:
+        - tek_list (List[str]): A list of TEK identifiers to filter by.
+        - tek_params (Dict[str, TEKParameters]): A dictionary where the keys are TEK identifiers 
+                                                    and the values are TEKParameters objects containing
+                                                    the parameters for each TEK.
+
+        Returns:
+        - filtered_tek_params (Dict[str, TEKParameters]): A dictionary containing only the TEK parameters
+                                                        for the TEKs present in the `tek_list`.
+        """
+        filtered_tek_params = {}
+        for tek in tek_list:
+            filtered_tek_params[tek] = tek_params[tek]    
+
+        return filtered_tek_params
+

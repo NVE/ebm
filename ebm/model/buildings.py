@@ -9,6 +9,7 @@ from .building_condition import BuildingCondition
 from .data_classes import TEKParameters, ScurveParameters
 from .scurve import SCurve
 from .shares_per_condition import SharesPerCondition
+from .filter_tek import FilterTek
 
 
 # TODO:
@@ -45,71 +46,12 @@ class Buildings():
         
         self.building_category = building_category
         self.scurve_condition_list = scurve_condition_list
-        self.tek_list = self._filter_tek_list(tek_list)  
-        self.tek_params = self._filter_tek_params(tek_params)
+        self.tek_list = FilterTek.get_filtered_list(building_category, tek_list)  
+        self.tek_params = FilterTek.get_filtered_params(self.tek_list, tek_params)
         self.scurve_params = self._filter_scurve_params(scurve_params)
         self.scurve_data = self._get_scurve_data()
         self.shares_per_condition = self.get_shares()
         self.area_params = area_params #TODO: change so that the area params are filtered on building category? 
-
-    def _filter_tek_list(self, tek_list: typing.List[str]) -> typing.List[str]:
-        """
-        Filters the provided TEK list based on the building category.
-
-        Parameters:
-        - tek_list (List[str]): List of TEK strings to be filtered.
-
-        Returns:
-        - filtered_tek_list (List[str]): Filtered list of TEK strings.
-        """
-        # String variables used to filter the tek_list
-        category_apartment = 'apartment_block'
-        category_house = 'house'
-        commercial_building = 'COM'
-        residential_building = 'RES'
-        pre_tek49_apartment = 'PRE_TEK49_RES_1950'
-        pre_tek49_house = 'PRE_TEK49_RES_1940'
-
-        residential_building_list = [category_apartment, category_house]
-        
-        if self.building_category in residential_building_list:
-            # Filter out all TEKs associated with commercial buildings
-            filtered_tek_list = [tek for tek in tek_list if commercial_building not in tek]
-
-            # Further filtering based on the specific residential building category
-            if self.building_category == category_apartment:
-                filtered_tek_list = [tek for tek in filtered_tek_list if tek != pre_tek49_house]
-            elif self.building_category == category_house:
-                filtered_tek_list = [tek for tek in filtered_tek_list if tek != pre_tek49_apartment]
-
-        else:
-            # Filter out all TEKs associated with residential buildings
-             filtered_tek_list = [tek for tek in tek_list if residential_building not in tek]
-
-        return filtered_tek_list
-    
-    def _filter_tek_params(self, tek_params: typing.Dict[str, TEKParameters]):
-        """
-        Filters the TEK parameters to include only those relevant to the current TEK list.
-
-        This method takes a dictionary of TEK parameters and filters it to include only 
-        the parameters for TEKs that are present in the `self.tek_list`. This ensures 
-        that only the relevant TEK parameters are used in subsequent calculations.
-
-        Parameters:
-        - tek_params (Dict[str, TEKParameters]): A dictionary where the keys are TEK identifiers 
-                                                 and the values are TEKParameters objects containing
-                                                 the parameters for each TEK.
-
-        Returns:
-        - filtered_tek_params (Dict[str, TEKParameters]): A dictionary containing only the TEK parameters
-                                                          for the TEKs present in `self.tek_list`.
-        """
-        filtered_tek_params = {}
-        for tek in self.tek_list:
-            filtered_tek_params[tek] = tek_params[tek]    
-
-        return filtered_tek_params
 
     def _filter_scurve_params(self, scurve_params: pd.DataFrame) -> typing.Dict[str, ScurveParameters]:
         """

@@ -14,13 +14,10 @@ from ebm.model.bema_validation import *
 database_manager = DatabaseManager()
 building_category = BuildingCategory.APARTMENT_BLOCK
 
-ebm_rates = get_ebm_rush_rates(building_category, database_manager)
-bema_rates = load_bema_rush_rates(building_category, database_manager)
+building = Buildings.build_buildings(building_category, database_manager)
+tek_list = building.tek_list
+tek_params = building.tek_params
 
-ebm_scurves = get_ebm_scurves(building_category, database_manager) 
-bema_scurves = load_bema_scurves(building_category)
-
-logger.info(f'BEMA')
-print(bema_rates)
-logger.info(f'EBM')
-print(ebm_rates)
+print(tek_list)
+for tek in tek_params:
+    print(tek)

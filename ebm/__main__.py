@@ -3,8 +3,9 @@ import os
 import pathlib
 import sys
 import textwrap
-import typing
+from typing import List, Dict
 
+import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
@@ -137,7 +138,7 @@ def make_arguments(default_path: pathlib.Path) -> argparse.Namespace:
     creating default input, start year, and end year.
     """
 
-    default_building_categories: typing.List[str] = [str(b) for b in iter(BuildingCategory)]
+    default_building_categories: List[str] = [str(b) for b in iter(BuildingCategory)]
     arg_parser = argparse.ArgumentParser(prog='calculate-area-forecast',
                                          description=f'Calculate EBM area forecast v{__version__}',
                                          formatter_class=argparse.RawTextHelpFormatter
@@ -175,7 +176,7 @@ def make_arguments(default_path: pathlib.Path) -> argparse.Namespace:
 
 
 def area_forecast_result_to_dataframe(building_category: BuildingCategory,
-                                      forecast: typing.Dict[str, list],
+                                      forecast: Dict[str, list],
                                       start_year: int,
                                       end_year: int) -> pd.DataFrame:
     """
@@ -206,8 +207,9 @@ def area_forecast_result_to_dataframe(building_category: BuildingCategory,
     return dataframe
 
 
+# noinspection PyTypeChecker
 def area_forecast_result_to_horisontal_dataframe(building_category: BuildingCategory,
-                                                 forecast: typing.Dict[str, list],
+                                                 forecast: Dict[str, Dict[str, List[np.float64]]],
                                                  start_year: int,
                                                  end_year: int) -> pd.DataFrame:
     """
@@ -227,6 +229,7 @@ def area_forecast_result_to_horisontal_dataframe(building_category: BuildingCate
     """
     rows = []
     for tek in forecast.keys():
+        condition: str
         for condition, numbers in forecast.get(tek).items():
             row = [str(building_category), tek, condition]
             for number, year in zip(numbers, range(start_year, end_year + 1)):
@@ -298,7 +301,7 @@ def validate_years(end_year, start_year):
 def calculate_building_category_area_forecast(building_category: BuildingCategory,
                                               database_manager: DatabaseManager,
                                               start_year: int,
-                                              end_year: int) -> typing.Dict[str, list[float]]:
+                                              end_year: int) -> Dict[str, list[float]]:
     """
     Calculates the area forecast for a given building category from start to end year (including).
 
@@ -335,7 +338,7 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
                                                                        database_manager)
 
     constructed_floor_area = yearly_constructed.accumulated_constructed_floor_area
-    forecast: typing.Dict = area_forecast.calc_area([v for v in constructed_floor_area])
+    forecast: Dict = area_forecast.calc_area([v for v in constructed_floor_area])
 
     return forecast
 

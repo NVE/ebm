@@ -68,14 +68,16 @@ For more information use `--help`
 
 `python -m ebm --help`
 
-```text
+```shell
 python -m ebm --help
-usage: calculate-area-forecast [-h] [--version] [--debug] [--force] [--open] [--csv-delimiter CSV_DELIMITER] [--start_year [START_YEAR]] [--end_year [END_YEAR]] [filename] [building_categories ...]
 
-Calculate EBM area forecast v0.7.6
+usage: calculate-area-forecast [-h] [--version] [--debug] [--force] [--open] [--csv-delimiter CSV_DELIMITER] [--create-input] [--start_year [START_YEAR]] [--end_year [END_YEAR]] [--horizontal]
+                               [output_file] [building_categories ...]
+
+Calculate EBM area forecast v0.7.9
 
 positional arguments:
-  filename              The location of the file you want to be written. default: output\ebm_area_forecast.xlsx
+  output_file           The location of the file you want to be written. default: output\ebm_area_forecast.xlsx
                             If the file already exists the program will terminate without overwriting.
                             Use "-" to output to the console instead
   building_categories
@@ -90,12 +92,12 @@ options:
   --open, -o            Attempt opening <filename> after writing
   --csv-delimiter CSV_DELIMITER, --delimiter CSV_DELIMITER, -e CSV_DELIMITER
                         A single character to be used for separating columns when writing csv. Default: "," Special characters like ; should be quoted ";"
+  --create-input        Create input directory with all required files in the current working directory
   --start_year [START_YEAR]
                         Forecast start year. default: 2010, all other values are invalid
   --end_year [END_YEAR]
                         Forecast end year (including). default: 2050, any other values are invalid
-
-
+  --horizontal          Show years horizontal (left to right)
 ```
 
 

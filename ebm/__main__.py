@@ -53,22 +53,27 @@ def main() -> int:
 
     # Make sure everything is working as expected
     validate_years(end_year, start_year)
-    make_output_directory(output_filename.parent)
-    if output_filename.is_file() and output_filename != default_path and not force_overwrite:
-        logger.error(f'{output_filename} already exists.')
-        return 1
-
     database_manager = DatabaseManager()
 
     # Create input directory if requested
     if create_input:
         database_manager.file_handler.create_missing_input_files(pathlib.Path('input'))
         logger.info('Finished creating input')
+        # Exit with 0 for success. The assumption is that the user would like to review the input before proceeding.
         return 0
+
+    make_output_directory(output_filename.parent)
+    if output_filename.is_file() and output_filename != default_path and not force_overwrite:
+        # If the file already exists and is not the default, display error and exit unless --force was used.
+        logger.error(f'{output_filename} already exists.')
+        return 1
+
     # Make sure all required files exists
     missing_files = database_manager.file_handler.check_for_missing_files()
     if missing_files:
-        print('Use --create-input to create an input directory with default files in the current directory',
+        print("""
+    Use calculate-area-forecast --create-input to create an input directory with default files in the current directory
+    """.strip(),
               file=sys.stderr)
         return 2
 

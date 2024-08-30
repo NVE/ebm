@@ -4,7 +4,10 @@ TODO: Give a short introduction of your project. Let this section explain the ob
 # Getting Started
 TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
 
-[Detailed developer documentation found here (Norwegian)](docs/README.md)
+## More information
+ - [Detailed developer documentation found here (Norwegian)](docs/README.md)
+ - [How to build the project](docs/BUILD.md)
+
 
 ## 1. Installation process
 Open a terminal application and navigate to wherever you want to do work. 

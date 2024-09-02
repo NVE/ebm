@@ -109,7 +109,7 @@ class SCurve():
         
         # Create a pd.Series with an index from 1 to building_lifetime 
         index = range(1, self._building_lifetime + 1)
-        rates_per_year = pd.Series(rates_per_year, index=index)
+        rates_per_year = pd.Series(rates_per_year, index=index, name='scurve')
         rates_per_year.index.name = 'age'
 
         return rates_per_year

@@ -53,9 +53,7 @@ class FilterScurveParams():
 
         for condition in scurve_condition_list:
             if not scurve_params.building_category.str.contains(building_category).any():
-                msg = 'Unknown building_category "{}" encountered when setting up scurve parameters'.format(
-                    building_category
-                )
+                msg = 'Unknown building_category "{}" encountered when setting up scurve parameters'.format(building_category)
                 raise KeyError(msg)
 
             # Filter dataframe on building category and condition

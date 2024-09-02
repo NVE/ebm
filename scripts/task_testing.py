@@ -11,6 +11,9 @@ from ebm.model.scurve import SCurve
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.building_category import BuildingCategory
 from ebm.model.filter_scurve_params import FilterScurveParams
+from ebm.model.scurve_processor import ScurveProcessor
+from ebm.model.filter_tek import FilterTek
+from ebm.model.shares_per_condition_series import SharesPerCondition
 from ebm.model.bema_validation import *
 
 #TODO: use DB manager to get relevant data to run s-curve class from here
@@ -18,26 +21,22 @@ from ebm.model.bema_validation import *
 database_manager = DatabaseManager()
 building_category = BuildingCategory.HOUSE
 
+tek_list = FilterTek.get_filtered_list(building_category, database_manager.get_tek_list())
+
 ## Test: refactor scruve datatype
 scurve_condition_list = BuildingCondition.get_scruve_condition_list()
 scurve_data_params = database_manager.get_scurve_params()
 
 scurve_params = FilterScurveParams.filter(building_category, scurve_condition_list, scurve_data_params)
 
-condition = BuildingCondition.SMALL_MEASURE
-scurve_params_condition = scurve_params[condition]
+scurve_processor = ScurveProcessor(scurve_condition_list, scurve_params)
 
-# Calculate the S-curve 
-s = SCurve(scurve_params_condition.earliest_age, 
-           scurve_params_condition.average_age, 
-           scurve_params_condition.last_age,
-           scurve_params_condition.rush_years, 
-           scurve_params_condition.rush_share, 
-           scurve_params_condition.never_share)
+scurves = scurve_processor.get_scurves()
+never_shares = scurve_processor.get_never_shares()
 
-rates_per_year = s.get_rates_per_year_over_building_lifetime()
-scurve = s.calc_scurve()
+print(scurves)
+print(never_shares)
 
-#print(scurve)
+#shares = SharesPerCondition(tek_list, tek_params, )
 
 #building = Buildings.build_buildings(building_category, database_manager)

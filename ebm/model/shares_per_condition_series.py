@@ -38,23 +38,23 @@ class SharesPerCondition():
         self.never_share_renovation = never_shares[BuildingCondition.RENOVATION]
         self.never_share_demolition = never_shares[BuildingCondition.DEMOLITION]
         
-        # TODO: remove instance variables and rather call the methods within methods
-        self.shares_demolition = self.calc_shares_demolition()
-        self.shares_small_measure_total = self.calc_shares_small_measure_total()
-        self.shares_renovation_total = self.calc_shares_renovation_total()
-        self.shares_renovation = self.calc_shares_renovation()
-        self.shares_renovation_and_small_measure = self.calc_shares_renovation_and_small_measure()
-        self.shares_small_measure = self.calc_shares_small_measure()
-        self.shares_original_condition = self.calc_shares_original_condition()
+        #TODO: remove instance variables and rather call the methods within methods
+        #self.shares_demolition = self.calc_shares_demolition()
+        #self.shares_small_measure_total = self.calc_shares_small_measure_total()
+        #self.shares_renovation_total = self.calc_shares_renovation_total()
+        #self.shares_renovation = self.calc_shares_renovation()
+        #self.shares_renovation_and_small_measure = self.calc_shares_renovation_and_small_measure()
+        #self.shares_small_measure = self.calc_shares_small_measure()
+        #self.shares_original_condition = self.calc_shares_original_condition()
         
-        # TODO: create method to call all the differents methods based on BuildingCondition and use here
-        self.shares_per_condition = {
-            BuildingCondition.SMALL_MEASURE: self.shares_small_measure,
-            BuildingCondition.RENOVATION: self.shares_renovation,
-            BuildingCondition.RENOVATION_AND_SMALL_MEASURE: self.shares_renovation_and_small_measure,
-            BuildingCondition.DEMOLITION: self.shares_demolition,
-            BuildingCondition.ORIGINAL_CONDITION: self.shares_original_condition
-        }
+        #TODO: create method to call all the differents methods based on BuildingCondition and use here
+        #self.shares_per_condition = {
+        #    BuildingCondition.SMALL_MEASURE: self.shares_small_measure,
+        #    BuildingCondition.RENOVATION: self.shares_renovation,
+        #    BuildingCondition.RENOVATION_AND_SMALL_MEASURE: self.shares_renovation_and_small_measure,
+        #    BuildingCondition.DEMOLITION: self.shares_demolition,
+        #    BuildingCondition.ORIGINAL_CONDITION: self.shares_original_condition
+        #}
         
     def calc_shares_demolition(self) -> typing.Dict:
         """
@@ -350,27 +350,3 @@ class SharesPerCondition():
                 shares.append(share)
             tek_shares[tek] = shares
         return tek_shares     
-        
-
-
-if __name__ == '__main__':
-    
-    from ebm.model.buildings import Buildings
-    from ebm.model.building_category import BuildingCategory
-    from ebm.model.database_manager import DatabaseManager
-
-    database_manager = DatabaseManager()
-    building_category = BuildingCategory.HOUSE
-    condition = BuildingCondition
-
-    building = Buildings.build_buildings(building_category, database_manager)
-    shares = building.get_shares()
-    shares = building.get_shares_per_condition('small_measure')
-   
-    print(shares)
-
-
-
-
-
-

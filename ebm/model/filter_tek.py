@@ -45,7 +45,7 @@ class FilterTek:
 
         return filtered_tek_list
     
-
+    # This method is only needed if tek_params are initialized in the Buildings class
     @staticmethod
     def get_filtered_params(tek_list: typing.List[str], tek_params: typing.Dict[str, TEKParameters]) -> typing.Dict[str, TEKParameters]:
         """

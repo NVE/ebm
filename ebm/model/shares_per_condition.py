@@ -1,4 +1,7 @@
 import typing
+import pandas as pd
+
+from loguru import logger
 
 from ebm.model.data_classes import TEKParameters
 from ebm.model.tek import TEK
@@ -18,23 +21,26 @@ class SharesPerCondition():
     def __init__(self, 
                  tek_list: typing.List[str], 
                  tek_params: typing.Dict[str, TEKParameters], 
-                 scurve_data: typing.Dict[str, typing.List[typing.Tuple[typing.Tuple[float], float]]],
+                 scurves: typing.Dict[str, pd.Series],
+                 never_shares: typing.Dict[str, float],
                  model_start_year: int = 2010,
                  model_end_year: int = 2050):
         
         self.tek_list = tek_list
         self.tek = TEK(tek_params)
-        self.scurve_data = scurve_data
         self.model_start_year = model_start_year
         self.model_end_year = model_end_year
 
+        #TODO: remove conversion to list after altering the calculations to handle pd.Series
+        self.scurves = self._convert_scurves_to_lists(scurves)
+
         # Define S-curve parameter attributes 
-        self.scurve_small_measure = self.scurve_data[BuildingCondition.SMALL_MEASURE][0]
-        self.scurve_renovation = self.scurve_data[BuildingCondition.RENOVATION][0]
-        self.scurve_demolition = self.scurve_data[BuildingCondition.DEMOLITION][0]
-        self.never_share_small_measure = self.scurve_data[BuildingCondition.SMALL_MEASURE][1]
-        self.never_share_renovation = self.scurve_data[BuildingCondition.RENOVATION][1]
-        self.never_share_demolition = self.scurve_data[BuildingCondition.DEMOLITION][1]
+        self.scurve_small_measure = self.scurves[BuildingCondition.SMALL_MEASURE]
+        self.scurve_renovation = self.scurves[BuildingCondition.RENOVATION]
+        self.scurve_demolition = self.scurves[BuildingCondition.DEMOLITION]
+        self.never_share_small_measure = never_shares[BuildingCondition.SMALL_MEASURE]
+        self.never_share_renovation = never_shares[BuildingCondition.RENOVATION]
+        self.never_share_demolition = never_shares[BuildingCondition.DEMOLITION]
         
         self.shares_demolition = self.calc_shares_demolition()
         self.shares_small_measure_total = self.calc_shares_small_measure_total()
@@ -51,7 +57,21 @@ class SharesPerCondition():
             BuildingCondition.DEMOLITION: self.shares_demolition,
             BuildingCondition.ORIGINAL_CONDITION: self.shares_original_condition
         }
-        
+    
+    #TODO: remove after altering the calculations to handle pd.Series
+    def _convert_scurves_to_lists(self, scurves: typing.Dict[str, pd.Series]) -> typing.Dict[str, typing.List[float]]:
+        """
+        Convert the values of the scurves dictionary to lists if they are of type pd.Series.
+        """
+        converted_scurves = {}
+        for condition, scurve in scurves.items():
+            if isinstance(scurve, pd.Series):
+                logger.info(f'Converting scurve series to lists')
+                converted_scurves[condition] = scurve.tolist()
+            else:
+                converted_scurves[condition] = scurve
+        return converted_scurves
+
     def calc_shares_demolition(self) -> typing.Dict:
         """
         Calculate the percentage share of area that is demolished over time for each TEK.
@@ -346,27 +366,3 @@ class SharesPerCondition():
                 shares.append(share)
             tek_shares[tek] = shares
         return tek_shares     
-        
-
-
-if __name__ == '__main__':
-    
-    from ebm.model.buildings import Buildings
-    from ebm.model.building_category import BuildingCategory
-    from ebm.model.database_manager import DatabaseManager
-
-    database_manager = DatabaseManager()
-    building_category = BuildingCategory.HOUSE
-    condition = BuildingCondition
-
-    building = Buildings.build_buildings(building_category, database_manager)
-    shares = building.get_shares()
-    shares = building.get_shares_per_condition('small_measure')
-   
-    print(shares)
-
-
-
-
-
-

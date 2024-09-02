@@ -13,17 +13,14 @@ from ebm.model.building_category import BuildingCategory
 from ebm.model.filter_scurve_params import FilterScurveParams
 from ebm.model.scurve_processor import ScurveProcessor
 from ebm.model.filter_tek import FilterTek
-from ebm.model.shares_per_condition_series import SharesPerCondition
+from ebm.model.shares_per_condition import SharesPerCondition
 from ebm.model.bema_validation import *
 
-#TODO: use DB manager to get relevant data to run s-curve class from here
 
 database_manager = DatabaseManager()
 building_category = BuildingCategory.HOUSE
 
-tek_list = FilterTek.get_filtered_list(building_category, database_manager.get_tek_list())
-
-## Test: refactor scruve datatype
+# Refactor scruve datatype
 scurve_condition_list = BuildingCondition.get_scruve_condition_list()
 scurve_data_params = database_manager.get_scurve_params()
 
@@ -37,6 +34,16 @@ never_shares = scurve_processor.get_never_shares()
 print(scurves)
 print(never_shares)
 
-#shares = SharesPerCondition(tek_list, tek_params, )
+# Refactor Shares datatype
+
+tek_list = FilterTek.get_filtered_list(building_category, database_manager.get_tek_list())
+tek_params = database_manager.get_tek_params(tek_list)
+
+
+shares = SharesPerCondition(tek_list, tek_params, scurves, never_shares)
+shares_per_condition = shares.shares_per_condition
 
 #building = Buildings.build_buildings(building_category, database_manager)
+#print(building.shares_per_condition)
+
+#print(shares_per_condition)

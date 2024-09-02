@@ -1,6 +1,7 @@
 import typing
-
 import pandas as pd
+
+from loguru import logger
 
 from .scurve import SCurve
 from .data_classes import ScurveParameters

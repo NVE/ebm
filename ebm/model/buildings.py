@@ -10,9 +10,8 @@ from .data_classes import TEKParameters
 from .filter_tek import FilterTek
 from .filter_scurve_params import FilterScurveParams
 from .scurve import SCurve
+from .scurve_processor import ScurveProcessor
 from .shares_per_condition import SharesPerCondition
-
-
 
 # TODO:
 # - remove _filter_tek_list and _filter_tek_params when the model is updated with new 2020 data.
@@ -37,61 +36,10 @@ class Buildings():
         self.tek_list = FilterTek.get_filtered_list(self.building_category, tek_list)  
         self.tek_params = FilterTek.get_filtered_params(self.tek_list, tek_params)
         self.scurve_params = FilterScurveParams.filter(self.building_category, self.scurve_condition_list, scurve_params) 
-        self.scurve_data = self._get_scurve_data()
+        self.scurves = ScurveProcessor(self.scurve_condition_list, self.scurve_params).get_scurves()
+        self.never_shares = ScurveProcessor(self.scurve_condition_list, self.scurve_params).get_never_shares()
         self.shares_per_condition = self.get_shares()
         self.area_params = area_params #TODO: change so that the area params are filtered on building category? 
-
-    def _get_scurve_data(self) -> typing.Dict:
-        """
-        Create a dictionary that holds S-curves and the "never share" parameter per building condition. 
-
-        This method uses input S-curve parameters for each building condition (self.scurve_params), 
-        calculates the S-curve, and stores the S-curve along with the "never share" parameter in a dictionary.
-        The dictionary is used as an input argument in the TEK class. 
-
-        Returns:
-        - scurve_data (dict): A dictionary where keys are building conditions (str) and values 
-                              are lists containing the S-curve tuple and the "never share" parameter (float).
-        """
-        scurve_data = {}
-
-        for condition in self.scurve_condition_list:
-            if condition not in self.scurve_params:
-                msg = f'Encounted unknown condition {condition} while making scurve'
-                raise ValueError(msg)
-            
-            # Filter S-curve parameters dictionary on condition
-            scurve_params_condition = self.scurve_params[condition]
-            
-            # Calculate the S-curve 
-            s = SCurve(scurve_params_condition.earliest_age, scurve_params_condition.average_age, scurve_params_condition.last_age, 
-                       scurve_params_condition.rush_years, scurve_params_condition.rush_share, scurve_params_condition.never_share)
-            scurve = s.calc_scurve()
-            
-            # Store the parameters in the dictionary
-            scurve_data[condition] = [scurve, scurve_params_condition.never_share]
-        
-        return scurve_data
-
-    def get_scurve(self, condition: str) -> typing.Dict:
-        """
-        Get the S-curve data for a specific building condition.
-
-        This method retrieves the S-curve data for a specified building condition from the 
-        `scurve_data` dictionary, which contains the precomputed S-curve for each condition.
-
-        Parameters:
-        - condition (str): The condition for which to retrieve the S-curve data (e.g., 'Renovation', 'Demolition').
-
-        Returns:
-        - scurve (dict): A dictionary containing the S-curve data for the specified condition.
-                         The dictionary has 'year' as keys representing the years in the building
-                         lifetime and 'scurve' as values representing the corresponding S-curve values.
-        """
-        scurve_list = self.scurve_data[condition][0]
-        year_list = list(range(1, len(scurve_list) + 1))
-        scurve = {'year':year_list, 'scurve':scurve_list}
-        return scurve
 
     def get_shares(self) -> typing.Dict:
         """ 
@@ -104,7 +52,7 @@ class Buildings():
         - shares_condition (dict): A dictionary where the keys are the condition names and the values are
                                    the shares per condition for each TEK.
         """
-        shares_condition = SharesPerCondition(self.tek_list, self.tek_params, self.scurve_data).shares_per_condition
+        shares_condition = SharesPerCondition(self.tek_list, self.tek_params, self.scurves, self.never_shares).shares_per_condition
         return shares_condition   
 
     # TODO: 

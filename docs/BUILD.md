@@ -16,14 +16,14 @@ python -m pip install build
 ## Configuration files
 
 ### pyproject.toml
-Contains project meta data, dependencies and script configuration. Release version number is also defined in this file.
+Contains project metadata, dependencies and script configuration. Release version number is also defined in this file.
 
 ```toml
-…
+# …
 [project]
 name = "energibruksmodell"
 version = "x.y.z"
-…
+# …
 ```
 
 More information: https://packaging.python.org/en/latest/guides/writing-pyproject-toml/

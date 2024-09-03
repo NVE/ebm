@@ -58,7 +58,7 @@ def main() -> int:
 
     # Create input directory if requested
     if create_input:
-        database_manager.file_handler.create_missing_input_files(pathlib.Path('input'))
+        database_manager.file_handler.create_missing_input_files()
         logger.info('Finished creating input')
         # Exit with 0 for success. The assumption is that the user would like to review the input before proceeding.
         return 0

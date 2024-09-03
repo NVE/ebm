@@ -1,14 +1,11 @@
-import pandas as pd
 import pathlib
 
-from loguru import logger
+import pandas as pd
 
-from ebm.model.database_manager import DatabaseManager
-from ebm.model.buildings import Buildings
 from ebm.model.area_forecast import AreaForecast
 from ebm.model.building_condition import BuildingCondition
-
-
+from ebm.model.buildings import Buildings
+from ebm.model.database_manager import DatabaseManager
 
 # help list
 building_list = ['apartment_block', 'house',
@@ -22,7 +19,6 @@ building_category = 'house'
 
 # Load necessary input arguments
 db = DatabaseManager()
-buildling_category_list = db.get_building_category_list()
 tek_list = db.get_tek_list()
 tek_params = db.get_tek_params(tek_list)
 scurve_params = db.get_scurve_params()

@@ -13,7 +13,6 @@ class FileHandler:
     """
 
     # Filenames
-    BUILDING_CATEGORIES = 'building_categories.csv'
     BUILDING_CONDITIONS = 'building_conditions.csv'
     TEK_ID = 'TEK_ID.csv'
     TEK_PARAMS = 'TEK_parameters.csv'
@@ -25,10 +24,9 @@ class FileHandler:
 
     def __init__(self):
         self.input_folder = 'input'
-        self.files_to_check = [self.BUILDING_CATEGORIES, self.TEK_ID, self.TEK_PARAMS,
-                          self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
-                          self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
-                          self.AREA_PARAMETERS]
+        self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
+                               self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
+                               self.AREA_PARAMETERS]
 
     def get_file(self, file_name: str) -> pd.DataFrame:
         """
@@ -66,29 +64,7 @@ class FileHandler:
             logger.exception(ex)
             logger.error(f'Unable to open {file_path}. Unable to read file.')
             raise
-    
-    #TODO: remove?
-    def get_building_categories(self) -> pd.DataFrame:
-        """
-        Get building categories DataFrame.
 
-        Returns:
-        - building_categories (pd.DataFrame): DataFrame containing building categories.
-        """
-        building_categories = self.get_file(self.BUILDING_CATEGORIES)
-        return building_categories
-
-    #TODO: remove
-    def get_building_conditions(self) -> pd.DataFrame:
-        """
-        Get building conditions DataFrame.
-
-        Returns:
-        - building_conditions (pd.DataFrame): DataFrame containing building conditions.
-        """
-        building_conditions = self.get_file(self.BUILDING_CONDITIONS)
-        return building_conditions
-    
     def get_tek_id(self):
         """
         Get TEK ID DataFrame.

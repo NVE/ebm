@@ -12,6 +12,8 @@ from ebm.model.database_manager import DatabaseManager
 from ebm.model.buildings import Buildings
 from ebm.model.area_forecast import AreaForecast
 from ebm.model.construction import ConstructionCalculator
+from ebm.model.filter_scurve_params import FilterScurveParams
+from ebm.model.scurve_processor import ScurveProcessor
 
 from ebm.services.spreadsheet import iter_cells
 
@@ -395,28 +397,25 @@ def get_ebm_scurves(building_category: BuildingCategory, database_manager: Datab
 
     Parameters:
     - building_category (BuildingCategory): The building category being analyzed.
-    - database_manager (DatabaseManager): The database manager instance for accessing building data.
+    - database_manager (DatabaseManager): The database manager instance for accessing data.
 
     Returns:
     - pd.DataFrame: The formatted DataFrame containing the EBM S-curve data.
     """    
-    building = Buildings.build_buildings(building_category, database_manager)
     scurve_condition_list = BuildingCondition.get_scruve_condition_list()
+    scurve_data_params = database_manager.get_scurve_params()
 
-    df_list = []
-    for condition in scurve_condition_list:
-        scurve = building.get_scurve(condition)
-        df = pd.DataFrame(scurve)
-        df['building_condition'] = condition
-        df = df[['building_condition', 'year', 'scurve']]
-        df.rename(columns={'scurve':'ebm_value'}, inplace=True)
+    scurve_params = FilterScurveParams.filter(building_category, scurve_condition_list, scurve_data_params)
+    scurve_processor = ScurveProcessor(scurve_condition_list, scurve_params)
 
-        df_list.append(df)
+    scurves = scurve_processor.get_scurves()
 
-    ebm_scurves = pd.concat(df_list)
-    ebm_scurves.reset_index(drop=True, inplace=True)
-
-    return ebm_scurves
+    # Format dataframe for validation/merge with EBM data
+    df = pd.DataFrame(scurves)
+    df.reset_index(inplace=True) # index to column 
+    df = pd.melt(df, id_vars=['age'], var_name='building_condition', value_name='ebm_value')
+    
+    return df
 
 def load_bema_scurves(building_category: BuildingCategory, start_row: int = 11, n_rows: int = 6, usecols: str = 'E:ED'):
     """
@@ -446,9 +445,9 @@ def load_bema_scurves(building_category: BuildingCategory, start_row: int = 11, 
     df['building_condition'] = bema_sorted_condition_list
 
     # Format dataframe for validation/merge with EBM data
-    df = pd.melt(df, id_vars=['building_condition'], var_name='year', value_name='bema_value')
-    df.sort_values(by=['building_condition', 'year'], inplace=True)
-    df['year'] = df['year'].astype(int)
+    df = pd.melt(df, id_vars=['building_condition'], var_name='age', value_name='bema_value')
+    df.sort_values(by=['building_condition', 'age'], inplace=True)
+    df['age'] = df['age'].astype(int)
 
     return df
 
@@ -465,7 +464,7 @@ def validate_scurves(building_category: BuildingCategory, database_manager: Data
     bema_scurves = load_bema_scurves(building_category)
 
     data_name = 'scurves'
-    join_cols = ['building_condition', 'year']
+    join_cols = ['building_condition', 'age']
     
     validate_data(building_category, data_name, ebm_scurves, bema_scurves, join_cols, precision)
 
@@ -649,11 +648,9 @@ def validate_construction(building_category: BuildingCategory, database_manager:
 if __name__ == '__main__':
     database_manager = DatabaseManager()
     building_category = BuildingCategory.APARTMENT_BLOCK
-    
-    #load_bema_rush_rates(building_category, database_manager)
-    
+        
     for building_category in BuildingCategory:
         logger.info(building_category)
-        validate_construction(building_category, database_manager)
-    
+        validate_scurves(building_category, database_manager)
+
 

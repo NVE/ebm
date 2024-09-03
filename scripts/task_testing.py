@@ -64,5 +64,3 @@ def compare_nested_dict_of_series(dict1, dict2):
                 print(f'Not equal: {condition}, {tek}')
 
 #compare_nested_dict_of_series(dict1, dict2)
-
-        

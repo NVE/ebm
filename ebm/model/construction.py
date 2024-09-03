@@ -71,15 +71,6 @@ class ConstructionCalculator:
         return pd.Series(yearly_new_building_floor_area_house, name='constructed_floor_area')
 
     @staticmethod
-    def calculate_floor_area_demolished(building_category: BuildingCategory):
-        # Loading demolition data from spreadsheet. Should be changed to a parameter with calculated data
-        demolition = DatabaseManager().load_demolition_floor_area_from_spreadsheet(building_category)
-
-        # Årlig revet areal småhus
-        yearly_demolished_floor_area_house = demolition.diff(1)
-        return pd.Series(yearly_demolished_floor_area_house, name='demolished_floor_area')
-
-    @staticmethod
     def calculate_yearly_floor_area_change(building_category_share: pd.Series, house_change: pd.Series,
                                            average_floor_area=175) -> pd.Series:
         yearly_floor_area_change = average_floor_area * house_change

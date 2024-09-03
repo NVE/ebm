@@ -37,7 +37,7 @@ To use your venv you need to activate it
 ### Install Energibruksmodell
 `python -m pip install energibruksmodell-0.7.6-py3-none-any.whl`
 
-### Run Energibrukmodell
+### Run Energibruksmodell
  Refer to section [Running as a script](#running-as-a-script) below
 
     

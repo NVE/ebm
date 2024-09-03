@@ -31,7 +31,7 @@ def dict_to_df(dict, add_year_index=False):
 
 # Load necessary input arguments
 db = DatabaseManager()
-buildling_category_list = db.get_building_category_list()
+
 tek_list = db.get_tek_list()
 tek_params = db.get_tek_params(tek_list)
 scurve_params = db.get_scurve_params()

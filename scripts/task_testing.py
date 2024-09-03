@@ -31,8 +31,8 @@ scurve_processor = ScurveProcessor(scurve_condition_list, scurve_params)
 scurves = scurve_processor.get_scurves()
 never_shares = scurve_processor.get_never_shares()
 
-print(scurves)
-print(never_shares)
+#print(scurves)
+#print(never_shares)
 
 # Refactor Shares datatype
 
@@ -41,18 +41,28 @@ tek_params = database_manager.get_tek_params(tek_list)
 
 
 shares = SharesPerCondition(tek_list, tek_params, scurves, never_shares)
-shares_per_condition = shares.shares_per_condition
+shares_per_condition = shares.calc_shares()
 
-model_years = range(2010, 2050 + 1)
+# Function to compare shares dictionaries
+def compare_nested_dict_of_series(dict1, dict2):
 
-shares_small_measure = shares_per_condition[BuildingCondition.SMALL_MEASURE]
+    logger.info('Comparing dictionaries...')
 
-print(shares_small_measure)
+    if dict1.keys() != dict2.keys():
+        print('Keys are different')
 
-tek = 'PRE_TEK49_RES_1940'
-shares_tek = shares_small_measure[tek]
+    for condition in dict1:
 
-series = pd.Series(shares_tek, index=model_years, name=tek)
-print(series)
+        tek_shares1 = dict1[condition]
+        tek_shares2 = dict2[condition]
 
+        for tek in tek_shares1:
+            series1 = tek_shares1[tek]
+            series2 = tek_shares2[tek]
 
+            if series1.equals(series2) == False:
+                print(f'Not equal: {condition}, {tek}')
+
+#compare_nested_dict_of_series(dict1, dict2)
+
+        

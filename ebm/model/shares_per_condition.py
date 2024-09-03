@@ -66,7 +66,7 @@ class SharesPerCondition():
         converted_scurves = {}
         for condition, scurve in scurves.items():
             if isinstance(scurve, pd.Series):
-                logger.info(f'Converting scurve series to lists')
+                logger.debug(f'Converting scurve series to lists')
                 converted_scurves[condition] = scurve.tolist()
             else:
                 converted_scurves[condition] = scurve
@@ -371,10 +371,25 @@ class SharesPerCondition():
 
         model_years = range(self.model_start_year, self.model_end_year + 1)
 
-        shares_per_condition = {
-            BuildingCondition.SMALL_MEASURE: self.shares_small_measure,
-            BuildingCondition.RENOVATION: self.shares_renovation,
-            BuildingCondition.RENOVATION_AND_SMALL_MEASURE: self.shares_renovation_and_small_measure,
-            BuildingCondition.DEMOLITION: self.shares_demolition,
-            BuildingCondition.ORIGINAL_CONDITION: self.shares_original_condition
+        all_shares = {
+            BuildingCondition.SMALL_MEASURE: self.calc_shares_small_measure(),
+            BuildingCondition.RENOVATION: self.calc_shares_renovation(),
+            BuildingCondition.RENOVATION_AND_SMALL_MEASURE: self.calc_shares_renovation_and_small_measure(),
+            BuildingCondition.DEMOLITION: self.calc_shares_demolition(),
+            BuildingCondition.ORIGINAL_CONDITION: self.calc_shares_original_condition()
         }
+
+        for condition, tek_shares in all_shares.items():
+            for tek, shares in tek_shares.items():
+                if isinstance(shares, list):
+                    if len(shares) != len(model_years):
+                        msg = f"Mismatch between length of modelyears and shares data for: {condition} and {tek}"
+                        raise ValueError(msg)
+                    
+                    shares = pd.Series(shares, index=model_years)
+                
+                tek_shares[tek] = shares
+
+            all_shares[condition] = tek_shares
+        
+        return all_shares

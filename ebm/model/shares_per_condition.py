@@ -367,7 +367,7 @@ class SharesPerCondition():
             tek_shares[tek] = shares
         return tek_shares     
     
-    def calc_shares(self) -> typing.Dict[str, pd.Series]:
+    def calc_shares(self) -> typing.Dict[str, typing.Dict[str, pd.Series]]:
 
         model_years = range(self.model_start_year, self.model_end_year + 1)
 

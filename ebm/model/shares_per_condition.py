@@ -366,3 +366,15 @@ class SharesPerCondition():
                 shares.append(share)
             tek_shares[tek] = shares
         return tek_shares     
+    
+    def calc_shares(self) -> typing.Dict[str, pd.Series]:
+
+        model_years = range(self.model_start_year, self.model_end_year + 1)
+
+        shares_per_condition = {
+            BuildingCondition.SMALL_MEASURE: self.shares_small_measure,
+            BuildingCondition.RENOVATION: self.shares_renovation,
+            BuildingCondition.RENOVATION_AND_SMALL_MEASURE: self.shares_renovation_and_small_measure,
+            BuildingCondition.DEMOLITION: self.shares_demolition,
+            BuildingCondition.ORIGINAL_CONDITION: self.shares_original_condition
+        }

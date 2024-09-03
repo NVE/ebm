@@ -43,7 +43,16 @@ tek_params = database_manager.get_tek_params(tek_list)
 shares = SharesPerCondition(tek_list, tek_params, scurves, never_shares)
 shares_per_condition = shares.shares_per_condition
 
-#building = Buildings.build_buildings(building_category, database_manager)
-#print(building.shares_per_condition)
+model_years = range(2010, 2050 + 1)
 
-#print(shares_per_condition)
+shares_small_measure = shares_per_condition[BuildingCondition.SMALL_MEASURE]
+
+print(shares_small_measure)
+
+tek = 'PRE_TEK49_RES_1940'
+shares_tek = shares_small_measure[tek]
+
+series = pd.Series(shares_tek, index=model_years, name=tek)
+print(series)
+
+

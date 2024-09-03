@@ -28,34 +28,6 @@ class BuildingCategory(StrEnum):
 
     def is_residential(self) -> bool:
         return self == BuildingCategory.HOUSE or self == BuildingCategory.APARTMENT_BLOCK
-    
-    #TODO: remove
-    def total_floor_area_2010(self) -> int:
-        logger.warning('Using static total_floor_area_2010')
-        if self == BuildingCategory.KINDERGARTEN:
-            return 1275238
-        if self == BuildingCategory.SCHOOL:
-            return 13884666
-        if self == BuildingCategory.UNIVERSITY:
-            return 2440242
-        if self == BuildingCategory.OFFICE:
-            return 26769695
-        if self == BuildingCategory.RETAIL:
-            return 30378557
-        if self == BuildingCategory.HOTEL:
-            return 5714517
-        if self == BuildingCategory.HOSPITAL:
-            return 4752999
-        if self == BuildingCategory.NURSING_HOME:
-            return 5215597
-        if self == BuildingCategory.CULTURE:
-            return 2899338
-        if self == BuildingCategory.SPORTS:
-            return 2323323
-        if self == BuildingCategory.STORAGE_REPAIRS:
-            return 29328483
-
-        raise NotImplementedError(f'total_floor_area_2010 does not support building category {self.name} (yet)')
 
     @staticmethod
     def from_string(category_name: str) -> 'BuildingCategory':

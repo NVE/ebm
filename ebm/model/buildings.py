@@ -98,7 +98,10 @@ class Buildings():
         
         return scurve
 
-    def build_area_forecast(self, database_manager: DatabaseManager, model_start_year: int = 2010, model_end_year: int = 2050):
+    def build_area_forecast(self,
+                            database_manager: DatabaseManager,
+                            model_start_year: int = 2010,
+                            model_end_year: int = 2050) -> AreaForecast:
         """
         Build a AreaForcast object from the Building object. Reuse building_category, tek_list, shares_per_condtion from
             the Buildings (self) object.
@@ -113,8 +116,9 @@ class Buildings():
         Returns area_forecast: AreaForecast
         -------
         """
-        area_parameters = database_manager.get_area_parameters()
-        tek_params = database_manager.get_tek_params(self.tek_list)
+        dm = database_manager if database_manager else DatabaseManager()
+        area_parameters = dm.get_area_parameters()
+        tek_params = dm.get_tek_params(self.tek_list)
         shares = self.get_shares()
 
         area_forecast = AreaForecast(
@@ -129,7 +133,8 @@ class Buildings():
         return area_forecast
 
     @staticmethod
-    def build_buildings(building_category: BuildingCategory, database_manager: DatabaseManager) -> 'Buildings':
+    def build_buildings(building_category: BuildingCategory,
+                        database_manager: DatabaseManager = None) -> 'Buildings':
         """
         Builds a Buildings object for building_category and read configuration from DatabaseManager.
           the DatabaseManager must implement .get_tek_list() .get_area_parameters() db.get_scurve_params()
@@ -144,11 +149,11 @@ class Buildings():
         -------
         - building: Buildings
         """
-
-        tek_list = database_manager.get_tek_list()
-        tek_params = database_manager.get_tek_params(tek_list)
-        scurve_params = database_manager.get_scurve_params()
-        area_params = database_manager.get_area_parameters()
+        dm = database_manager if database_manager else DatabaseManager()
+        tek_list = dm.get_tek_list()
+        tek_params = dm.get_tek_params(tek_list)
+        scurve_params = dm.get_scurve_params()
+        area_params = dm.get_area_parameters()
         scurve_condition_list = BuildingCondition.get_scruve_condition_list()
         building = Buildings(building_category=building_category,
                              tek_list=tek_list,

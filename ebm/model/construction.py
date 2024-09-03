@@ -1,4 +1,6 @@
 import itertools
+import typing
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -67,15 +69,6 @@ class ConstructionCalculator:
             build_area_sum.index.values]
 
         return pd.Series(yearly_new_building_floor_area_house, name='constructed_floor_area')
-
-    @staticmethod
-    def calculate_floor_area_demolished(building_category: BuildingCategory):
-        # Loading demolition data from spreadsheet. Should be changed to a parameter with calculated data
-        demolition = DatabaseManager().load_demolition_floor_area_from_spreadsheet(building_category)
-
-        # Årlig revet areal småhus
-        yearly_demolished_floor_area_house = demolition.diff(1)
-        return pd.Series(yearly_demolished_floor_area_house, name='demolished_floor_area')
 
     @staticmethod
     def calculate_yearly_floor_area_change(building_category_share: pd.Series, house_change: pd.Series,
@@ -193,8 +186,34 @@ class ConstructionCalculator:
         return construction
 
     @staticmethod
+    def calculate_construction_as_list(building_category: BuildingCategory,
+                                       demolition_floor_area: Union[pd.Series, list],
+                                       database_manager: DatabaseManager = None) -> typing.List:
+        """
+               Calculates constructed floor area for buildings based using provided demolition_floor_area
+                 and input data from database_manager
+
+               Parameters
+               ----------
+               building_category: BuildingCategory
+               demolition_floor_area: pd.Series expects index=2010..2050
+               database_manager: DatabaseManager (optional)
+
+               Returns
+               -------
+               accumulated_constructed_floor_area: List
+
+               """
+
+        yearly_constructed = ConstructionCalculator.calculate_construction(
+            building_category, demolition_floor_area, database_manager if database_manager else DatabaseManager())
+
+        accumulated_constructed_floor_area = [v for v in yearly_constructed.accumulated_constructed_floor_area]
+        return accumulated_constructed_floor_area
+
+    @staticmethod
     def calculate_construction(building_category: BuildingCategory,
-                               demolition_floor_area: pd.Series,
+                               demolition_floor_area: Union[pd.Series, list],
                                database_manager: DatabaseManager) -> pd.DataFrame:
         """
         Calculates constructed floor area for buildings based using provided demolition_floor_area
@@ -221,6 +240,9 @@ class ConstructionCalculator:
         -------
 
         """
+        if isinstance(demolition_floor_area, list):
+            demolition_floor_area = pd.Series(demolition_floor_area, index=[y for y in range(2010, 2050 + 1)])
+
         yearly_construction_floor_area = database_manager.get_building_category_floor_area(building_category)
         area_parameters = database_manager.get_area_parameters()
         total_floor_area = area_parameters[area_parameters.building_category == building_category].area.sum()

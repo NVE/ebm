@@ -4,7 +4,10 @@ TODO: Give a short introduction of your project. Let this section explain the ob
 # Getting Started
 TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
 
-[Detailed developer documentation found here (Norwegian)](docs/README.md)
+## More information
+ - [Detailed developer documentation found here (Norwegian)](docs/README.md)
+ - [How to build the project](docs/BUILD.md)
+
 
 ## 1. Installation process
 Open a terminal application and navigate to wherever you want to do work. 
@@ -25,13 +28,16 @@ To use your venv you need to activate it
 (Your command prompt starts with C:\ where C is any letter from A-Z)
 `\venv\Scripts\active.bat`
 
+###
+`python -m pip install pandas openpyxl loguru python-dotenv rich`
+
 ### Download energibruksmodell module from here
   https://pkgs.dev.azure.com/NVE-devops/Energibruksmodell/_apis/packaging/feeds/a3118afb-b44a-4e53-83af-0d4657833457/pypi/packages/energibruksmodell/versions/0.7.6/energibruksmodell-0.7.6-py3-none-any.whl/content
 
 ### Install Energibruksmodell
 `python -m pip install energibruksmodell-0.7.6-py3-none-any.whl`
 
-### Run Energibrukmodell
+### Run Energibruksmodell
  Refer to section [Running as a script](#running-as-a-script) below
 
     
@@ -65,14 +71,16 @@ For more information use `--help`
 
 `python -m ebm --help`
 
-```text
+```shell
 python -m ebm --help
-usage: calculate-area-forecast [-h] [--version] [--debug] [--force] [--open] [--csv-delimiter CSV_DELIMITER] [--start_year [START_YEAR]] [--end_year [END_YEAR]] [filename] [building_categories ...]
 
-Calculate EBM area forecast v0.7.6
+usage: calculate-area-forecast [-h] [--version] [--debug] [--force] [--open] [--csv-delimiter CSV_DELIMITER] [--create-input] [--start_year [START_YEAR]] [--end_year [END_YEAR]] [--horizontal]
+                               [output_file] [building_categories ...]
+
+Calculate EBM area forecast v0.7.9
 
 positional arguments:
-  filename              The location of the file you want to be written. default: output\ebm_area_forecast.xlsx
+  output_file           The location of the file you want to be written. default: output\ebm_area_forecast.xlsx
                             If the file already exists the program will terminate without overwriting.
                             Use "-" to output to the console instead
   building_categories
@@ -87,37 +95,36 @@ options:
   --open, -o            Attempt opening <filename> after writing
   --csv-delimiter CSV_DELIMITER, --delimiter CSV_DELIMITER, -e CSV_DELIMITER
                         A single character to be used for separating columns when writing csv. Default: "," Special characters like ; should be quoted ";"
+  --create-input        Create input directory with all required files in the current working directory
   --start_year [START_YEAR]
                         Forecast start year. default: 2010, all other values are invalid
   --end_year [END_YEAR]
                         Forecast end year (including). default: 2050, any other values are invalid
-
-
+  --horizontal          Show years horizontal (left to right)
 ```
 
 
 ### Running as code
 ```python
 
-from pprint import pprint as pp
-import pandas as pd
 from ebm.model import BuildingCategory, Buildings, DatabaseManager
 from ebm.model.construction import ConstructionCalculator
 
-years = [y for y in range(2010, 2050 + 1)]
-
 database_manager = DatabaseManager()
-building_category = BuildingCategory.HOUSE
-buildings = Buildings.build_buildings(building_category=building_category, database_manager=database_manager)
+
+buildings = Buildings.build_buildings(building_category=BuildingCategory.HOUSE)
+
 area_forecast = buildings.build_area_forecast(database_manager)
 
-demolition_floor_area = pd.Series(data=area_forecast.calc_total_demolition_area_per_year(), index=years)
-yearly_constructed = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area, database_manager)
+demolished_floor_area = area_forecast.calc_total_demolition_area_per_year()
 
-constructed_floor_area = [v for v in yearly_constructed.accumulated_constructed_floor_area]
-forecast = area_forecast.calc_area_with_construction(constructed_floor_area)
+yearly_constructed = ConstructionCalculator.calculate_construction_as_list(
+    building_category=BuildingCategory.HOUSE,
+    demolition_floor_area=demolished_floor_area)
 
-pp(forecast)
+forecast = area_forecast.calc_area_with_construction(yearly_constructed)
+
+print(forecast)
 
 
 ```

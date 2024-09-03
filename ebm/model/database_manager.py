@@ -1,11 +1,9 @@
 import typing
 
 import pandas as pd
-from loguru import logger
 
 from .building_category import BuildingCategory
 from .data_classes import TEKParameters
-from .demolition import demolition_by_year_all
 from .file_handler import FileHandler
 
 
@@ -28,30 +26,6 @@ class DatabaseManager():
     
     def __init__(self):
         self.file_handler = FileHandler()
-
-    #TODO: remove and remove building category input csv file?
-    def get_building_category_list(self):
-        """
-        Get a list of building categories.
-
-        Returns:
-        - building_category_list (list): List of building categories.
-        """
-        building_categories = self.file_handler.get_building_categories()
-        building_category_list = building_categories[self.COL_BUILDING_CATEGORY].unique()
-        return building_category_list
-
-    #TODO: remove
-    def get_condition_list(self):
-        """
-        Get a list of building conditions.
-
-        Returns:
-        - condition_list (list): List of building conditions.
-        """
-        building_conditions = self.file_handler.get_building_conditions()
-        condition_list = building_conditions[self.COL_BUILDING_CONDITION].unique()
-        return condition_list
     
     def get_tek_list(self):
         """
@@ -172,11 +146,6 @@ class DatabaseManager():
         area_params = self.file_handler.get_area_parameters()
         return area_params
 
-    @staticmethod
-    def load_demolition_floor_area_from_spreadsheet(building_category: BuildingCategory) -> pd.Series:
-        logger.debug(f'Loading static demolished floor area for "{building_category}"')
-        if building_category.name.lower() not in demolition_by_year_all.keys():
-            raise ValueError(f'No such building_category "{building_category}" in demolition.demolition_by_year_all')
-        demolition = pd.Series(demolition_by_year_all.get(building_category.name.lower()), index=range(2010, 2051))
-
-        return demolition
+    def validate_database(self):
+        missing_files = self.file_handler.check_for_missing_files()
+        return True

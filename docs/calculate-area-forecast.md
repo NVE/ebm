@@ -1,7 +1,10 @@
   
 # Beregne fremskriving av areal  
   
-Programmet calculate-area-forecast framskriver areal basert på samme metode som BEMA-modellen. Beregningen blir gjort basert på parametere som kan endres av brukeren. Dette dokumentet er gyldig for *calculate-area-forecast* versjon 0.8.2.  
+Programmet calculate-area-forecast framskriver areal basert på samme metode som BEMA-modellen. Beregningen blir gjort basert på parametere som kan endres av brukeren. 
+
+Dette dokumentet er laget for *calculate-area-forecast* versjon 0.8.3.  
+  
   
 ## Hvordan få tilgang?  
   

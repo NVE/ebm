@@ -54,6 +54,7 @@ class FileHandler:
         """
         logger.debug(f'get_file {file_name}')
         file_path: pathlib.Path = pathlib.Path(self.input_directory) / file_name
+        logger.debug(f'{file_path=}')
 
         try:
             if file_path.suffix == '.xlsx':
@@ -119,6 +120,21 @@ class FileHandler:
         """
         return self.get_file(self.CONSTRUCTION_POPULATION)
 
+    def get_population(self) -> pd.DataFrame:
+        """
+        Loads population data from new_buildings_population.csv as float64
+
+        Should probably be merged with get_construction_population
+
+        Returns population : pd.DataFrame
+            dataframe with population
+        -------
+
+        """
+        file_path = self.input_directory / self.CONSTRUCTION_POPULATION
+        logger.debug(f'{file_path=}')
+        return pd.read_csv(file_path, dtype={"household_size": "float64"})
+
     def get_construction_building_category_share(self) -> pd.DataFrame:
         """
         Get building category share by year DataFrame from a file.
@@ -140,7 +156,9 @@ class FileHandler:
         - construction_population (pd.DataFrame): Dataframe containing population numbers
           "area","type of building","2010","2011"
         """
-        return pd.read_csv(self.input_directory / self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
+        file_path = self.input_directory / self.CONSTRUCTION_BUILDING_CATEGORY_AREA
+        logger.debug(f'{file_path=}')
+        return pd.read_csv(file_path,
                            index_col=0, header=0)
 
     def get_area_parameters(self) -> pd.DataFrame:

@@ -103,7 +103,8 @@ class ConstructionCalculator:
     def calculate_commercial_construction(building_category: BuildingCategory = None,
                                           total_floor_area: int = 1_275_238,
                                           constructed_floor_area: pd.Series = None,
-                                          demolition_floor_area: pd.Series = None) -> pd.DataFrame:
+                                          demolition_floor_area: pd.Series = None,
+                                          population: pd.DataFrame = None) -> pd.DataFrame:
         if not building_category:
             building_category = BuildingCategory.KINDERGARTEN
 
@@ -112,9 +113,7 @@ class ConstructionCalculator:
         logger.debug('constructed_floor_area (2010-2014)')
 
         # Eksterne tall
-        population: pd.DataFrame = pd.read_csv('input/new_buildings_population.csv',
-                                               dtype={"household_size": "float64"})
-        population = population.set_index('year')['population']
+
 
         total_floor_area = pd.Series(data=[total_floor_area], index=[2010])
         total_floor_area.loc[2011] = \
@@ -184,6 +183,7 @@ class ConstructionCalculator:
         }, index=[year for year in range(2010, 2051)])
 
         return construction
+
 
     @staticmethod
     def calculate_construction_as_list(building_category: BuildingCategory,
@@ -273,4 +273,5 @@ class ConstructionCalculator:
             building_category=building_category,
             total_floor_area=total_floor_area,
             constructed_floor_area=yearly_construction_floor_area,
-            demolition_floor_area=demolition_floor_area)
+            demolition_floor_area=demolition_floor_area,
+            population=database_manager.get_population())

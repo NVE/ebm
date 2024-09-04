@@ -16,6 +16,7 @@ from ebm.model.building_condition import BuildingCondition
 from ebm.model.buildings import Buildings
 from ebm.model.construction import ConstructionCalculator
 from ebm.model.database_manager import DatabaseManager
+from ebm.model.file_handler import FileHandler
 
 TEK = """PRE_TEK49_RES_1950
 PRE_TEK49_RES_1940
@@ -68,6 +69,7 @@ def main() -> int:
     force_overwrite = arguments.force
     open_after_writing = arguments.open
     horizontal_years = arguments.horizontal
+    input_directory = arguments.input
     create_input = arguments.create_input
     # `;` Will normally be interpreted as line end when typed in a shell. If the
     # delimiter is empty make the assumption that the user used ;. An empty delimiter is not valid anyway.
@@ -75,7 +77,8 @@ def main() -> int:
 
     # Make sure everything is working as expected
     validate_years(end_year, start_year)
-    database_manager = DatabaseManager()
+
+    database_manager = DatabaseManager(file_handler=FileHandler(directory=input_directory))
 
     # Create input directory if requested
     if create_input:
@@ -143,7 +146,7 @@ You can overwrite the {output_filename} by using --force: {program_name} {' '.jo
         logger.info(f'Wrote {output_filename}')
     else:
         excel_writer = pd.ExcelWriter(output_filename, engine='openpyxl')
-        output.to_excel(excel_writer, sheet_name='area forecast', merge_cells=False)
+        output.to_excel(excel_writer, sheet_name='area forecast', merge_cells=False, freeze_panes=(1, 3))
         excel_writer.close()
         logger.info(f'Wrote {output_filename}')
 
@@ -197,6 +200,9 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
                                    One or more of the following building categories: 
                                        {", ".join(default_building_categories)}"""
                                                  ))
+    arg_parser.add_argument('--input', '--input-directory', '-i',
+                            nargs='?', type=str, default=os.environ.get('EBM_INPUT_DIRECTORY', 'input'),
+                            help='path to the directory with input files')
     arg_parser.add_argument('--conditions', '--building-conditions', '-n',
                             nargs='*', type=str, default=default_building_conditions,
                             help=textwrap.dedent(f"""

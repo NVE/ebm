@@ -99,17 +99,21 @@ Filter kan kombineres
   
 ## Endre input  
   
-Framskriving utføres basert på filene i underkatalogen input. Følgelig er det mulig å påvirke resultatet ved å gjøre endringer i input. I eksempelet under er nybygging for barnehager (kindergarten) endret for årene 2010 til 2014. Endringen er utført i filen `input/construction_building_category_yearly.csv`.  
-  
-Før endring:  
+Framskriving utføres basert på filene i underkatalogen input. Beregningen kan påvirkes ved å gjøre endringer i input. I eksempelet under er årlig nybygget areal for barnehager (kindergarten) endret for årene 2010 til 2014. Endringen er utført i filen `construction_building_category_yearly.csv`. 
+#### Før endring
   
 ![Changed input](images/caf-10-input-original.png)  
-  
-  
-Etter endring:  
+
+`input/construction_building_category_yearly.csv` til venstre
+`output/ebm_area_forecast.xlsx` til høyre
+
+#### Etter endring   
   
 ![Changed input](images/caf-11-input-changed.png)  
-  
+
+`input/construction_building_category_yearly.csv` til venstre
+`output/ebm_area_forecast.xlsx` til høyre
+
 Det er mulig å endre oppsett som  
 - Nybygget areal per år `construction_building_category_yearly.csv`  
 - befolkning og husholdningstørrelse (2010 - 2050), `new_buildings_population.csv`  
@@ -118,7 +122,23 @@ Det er mulig å endre oppsett som
 - Hvilket år man starter riving for gitt byggkategori og TEK `scurve_parameters.csv`  
   
 Forbedret dokumentasjon for input og datamodellen vil komme senere.  
-  
+
+## Alternativ input
+
+Ved å bruke argumentet `--input` går det an å styre programmet til å lese input fra en alternativ katalog. Funksjonen gjør at man kan for eksempel kan håndtere flere scenarier. `--input` blir lest om man kjører beregning og om man lager ny input med `--create-input`
+
+### Lage nytt scenario
+
+`calculate-area-forecast --input=scenario1 --create-input`
+
+![Changed input](images/caf-12-input-scenario1.png)  
+
+### Bruke nytt scenario
+
+Her blir scenario1 brukt for lage ny fremskriving for barnehager
+
+`calculate-area-forecast output\barnehage-scenario1.xlsx  --categories kindergarten --input=scenario1`
+``
   
 ## Flere eksempler  
   

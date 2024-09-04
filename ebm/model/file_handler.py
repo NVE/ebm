@@ -140,7 +140,7 @@ class FileHandler:
         - construction_population (pd.DataFrame): Dataframe containing population numbers
           "area","type of building","2010","2011"
         """
-        return pd.read_csv('input/'+self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
+        return pd.read_csv(self.input_directory / self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
                            index_col=0, header=0)
 
     def get_area_parameters(self) -> pd.DataFrame:

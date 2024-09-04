@@ -12,9 +12,27 @@ from loguru import logger
 
 from ebm.__version__ import __version__
 from ebm.model.building_category import BuildingCategory
+from ebm.model.building_condition import BuildingCondition
 from ebm.model.buildings import Buildings
 from ebm.model.construction import ConstructionCalculator
 from ebm.model.database_manager import DatabaseManager
+
+TEK = """PRE_TEK49_RES_1950
+PRE_TEK49_RES_1940
+PRE_TEK49_COM
+TEK49_RES
+TEK49_COM
+TEK69_RES_1976
+TEK69_RES_1986
+TEK69_COM
+TEK87_RES
+TEK87_COM
+TEK97_RES
+TEK97_COM
+TEK07
+TEK10
+TEK17
+TEK21""".strip().split('\n')
 
 
 def main() -> int:
@@ -38,12 +56,15 @@ def main() -> int:
 
     logger.debug(f'Starting {sys.executable} {__file__}')
 
-    arguments = make_arguments(default_path)
+    program_name = 'calc-area-forecast'
+    arguments = make_arguments(program_name, default_path)
 
     # Make local variable from arguments for clarity
     start_year, end_year = arguments.start_year, arguments.end_year
     output_filename = pathlib.Path(arguments.output_file)
-    building_categories = [BuildingCategory.from_string(b_c) for b_c in arguments.building_categories]
+    building_categories = [BuildingCategory.from_string(b_c) for b_c in arguments.categories]
+    building_conditions = [BuildingCondition(condition) for condition in arguments.conditions]
+    tek_filter = arguments.tek
     force_overwrite = arguments.force
     open_after_writing = arguments.open
     horizontal_years = arguments.horizontal
@@ -59,15 +80,15 @@ def main() -> int:
     # Create input directory if requested
     if create_input:
         database_manager.file_handler.create_missing_input_files()
-        logger.info('Finished creating input')
+        logger.info(f'Finished creating input files in {database_manager.file_handler.input_directory}')
         # Exit with 0 for success. The assumption is that the user would like to review the input before proceeding.
         return 0
 
     # Make sure all required files exists
     missing_files = database_manager.file_handler.check_for_missing_files()
     if missing_files:
-        print("""
-    Use calculate-area-forecast --create-input to create an input directory with default files in the current directory
+        print(f"""
+    Use {program_name} --create-input to create an input directory with default files in the current directory
     """.strip(),
               file=sys.stderr)
         return 2
@@ -76,6 +97,10 @@ def main() -> int:
     if output_filename.is_file() and output_filename != default_path and not force_overwrite:
         # If the file already exists and is not the default, display error and exit unless --force was used.
         logger.error(f'{output_filename} already exists.')
+        print(f"""
+You can overwrite the {output_filename} by using --force: {program_name} {' '.join(sys.argv[1:])} --force
+""".strip(),
+              file=sys.stderr)
         return 1
 
     logger.info('Loading area forecast')
@@ -89,8 +114,18 @@ def main() -> int:
                                                            end_year=end_year)
         if horizontal_years:
             df = area_forecast_result_to_horisontal_dataframe(building_category, result, start_year, end_year)
+            if building_conditions:
+                df = df.loc[:, :, [str(s) for s in building_conditions]]
+            if tek_filter:
+                tek_in_index = [t for t in tek_filter if any(df.index.isin([t], level=1))]
+                df = df.loc[:, tek_in_index, :]
         else:
             df = area_forecast_result_to_dataframe(building_category, result, start_year, end_year)
+            if building_conditions:
+                df = df[[str(s) for s in building_conditions]]
+            if tek_filter:
+                tek_in_index = [t for t in tek_filter if any(df.index.isin([t], level=1))]
+                df = df.loc[:, tek_in_index, :]
         if output is None:
             output = df
         else:
@@ -117,12 +152,14 @@ def main() -> int:
     sys.exit(0)
 
 
-def make_arguments(default_path: pathlib.Path) -> argparse.Namespace:
+def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespace:
     """
     Create and parse command-line arguments for the area forecast calculation.
 
     Parameters
     ----------
+    program_name : str
+        Name of this program
     default_path : pathlib.Path
         Default path for the output file.
 
@@ -139,7 +176,10 @@ def make_arguments(default_path: pathlib.Path) -> argparse.Namespace:
     """
 
     default_building_categories: List[str] = [str(b) for b in iter(BuildingCategory)]
-    arg_parser = argparse.ArgumentParser(prog='calculate-area-forecast',
+    default_building_conditions = [str(condition) for condition in iter(BuildingCondition)]
+    default_tek = TEK
+
+    arg_parser = argparse.ArgumentParser(prog=program_name,
                                          description=f'Calculate EBM area forecast v{__version__}',
                                          formatter_class=argparse.RawTextHelpFormatter
                                          )
@@ -151,18 +191,31 @@ def make_arguments(default_path: pathlib.Path) -> argparse.Namespace:
                                 f'''The location of the file you want to be written. default: {default_path}
     If the file already exists the program will terminate without overwriting. 
     Use "-" to output to the console instead'''))
+    arg_parser.add_argument('--categories', '--building-categories', '-c',
+                            nargs='*', type=str, default=default_building_categories,
+                            help=textwrap.dedent(f"""
+                                   One or more of the following building categories: 
+                                       {", ".join(default_building_categories)}"""
+                                                 ))
+    arg_parser.add_argument('--conditions', '--building-conditions', '-n',
+                            nargs='*', type=str, default=default_building_conditions,
+                            help=textwrap.dedent(f"""
+                                   One or more of the following building conditions: 
+                                       {", ".join(default_building_conditions)}"""
+                                                 ))
+    arg_parser.add_argument('--tek', '-t',
+                            nargs='*', type=str, default=default_tek,
+                            help=textwrap.dedent(f"""
+                                       One or more of the following TEK: 
+                                           {", ".join(default_tek)}"""
+                                                 ))
     arg_parser.add_argument('--force', '-f', action='store_true',
                             help='Write to <filename> even if it already exists')
     arg_parser.add_argument('--open', '-o', action='store_true',
-                            help='Attempt opening <filename> after writing')
+                            help='Open <filename> with default application after writing. (Usually Excel)')
     arg_parser.add_argument('--csv-delimiter', '--delimiter', '-e', type=str, default=',',
                             help='A single character to be used for separating columns when writing csv. ' +
                                  'Default: "," Special characters like ; should be quoted ";"')
-    arg_parser.add_argument('building_categories', nargs='*', type=str, default=default_building_categories,
-                            help=textwrap.dedent(f"""
-                            One or more of the following building categories: 
-                                {", ".join(default_building_categories)}"""
-                                                 ))
     arg_parser.add_argument('--create-input', action='store_true',
                             help='Create input directory with all required files in the current working directory')
     arg_parser.add_argument('--start_year', nargs='?', type=int, default=2010,

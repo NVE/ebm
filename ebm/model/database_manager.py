@@ -134,18 +134,6 @@ class DatabaseManager():
 
         return building_category_floor_area
 
-    def get_population(self) -> pd.DataFrame:
-        """
-        Get population and household size DataFrame from a file. Uses float64.
-
-        Returns population : pd.DataFrame
-        -------
-
-        """
-        population: pd.DataFrame = self.file_handler.get_population()
-        population = population.set_index('year')['population']
-        return population
-
     def get_area_parameters(self) -> pd.DataFrame:
         """
         Get total area (m^2) per building category and TEK.

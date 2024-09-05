@@ -394,7 +394,9 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
     demolition_floor_area = pd.Series(data=area_forecast.calc_total_demolition_area_per_year(), index=years)
     yearly_constructed = ConstructionCalculator.calculate_construction(building_category,
                                                                        demolition_floor_area,
-                                                                       database_manager)
+                                                                       database_manager,
+                                                                       start_year=start_year,
+                                                                       end_year=end_year)
 
     constructed_floor_area = yearly_constructed.accumulated_constructed_floor_area
     forecast: Dict = area_forecast.calc_area([v for v in constructed_floor_area])

@@ -12,26 +12,95 @@ from ebm.model.database_manager import DatabaseManager
 
 
 class ConstructionCalculator:
+    """
+        A class used to calculate various construction metrics for residential and commercial buildings.
+
+        The main method to use is calculate_construction
+
+        Methods
+        -------
+        calculate_construction(building_category, demolition_floor_area, database_manager)
+            Calculate constructed floor area for buildings using provided demolition floor area and input data from
+                database manager.
+         calculate_construction_as_list(building_category, demolition_floor_area, database_manager=None)
+            Calculate constructed floor area for buildings using provided demolition floor area and input data
+                from database manager.
+        calculate_commercial_construction(building_category, total_floor_area, constructed_floor_area=None, demolition_floor_area=None, population=None)
+            Calculate the commercial construction metrics over a given period.
+
+        calculate_residential_construction(population, household_size, building_category_share, build_area_sum, yearly_demolished_floor_area, average_floor_area=175)
+            Calculate various residential construction metrics based on population, household size, and building data.
+
+        calculate_yearly_new_building_floor_area_sum(yearly_new_building_floor_area_house)
+            Calculate the accumulated constructed floor area over the years.
+
+        calculate_yearly_constructed_floor_area(build_area_sum, yearly_floor_area_change, yearly_demolished_floor_area)
+            Calculate the yearly constructed floor area based on changes and demolitions.
+
+        calculate_yearly_floor_area_change(building_change, average_floor_area=175)
+            Calculate the yearly floor area change based on building changes and average floor area.
+
+        calculate_population_growth(population)
+            Calculate the annual growth in population.
+
+        calculate_building_growth(building_category_share, households_change)
+            Calculate the annual growth in building categories based on household changes.
+
+        calculate_household_change(households)
+            Calculate the annual change in the number of households.
+
+        calculate_households_by_year(household_size, population)
+            Calculate the number of households by year based on household size and population.
+        """
     
-    def calculate_residential_construction(self, population: pd.Series,
-                                           household_size: pd.Series,
-                                           building_category_share: pd.Series,
-                                           build_area_sum: pd.Series,
+    def calculate_residential_construction(self, population: pd.Series, household_size: pd.Series,
+                                           building_category_share: pd.Series, build_area_sum: pd.Series,
                                            yearly_demolished_floor_area: pd.Series,
-                                           average_floor_area=175) -> pd.DataFrame:
-        # Befolkningsøkning (Ikke brukt videre)
+                                           average_floor_area: typing.Union[pd.Series, int] = 175,
+                                           start_year=2010, end_year=2050) -> pd.DataFrame:
+        """
+        Calculate various residential construction metrics based on population, household size, and building data.
+
+        Parameters
+        ----------
+        end_year
+        start_year
+        population : pd.Series
+            A pandas Series representing the population indexed by year.
+        household_size : pd.Series
+            A pandas Series representing the average household size over time.
+        building_category_share : pd.Series
+            A pandas Series representing the share of each building category.
+        build_area_sum : pd.Series
+            A pandas Series representing the accumulated building area sum.
+        yearly_demolished_floor_area : pd.Series
+            A pandas Series representing the yearly demolished floor area.
+        average_floor_area : typing.Union[pd.Series, int], optional
+            The average floor area per building. Can be a pandas Series or an integer. Default is 175.
+
+        Returns
+        -------
+        pd.DataFrame
+            A pandas DataFrame containing various residential construction metrics.
+
+        Notes
+        -----
+        The function calculates several metrics including population growth, household changes, building growth,
+        yearly constructed floor area, and accumulated constructed floor area.
+        """
+
+        # It might be sensible to calculate total floor area and work from there (like commercial) rather than going
+        # through average_floor_area <-> building_growth <-> households_change <-> population_growth
         population_growth = self.calculate_population_growth(population)
         households = self.calculate_households_by_year(household_size, population)
 
         # Årlig endring i antall boliger (brukt Årlig endring i antall småhus)
         households_change = self.calculate_household_change(households)
-        house_change = self.calculate_house_change(building_category_share, households_change)
+        building_growth = self.calculate_building_growth(building_category_share, households_change)
 
         # Årlig endring areal småhus (brukt Årlig nybygget areal småhus)
-        yearly_floor_area_constructed = self.calculate_yearly_floor_area_change(
-            building_category_share,
-            house_change,
-            average_floor_area)
+        yearly_floor_area_constructed = self.calculate_yearly_floor_area_change(building_growth, start_year,
+                                                                                average_floor_area)
 
         # Årlig revet areal småhus
         floor_area_change = self.calculate_yearly_constructed_floor_area(
@@ -46,7 +115,7 @@ class ConstructionCalculator:
             'household_size': household_size,
             'households': households,
             'households_change': households_change,
-            'building_growth': house_change,
+            'building_growth': building_growth,
             'yearly_floor_area_constructed': yearly_floor_area_constructed,
             'demolished_floor_area': yearly_demolished_floor_area,
             'constructed_floor_area': floor_area_change,
@@ -57,13 +126,53 @@ class ConstructionCalculator:
 
     @staticmethod
     def calculate_yearly_new_building_floor_area_sum(yearly_new_building_floor_area_house: pd.Series):
+        """
+        Calculate the accumulated constructed floor area over the years.
+
+        Parameters
+        ----------
+        yearly_new_building_floor_area_house : pd.Series
+            A pandas Series representing the yearly new building floor area.
+
+        Returns
+        -------
+        pd.Series
+            A pandas Series representing the accumulated constructed floor area, named
+                'accumulated_constructed_floor_area'.
+
+        Notes
+        -----
+        The function calculates the cumulative sum of the yearly new building floor area.
+        """
         return pd.Series(yearly_new_building_floor_area_house.cumsum(), name='accumulated_constructed_floor_area')
 
     @staticmethod
     def calculate_yearly_constructed_floor_area(build_area_sum,
                                                 yearly_floor_area_change,
                                                 yearly_demolished_floor_area) -> pd.Series:
-        # Årlig nybygget areal småhus (brukt  Nybygget småhus akkumulert)
+        """
+        Calculate the yearly constructed floor area based on changes and demolitions.
+
+        Parameters
+        ----------
+        build_area_sum : pd.Series
+            A pandas Series representing the accumulated building area sum.
+        yearly_floor_area_change : pd.Series
+            A pandas Series representing the yearly change in floor area.
+        yearly_demolished_floor_area : pd.Series
+            A pandas Series representing the yearly demolished floor area.
+
+        Returns
+        -------
+        pd.Series
+            A pandas Series representing the yearly constructed floor area, named 'constructed_floor_area'.
+
+        Notes
+        -----
+        The function calculates the yearly new building floor area by adding the yearly floor area change
+        to the yearly demolished floor area. It then updates the values based on the build_area_sum index.
+        """
+
         yearly_new_building_floor_area_house = yearly_floor_area_change + yearly_demolished_floor_area
         yearly_new_building_floor_area_house.loc[build_area_sum.index.values] = build_area_sum.loc[
             build_area_sum.index.values]
@@ -71,108 +180,234 @@ class ConstructionCalculator:
         return pd.Series(yearly_new_building_floor_area_house, name='constructed_floor_area')
 
     @staticmethod
-    def calculate_yearly_floor_area_change(building_category_share: pd.Series, house_change: pd.Series,
-                                           average_floor_area=175) -> pd.Series:
-        yearly_floor_area_change = average_floor_area * house_change
-        yearly_floor_area_change.loc[[2010, 2011]] = 0
+    def calculate_yearly_floor_area_change(building_change: pd.Series,
+                                           start_year,
+                                           average_floor_area: typing.Union[pd.Series, int] = 175) -> pd.Series:
+        """
+        Calculate the yearly floor area change based on building changes and average floor area.
+
+        Parameters
+        ----------
+        building_change : pd.Series
+            A pandas Series representing the change in the number of buildings.
+        start_year : int
+            first year of the model calculation
+        average_floor_area : typing.Union[pd.Series, int], optional
+            The average floor area per building. Can be a pandas Series or an integer. Default is 175.
+
+        Returns
+        -------
+        pd.Series
+            A pandas Series representing the yearly floor area change, named 'house_floor_area_change'.
+
+        Notes
+        -----
+        The function calculates the yearly floor area change by multiplying the building change by the average floor
+            area.
+        The floor area change for the years 2010 and 2011 is set to 0.
+        """
+
+        yearly_floor_area_change = average_floor_area * building_change
+        yearly_floor_area_change.loc[[start_year, start_year + 1]] = 0
         return pd.Series(yearly_floor_area_change, name='house_floor_area_change')
 
     @staticmethod
-    def calculate_population_growth(population):
+    def calculate_population_growth(population: pd.Series) -> pd.Series:
+        """
+        Calculate the annual growth in building categories based on household changes.
+
+        Parameters
+        ----------
+        population : pd.Series
+            A pandas Series representing the population indexed by year.
+        Returns
+        -------
+        pd.Series
+            A pandas Series representing the annual growth population.
+
+        """
         population_growth = (population / population.shift(1)) - 1
-        return pd.Series(population_growth, name='population_growth')
+        population_growth.name = 'population_growth'
+        return population_growth
 
     @staticmethod
-    def calculate_house_change(building_category_share: pd.Series, households_change: pd.Series) -> pd.Series:
+    def calculate_building_growth(building_category_share: pd.Series, households_change: pd.Series) -> pd.Series:
+        """
+            Calculate the annual growth in building categories based on household changes.
+
+            Parameters
+            ----------
+            building_category_share : pd.Series
+                A pandas Series representing the share (0 to 1 ) of each building category.
+            households_change : pd.Series
+                A pandas Series representing the annual change in the number of households.
+
+            Returns
+            -------
+            pd.Series
+                A pandas Series representing the annual growth in building categories, named 'building_growth'.
+
+            """
+
         house_share = building_category_share
         # Årlig endring i antall småhus (brukt  Årlig endring areal småhus)
         house_change = households_change * house_share
-        return pd.Series(house_change, name='house_change')
+        return pd.Series(house_change, name='building_growth')
 
     @staticmethod
     def calculate_household_change(households: pd.Series) -> pd.Series:
+        """
+        Calculate the annual change in the number of households.
+
+        Parameters
+        ----------
+        households : pd.Series
+            A pandas Series representing the number of households over time.
+
+        Returns
+        -------
+        pd.Series
+            A pandas Series representing the annual change in the number of households, named 'household_change'.
+        """
         return pd.Series(households - households.shift(1), name='household_change')
 
     @staticmethod
     def calculate_households_by_year(household_size: pd.Series, population: pd.Series) -> pd.Series:
-        # Husholdninger
+        """
+        Calculate the number of households by year based on household size and population.
+
+        Parameters
+        ----------
+        household_size : pd.Series
+            A pandas Series representing the average household size over time.
+        population : pd.Series
+            A pandas Series representing the population over time.
+
+        Returns
+        -------
+        pd.Series
+            A pandas Series representing the number of households by year, named 'households'.
+
+        Notes
+        -----
+        The function calculates the number of households by dividing the population by the average household size.
+
+        """
         households = population / household_size
-        return pd.Series(households, name='households')
+        households.name = 'households'
+        return households
 
     @staticmethod
-    def calculate_commercial_construction(building_category: BuildingCategory = None,
-                                          total_floor_area: int = 1_275_238,
+    def calculate_commercial_construction(building_category: BuildingCategory,
+                                          total_floor_area: typing.Union[pd.Series, int],
                                           constructed_floor_area: pd.Series = None,
                                           demolition_floor_area: pd.Series = None,
-                                          population: pd.DataFrame = None) -> pd.DataFrame:
-        if not building_category:
-            building_category = BuildingCategory.KINDERGARTEN
+                                          population: pd.DataFrame = None,
+                                          start_year: int = 2010,
+                                          end_year: int = 2050) -> pd.DataFrame:
+        """
+        Calculate the commercial construction metrics over a given period.
 
-        # Faste tall
+        Parameters
+        ----------
+        building_category : BuildingCategory, optional
+            The category of the building.
+        total_floor_area : pd.Series | int
+            The total floor area at the start of the period.
+        constructed_floor_area : pd.Series, optional
+            Series containing the constructed floor area for each year.
+        demolition_floor_area : pd.Series, optional
+            Series containing the demolished floor area for each year.
+        population : pd.DataFrame, optional
+            DataFrame containing the population data for each year.
+        start_year : int
+            first year for the data model
+        end_year : int
+            last year of the data model
 
-        logger.debug('constructed_floor_area (2010-2014)')
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame containing the calculated construction metrics:
+            - total_floor_area: Total floor area for each year.
+            - building_growth: Growth rate of the building floor area.
+            - demolished_floor_area: Demolished floor area for each year.
+            - constructed_floor_area: Constructed floor area for each year.
+            - accumulated_constructed_floor_area: Cumulative constructed floor area.
+            - floor_area_over_population_growth: Ratio of floor area growth over population growth.
 
-        # Eksterne tall
+        Notes
+        -----
+        - If `building_category` is `BuildingCategory.STORAGE_REPAIRS`, the total floor area remains constant from 2010
+            to 2051.
+        - The function assumes that the input Series and DataFrame have appropriate indices corresponding to the years.
+        """
 
+        logger.debug(f'calculate_commercial_construction {building_category}')
 
-        total_floor_area = pd.Series(data=[total_floor_area], index=[2010])
-        total_floor_area.loc[2011] = \
-            total_floor_area.loc[2010] - demolition_floor_area.loc[2011] + constructed_floor_area.loc[2011]
-        for year in range(2011, 2015):
+        if not isinstance(total_floor_area, pd.Series):
+            total_floor_area = pd.Series(data=[total_floor_area], index=[start_year])
+
+        total_floor_area.loc[start_year + 1] = \
+            total_floor_area.loc[start_year] - demolition_floor_area.loc[start_year + 1] + constructed_floor_area.loc[start_year +1]
+
+        for year in range(start_year + 1, start_year + 5):
             total_floor_area.loc[year] = total_floor_area.loc[year - 1] - \
                                          demolition_floor_area.loc[year] + \
                                          constructed_floor_area.loc[year]
 
-        # barnehagevekst og areal-/befolkningsøkning
         population_growth = (population / population.shift(1)) - 1
-        building_growth: Series = pd.Series(data=itertools.repeat(0.0, 41), index=[y for y in range(2010, 2051)])
+        building_growth: Series = pd.Series(data=itertools.repeat(0.0, 41), index=[y for y in range(start_year, end_year + 1)])
 
-        building_growth.loc[2011] = (total_floor_area.loc[2011] / total_floor_area.loc[2010]) - 1
-        building_growth.loc[2010] = np.nan
-        logger.debug('building_growth')
-        floor_area_over_population_growth: Series = pd.Series(data=[np.nan] + list(itertools.repeat(1, 40)),
-                                                              index=range(2010, 2051))
-        floor_area_over_population_growth.loc[2011] = building_growth.loc[2011] / population_growth.loc[2011]
+        building_growth.loc[start_year + 1] = (total_floor_area.loc[start_year + 1] / total_floor_area.loc[start_year]) - 1
+        building_growth.loc[start_year] = np.nan
 
-        # Barnehage Total areal til 2015
-        # barnehagevekst og areal-/befolkningsøkning 22
-        for year in range(2011, 2015):
+        floor_area_over_population_growth: Series = pd.Series(data=[np.nan] + list(itertools.repeat(1, end_year - start_year)),
+                                                              index=range(start_year, end_year + 1))
+
+        floor_area_over_population_growth.loc[start_year + 1] = building_growth.loc[start_year + 1] / population_growth.loc[start_year + 1]
+
+        # First 4 years of building growth is calculated from change in total_floor_area
+        for year in range(start_year + 1, start_year + 5):
             building_growth.loc[year] = (total_floor_area.loc[year] / total_floor_area.loc[year - 1]) - 1
             floor_area_over_population_growth[year] = building_growth.loc[year] / population_growth.loc[year]
 
-        # logger.info(building_growth)
-        mean_floor_area_population = floor_area_over_population_growth.loc[2011:2014].mean()
-        for year in range(2015, 2021):
+        # Next 5 years are calculated from mean floor_area over mean population
+        mean_floor_area_population = floor_area_over_population_growth.loc[start_year + 1:start_year+4].mean()
+        for year in range(start_year + 5, start_year + 11):
             floor_area_over_population_growth.loc[year] = mean_floor_area_population
-        for year in range(2021, 2050):
+        # under: end_year + 1 was 2050 is that right?
+        for year in range(start_year + 11, end_year + 1):
             floor_area_over_population_growth.loc[year] = 1
-        for year in range(2021, 2031):
+        for year in range(start_year + 11, start_year + 21):
             floor_area_over_population_growth.loc[year] = \
-                (floor_area_over_population_growth.loc[2020] - (year - 2020) * ((floor_area_over_population_growth.loc[
-                                                                                     2020] -
+                (floor_area_over_population_growth.loc[start_year+10] - (year - start_year + 10) * ((floor_area_over_population_growth.loc[
+                                                                                     start_year + 10] -
                                                                                  floor_area_over_population_growth.loc[
-                                                                                     2030]) / 10))
+                                                                                     start_year + 20]) / 10))
 
-        for year in range(2015, 2051):
+        for year in range(start_year + 5, end_year + 1):
             floor_area_ch_over_pop_ch = floor_area_over_population_growth.loc[year]
             year_pop_growth = population_growth.loc[year]
             previous_year_floor_area = total_floor_area.loc[year - 1]
             total_floor_area.loc[year] = ((floor_area_ch_over_pop_ch * year_pop_growth) + 1) * previous_year_floor_area
 
+        # STORAGE_REPAIRS has constant floor area
         if building_category == BuildingCategory.STORAGE_REPAIRS:
-            total_floor_area.loc[2010:2051] = total_floor_area.loc[2010]
+            total_floor_area.loc[start_year:end_year + 1] = total_floor_area.loc[start_year]
 
-        for year in range(2015, 2051):
+        # Calculate constructed floor area from year 6 by substracting last years floor area with current floor area
+        #  and adding last years demolition.
+        for year in range(start_year + 5, end_year + 1):
             floor_area = total_floor_area.loc[year]
             previous_year_floor_area = total_floor_area.loc[year - 1]
             demolished = demolition_floor_area.loc[year]
             constructed = floor_area - previous_year_floor_area + demolished
             constructed_floor_area[year] = constructed
 
-        # accumulated_constructed_floor_area = constructed_floor_area.cumsum()
-        # kg_nybygg_rate = constructed_floor_area / total_floor_area
         accumulated_constructed_floor_area = constructed_floor_area.cumsum()
 
+        # Make the resulting DataFrame
         construction = pd.DataFrame(data={
             'total_floor_area': total_floor_area,
             'building_growth': building_growth,
@@ -180,46 +415,45 @@ class ConstructionCalculator:
             'constructed_floor_area': constructed_floor_area,
             'accumulated_constructed_floor_area': accumulated_constructed_floor_area,
             'floor_area_over_population_growth': floor_area_over_population_growth
-        }, index=[year for year in range(2010, 2051)])
+        }, index=[year for year in range(start_year, end_year + 1)])
 
         return construction
-
 
     @staticmethod
     def calculate_construction_as_list(building_category: BuildingCategory,
                                        demolition_floor_area: Union[pd.Series, list],
                                        database_manager: DatabaseManager = None) -> typing.List:
         """
-               Calculates constructed floor area for buildings based using provided demolition_floor_area
-                 and input data from database_manager
+       Calculates constructed floor area for buildings based using provided demolition_floor_area
+         and input data from database_manager
 
-               Parameters
-               ----------
-               building_category: BuildingCategory
-               demolition_floor_area: pd.Series expects index=2010..2050
-               database_manager: DatabaseManager (optional)
+       Parameters
+       ----------
+       building_category: BuildingCategory
+       demolition_floor_area: pd.Series expects index=2010..2050
+       database_manager: DatabaseManager (optional)
 
-               Returns
-               -------
-               accumulated_constructed_floor_area: List
+       Returns
+       -------
+       accumulated_constructed_floor_area: List
+       """
 
-               """
-
-        yearly_constructed = ConstructionCalculator.calculate_construction(
-            building_category, demolition_floor_area, database_manager if database_manager else DatabaseManager())
+        yearly_constructed = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area,
+                                                                           database_manager if database_manager else DatabaseManager())
 
         accumulated_constructed_floor_area = [v for v in yearly_constructed.accumulated_constructed_floor_area]
         return accumulated_constructed_floor_area
 
     @staticmethod
-    def calculate_construction(building_category: BuildingCategory,
-                               demolition_floor_area: Union[pd.Series, list],
-                               database_manager: DatabaseManager) -> pd.DataFrame:
+    def calculate_construction(building_category: BuildingCategory, demolition_floor_area: Union[pd.Series, list],
+                               database_manager: DatabaseManager, start_year: int = 2010, end_year: int = 2050) -> pd.DataFrame:
         """
         Calculates constructed floor area for buildings based using provided demolition_floor_area
           and input data from database_manager
         Parameters
         ----------
+        start_year
+        end_year
         building_category: BuildingCategory
         demolition_floor_area: pd.Series expects index=2010..2050
         database_manager: DatabaseManager
@@ -241,37 +475,38 @@ class ConstructionCalculator:
 
         """
         if isinstance(demolition_floor_area, list):
-            demolition_floor_area = pd.Series(demolition_floor_area, index=[y for y in range(2010, 2050 + 1)])
+            demolition_floor_area = pd.Series(demolition_floor_area, index=[y for y in range(start_year, end_year + 1)])
 
         yearly_construction_floor_area = database_manager.get_building_category_floor_area(building_category)
         area_parameters = database_manager.get_area_parameters()
         total_floor_area = area_parameters[area_parameters.building_category == building_category].area.sum()
+        new_buildings_population = database_manager.get_construction_population()[['population', 'household_size']]
 
         if building_category.is_residential():
-            new_buildings_population = database_manager.get_construction_population()[['population', 'household_size']]
             household_size = new_buildings_population['household_size']
             population = new_buildings_population['population']
 
-            share_name = 'new_house_share'
+            share_name, floor_area_name = 'new_house_share', 'floor_area_new_house'
             if building_category == BuildingCategory.APARTMENT_BLOCK:
                 share_name = 'new_apartment_block_share'
-            building_category_share = database_manager.get_new_buildings_category_share()[share_name]
-
-            average_floor_area = 175 if building_category == BuildingCategory.HOUSE else 75
+                floor_area_name = 'flood_area_new_apartment_block'
+            new_buildings_category_share = database_manager.get_new_buildings_category_share()
+            building_category_share = new_buildings_category_share[share_name]
+            average_floor_area = new_buildings_category_share[floor_area_name]
             build_area_sum = pd.Series(
-                data=yearly_construction_floor_area, index=range(2010, 2010+len(yearly_construction_floor_area)))
+                data=yearly_construction_floor_area,
+                index=range(start_year, start_year+len(yearly_construction_floor_area)))
 
-            return ConstructionCalculator().calculate_residential_construction(
-                yearly_demolished_floor_area=demolition_floor_area,
-                population=population,
-                household_size=household_size,
-                building_category_share=building_category_share,
-                build_area_sum=build_area_sum,
-                average_floor_area=average_floor_area)
+            return ConstructionCalculator().calculate_residential_construction(population=population,
+                                                                               household_size=household_size,
+                                                                               building_category_share=building_category_share,
+                                                                               build_area_sum=build_area_sum,
+                                                                               yearly_demolished_floor_area=demolition_floor_area,
+                                                                               average_floor_area=average_floor_area)
 
-        return ConstructionCalculator.calculate_commercial_construction(
-            building_category=building_category,
-            total_floor_area=total_floor_area,
-            constructed_floor_area=yearly_construction_floor_area,
-            demolition_floor_area=demolition_floor_area,
-            population=database_manager.get_population())
+        return ConstructionCalculator.calculate_commercial_construction(building_category=building_category,
+                                                                        total_floor_area=total_floor_area,
+                                                                        constructed_floor_area=yearly_construction_floor_area,
+                                                                        demolition_floor_area=demolition_floor_area,
+                                                                        population=new_buildings_population[
+                                                                            'population'])

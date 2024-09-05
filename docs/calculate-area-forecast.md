@@ -1,8 +1,8 @@
   
 # Beregne fremskriving av areal  
   
-Programmet calculate-area-forecast framskriver areal basert på samme metode som BEMA-modellen. Beregningen blir gjort basert på parametere som kan endres av brukeren. 
-
+Programmet calculate-area-forecast framskriver areal basert på samme metode som BEMA-modellen. Beregningen blir gjort basert på parametere som kan endres av brukeren.  
+  
 Dette dokumentet er laget for *calculate-area-forecast* versjon 0.8.3.  
   
   
@@ -102,21 +102,21 @@ Filter kan kombineres
   
 ## Endre input  
   
-Framskriving utføres basert på filene i underkatalogen input. Beregningen kan påvirkes ved å gjøre endringer i input. I eksempelet under er årlig nybygget areal for barnehager (kindergarten) endret for årene 2010 til 2014. Endringen er utført i filen `construction_building_category_yearly.csv`. 
-#### Før endring
+Framskriving utføres basert på filene i underkatalogen input. Beregningen kan påvirkes ved å gjøre endringer i input. I eksempelet under er årlig nybygget areal for barnehager (kindergarten) endret for årene 2010 til 2014. Endringen er utført i filen `construction_building_category_yearly.csv`.  
+#### Før endring  
   
 ![Changed input](images/caf-10-input-original.png)  
-
-`input/construction_building_category_yearly.csv` til venstre
-`output/ebm_area_forecast.xlsx` til høyre
-
-#### Etter endring   
+  
+`input/construction_building_category_yearly.csv` til venstre  
+`output/ebm_area_forecast.xlsx` til høyre  
+  
+#### Etter endring  
   
 ![Changed input](images/caf-11-input-changed.png)  
-
-`input/construction_building_category_yearly.csv` til venstre
-`output/ebm_area_forecast.xlsx` til høyre
-
+  
+`input/construction_building_category_yearly.csv` til venstre  
+`output/ebm_area_forecast.xlsx` til høyre  
+  
 Det er mulig å endre oppsett som  
 - Nybygget areal per år `construction_building_category_yearly.csv`  
 - befolkning og husholdningstørrelse (2010 - 2050), `new_buildings_population.csv`  
@@ -125,32 +125,35 @@ Det er mulig å endre oppsett som
 - Hvilket år man starter riving for gitt byggkategori og TEK `scurve_parameters.csv`  
   
 Forbedret dokumentasjon for input og datamodellen vil komme senere.  
-
-## Alternativ input
-
-Ved å bruke argumentet `--input` går det an å styre programmet til å lese input fra en alternativ katalog. Funksjonen gjør at man kan for eksempel kan håndtere flere scenarier. `--input` blir lest om man kjører beregning og om man lager ny input med `--create-input`
-
-### Lage nytt scenario
-
-`calculate-area-forecast --input=scenario1 --create-input`
-
+  
+## Alternativ input  
+  
+Ved å bruke argumentet `--input` går det an å styre programmet til å lese input fra en alternativ katalog. Funksjonen gjør at man kan for eksempel kan håndtere flere scenarier. `--input` blir lest om man kjører beregning og om man lager ny input med `--create-input`  
+  
+### Lage nytt scenario  
+  
+`calculate-area-forecast --input=scenario1 --create-input`  
+  
 ![Changed input](images/caf-12-input-scenario1.png)  
-
-### Bruke nytt scenario
-
-Her blir scenario1 brukt for lage ny fremskriving for barnehager
-
-`calculate-area-forecast output\barnehage-scenario1.xlsx  --categories kindergarten --input=scenario1`
-``
+  
+### Bruke nytt scenario  
+  
+Her blir scenario1 brukt for lage ny fremskriving for barnehager og skriver resultatet  
+til `output\barnehage-scenario1.xlsx`.  
+  
+`calculate-area-forecast output\barnehage-scenario1.xlsx --categories kindergarten --input=scenario1`  
+``  
+  
+Legg merke til at argumentet `--input=scenario1` må være med så lenge man ønsker å bruke scenario1.  
   
 ## Flere eksempler  
   
 ### Skrive til CSV (kommaseparert fil)  
   
 `calculate-area-forecast barnehage.csv --categories kindergarten --delimiter=, `  
-
-Bruk `--delimiter=";"` for semikolonseparert fil.
-### Skrive og åpne fil som eksisterer  
+  
+Bruk `--delimiter=";"` for semikolonseparert fil.  
+### Skrive til og åpne eksisterende fil
   
 `calculate-area-forecast output/hus_og_blokk.xlsx --categories house apartment_block --force --open`  
   

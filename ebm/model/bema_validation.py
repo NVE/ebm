@@ -156,7 +156,7 @@ def validate_data(building_category: BuildingCategory, data_name: str, df1: pd.D
     if precision is None:
         diff = df[df['IDENTICAL'] == False]
     else:
-        diff = df[df['DIFFERENCE'] > 0]
+        diff = df[df['DIFFERENCE'] != 0]
 
     n_diff = len(diff)
     if n_diff > 0:

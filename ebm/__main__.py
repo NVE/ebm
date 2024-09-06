@@ -224,10 +224,10 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
                                  'Default: "," Special characters like ; should be quoted ";"')
     arg_parser.add_argument('--create-input', action='store_true',
                             help='Create input directory with all required files in the current working directory')
-    arg_parser.add_argument('--start_year', nargs='?', type=int, default=2010,
-                            help='Forecast start year. default: 2010, all other values are invalid')
-    arg_parser.add_argument('--end_year', nargs='?', type=int, default=2050,
-                            help='Forecast end year (including). default: 2050, any other values are invalid')
+    arg_parser.add_argument('--start_year', nargs='?', type=int, default=2010, help=argparse.SUPPRESS)
+                            #help='Forecast start year. default: 2010, all other values are invalid')
+    arg_parser.add_argument('--end_year', nargs='?', type=int, default=2050, help=argparse.SUPPRESS)
+                            #help='Forecast end year (including). default: 2050, any other values are invalid')
     arg_parser.add_argument('--horizontal', '--horisontal', action='store_true',
                             help='Show years horizontal (left to right)')
     arguments = arg_parser.parse_args()

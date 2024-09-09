@@ -20,7 +20,6 @@ class SharesPerConditionNew():
     # - make code less repetative:
     #       - ideally, there could be a calc_shares_tek() method, that takes building_condition as input
     #       - then, there could be an own calc_shares() method, that loops trough the tek_list for a given building_condition
-    #       - make self.self.model_years to a pd.Series RangeIndex
 
     def __init__(self, 
                  tek_list: typing.List[str], 
@@ -107,37 +106,8 @@ class SharesPerConditionNew():
         - pd.Series: A Pandas Series with the calculated demolition shares for the specific TEK, where the index 
                      represents the model years and the values are the respective demolition shares.
         """
-        # Get the building year for the specific TEK
-        building_year = self.tek.get_building_year(tek)
-
-        # Calculate the building age for each model year
-        building_age_per_year = pd.Series(self.model_years - building_year, index=self.model_years) 
-        
-        # Filter to only include valid ages
-        building_age_per_year = building_age_per_year[building_age_per_year > 0]
-
-        # Define scurve 
-        scurve = self.scurve_demolition
-
-        # Control that the building ages are present in the S-curve before filtering
-        if not building_age_per_year.isin(scurve.index).all():
-            missing_ages = building_age_per_year[~building_age_per_year.isin(scurve.index)]
-            msg = (
-                f"\n"
-                f"Building ages not present in S-curve while calculating shares.\n"
-                f"The building year of {tek} might not be compatible with the model horizon. Control this parameter.\n"
-                f"\n"
-                f" - The building year of {tek} is: {building_year}.\n"
-                f" - Building ages not present in S-curve: {missing_ages.to_list()}"
-            )
-            logger.error(msg)
-            raise ValueError(f"Building ages not present in S-curve index for {tek}.")
-
-        # Filter the scruve rates on the relevant building ages
-        scurve = scurve.loc[building_age_per_year.values]
-
-        # Assign the corresponding model years to the index of the filtered S-curve
-        scurve_per_year = scurve.set_axis(building_age_per_year.index, axis=0)
+        # Retrieve S-curve rates per model year
+        scurve_per_year = self._scurve_per_model_year(tek, self.scurve_demolition)
 
         # Define an empty shares series with model years as index
         shares = pd.Series(0.0, index=self.model_years)
@@ -147,6 +117,9 @@ class SharesPerConditionNew():
         
         # Accumulate the shares over the model period
         shares = shares.cumsum()
+
+        # Get the building year for the specific TEK
+        building_year = self.tek.get_building_year(tek)
 
         # Use the rate of the year if that year corresponds to the year after the building was constructed 
         if (building_year + 1) in self.model_years:
@@ -237,7 +210,7 @@ if __name__ == '__main__':
     
     tek = tek_list[1]
 
-    shares = shares.calc_shares_small_measure_total_tek(tek)
+    shares = shares.calc_shares_demolition_tek(tek)
     print(shares)
     
     #for tek in tek_list:

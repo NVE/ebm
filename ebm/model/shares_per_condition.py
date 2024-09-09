@@ -368,7 +368,9 @@ class SharesPerCondition():
         return tek_shares     
     
     def calc_shares(self) -> typing.Dict[str, typing.Dict[str, pd.Series]]:
-
+        """
+        Create a dictionary of shares per condition for all TEKs, and convert the shares to pd.Series if they are lists.
+        """
         model_years = range(self.model_start_year, self.model_end_year + 1)
 
         all_shares = {

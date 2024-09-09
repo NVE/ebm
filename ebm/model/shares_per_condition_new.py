@@ -6,6 +6,7 @@ from loguru import logger
 from ebm.model.data_classes import TEKParameters
 from ebm.model.tek import TEK
 from ebm.model.building_condition import BuildingCondition
+from ebm.model.data_classes import YearRange
 
 class SharesPerConditionNew():
     """
@@ -26,14 +27,13 @@ class SharesPerConditionNew():
                  tek_params: typing.Dict[str, TEKParameters], 
                  scurves: typing.Dict[str, pd.Series],
                  never_shares: typing.Dict[str, float],
-                 model_start_year: int = 2010,
-                 model_end_year: int = 2050):
+                 period: YearRange = YearRange(2010, 2050)):
         
         self.tek_list = tek_list
         self.tek = TEK(tek_params)
-        self.model_start_year = model_start_year
-        self.model_end_year = model_end_year
-        self.model_years = range(model_start_year, model_end_year + 1)
+        self.model_start_year = period.start
+        self.model_end_year = period.end
+        self.model_years = period.year_range
 
         # Set S-curve parameter attributes 
         self.scurve_small_measure = scurves[BuildingCondition.SMALL_MEASURE]
@@ -246,8 +246,10 @@ if __name__ == '__main__':
     
     tek = tek_list[1]
 
-    shares_per_tek = shares.calc_shares_demolition()
-    for tek in tek_list:
-        shares.calc_shares_small_measure_total_tek(tek)
-        logger.info(tek)
+    shares = shares.calc_shares_small_measure_total_tek(tek)
+    print(shares)
+    
+    #for tek in tek_list:
+    #    shares = shares.calc_shares_small_measure_total_tek(tek)
+    #    logger.info(tek)
     

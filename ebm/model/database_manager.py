@@ -24,8 +24,9 @@ class DatabaseManager():
     COL_BUILDING_CATEGORY = 'building_category'
     COL_BUILDING_CONDITION = 'condition'
     
-    def __init__(self):
-        self.file_handler = FileHandler()
+    def __init__(self, file_handler: FileHandler = None):
+        # Create default FileHandler if file_hander is None
+        self.file_handler = file_handler if file_handler is not None else FileHandler()
     
     def get_tek_list(self):
         """
@@ -130,6 +131,7 @@ class DatabaseManager():
         df = self.file_handler.get_building_category_area()
 
         building_category_floor_area = df[building_category].dropna()
+
         return building_category_floor_area
 
     def get_area_parameters(self) -> pd.DataFrame:

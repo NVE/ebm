@@ -2,13 +2,14 @@ import typing
 
 from enum import StrEnum, unique, auto
 
+
 @unique
 class BuildingCondition(StrEnum):
-    SMALL_MEASURE = auto() 
+    ORIGINAL_CONDITION = auto()
+    SMALL_MEASURE = auto()
     RENOVATION = auto()
     RENOVATION_AND_SMALL_MEASURE = auto()
     DEMOLITION = auto()
-    ORIGINAL_CONDITION = auto()
 
     @classmethod
     def _missing_(cls, value: str):
@@ -55,7 +56,8 @@ class BuildingCondition(StrEnum):
         """
         condition_list = [condition.value for condition in iter(BuildingCondition)]
         return condition_list
-    
+
+
 if __name__ == '__main__':
     for building_condition in BuildingCondition:
         print(building_condition)

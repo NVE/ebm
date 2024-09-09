@@ -33,6 +33,8 @@ class SharesPerConditionNew():
         self.model_start_year = period.start
         self.model_end_year = period.end
         self.model_years = pd.Index(period.year_range)
+        self.scurves = scurves
+        self.never_shares = never_shares
 
         # Set S-curve parameter attributes 
         self.scurve_small_measure = scurves[BuildingCondition.SMALL_MEASURE]
@@ -152,21 +154,45 @@ class SharesPerConditionNew():
             tek_shares[tek] = shares
 
         return tek_shares
+    
+    def calc_shares_total_tek(self, tek: str, building_condition: BuildingCondition) -> pd.Series:
+        """
+        Calculate the percentage share of floor area that has undergone either small measures or renovation over the
+        time horizon for a specific TEK.
 
-    def calc_shares_small_measure_total_tek(self, tek:str) -> pd.Series:
+        This method calculates the percentage share of floor area that has undergone either small measures or renovation 
+        for each year in the model period. The share represents the total accumulated area affected by either condition 
+        (small measure or renovation). It is important to note that an area counted in one measure does not exclude it 
+        from being counted in the other, meaning that the area can undergo both small measures and renovation.
+
+        The calculation is based on the rates from the respective S-curve (small measure or renovation), while ensuring 
+        that the total share does not exceed the available area (adjusted for demolished areas and areas that are 
+        never subjected to these measures).
+
+        Parameters:
+        - tek (str): The identifier of the TEK (building type).
+        - building_condition (BuildingCondition): The condition for which to calculate shares, either `SMALL_MEASURE` 
+        or `RENOVATION`. The method will raise an error if another condition is provided.
+
+        Returns:
+        - pd.Series: A series with the calculated share of area that has undergone small measures or renovation, 
+        with the index representing model years.
+
+        Raises:
+        - ValueError: If the `building_condition` is not `SMALL_MEASURE` or `RENOVATION`.
         """
-        """
-        # Get the building year for the specific TEK
-        building_year = self.tek.get_building_year(tek)
+        if (building_condition != BuildingCondition.SMALL_MEASURE) and (building_condition != BuildingCondition.RENOVATION):
+            msg = f"Invalid building_condition. Value must be {BuildingCondition.SMALL_MEASURE} or {BuildingCondition.RENOVATION}"
+            raise ValueError(msg) 
 
         # Retrieve S-curve rates per model year
-        scurve_per_year = self._scurve_per_model_year(tek, self.scurve_small_measure)
+        scurve_per_year = self._scurve_per_model_year(tek, self.scurves[building_condition])
 
         # Retrieve demolition shares per model year
         condition_shares = self.calc_shares_demolition_tek(tek)
 
         # Calculate max limit for doing a renovation measure (small measure or renovation)
-        measure_limit = 1 - condition_shares - self.never_share_small_measure
+        measure_limit = 1 - condition_shares - self.never_shares[building_condition]
 
         # Define an empty shares series with model years as index
         shares = pd.Series(0.0, index=self.model_years)
@@ -178,10 +204,11 @@ class SharesPerConditionNew():
         shares[shares > measure_limit] = measure_limit
 
         # Set share to 0 in years before and including the year the building was constructed
+        building_year = self.tek.get_building_year(tek)
         shares.loc[self.model_years <= building_year] = 0
 
         return shares
-        
+
 if __name__ == '__main__':
 
     from ebm.model.database_manager import DatabaseManager
@@ -209,11 +236,5 @@ if __name__ == '__main__':
     shares = SharesPerConditionNew(tek_list, tek_params, scurves, never_shares)
     
     tek = tek_list[1]
-
-    shares = shares.calc_shares_demolition_tek(tek)
+    shares = shares.calc_shares_total_tek(tek, BuildingCondition.RENOVATION)
     print(shares)
-    
-    #for tek in tek_list:
-    #    shares = shares.calc_shares_small_measure_total_tek(tek)
-    #    logger.info(tek)
-    

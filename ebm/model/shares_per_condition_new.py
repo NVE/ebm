@@ -20,7 +20,7 @@ class SharesPerConditionNew():
     # - make code less repetative:
     #       - ideally, there could be a calc_shares_tek() method, that takes building_condition as input
     #       - then, there could be an own calc_shares() method, that loops trough the tek_list for a given building_condition
-    #       - make self.model_years to a pd.Series RangeIndex
+    #       - make self.self.model_years to a pd.Series RangeIndex
 
     def __init__(self, 
                  tek_list: typing.List[str], 
@@ -33,7 +33,7 @@ class SharesPerConditionNew():
         self.tek = TEK(tek_params)
         self.model_start_year = period.start
         self.model_end_year = period.end
-        self.model_years = period.year_range
+        self.model_years = pd.Index(period.year_range)
 
         # Set S-curve parameter attributes 
         self.scurve_small_measure = scurves[BuildingCondition.SMALL_MEASURE]
@@ -50,11 +50,8 @@ class SharesPerConditionNew():
         # Get the building year for the specific TEK
         building_year = self.tek.get_building_year(tek)
 
-        # Convert the model_years range to a RangeIndex
-        model_years = pd.Index(self.model_years)
-
         # Calculate the building age for each model year
-        building_age_per_year = pd.Series(model_years - building_year, index=model_years) 
+        building_age_per_year = pd.Series(self.model_years - building_year, index=self.model_years) 
         
         # Filter to only include valid ages
         building_age_per_year = building_age_per_year[building_age_per_year > 0]
@@ -113,11 +110,8 @@ class SharesPerConditionNew():
         # Get the building year for the specific TEK
         building_year = self.tek.get_building_year(tek)
 
-        # Convert the model_years range to a RangeIndex
-        model_years = pd.Index(self.model_years)
-
         # Calculate the building age for each model year
-        building_age_per_year = pd.Series(model_years - building_year, index=model_years) 
+        building_age_per_year = pd.Series(self.model_years - building_year, index=self.model_years) 
         
         # Filter to only include valid ages
         building_age_per_year = building_age_per_year[building_age_per_year > 0]
@@ -146,7 +140,7 @@ class SharesPerConditionNew():
         scurve_per_year = scurve.set_axis(building_age_per_year.index, axis=0)
 
         # Define an empty shares series with model years as index
-        shares = pd.Series(0.0, index=model_years)
+        shares = pd.Series(0.0, index=self.model_years)
 
         # The share in year n is calculated by taking the difference between the rate in year n and n-1
         shares[scurve_per_year.index] = scurve_per_year.diff().fillna(0)
@@ -155,14 +149,14 @@ class SharesPerConditionNew():
         shares = shares.cumsum()
 
         # Use the rate of the year if that year corresponds to the year after the building was constructed 
-        if (building_year + 1) in model_years:
-            shares.loc[model_years == building_year + 1] = scurve_per_year.loc[building_year + 1]
+        if (building_year + 1) in self.model_years:
+            shares.loc[self.model_years == building_year + 1] = scurve_per_year.loc[building_year + 1]
 
         # Set share to 0 in the start year 
-        shares.loc[model_years == self.model_start_year] = 0
+        shares.loc[self.model_years == self.model_start_year] = 0
 
         # Set share to 0 in years before and including the year the building was constructed
-        shares.loc[model_years <= building_year] = 0
+        shares.loc[self.model_years <= building_year] = 0
 
         return shares
     
@@ -198,14 +192,11 @@ class SharesPerConditionNew():
         # Retrieve demolition shares per model year
         condition_shares = self.calc_shares_demolition_tek(tek)
 
-        # Convert the model_years range to a RangeIndex
-        model_years = pd.Index(self.model_years)
-
         # Calculate max limit for doing a renovation measure (small measure or renovation)
         measure_limit = 1 - condition_shares - self.never_share_small_measure
 
         # Define an empty shares series with model years as index
-        shares = pd.Series(0.0, index=model_years)
+        shares = pd.Series(0.0, index=self.model_years)
 
         # Set share to the S-curve rate for the corresponding model year
         shares[scurve_per_year.index] = scurve_per_year
@@ -214,7 +205,7 @@ class SharesPerConditionNew():
         shares[shares > measure_limit] = measure_limit
 
         # Set share to 0 in years before and including the year the building was constructed
-        shares.loc[model_years <= building_year] = 0
+        shares.loc[self.model_years <= building_year] = 0
 
         return shares
         

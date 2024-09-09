@@ -13,6 +13,7 @@ from ebm.model import BuildingCategory
 from ebm.model import DatabaseManager, Buildings
 from ebm.model.bema import load_construction_building_category
 from ebm.model.construction import ConstructionCalculator
+from ebm.model.data_classes import YearRange
 
 ROUND_PRECISION = 4
 
@@ -89,9 +90,10 @@ def validate_accumulated_constructed_floor_area(building_category) -> int:
     database_manager = DatabaseManager()
     demolition_floor_area = extract_demolition_floor_area(building_category, database_manager)
 
-    yearly_constructed = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area, database_manager)
+    yearly_constructed = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area,
+                                                                       database_manager, YearRange(2010, 2050))
 
-    constructed_floor_area = yearly_constructed.accumulated_constructed_floor_area
+    constructed_floor_area = yearly_constructed.get('accumulated_constructed_floor_area')
     years = constructed_floor_area.index
 
     error_count = 0

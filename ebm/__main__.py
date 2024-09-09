@@ -15,6 +15,7 @@ from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.buildings import Buildings
 from ebm.model.construction import ConstructionCalculator
+from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
 
@@ -388,19 +389,14 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
     """
     buildings = Buildings.build_buildings(building_category=building_category,
                                           database_manager=database_manager)
-    years = [y for y in range(start_year, end_year + 1)]
+    years = YearRange(start_year, end_year)
 
-    area_forecast = buildings.build_area_forecast(database_manager, start_year, end_year)
-    demolition_floor_area = pd.Series(data=area_forecast.calc_total_demolition_area_per_year(), index=years)
-    yearly_constructed = ConstructionCalculator.calculate_construction(building_category,
-                                                                       demolition_floor_area,
-                                                                       database_manager,
-                                                                       start_year=start_year,
-                                                                       end_year=end_year)
+    area_forecast = buildings.build_area_forecast(database_manager, years.start, years.end)
+    demolition_floor_area = pd.Series(data=area_forecast.calc_total_demolition_area_per_year(), index=years.range())
+    constructed_floor_area = ConstructionCalculator.calculate_construction_as_list(
+        building_category, demolition_floor_area, database_manager, period=years)
 
-    constructed_floor_area = yearly_constructed.accumulated_constructed_floor_area
-    forecast: Dict = area_forecast.calc_area([v for v in constructed_floor_area])
-
+    forecast: Dict = area_forecast.calc_area(constructed_floor_area)
     return forecast
 
 

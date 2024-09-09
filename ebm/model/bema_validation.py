@@ -8,6 +8,7 @@ from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.buildings import Buildings
 from ebm.model.construction import ConstructionCalculator
+from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 
 
@@ -228,15 +229,14 @@ def get_ebm_area(building_category: BuildingCategory, database_manager, start_ye
     Returns:
     - pd.DataFrame: The formatted DataFrame containing the EBM area data.
     """
-    modelyears = [*range(start_year, end_year + 1)]
+    modelyears = YearRange(start_year, end_year)
 
     # Retrieve area data
     building = Buildings.build_buildings(building_category, database_manager)
     area_forecast = building.build_area_forecast(database_manager)
     demolition_floor_area = pd.Series(data=area_forecast.calc_total_demolition_area_per_year(), index=modelyears)
     yearly_constructed = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area,
-                                                                       database_manager,
-                                                                       start_year=start_year, end_year=end_year)
+                                                                       database_manager, modelyears)
     constructed_floor_area = list(yearly_constructed.accumulated_constructed_floor_area)
     area_forecast = building.build_area_forecast(database_manager, start_year, end_year)  
     area = area_forecast.calc_area(constructed_floor_area)
@@ -559,14 +559,14 @@ def get_ebm_construction(building_category: BuildingCategory, database_manager, 
     Returns:
     - pd.DataFrame: The formatted DataFrame containing the accumulated construction data from the EBM model.  
     """
-    modelyears = [*range(start_year, end_year + 1)]
+    modelyears = YearRange(start_year, end_year)
 
     # Retrieve construction data
     building = Buildings.build_buildings(building_category, database_manager)
     area_forecast = building.build_area_forecast(database_manager)
-    demolition_floor_area = pd.Series(data=area_forecast.calc_total_demolition_area_per_year(), index=modelyears)
+    demolition_floor_area = pd.Series(data=area_forecast.calc_total_demolition_area_per_year(), index=modelyears.range())
     yearly_constructed = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area,
-                                                                       database_manager)
+                                                                       database_manager, modelyears)
     constructed_floor_area = yearly_constructed.accumulated_constructed_floor_area
 
     # Convert series to df and format for validation/merge with BEMA data

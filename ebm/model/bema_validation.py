@@ -244,18 +244,18 @@ def get_ebm_area(building_category: BuildingCategory, database_manager, start_ye
     area = area_forecast.calc_area(constructed_floor_area)
 
     tek_list = building.tek_list
-     
+
     df_list = []  
     for tek in tek_list:
         # Filter data and transform to df
         df = pd.DataFrame(area[tek])
 
         # Control that length of dataframe matches number of modelyears
-        if len(df) != len(modelyears): 
+        if len(df) != len(modelyears.year_range): 
             raise ValueError(f'Length of dataframe does not match number of modelyears. Length of df: {len(df)}. Number of modelyears {len(modelyears)}')
 
         # Format dataframe for validation/merge with BEMA data
-        df['year'] = modelyears
+        df['year'] = modelyears.year_range
         df['tek'] = tek
         df = pd.melt(df, id_vars=['tek','year'], var_name='building_condition')
         df = df[['tek', 'building_condition', 'year', 'value']]
@@ -351,8 +351,15 @@ def load_bema_shares(building_category: BuildingCategory, database_manager: Buil
     # Define row number for first header in sheet
     header = start_row
     
+    # Define building condition order according to BEMA order
+    bema_building_condition_order = [BuildingCondition.SMALL_MEASURE, 
+                                    BuildingCondition.RENOVATION, 
+                                    BuildingCondition.RENOVATION_AND_SMALL_MEASURE,
+                                    BuildingCondition.DEMOLITION,
+                                    BuildingCondition.ORIGINAL_CONDITION]
+
     df_list = []
-    for condition in BuildingCondition:
+    for condition in bema_building_condition_order:
         # Read data from excel
         df = xlsx_to_df(workbook, sheet=sheet, header=header, usecols=usecols, n_rows=n_tek)
         

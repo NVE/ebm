@@ -1,6 +1,8 @@
 import typing
 from dataclasses import dataclass
 
+import pandas as pd
+
 
 @dataclass
 class ScurveParameters:
@@ -44,6 +46,10 @@ class YearRange:
         Returns an iterator over the years in the period.
     range() -> tuple of int:
         Returns a tuple of years from start to end (inclusive).
+    subset(offset: int = 0, length: int = -1) -> 'YearRange':
+        Creates a subset YearRange of this year range.
+    to_index() -> pd.Index:
+        Converts the year_range to a pandas Index.
 
 
     """
@@ -59,6 +65,9 @@ class YearRange:
         if self.start > self.end:
             raise ValueError(f'Start year {self.start} cannot be greater than end year {self.end}')
         object.__setattr__(self, 'year_range', self.range())
+
+    def __len__(self):
+        return len(self.year_range)
 
     def __iter__(self) -> typing.Generator[int, None, None]:
         """
@@ -111,3 +120,14 @@ class YearRange:
         start_year = self.start + offset
         last_year = start_year + length - 1 if length > 0 and start_year + length < self.end else self.end
         return YearRange(start_year, last_year)
+
+    def to_index(self) -> pd.Index:
+        """
+        Converts the year_range to a pandas Index.
+
+        Returns
+        -------
+        pd.Index
+            Pandas Index object containing the years in the range.
+        """
+        return pd.Index(self.year_range)

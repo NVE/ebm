@@ -1,6 +1,8 @@
 import typing
 from dataclasses import dataclass
 
+import pandas as pd
+
 
 @dataclass
 class ScurveParameters:
@@ -44,7 +46,24 @@ class YearRange:
         Returns an iterator over the years in the period.
     range() -> tuple of int:
         Returns a tuple of years from start to end (inclusive).
+    subset(offset: int = 0, length: int = -1) -> 'YearRange':
+        Creates a subset YearRange of this year range.
+    to_index() -> pd.Index:
+        Converts the year_range to a pandas Index.
 
+    Examples
+    --------
+    Slice pandas DataFrame with YearRange.
+
+    >>> df = pd.DataFrame(data=['first', 'b', 'c', 'd', 'last'],
+    ...                   index=[2010, 2011, 2012, 2013, 2014])
+    >>> years = YearRange(2011, 2013)
+    >>> df.loc[years]
+          0
+    2011  b
+    2012  c
+    2013  d
+    >>>
 
     """
 
@@ -59,6 +78,9 @@ class YearRange:
         if self.start > self.end:
             raise ValueError(f'Start year {self.start} cannot be greater than end year {self.end}')
         object.__setattr__(self, 'year_range', self.range())
+
+    def __len__(self):
+        return len(self.year_range)
 
     def __iter__(self) -> typing.Generator[int, None, None]:
         """
@@ -82,3 +104,63 @@ class YearRange:
             Tuple containing all years in sequence from start to end (inclusive).
         """
         return tuple(range(self.start, self.end + 1))
+
+    def subset(self, offset: int = 0, length: int = -1) -> 'YearRange':
+        """
+        Creates a subset YearRange of this year range.
+
+        Parameters
+        ----------
+        offset : int
+            How many years to skip from the first years.
+        length : int
+            How many years to return after the offset.
+
+        Returns
+        -------
+        year_range : YearRange
+
+        Raises
+        ------
+        ValueError
+            When `offset` is less than 0 or `offset` is greater than the number of years in the YearRange.
+        """
+        if offset < 0:
+            raise ValueError(f'Offset cannot be negative: {offset}')
+        if offset + self.start > self.end:
+            raise ValueError(f'Offset is out of range: {offset}')
+        start_year = self.start + offset
+        last_year = start_year + length - 1 if length > 0 and start_year + length < self.end else self.end
+        return YearRange(start_year, last_year)
+
+    def to_index(self) -> pd.Index:
+        """
+        Converts the year_range to a pandas Index.
+
+        Returns
+        -------
+        pd.Index
+            Pandas Index object containing the years in the range.
+        """
+        return pd.Index(self.year_range)
+
+    def __getitem__(self, key: int | slice) -> pd.Index:
+        """
+        Returns a pandas Index object for the specified slice of the year range.
+
+        Parameters
+        ----------
+        key : int | slice
+            The index or slice of the year range to return.
+
+        Returns
+        -------
+        pd.Index
+            A pandas Index object containing the specified years.
+        """
+        if isinstance(key, int):
+            return pd.Index([self.year_range[key]])
+        elif isinstance(key, slice):
+            return pd.Index(self.year_range[key])
+        else:
+            raise TypeError(f"Invalid key type: {type(key)}")

@@ -50,3 +50,6 @@ def test_year_range_to_index():
     assert 2011 in result
     assert 2012 in result
 
+    assert year_range[0] == pd.Index(data=[2010])
+    pd.testing.assert_index_equal(year_range[0:2], pd.Index(data=[2010, 2011]))
+

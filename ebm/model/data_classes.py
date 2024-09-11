@@ -50,6 +50,21 @@ class YearRange:
         Creates a subset YearRange of this year range.
     to_index() -> pd.Index:
         Converts the year_range to a pandas Index.
+
+    Examples
+    --------
+    Slice pandas DataFrame with YearRange.
+
+    >>> df = pd.DataFrame(data=['first', 'b', 'c', 'd', 'last'],
+    ...                   index=[2010, 2011, 2012, 2013, 2014])
+    >>> years = YearRange(2011, 2013)
+    >>> df.loc[years]
+          0
+    2011  b
+    2012  c
+    2013  d
+    >>>
+
     """
 
     start: int
@@ -128,3 +143,24 @@ class YearRange:
             Pandas Index object containing the years in the range.
         """
         return pd.Index(self.year_range)
+
+    def __getitem__(self, key: int | slice) -> pd.Index:
+        """
+        Returns a pandas Index object for the specified slice of the year range.
+
+        Parameters
+        ----------
+        key : int | slice
+            The index or slice of the year range to return.
+
+        Returns
+        -------
+        pd.Index
+            A pandas Index object containing the specified years.
+        """
+        if isinstance(key, int):
+            return pd.Index([self.year_range[key]])
+        elif isinstance(key, slice):
+            return pd.Index(self.year_range[key])
+        else:
+            raise TypeError(f"Invalid key type: {type(key)}")

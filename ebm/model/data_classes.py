@@ -82,3 +82,32 @@ class YearRange:
             Tuple containing all years in sequence from start to end (inclusive).
         """
         return tuple(range(self.start, self.end + 1))
+
+    def subset(self, offset: int = 0, length: int = -1) -> 'YearRange':
+        """
+            Create a subset YearRange of this year range of *length* years from the *offset* year
+        Parameters
+        ----------
+        offset : int
+            How many years to skip from the first years
+        length : int
+            How many years to return after the offset
+        Returns
+        -------
+        year_range : YearRange
+
+         Raises
+        ------
+        ValueError
+            When *offset* is less than 0 or *offset* is greater than the number of years in the YearRange
+
+        """
+        if offset < 0:
+            m = f'A subset cannot start before the parent year range starts. {offset} < {self.start}'
+            raise ValueError(m)
+        if offset + self.start > self.end:
+            m = f'A subset cannot start after the parent year range ends ({self.start} + {offset}) < {self.end}'
+            raise ValueError(m)
+        start_year = self.start + offset
+        last_year = start_year + length - 1 if length > 0 and start_year + length < self.end else self.end
+        return YearRange(start_year, last_year)

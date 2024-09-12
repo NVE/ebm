@@ -436,14 +436,14 @@ class ConstructionCalculator:
         The calculation starts from `period.start + 5` to `period.end`. For each year, the total floor area is updated
         based on the formula:
 
-            total_floor_area[year] = ((floor_area_ch_over_pop_ch * year_pop_growth) + 1) * previous_year_floor_area
+            total_floor_area[year] = ((change_ratio * pop_growth) + 1) * previous_floor_area
         """
 
         for year in range(period.start + 5, period.end + 1):
-            floor_area_ch_over_pop_ch = floor_area_over_population_growth.loc[year]
-            year_pop_growth = population_growth.loc[year]
-            previous_year_floor_area = total_floor_area.loc[year - 1]
-            total_floor_area.loc[year] = ((floor_area_ch_over_pop_ch * year_pop_growth) + 1) * previous_year_floor_area
+            change_ratio = floor_area_over_population_growth.loc[year]
+            growth = population_growth.loc[year]
+            previous_floor_area = total_floor_area.loc[year - 1]
+            total_floor_area.loc[year] = ((change_ratio * growth) + 1) * previous_floor_area
 
         return total_floor_area
 

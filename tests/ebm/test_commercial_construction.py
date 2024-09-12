@@ -94,5 +94,21 @@ def test_calculate_floor_area_growth():
     pd.testing.assert_series_equal(result, expected_growth)
 
 
+def test_calculate_constructed_floor_area():
+    constructed_floor_area = pd.Series({2020: 0, 2021: 0, 2022: 0, 2023: 0, 2024: 0, 2025: 0})
+    demolition_floor_area = pd.Series({2020: 50, 2021: 60, 2022: 70, 2023: 80, 2024: 90, 2025: 100})
+    total_floor_area = pd.Series({2020: 1000, 2021: 1100, 2022: 1200, 2023: 1300, 2024: 1400, 2025: 1500})
+    period = YearRange(2020, 2025)
+    expected_constructed = pd.Series({2020: 0, 2021: 0, 2022: 0, 2023: 0, 2024: 0, 2025: 200})
+
+    result = ConCal.calculate_constructed_floor_area(
+        constructed_floor_area,
+        demolition_floor_area,
+        total_floor_area,
+        period)
+
+    pd.testing.assert_series_equal(result, expected_constructed)
+
+
 if __name__ == "__main__":
     pytest.main()

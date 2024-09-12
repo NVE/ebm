@@ -7,6 +7,16 @@ from ebm.model.data_classes import YearRange
 from model import BuildingCategory
 
 
+@pytest.fixture()
+def population_2010_2050():
+    return {2010: 4858199, 2011: 4920305, 2012: 4985870, 2013: 5051275, 2014: 5109056, 2015: 5165802, 2016: 5213985,
+            2017: 5258317, 2018: 5295619, 2019: 5331813, 2020: 5367580, 2021: 5392161, 2022: 5417877, 2023: 5445398,
+            2024: 5472086, 2025: 5498632, 2026: 5525306, 2027: 5551674, 2028: 5577823, 2029: 5603715, 2030: 5629226,
+            2031: 5654339, 2032: 5678901, 2033: 5703018, 2034: 5726770, 2035: 5750140, 2036: 5773171, 2037: 5795526,
+            2038: 5816913, 2039: 5837339, 2040: 5856848, 2041: 5875453, 2042: 5893145, 2043: 5909922, 2044: 5925797,
+            2045: 5940757, 2046: 5954781, 2047: 5967882, 2048: 5980064, 2049: 5991350, 2050: 6001759}
+
+
 def test_calculate_floor_area_over_building_growth_kindergarten():
     """ Test calculate_floor_area_over_building_growth using values for kindergarten """
 
@@ -180,7 +190,7 @@ def test_calculate_total_floor_area_as_kindergarten():
     pd.testing.assert_series_equal(result, expected)
 
 
-def test_calculate_commercial_construction_kindergarten():
+def test_calculate_commercial_construction_kindergarten(population_2010_2050):
     total_floor_area = np.int64(1275238)
     constructed_floor_area = pd.Series(
         name='constructed_floor_area',
@@ -200,12 +210,7 @@ def test_calculate_commercial_construction_kindergarten():
               2050: 8622.681666666671})
     population = pd.Series(
         name='population',
-        data={2010: 4858199, 2011: 4920305, 2012: 4985870, 2013: 5051275, 2014: 5109056, 2015: 5165802, 2016: 5213985,
-              2017: 5258317, 2018: 5295619, 2019: 5331813, 2020: 5367580, 2021: 5392161, 2022: 5417877, 2023: 5445398,
-              2024: 5472086, 2025: 5498632, 2026: 5525306, 2027: 5551674, 2028: 5577823, 2029: 5603715, 2030: 5629226,
-              2031: 5654339, 2032: 5678901, 2033: 5703018, 2034: 5726770, 2035: 5750140, 2036: 5773171, 2037: 5795526,
-              2038: 5816913, 2039: 5837339, 2040: 5856848, 2041: 5875453, 2042: 5893145, 2043: 5909922, 2044: 5925797,
-              2045: 5940757, 2046: 5954781, 2047: 5967882, 2048: 5980064, 2049: 5991350, 2050: 6001759})
+        data=population_2010_2050)
 
     period = YearRange(2010, 2050)
     result = ConCal.calculate_commercial_construction(building_category=BuildingCategory.KINDERGARTEN,
@@ -246,31 +251,26 @@ def test_calculate_commercial_construction_kindergarten():
     pd.testing.assert_series_equal(result.total_floor_area, expected_total_floor_area)
 
 
-def test_calculate_commercial_construction_storage_repairs():
-    period = YearRange(2010, 2050)
+def test_calculate_commercial_construction_storage_repairs(population_2010_2050):
+    year_range = YearRange(2010, 2050)
     total_floor_area = np.int64(1275238)
     constructed_floor_area = pd.Series(
         name='constructed_floor_area',
         data={2010: 33755, 2011: 33755, 2012: 33755, 2013: 33755, 2014: 33755})
     demolition_floor_area = pd.Series(
         name='demolition_floor_area',
-        data={y:33755.0 for y in period})
+        data={y: 33755.0 for y in year_range})
     population = pd.Series(
         name='population',
-        data={2010: 4858199, 2011: 4920305, 2012: 4985870, 2013: 5051275, 2014: 5109056, 2015: 5165802, 2016: 5213985,
-              2017: 5258317, 2018: 5295619, 2019: 5331813, 2020: 5367580, 2021: 5392161, 2022: 5417877, 2023: 5445398,
-              2024: 5472086, 2025: 5498632, 2026: 5525306, 2027: 5551674, 2028: 5577823, 2029: 5603715, 2030: 5629226,
-              2031: 5654339, 2032: 5678901, 2033: 5703018, 2034: 5726770, 2035: 5750140, 2036: 5773171, 2037: 5795526,
-              2038: 5816913, 2039: 5837339, 2040: 5856848, 2041: 5875453, 2042: 5893145, 2043: 5909922, 2044: 5925797,
-              2045: 5940757, 2046: 5954781, 2047: 5967882, 2048: 5980064, 2049: 5991350, 2050: 6001759})
+        data=population_2010_2050)
 
     result = ConCal.calculate_commercial_construction(building_category=BuildingCategory.STORAGE_REPAIRS,
                                                       total_floor_area=total_floor_area,
                                                       constructed_floor_area=constructed_floor_area,
                                                       demolition_floor_area=demolition_floor_area,
-                                                      population=population, period=period)
+                                                      population=population, period=year_range)
 
-    expected_constructed = pd.Series(name='constructed_floor_area',data=[33755.0]*41, index=period.to_index())
+    expected_constructed = pd.Series(name='constructed_floor_area',data=[33755.0]*41, index=year_range.to_index())
     pd.testing.assert_series_equal(result.constructed_floor_area, expected_constructed)
 
     expected_accumulated = pd.Series(expected_constructed.cumsum(), name='accumulated_constructed_floor_area')

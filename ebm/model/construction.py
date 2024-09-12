@@ -55,7 +55,8 @@ class ConstructionCalculator:
         """
     
     def calculate_residential_construction(self, population: pd.Series, household_size: pd.Series,
-                                           building_category_share: pd.Series, build_area_sum: pd.Series,
+                                           building_category_share: pd.Series,
+                                           build_area_sum: pd.Series,
                                            yearly_demolished_floor_area: pd.Series,
                                            average_floor_area: typing.Union[pd.Series, int] = 175,
                                            period=YearRange(2010, 2050)) -> pd.DataFrame:
@@ -89,6 +90,10 @@ class ConstructionCalculator:
         The function calculates several metrics including population growth, household changes, building growth,
         yearly constructed floor area, and accumulated constructed floor area.
         """
+        self._check_index(period, population)
+        self._check_index(period, building_category_share)
+        self._check_index(period, yearly_demolished_floor_area)
+        self._check_index(period, household_size)
 
         # It might be sensible to calculate total floor area and work from there (like commercial) rather than going
         # through average_floor_area <-> building_growth <-> households_change <-> population_growth
@@ -123,6 +128,14 @@ class ConstructionCalculator:
             index=floor_area_change_accumulated.index)
 
         return df
+
+    def _check_index(self, period, values: pd.Series) -> bool:
+        name = values.name
+        if len(values.index) != len(period.year_range) or not all(values.index == period.year_range):
+            logger.warning(
+                f'{name}.index({values.index[0]}, {values.index[-1]}) is not equal to period(start={period.start}, {period.end})')
+            return False
+        return True
 
     @staticmethod
     def calculate_yearly_new_building_floor_area_sum(yearly_new_building_floor_area_house: pd.Series):
@@ -301,7 +314,8 @@ class ConstructionCalculator:
     def calculate_commercial_construction(building_category: BuildingCategory,
                                           total_floor_area: typing.Union[pd.Series, int],
                                           constructed_floor_area: pd.Series = None,
-                                          demolition_floor_area: pd.Series = None, population: pd.DataFrame = None,
+                                          demolition_floor_area: pd.Series = None,
+                                          population: pd.DataFrame = None,
                                           period=YearRange(2010, 2050)) -> pd.DataFrame:
         """
         Calculate the commercial construction metrics over a given period.
@@ -341,6 +355,9 @@ class ConstructionCalculator:
 
         logger.debug(f'calculate_commercial_construction {building_category}')
 
+        ConstructionCalculator()._check_index(period, demolition_floor_area)
+        ConstructionCalculator()._check_index(period, population)
+
         if not isinstance(total_floor_area, pd.Series):
             total_floor_area = pd.Series(data=[total_floor_area], index=[period.start])
 
@@ -353,7 +370,7 @@ class ConstructionCalculator:
                                          constructed_floor_area.loc[year]
 
         population_growth = (population / population.shift(1)) - 1
-        building_growth: Series = pd.Series(data=itertools.repeat(0.0, 41), index=[y for y in range(period.start, period.end + 1)])
+        building_growth: Series = pd.Series(data=itertools.repeat(0.0, len(period.year_range)), index=period.year_range)
 
         building_growth.loc[period.start + 1] = (total_floor_area.loc[period.start + 1] / total_floor_area.loc[period.start]) - 1
         building_growth.loc[period.start] = np.nan
@@ -567,11 +584,13 @@ class ConstructionCalculator:
                                                                                building_category_share=building_category_share,
                                                                                build_area_sum=build_area_sum,
                                                                                yearly_demolished_floor_area=demolition_floor_area,
-                                                                               average_floor_area=average_floor_area)
+                                                                               average_floor_area=average_floor_area,
+                                                                               period=period)
 
         return ConstructionCalculator.calculate_commercial_construction(building_category=building_category,
                                                                         total_floor_area=total_floor_area,
                                                                         constructed_floor_area=yearly_construction_floor_area,
                                                                         demolition_floor_area=demolition_floor_area,
                                                                         population=new_buildings_population[
-                                                                            'population'])
+                                                                            'population'],
+                                                                        period=period)

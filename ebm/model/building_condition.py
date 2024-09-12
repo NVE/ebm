@@ -35,6 +35,9 @@ class BuildingCondition(StrEnum):
                 return member
         return ValueError(f'No such building condition: {value}')
 
+    def __repr__(self):
+        return f'{self.__class__.__name__}.{self.name}'
+
     @staticmethod
     def get_scruve_condition_list() -> typing.List[str]:
         """
@@ -61,3 +64,4 @@ class BuildingCondition(StrEnum):
 if __name__ == '__main__':
     for building_condition in BuildingCondition:
         print(building_condition)
+        print(repr(building_condition))

@@ -2,16 +2,17 @@ import typing
 
 import pandas as pd
 
-from .building_category import BuildingCategory
-from .database_manager import DatabaseManager
 from .area_forecast import AreaForecast
+from .building_category import BuildingCategory
 from .building_condition import BuildingCondition
-from .data_classes import TEKParameters
-from .filter_tek import FilterTek
+from .data_classes import TEKParameters, YearRange
+from .database_manager import DatabaseManager
 from .filter_scurve_params import FilterScurveParams
+from .filter_tek import FilterTek
 from .scurve import SCurve
 from .scurve_processor import ScurveProcessor
 from .shares_per_condition import SharesPerCondition
+
 
 # TODO:
 # - remove _filter_tek_list and _filter_tek_params when the model is updated with new 2020 data.
@@ -41,7 +42,7 @@ class Buildings():
         self.shares_per_condition = self.get_shares()
         self.area_params = area_params #TODO: change so that the area params are filtered on building category? 
 
-    def get_shares(self) -> typing.Dict:
+    def get_shares(self, years: YearRange = YearRange(2010, 2050)) -> typing.Dict:
         """ 
         Calculate the shares per condition for all TEKs in the building category.
 
@@ -52,8 +53,12 @@ class Buildings():
         - shares_condition (dict): A dictionary where the keys are the condition names and the values are
                                    the shares per condition for each TEK.
         """
-        shares_condition = SharesPerCondition(self.tek_list, self.tek_params, self.scurves, self.never_shares).shares_per_condition
-        return shares_condition   
+        shares_condition = SharesPerCondition(self.tek_list, self.tek_params, self.scurves, self.never_shares,
+                                              model_start_year=years.start,
+                                              model_end_year=years.end)
+
+        shares_per_condition = shares_condition.shares_per_condition
+        return shares_per_condition
 
     # TODO: 
     # - add optional parameters to filter on specific TEKs and Years

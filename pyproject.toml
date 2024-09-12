@@ -33,3 +33,5 @@ calculate-area-forecast = "ebm.__main__:main"
 version = {attr = "ebm.__version__"}
 [tool.setuptools.package-data]
 mypackage = ["data/*.csv"]
+[tool.pytest.ini_options]
+pythonpath = "."

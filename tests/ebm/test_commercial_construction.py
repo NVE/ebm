@@ -83,5 +83,16 @@ def test_calculate_floor_area_over_building_growth():
     pd.testing.assert_series_equal(result, expected_result)
 
 
+def test_calculate_floor_area_growth():
+    """ Test calculate_floor_area returning growth based on total_floor_area """
+    total_floor_area = pd.Series({2010: 1000, 2011: 1100, 2012: 1210, 2013: 1331, 2014: 1464.1})
+    period = YearRange(2010, 2014)
+    expected_growth = pd.Series({2010: np.nan, 2011: 0.1, 2012: 0.1, 2013: 0.1, 2014: 0.1})
+
+    result = ConCal.calculate_floor_area_growth(total_floor_area, period)
+
+    pd.testing.assert_series_equal(result, expected_growth)
+
+
 if __name__ == "__main__":
     pytest.main()

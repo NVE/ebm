@@ -35,6 +35,11 @@ steps:
     python -m build
   displayName: 'Build package'
 
+- script: |
+    pip install pytest pytest-azurepipelines
+    pytest
+  displayName: 'pytest'
+
 - task: TwineAuthenticate@1
   inputs:
     artifactFeed: Energibruksmodell/NVE.ebm

@@ -357,30 +357,14 @@ class ConstructionCalculator:
 
         building_growth.loc[period.start + 1] = (total_floor_area.loc[period.start + 1] / total_floor_area.loc[period.start]) - 1
         building_growth.loc[period.start] = np.nan
-
-        floor_area_over_population_growth: Series = pd.Series(data=[np.nan] + list(itertools.repeat(1, period.end - period.start)),
-                                                              index=range(period.start, period.end + 1))
-
-        floor_area_over_population_growth.loc[period.start + 1] = building_growth.loc[period.start + 1] / population_growth.loc[period.start + 1]
-
         # First 4 years of building growth is calculated from change in total_floor_area
         for year in range(period.start + 1, period.start + 5):
             building_growth.loc[year] = (total_floor_area.loc[year] / total_floor_area.loc[year - 1]) - 1
-            floor_area_over_population_growth[year] = building_growth.loc[year] / population_growth.loc[year]
 
-        # Next 5 years are calculated from mean floor_area over mean population
-        mean_floor_area_population = floor_area_over_population_growth.loc[period.start + 1:period.start+4].mean()
-        for year in range(period.start + 5, period.start + 11):
-            floor_area_over_population_growth.loc[year] = mean_floor_area_population
-        # under: period.end + 1 was 2050 is that right?
-        for year in range(period.start + 11, period.end + 1):
-            floor_area_over_population_growth.loc[year] = 1
-        for year in range(period.start + 11, period.start + 21):
-            floor_area_over_population_growth.loc[year] = \
-                (floor_area_over_population_growth.loc[period.start+10] - (year - period.start + 10) * ((floor_area_over_population_growth.loc[
-                                                                                     period.start + 10] -
-                                                                                 floor_area_over_population_growth.loc[
-                                                                                     period.start + 20]) / 10))
+        floor_area_over_population_growth = ConstructionCalculator.calculate_floor_area_over_building_growth(
+            building_growth=building_growth,
+            population_growth=population_growth,
+            years=period)
 
         for year in range(period.start + 5, period.end + 1):
             floor_area_ch_over_pop_ch = floor_area_over_population_growth.loc[year]
@@ -414,6 +398,78 @@ class ConstructionCalculator:
         }, index=[year for year in range(period.start, period.end + 1)])
 
         return construction
+
+    @staticmethod
+    def calculate_floor_area_over_building_growth(building_growth: pd.Series,
+                                                  population_growth: pd.Series,
+                                                  years: YearRange) -> pd.Series:
+        """
+            Calculate the floor area over building growth for a given range of years.
+
+            Parameters
+            ----------
+            building_growth : pd.Series
+                A pandas Series representing the building growth over the years.
+            population_growth : pd.Series
+                A pandas Series representing the population growth over the years.
+            years : YearRange
+                An object representing the range of years for the calculation.
+
+            Returns
+            -------
+            pd.Series
+                A pandas Series representing the floor area over building growth for each year in the specified range.
+
+            Notes
+            -----
+            - The first year in the range is initialized with NaN.
+            - For the first 4 years, the floor area over building growth is calculated directly from the building and population growth.
+            - For the next 5 years, the mean floor area over building growth is used.
+            - From the 11th year onwards, the value is set to 1.
+            - For the years between the 11th and 21st, the value is interpolated linearly.
+
+            Examples
+            --------
+            >>> building_growth = pd.Series([1.2, 1.3, 1.4, 1.5, 1.6], index=[2020, 2021, 2022, 2023, 2024])
+            >>> population_growth = pd.Series([1.1, 1.2, 1.3, 1.4, 1.5], index=[2020, 2021, 2022, 2023, 2024])
+            >>> years = YearRange(start=2020, end=2030)
+            >>> calculate_floor_area_over_building_growth(building_growth, population_growth, years)
+            2020     NaN
+            2021    1.18
+            2022    1.08
+            2023    1.07
+            2024    1.07
+            2025    1.10
+            2026    1.10
+            2027    1.10
+            2028    1.10
+            2029    1.10
+            2030    1.00
+            dtype: float64
+            """
+        
+        floor_area_over_population_growth: Series = pd.Series(
+            data=[np.nan] + list(itertools.repeat(1, years.end - years.start)),
+            index=range(years.start, years.end + 1))
+        floor_area_over_population_growth.loc[years.start + 1] = building_growth.loc[years.start + 1] / \
+                                                                 population_growth.loc[years.start + 1]
+        for year in range(years.start + 1, years.start + 5):
+            floor_area_over_population_growth[year] = building_growth.loc[year] / population_growth.loc[year]
+        # Next 5 years are calculated from mean floor_area over mean population
+        mean_floor_area_population = floor_area_over_population_growth.loc[years.start + 1:years.start + 4].mean()
+        for year in range(years.start + 5, years.start + 11):
+            floor_area_over_population_growth.loc[year] = mean_floor_area_population
+        # under: period.end + 1 was 2050 is that right?
+        for year in range(years.start + 11, years.end + 1):
+            floor_area_over_population_growth.loc[year] = 1
+        for year in range(years.start + 11, years.start + 21):
+            floor_area_over_population_growth.loc[year] = \
+                (floor_area_over_population_growth.loc[years.start + 10] - (year - years.start + 10) * (
+                        (floor_area_over_population_growth.loc[
+                             years.start + 10] -
+                         floor_area_over_population_growth.loc[
+                             years.start + 20]) / 10))
+        return floor_area_over_population_growth
 
     @staticmethod
     def calculate_construction_as_list(building_category: BuildingCategory,

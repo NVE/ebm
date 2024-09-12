@@ -360,10 +360,6 @@ class ConstructionCalculator:
         if not isinstance(total_floor_area, pd.Series):
             total_floor_area = pd.Series(data=[total_floor_area], index=[period.start])
 
-        # Remove this statement
-        total_floor_area.loc[period.start + 1] = \
-            total_floor_area.loc[period.start] - demolition_floor_area.loc[period.start + 1] + constructed_floor_area.loc[period.start +1]
-
         for year in range(period.start + 1, period.start + 5):
             total_floor_area.loc[year] = total_floor_area.loc[year - 1] - \
                                          demolition_floor_area.loc[year] + \

@@ -447,23 +447,27 @@ class ConstructionCalculator:
             dtype: float64
             """
 
-        floor_area_over_population_growth: Series = pd.Series(
+        floor_area_over_population_growth = pd.Series(
             data=[np.nan] + list(itertools.repeat(1, years.end - years.start)),
             index=range(years.start, years.end + 1))
-        floor_area_over_population_growth.loc[years.start + 1] = \
-            building_growth.loc[years.start + 1] / population_growth.loc[years.start + 1]
 
+        # Initialize with NaN for the first year
+        floor_area_over_population_growth.loc[years.start] = np.nan
+
+        # Calculate for the next 4 years
         for year in range(years.start + 1, years.start + 5):
             floor_area_over_population_growth[year] = building_growth.loc[year] / population_growth.loc[year]
 
-        # Next 5 years are calculated from mean floor_area over mean population
+        # Calculate for the next 5 years using the mean
         mean_floor_area_population = floor_area_over_population_growth.loc[years.start + 1:years.start + 4].mean()
         for year in range(years.start + 5, years.start + 11):
             floor_area_over_population_growth.loc[year] = mean_floor_area_population
 
-        # under: period.end + 1 was 2050 is that right?
+        # Set to 1 from the 11th year onwards
         for year in range(years.start + 11, years.end + 1):
             floor_area_over_population_growth.loc[year] = 1
+
+        # Interpolate linearly between the 11th and 21st years
         for year in range(years.start + 11, years.start + 21):
             floor_area_over_population_growth.loc[year] = \
                 (floor_area_over_population_growth.loc[years.start + 10] - (year - (years.start + 10)) * (

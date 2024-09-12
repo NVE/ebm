@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ebm.model.construction import ConstructionCalculator as cc
+from ebm.model.construction import ConstructionCalculator as ConCal
 from ebm.model.data_classes import YearRange
 
 
@@ -27,10 +27,6 @@ def test_calculate_floor_area_over_building_growth_kindergarten():
         index=[y for y in range(2010, 2051)])
 
     years = YearRange(start=2010, end=2050)
-    result = cc.calculate_floor_area_over_building_growth(
-        building_growth=building_growth,
-        population_growth=population_growth,
-        years=years)
 
     # Start years (2011 - 2014) use building growth over population growth
     calculated_building_growth_over_population_growth = pd.Series(
@@ -58,6 +54,11 @@ def test_calculate_floor_area_over_building_growth_kindergarten():
                           calculated_years,
                           fixed_rate_from_2030])
 
+    result = ConCal.calculate_floor_area_over_building_growth(
+        building_growth=building_growth,
+        population_growth=population_growth,
+        years=years)
+
     pd.testing.assert_series_equal(result, expected)
 
 
@@ -76,7 +77,7 @@ def test_calculate_floor_area_over_building_growth():
     )
 
     # Calculate result
-    result = cc.calculate_floor_area_over_building_growth(building_growth, population_growth, years)
+    result = ConCal.calculate_floor_area_over_building_growth(building_growth, population_growth, years)
 
     # Assert the result is as expected
     pd.testing.assert_series_equal(result, expected_result)

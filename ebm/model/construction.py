@@ -430,21 +430,20 @@ class ConstructionCalculator:
 
             Examples
             --------
-            >>> building_growth = pd.Series([1.2, 1.3, 1.4, 1.5, 1.6], index=[2020, 2021, 2022, 2023, 2024])
-            >>> population_growth = pd.Series([1.1, 1.2, 1.3, 1.4, 1.5], index=[2020, 2021, 2022, 2023, 2024])
-            >>> years = YearRange(start=2020, end=2030)
+            >>> building_growth = pd.Series([1.2, 1.3, 1.4, 1.5, 1.6], index=[2010, 2011, 2012, 2013, 2014])
+            >>> pd.Series([1.1, 1.2, 1.3, 1.4, 1.5], index=[2010, 2011, 2012, 2013, 2014])
+            >>> years = YearRange(start=2010, end=2050)
             >>> ConstructionCalculator.calculate_floor_area_over_building_growth(building_growth, population_growth, years)
-            2020     NaN
-            2021    1.18
-            2022    1.08
-            2023    1.07
-            2024    1.07
-            2025    1.10
-            2026    1.10
-            2027    1.10
-            2028    1.10
-            2029    1.10
-            2030    1.00
+            2010         NaN
+            2011    1.083333
+            2012    1.076923
+            2013    1.071429
+            2014    1.066667
+            2015    1.074588
+            2016    1.074588
+            …
+            2050    1.000000
+            2051    1.000000
             dtype: float64
             """
 

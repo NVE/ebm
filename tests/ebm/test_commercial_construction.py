@@ -1,11 +1,12 @@
 import numpy as np
 import pandas as pd
+import pytest
 
 from ebm.model.construction import ConstructionCalculator as cc
 from ebm.model.data_classes import YearRange
 
 
-def test_calculate_floor_area_over_building_growth():
+def test_calculate_floor_area_over_building_growth_kindergarten():
     """ Test calculate_floor_area_over_building_growth using values for kindergarten """
 
     population_growth = pd.Series(
@@ -38,11 +39,11 @@ def test_calculate_floor_area_over_building_growth():
         data=[np.nan, 5.503806636996176, 3.56968635129183, 3.2575308223948776, 4.636257198422607],
         index=[2010, 2011, 2012, 2013, 2014])
 
-    # The next five years (2015-2019) use the mean of the start years
+    # The next six years (2015-2020) use the mean of the start years
     calculated_mean_build_over_pop = pd.Series(
-        data=[4.24182025227637, 4.24182025227637, 4.24182025227637, 4.24182025227637, 4.24182025227637,
-              4.24182025227637],
+        data=[4.24182025227637] * 6,
         index=[y for y in range(2015, 2021)])
+
     # The next 10 years use the mean of the starting years multiplied by a cut-off calculated from number of years
     #   since the start of the period (2020)
     calculated_years = pd.Series(data=[3.91763822705, 3.59345620182, 3.26927417659, 2.94509215137,
@@ -50,7 +51,7 @@ def test_calculate_floor_area_over_building_growth():
                                  index=[y for y in range(2021, 2030)]
                                  )
     fixed_rate_from_2030 = pd.Series(
-        data=[1.0 for _ in range(2030, 2051)],
+        data=[1.0] * 21,
         index=[y for y in range(2030, 2051)]
     )
 

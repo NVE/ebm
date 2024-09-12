@@ -60,3 +60,28 @@ def test_calculate_floor_area_over_building_growth():
                           fixed_rate_from_2030])
 
     pd.testing.assert_series_equal(result, expected)
+
+
+def test_calculate_floor_area_over_building_growth():
+    # Sample data
+    building_growth = pd.Series([1.2, 1.3, 1.4, 1.5, 1.6], index=[2010, 2011, 2012, 2013, 2014])
+    population_growth = pd.Series([1.1, 1.2, 1.3, 1.4, 1.5], index=[2010, 2011, 2012, 2013, 2014])
+    years = YearRange(start=2010, end=2050)
+
+    # Expected result
+    expected_result = pd.Series(
+        [np.nan, 1.083333, 1.076923, 1.071429, 1.066667, 1.074588, 1.074588, 1.074588, 1.074588, 1.074588, 1.074588] +
+        [1.067129, 1.05967, 1.05221, 1.044752, 1.037293, 1.029835, 1.022376, 1.014918, 1.007459]
+        +[1.000000] * 21,
+        index=range(2010, 2051)
+    )
+
+    # Calculate result
+    result = cc.calculate_floor_area_over_building_growth(building_growth, population_growth, years)
+
+    # Assert the result is as expected
+    pd.testing.assert_series_equal(result, expected_result)
+
+
+if __name__ == "__main__":
+    pytest.main()

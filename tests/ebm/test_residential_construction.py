@@ -139,6 +139,32 @@ def test_calculate_residential_construction():
     pd.testing.assert_frame_equal(result.round(2), expected_df)
 
 
+def test_calculate_residential_construction_2052():
+    """
+    Test that accumulated_constructed_floor_area has a correct index from 2010 to 2052 when YearRange is longer than
+        normal
+    """
+    period = YearRange(2010, 2052)
+    population = pd.Series([1_000_000 + y for y in period], index=period.range())
+    household_size = pd.Series([y/1000 for y in period], index=period.range())
+    building_category_share = pd.Series([0.5 for y in period], index=period.range())
+    build_area_sum = pd.Series([10000, 20000, 30000, 31000], index=[2010, 2011, 2012, 2013])
+    yearly_demolished_floor_area = pd.Series([10_000 + y for y in period], index=period.range())
+    average_floor_area = 175
+
+    result = ConstructionCalculator().calculate_residential_construction(population, household_size,
+                                                                         building_category_share, build_area_sum,
+                                                                         yearly_demolished_floor_area,
+                                                                         average_floor_area,
+                                                                         period=period)
+    floor_area = result.accumulated_constructed_floor_area
+    expected = pd.Series(data=[1_000_000.0 + y for y in period],
+                         index=period.range(),
+                         name='accumulated_constructed_floor_area')
+
+    assert floor_area.index.to_list() == expected.index.to_list()
+
+
 @pytest.mark.skipif(platform.system() != 'Windows', reason='Prevent test from failing on Azure')
 def test_yearly_constructed_floor_area_when_share_is_0():
     """

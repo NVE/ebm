@@ -19,8 +19,8 @@ class BuildingCategory(StrEnum):
     SPORTS = 'sports'
     STORAGE_REPAIRS = 'storage_repairs'
 
-#    def __str__(self):
-#        return self.name.lower().replace('_', ' ')
+    def __repr__(self):
+        return f'{self.__class__.__name__}.{self.name}'
 
     def yearly_construction_floor_area(self):
         logger.warning('Using static yearly_construction_floor_area')

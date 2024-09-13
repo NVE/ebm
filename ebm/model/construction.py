@@ -27,7 +27,6 @@ class ConstructionCalculator:
                 from database manager.
         calculate_commercial_construction(building_category, total_floor_area, constructed_floor_area=None, demolition_floor_area=None, population=None)
             Calculate the commercial construction metrics over a given period.
-
         calculate_residential_construction(population, household_size, building_category_share, build_area_sum, yearly_demolished_floor_area, average_floor_area=175)
             Calculate various residential construction metrics based on population, household size, and building data.
 
@@ -360,7 +359,7 @@ class ConstructionCalculator:
         if not isinstance(total_floor_area, pd.Series):
             total_floor_area = pd.Series(data=[total_floor_area], index=[period.start])
 
-        for year in range(period.start + 1, period.start + 5):
+        for year in period.subset(1, 4):
             total_floor_area.loc[year] = total_floor_area.loc[year - 1] - \
                                          demolition_floor_area.loc[year] + \
                                          constructed_floor_area.loc[year]
@@ -435,7 +434,7 @@ class ConstructionCalculator:
             total_floor_area[year] = ((change_ratio * pop_growth) + 1) * previous_floor_area
         """
 
-        for year in range(period.start + 5, period.end + 1):
+        for year in period.subset(offset=5, length=-1):
             change_ratio = floor_area_over_population_growth.loc[year]
             growth = population_growth.loc[year]
             previous_floor_area = total_floor_area.loc[year - 1]
@@ -492,7 +491,7 @@ class ConstructionCalculator:
         # and adding last year's demolition.
         # Calculate constructed floor area from year 6 by substracting last years floor area with current floor area
         #  and adding last years demolition.
-        for year in range(period.start + 5, period.end + 1):
+        for year in period.subset(5):
             floor_area = total_floor_area.loc[year]
             previous_year_floor_area = total_floor_area.loc[year - 1]
             demolished = demolition_floor_area.loc[year]

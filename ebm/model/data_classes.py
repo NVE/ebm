@@ -128,7 +128,7 @@ class YearRange:
         if offset < 0:
             raise ValueError(f'Offset cannot be negative: {offset}')
         if offset + self.start > self.end:
-            raise ValueError(f'Offset is out of range: {offset}')
+            raise ValueError(f'Offset is out of range: {offset=} >= {len(self)}')
         start_year = self.start + offset
         last_year = start_year + length - 1 if length > 0 and start_year + length < self.end else self.end
         return YearRange(start_year, last_year)

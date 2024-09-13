@@ -1,3 +1,1 @@
-import importlib.metadata
-
-__version__ = importlib.metadata.version("energibruksmodell")
+version = "0.8.5"

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "energibruksmodell"
-version = "0.8.5"
+dynamic = ["version"]
 description = "A project for energy usage modeling"
 readme = "README.md"
 authors = [
@@ -30,7 +30,7 @@ packages = ["ebm"]
 [project.scripts]
 calculate-area-forecast = "ebm.__main__:main"
 [tool.setuptools.dynamic]
-version = {attr = "ebm.__version__"}
+version = {attr = "ebm.__version__.version"}
 [tool.setuptools.package-data]
 mypackage = ["data/*.csv"]
 [tool.pytest.ini_options]

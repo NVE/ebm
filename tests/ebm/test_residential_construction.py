@@ -3,6 +3,7 @@ import pytest
 
 from ebm.model.construction import ConstructionCalculator
 from ebm.model.data_classes import YearRange
+from .test_commercial_construction import default_input
 
 
 def test_calculate_yearly_floor_area_change_accept_int_and_list():
@@ -232,3 +233,8 @@ def test_yearly_constructed_floor_area_when_share_is_0():
                          name='floor_area_change')
 
     pd.testing.assert_series_equal(floor_area_change, expected)
+
+
+if __name__ == '__main__':
+    default_input()
+    pytest.main()

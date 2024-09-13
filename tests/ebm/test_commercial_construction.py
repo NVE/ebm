@@ -280,5 +280,39 @@ def test_calculate_commercial_construction_storage_repairs(default_input):
     pd.testing.assert_series_equal(result.accumulated_constructed_floor_area, expected_accumulated)
 
 
+def test_calculate_commercial_construction_kindergarten_2030(default_input, kindergarten):
+    constructed_floor_area = pd.Series(name='constructed_floor_area',
+                                       data={2010: 97574.0, 2011: 90644.0, 2012: 65847.0, 2013: 62022.0, 2014: 79992.0})
+    demolition_floor_area = pd.Series(
+        name='demolition_floor_area',
+        data=kindergarten.get('demolition_floor_area')).loc[2010:2030]
+
+    population = pd.Series(name='population', data=default_input.get('population')).loc[2010:2030]
+
+    period = YearRange(2010, 2030)
+    result = ConCal.calculate_commercial_construction(building_category=BuildingCategory.KINDERGARTEN,
+                                                      total_floor_area=np.int64(1275238),
+                                                      constructed_floor_area=constructed_floor_area,
+                                                      demolition_floor_area=demolition_floor_area,
+                                                      population=population, period=period)
+
+    expected_acc_constructed = pd.Series(
+        name='accumulated_constructed_floor_area',
+        data={2010: 97574.0, 2011: 188218.0, 2012: 254065.0, 2013: 316087.0, 2014: 396079.0, 2015: 470969.73759432696,
+              2016: 536934.8384640573, 2017: 599494.080727143, 2018: 653696.220783381, 2019: 707496.2548855399,
+              2020: 761822.4178627238, 2021: 797372.8973082381, 2022: 831966.4053729149, 2023: 866075.9623344268,
+              2024: 896321.9001179065, 2025: 923447.0849048046, 2026: 947622.1337777856, 2027: 968409.0957146371,
+              2028: 987638.3261736577, 2029: 1003523.902076069, 2030: 1018640.2562509673})
+
+    pd.testing.assert_series_equal(result.accumulated_constructed_floor_area, expected_acc_constructed)
+
+    expected_total_floor_area = pd.Series(
+        name='total_floor_area',
+        data=kindergarten.get('total_floor_area')).loc[2010:2030]
+
+    pd.testing.assert_series_equal(result.total_floor_area, expected_total_floor_area)
+
+
+
 if __name__ == "__main__":
     pytest.main()

@@ -439,7 +439,7 @@ class ConstructionCalculator:
             growth = population_growth.loc[year]
             previous_floor_area = total_floor_area.loc[year - 1]
             total_floor_area.loc[year] = ((change_ratio * growth) + 1) * previous_floor_area
-
+        total_floor_area.name = 'total_floor_area'
         return total_floor_area
 
     @staticmethod
@@ -497,7 +497,7 @@ class ConstructionCalculator:
             demolished = demolition_floor_area.loc[year]
             constructed = floor_area - previous_year_floor_area + demolished
             constructed_floor_area[year] = constructed
-
+        constructed_floor_area.name = 'constructed_floor_area'
         return constructed_floor_area
 
     @staticmethod

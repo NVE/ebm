@@ -137,6 +137,46 @@ def test_calculate_residential_construction():
     pd.testing.assert_frame_equal(result.round(2), expected_df)
 
 
+def test_calculate_residential_construction_2011():
+    period = YearRange(2011, 2014)
+    population = pd.Series([1000, 1100, 1210, 1331], index=period.range())
+    household_size = pd.Series([2.5, 2.4, 2.3, 2.2], index=period.range())
+    building_category_share = pd.Series([0.5, 0.5, 0.5, 0.5], index=period.range())
+    build_area_sum = pd.Series([100, 200, 300, 400], index=period.range())
+    yearly_demolished_floor_area = pd.Series([10, 20, 30, 40], index=period.range())
+    average_floor_area = 175
+
+    result = ConstructionCalculator().calculate_residential_construction(population, household_size,
+                                                                         building_category_share, build_area_sum,
+                                                                         yearly_demolished_floor_area,
+                                                                         average_floor_area,
+                                                                         period=period)
+
+    expected_data = {
+        'population': population,
+        'population_growth': pd.Series([None, 0.1, 0.1, 0.1], index=period.to_index(),
+                                       name='population_growth'),
+        'household_size': household_size,
+        'households': pd.Series([400, 458.33, 526.09, 605], index=period.to_index(), name='households'),
+        'households_change': pd.Series([None, 58.33, 67.75, 78.91], index=period.to_index(),
+                                       name='household_change'),
+        'building_growth': pd.Series([None, 29.17, 33.88, 39.46], index=period.to_index(),
+                                     name='building_growth'),
+        'yearly_floor_area_constructed': pd.Series([0, 0, 5928.44, 6904.89], index=period.to_index(),
+                                                   name='house_floor_area_change'),
+        'demolished_floor_area': yearly_demolished_floor_area,
+        'constructed_floor_area': pd.Series([100.0, 200.0, 300.0, 400.0], index=period.to_index(),
+                                            name='constructed_floor_area'),
+        'accumulated_constructed_floor_area': pd.Series([100.0, 300.0, 600.0, 1000.0],
+                                                        index=period.to_index(),
+                                                        name='accumulated_constructed_floor_area')
+    }
+
+    expected_df = pd.DataFrame(expected_data)
+
+    pd.testing.assert_frame_equal(result.round(2), expected_df)
+
+
 def test_calculate_residential_construction_2052(default_input):
     """
     Test that accumulated_constructed_floor_area has a correct index from 2010 to 2052 when YearRange is longer than

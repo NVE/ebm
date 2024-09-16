@@ -40,7 +40,7 @@ def dict_with_lists_to_series(dict1):
 
     for key, lists in dict1.items():
         series = pd.Series(lists, index=range(2010, 2050+1))
-        dict1[key] = series
+        dict1[key] = series.astype(float)
     
     return dict1
 
@@ -53,14 +53,17 @@ def compare_dict_of_series(dict1, dict2):
         print('Keys are different')
 
     for key in dict1:
-
+        
         series1 = dict1[key]
         series2 = dict2[key]
 
         if series1.equals(series2) == False:
             print(f'Not equal: {key}')
 
-            print(series1.compare(series2))
+            comp = series1.compare(series2)
+            comp['diff'] = comp.self - comp.other
+            print(comp)
+            
 
 # Function to compare nested dictionaries
 def compare_nested_dict_of_series(dict1, dict2):
@@ -98,7 +101,6 @@ def create_shares_objects(building_category):
     tek_list = FilterTek.get_filtered_list(building_category, database_manager.get_tek_list())
     tek_params = database_manager.get_tek_params(tek_list)
 
-
     shares_new = SharesPerConditionNew(tek_list, tek_params, scurves, never_shares)
     shares_old = SharesPerCondition(tek_list, tek_params, scurves, never_shares)
 
@@ -110,9 +112,7 @@ for building_category in BuildingCategory:
     logger.info(building_category)
     shares_new, shares_old = create_shares_objects(building_category)
 
-    demo1 = shares_new.calc_shares_demolition()
-    demo2 = shares_old.calc_shares_demolition()
-
-    demo2 = dict_with_lists_to_series(demo2)
-
-    compare_dict_of_series(demo1, demo2)
+    dict1 = shares_new.calc_shares("demolition")
+    dict2 = shares_old.calc_shares_demolition()
+    dict2 = dict_with_lists_to_series(dict2)
+    compare_dict_of_series(dict1, dict2)

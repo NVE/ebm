@@ -1,4 +1,3 @@
-import typing
 import pandas as pd
 
 class SCurve():
@@ -24,8 +23,8 @@ class SCurve():
         self._average_age = average_age
         self._last_age = last_age
         self._rush_years = rush_years
-        self._rush_share = rush_share
-        self._never_share = never_share
+        self._rush_share = rush_share * 100
+        self._never_share = never_share * 100
 
         # Calculate yearly rates
         self._pre_rush_rate = self._calc_pre_rush_rate() 
@@ -45,8 +44,8 @@ class SCurve():
         Returns:
         - pre_rush_rate (float): Yearly measure rate in the pre-rush period.
         """
-        pre_rush_rate = (1 - self._rush_share - self._never_share) * (0.5 / (self._average_age - self._earliest_age - (self._rush_years/2)))
-        return pre_rush_rate
+        pre_rush_rate = (100 - self._rush_share - self._never_share) * (50 / (self._average_age - self._earliest_age - (self._rush_years/2))) / 100
+        return pre_rush_rate / 100
     
     def _calc_rush_rate(self) -> float:
         """
@@ -58,7 +57,7 @@ class SCurve():
         Returns:
         - rush_rate (float): Yearly measure rate in the rush period.
         """
-        rush_rate = self._rush_share / self._rush_years
+        rush_rate = self._rush_share / self._rush_years / 100
         return rush_rate
     
     def _calc_post_rush_rate(self) -> float:
@@ -71,8 +70,8 @@ class SCurve():
         Returns:
         - post_rush_rate (float): Yearly measure rate in the post-rush period.
         """
-        post_rush_rate = (1 - self._rush_share - self._never_share) * (0.5 / (self._last_age - self._average_age - (self._rush_years/2)))
-        return post_rush_rate
+        post_rush_rate = (100 - self._rush_share - self._never_share) * (50 / (self._last_age - self._average_age - (self._rush_years/2))) / 100
+        return post_rush_rate / 100
 
     def get_rates_per_year_over_building_lifetime(self) -> pd.Series:
         """

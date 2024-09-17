@@ -1,10 +1,15 @@
 import pandas as pd
+from loguru import logger
 
 
 class SCurve:
     """
     Calculates S-curve per building condition.
 
+    Raises
+    ------
+    ValueError
+        When any of the arguments are less than zero
     Notes
     -----
     To make calculations return better rounded more and accurate results, _rush_share and _never_share area
@@ -13,7 +18,6 @@ class SCurve:
     """ 
 
     # TODO:
-    # - add negative values checks
     # - add check to control that defined periods match building lifetime index in get_rates_per_year
     
     def __init__(self, 
@@ -24,6 +28,25 @@ class SCurve:
                  rush_share: float,
                  never_share: float,
                  building_lifetime: int = 130):
+        errors = []
+        if earliest_age < 0:
+            logger.warning(f'Expected value above zero for {earliest_age=}')
+            errors.append('earliest_age')
+        if average_age < 0:
+            logger.warning(f'Expected value above zero for {average_age=}')
+            errors.append('average_age')
+        if last_age < 0:
+            logger.warning(f'Expected value above zero for {last_age=}')
+            errors.append('last_age')
+        if rush_share < 0:
+            logger.warning(f'Expected value above zero for {rush_share=}')
+            errors.append('rush_share')
+        if never_share < 0:
+            logger.warning(f'Expected value above zero for {never_share=}')
+            errors.append('never_share')
+        if errors:
+            msg = f'Illegal value for {" ".join(errors)}'
+            raise ValueError(msg)
 
         self._building_lifetime = building_lifetime
         self._earliest_age = earliest_age
@@ -59,7 +82,9 @@ class SCurve:
         multiplied by 100 internally.  _calc_pre_rush_rate() _calc_rush_rate() _calc_post_rush_rate() will
         still return percent as a value between 0 and 1.
         """
-        pre_rush_rate = (100 - self._rush_share - self._never_share) * (50 / (self._average_age - self._earliest_age - (self._rush_years/2))) / 100
+        remaining_share = (100 - self._rush_share - self._never_share)
+        age_range = (50 / (self._average_age - self._earliest_age - (self._rush_years / 2)))
+        pre_rush_rate = remaining_share * age_range / 100
         return pre_rush_rate / 100
     
     def _calc_rush_rate(self) -> float:
@@ -101,7 +126,9 @@ class SCurve:
         multiplied by 100 internally.  _calc_pre_rush_rate() _calc_rush_rate() _calc_post_rush_rate() will
         still return percent as a value between 0 and 1.
         """
-        post_rush_rate = (100 - self._rush_share - self._never_share) * (50 / (self._last_age - self._average_age - (self._rush_years/2))) / 100
+        remaining_share = (100 - self._rush_share - self._never_share)
+        age_range = (50 / (self._last_age - self._average_age - (self._rush_years / 2)))
+        post_rush_rate = remaining_share * age_range / 100
         return post_rush_rate / 100
 
     def get_rates_per_year_over_building_lifetime(self) -> pd.Series:
@@ -132,7 +159,9 @@ class SCurve:
             last_years = 0 
             post_rush_years = self._building_lifetime - earliest_years - pre_rush_years - rush_years
 
-        # Create list where the yearly rates are placed according to their corresponding period in the buildings lifetime 
+        # Create list where the yearly rates are placed according to their corresponding period in the buildings
+        # lifetime
+
         rates_per_year = (
             [0] * earliest_years + 
             [self._pre_rush_rate] * pre_rush_years +

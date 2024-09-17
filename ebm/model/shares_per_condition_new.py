@@ -8,13 +8,12 @@ from ebm.model.building_condition import BuildingCondition
 
 class SharesPerConditionNew():
     """
-    Calculates area shares over time per condition for all TEKs within a building category.
+    Calculates percentage shares of a floor area that is of a certain building condition over the model period,
+    for all TEKs within a building category.
     """
     # TODO: 
-    # - add 'year' to series index
     # - add checks to control calculations:
     #       - for example control total values and that original condition should not exceed 100%
-    #       - negative values checks             
     # - make code less repetative (overall):
     #       - ideally, there could be a calc_shares_tek() method, that takes building_condition as input
     #       - then, there could be an own calc_shares() method, that loops trough the tek_list for a given building_condition
@@ -35,8 +34,25 @@ class SharesPerConditionNew():
         self.scurves = scurves
         self.never_shares = never_shares
         self.period = period
-        self.model_years = pd.Index(period.year_range)
+        self.period_index = pd.Index(period.year_range, name = 'year')
 
+    def _control_series_values(self, series: pd.Series):
+        """
+        Check if the provided pandas series contains any negative or NA values.
+
+        Parameters:
+        - series (pd.Series): The input series to be checked.
+
+        Raises:
+        - ValueError: If the series contains negative values.
+        - ValueError: If the series contains NA values.
+        """
+        if (series < 0).any():
+            raise ValueError("The series contains negative values. Not allowed in S-curves or Condition shares series.")
+        
+        if series.isna().any():
+            raise ValueError("The series contains missing (NA) values. Not allowed in S-curves or Condition shares series")
+        
     def _scurve_per_model_year(self, tek:str, scurve: pd.Series) -> pd.Series:
         """
         Get S-curve rates per model years relevant for the specified TEK. 
@@ -45,7 +61,7 @@ class SharesPerConditionNew():
         building_year = self.tek_params[tek].building_year
         
         # Calculate the building age for each model year
-        building_age_per_year = pd.Series(self.model_years - building_year, index=self.model_years) 
+        building_age_per_year = pd.Series(self.period_index - building_year, index=self.period_index) 
         
         # Filter to only include valid ages
         building_age_per_year = building_age_per_year[building_age_per_year > 0]
@@ -70,6 +86,7 @@ class SharesPerConditionNew():
         # Assign the corresponding model years to the index of the filtered S-curve
         scurve_per_year = scurve.set_axis(building_age_per_year.index, axis=0)
 
+        self._control_series_values(scurve_per_year)
         return scurve_per_year
 
     def calc_demolition(self, tek: str) -> pd.Series:
@@ -105,7 +122,7 @@ class SharesPerConditionNew():
         scurve_per_year = self._scurve_per_model_year(tek, self.scurves[BuildingCondition.DEMOLITION])
 
         # Define an empty shares series with model years as index
-        shares = pd.Series(0.0, index=self.model_years)
+        shares = pd.Series(0.0, index=self.period_index)
 
         # The share in year n is calculated by taking the difference between the rate in year n and n-1
         shares[scurve_per_year.index] = scurve_per_year.diff().fillna(0)
@@ -117,26 +134,27 @@ class SharesPerConditionNew():
         building_year = self.tek_params[tek].building_year
 
         # Use the rate of the year if that year corresponds to the year after the building was constructed 
-        if (building_year + 1) in self.model_years:
-            shares.loc[self.model_years == building_year + 1] = scurve_per_year.loc[building_year + 1]
+        if (building_year + 1) in self.period_index:
+            shares.loc[self.period_index == building_year + 1] = scurve_per_year.loc[building_year + 1]
 
         # Set share to 0 in the start year 
-        shares.loc[self.model_years == self.period.start] = 0
+        shares.loc[self.period_index == self.period.start] = 0
 
         # Set share to 0 in years before and including the year the building was constructed
-        shares.loc[self.model_years <= building_year] = 0
+        shares.loc[self.period_index <= building_year] = 0
 
+        self._control_series_values(shares)
         return shares
     
-    def _calc_total(self, tek: str, building_condition: BuildingCondition) -> pd.Series:
+    def _calc_small_measure_or_renovation(self, tek: str, building_condition: BuildingCondition) -> pd.Series:
         """
         Calculate the percentage share of floor area that has undergone either small measures or renovation over the
-        time horizon for a specific TEK.
+        model period for a specific TEK.
 
         This method calculates the percentage share of floor area that has undergone either small measures or renovation 
         for each year in the model period. The share represents the total accumulated area affected by either condition 
         (small measure or renovation). It is important to note that an area counted in one measure does not exclude it 
-        from being counted in the other, meaning that the area can undergo both small measures and renovation.
+        from being counted in the other, meaning that the floor area can undergo both small measures and renovation.
 
         The calculation is based on the rates from the respective S-curve (small measure or renovation), while ensuring 
         that the total share does not exceed the available area (adjusted for demolished areas and areas that are 
@@ -168,7 +186,7 @@ class SharesPerConditionNew():
         measure_limit = 1 - shares_demolition - self.never_shares[building_condition]
 
         # Define an empty shares series with model years as index
-        shares = pd.Series(0.0, index=self.model_years)
+        shares = pd.Series(0.0, index=self.period_index)
 
         # Set share to the S-curve rate for the corresponding model year
         shares[scurve_per_year.index] = scurve_per_year
@@ -178,8 +196,9 @@ class SharesPerConditionNew():
 
         # Set share to 0 in years before and including the year the building was constructed
         building_year = self.tek_params[tek].building_year
-        shares.loc[self.model_years <= building_year] = 0
+        shares.loc[self.period_index <= building_year] = 0
 
+        self._control_series_values(scurve_per_year)
         return shares
     
     def calc_renovation(self, tek: str) -> pd.Series:
@@ -201,8 +220,8 @@ class SharesPerConditionNew():
         shares_demolition = self.calc_demolition(tek)
         
         # Retrieve total shares for renovation and small measure
-        shares_small_measure_total = self._calc_total(tek, BuildingCondition.SMALL_MEASURE)
-        shares_renovation_total = self._calc_total(tek, BuildingCondition.RENOVATION)
+        shares_small_measure_total = self._calc_small_measure_or_renovation(tek, BuildingCondition.SMALL_MEASURE)
+        shares_renovation_total = self._calc_small_measure_or_renovation(tek, BuildingCondition.RENOVATION)
 
         # Calculate max limit for doing a renovation measure
         measure_limit = 1- shares_demolition - self.never_shares[BuildingCondition.RENOVATION] 
@@ -222,8 +241,9 @@ class SharesPerConditionNew():
 
         # Set share to 0 in years before and including the year the building was constructed
         building_year = self.tek_params[tek].building_year
-        shares.loc[self.model_years <= building_year] = 0
+        shares.loc[self.period_index <= building_year] = 0
 
+        self._control_series_values(shares)
         return shares
     
     def calc_renovation_and_small_measure(self, tek: str) -> pd.Series:
@@ -236,15 +256,16 @@ class SharesPerConditionNew():
         shares_renovation = self.calc_renovation(tek)
 
         # Retrieve total shares for renovation 
-        shares_renovation_total = self._calc_total(tek, BuildingCondition.RENOVATION)
+        shares_renovation_total = self._calc_small_measure_or_renovation(tek, BuildingCondition.RENOVATION)
 
         # Set share by substracting renovation (only) shares from total renovation shares 
         shares = shares_renovation_total - shares_renovation
 
         # Set share to 0 in years before and including the year the building was constructed
         building_year = self.tek_params[tek].building_year
-        shares.loc[self.model_years <= building_year] = 0
+        shares.loc[self.period_index <= building_year] = 0
 
+        self._control_series_values(shares)
         return shares
 
     def calc_small_measure(self, tek: str) -> pd.Series:
@@ -255,7 +276,7 @@ class SharesPerConditionNew():
         the total small measures share.
         """
         # Retrieve total shares for renovation small measure
-        shares_small_measure_total = self._calc_total(tek, BuildingCondition.SMALL_MEASURE)
+        shares_small_measure_total = self._calc_small_measure_or_renovation(tek, BuildingCondition.SMALL_MEASURE)
 
         # Retrieve shares for renovation and small measure
         shares_renovation_small_measure = self.calc_renovation_and_small_measure(tek)
@@ -265,8 +286,9 @@ class SharesPerConditionNew():
 
         # Set share to 0 in years before and including the year the building was constructed
         building_year = self.tek_params[tek].building_year
-        shares.loc[self.model_years <= building_year] = 0
+        shares.loc[self.period_index <= building_year] = 0
 
+        self._control_series_values(shares)
         return shares 
 
     def calc_original_condition(self, tek: str) -> pd.Series:
@@ -285,11 +307,12 @@ class SharesPerConditionNew():
         tek_start_year = self.tek_params[tek].start_year
         if tek_start_year > self.period.start:
             # Set share to 0 in years before the start year of the TEK
-            shares.loc[self.model_years < tek_start_year] = 0
+            shares.loc[self.period_index < tek_start_year] = 0
         
+        self._control_series_values(shares)
         return shares
 
-    def calc_shares_tek(self, tek: str, condition: BuildingCondition) -> pd.Series:
+    def calc_shares(self, condition: BuildingCondition, tek: str) -> pd.Series:
         """
         """
         if condition not in BuildingCondition:
@@ -313,7 +336,7 @@ class SharesPerConditionNew():
 
         return shares
 
-    def calc_shares_condition(self, condition: BuildingCondition) -> typing.Dict[str, pd.Series]:
+    def calc_shares_all_teks(self, condition: BuildingCondition) -> typing.Dict[str, pd.Series]:
         """
         Calculate shares for all TEK's of a specified building condition.
         
@@ -323,19 +346,52 @@ class SharesPerConditionNew():
         """
         shares_tek = {}
         for tek in self.tek_list:
-            shares_tek[tek] = self.calc_shares_tek(tek, condition)
+            shares_tek[tek] = self.calc_shares(condition, tek)
 
         return shares_tek
 
-    def calc_shares(self) -> typing.Dict[BuildingCondition, typing.Dict[str, pd.Series]]:
+    def calc_all_shares(self) -> typing.Dict[BuildingCondition, typing.Dict[str, pd.Series]]:
         """
         Create a dictionary of shares per condition for all TEKs.
         """
         shares_condition = {}
         for condition in BuildingCondition:
-            shares_condition[condition] = self.calc_shares_condition(condition)
+            shares_condition[condition] = self.calc_shares_all_teks(condition)
         
         return shares_condition
+    
+    def _control_shares(self, tek: str, precision: int = 10):
+        """
+        """
+        for tek in self.tek_list:
+            shares = pd.Series(0.0, index=self.period_index)
+            for condition in BuildingCondition:
+                condition_shares = self.calc_shares(condition, tek)
+                shares += condition_shares
+            
+            # Round values according to precision
+            if precision != None:
+                shares = round(shares, precision)
+
+            # Control total shares values
+            tek_start_year = self.tek_params[tek].start_year
+            if tek_start_year > self.period.start:
+                pre_tek_start = shares.loc[self.period_index < tek_start_year]
+                post_tek_start = shares.loc[self.period_index >= tek_start_year]
+                
+                if not (pre_tek_start == 0.0).all():
+                    invalid_shares = pre_tek_start[pre_tek_start != 0.0]
+                    msg = f"Total shares doesn't match criteria for {tek}. Values should be 0.0 before year {tek_start_year}. Invalid shares: {invalid_shares}"
+                    raise ValueError()
+                if not (post_tek_start == 1.0).all():
+                    invalid_shares = post_tek_start[post_tek_start != 1.0]
+                    msg = f"Total shares doesn't match criteria for {tek}. Values should be 1.0 after year {tek_start_year}. Invalid shares: {invalid_shares}"
+                    raise ValueError(msg)
+            else: 
+                if not (shares == 1.0).all():
+                    invalid_shares = shares[shares != 1.0]
+                    msg = f"Total shares doesn't match criteria for {tek}. Values should be 1.0 in all model years. Invalid shares: {invalid_shares}"
+                    raise ValueError(msg)
 
 if __name__ == '__main__':
 
@@ -363,8 +419,7 @@ if __name__ == '__main__':
     tek_params = database_manager.get_tek_params(tek_list)
     shares = SharesPerConditionNew(tek_list, tek_params, scurves, never_shares)
     
-    s = shares.calc_shares_tek(tek_list[1], BuildingCondition.SMALL_MEASURE)
-    s = shares.calc_shares_condition(BuildingCondition.SMALL_MEASURE)
-    s = shares.calc_shares()
-    
-    print(s)
+    tek = tek_list[7]
+    print(tek)
+    #s = shares.calc_shares(BuildingCondition.ORIGINAL_CONDITION, tek)
+    s = shares._control_shares(tek)

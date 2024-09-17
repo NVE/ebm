@@ -112,7 +112,7 @@ for building_category in BuildingCategory:
     logger.info(building_category)
     shares_new, shares_old = create_shares_objects(building_category)
 
-    dict1 = shares_new.calc_shares("demolition")
+    dict1 = shares_new.calc_all_shares("demolition")
     dict2 = shares_old.calc_shares_demolition()
     dict2 = dict_with_lists_to_series(dict2)
     compare_dict_of_series(dict1, dict2)

@@ -18,19 +18,30 @@ def area_forecast() -> AreaForecast:
     return area_forecast
 
 
-def test_area_forecast_calc_area_with_construction_tek_for_kindergarten_tek07(area_forecast):
-    accumulated_constructed_floor_area = [97574.0, 188218.0, 254065.0, 316087.0, 396079.0, 470969.737594328,
-                                          536934.8384640587, 599494.0807271443, 653696.2207833815, 707496.2548855395,
-                                          761822.4178627231, 797372.8973082342, 831966.4053729081, 866075.9623344169,
-                                          896321.9001178928, 923447.084904787, 947622.1337777632, 968409.0957146097,
-                                          987638.3261736097, 1003523.9020760005, 1018640.256250877, 1033603.1847635206,
-                                          1048353.7073970429, 1062932.6862624898, 1077370.9606889542,
-                                          1091661.9773190045, 1105822.3122920264, 1119722.0549342209,
-                                          1133248.6416944005, 1146404.7710138615, 1159207.4045236045, 1171661.553614607,
-                                          1184611.902433768, 1197209.5264264382, 1211951.8874597854, 1226341.5236666417,
-                                          1240370.3397231207, 1254043.3470202, 1267362.0875243337, 1280335.4275426366,
-                                          1292970.691415767]
+@pytest.fixture
+def accumulated_constructed_floor_area():
+    return [97574.0, 188218.0, 254065.0, 316087.0, 396079.0, 470969.737594328, 536934.8384640587, 599494.0807271443,
+            653696.2207833815, 707496.2548855395, 761822.4178627231, 797372.8973082342, 831966.4053729081,
+            866075.9623344169, 896321.9001178928, 923447.084904787, 947622.1337777632, 968409.0957146097,
+            987638.3261736097, 1003523.9020760005, 1018640.256250877, 1033603.1847635206, 1048353.7073970429,
+            1062932.6862624898, 1077370.9606889542, 1091661.9773190045, 1105822.3122920264, 1119722.0549342209,
+            1133248.6416944005, 1146404.7710138615, 1159207.4045236045, 1171661.553614607, 1184611.902433768,
+            1197209.5264264382, 1211951.8874597854, 1226341.5236666417, 1240370.3397231207, 1254043.3470202,
+            1267362.0875243337, 1280335.4275426366, 1292970.691415767]
 
+
+def test_area_forecast_calc_area_with_construction_tek_for_kindergarten_tek07(area_forecast,
+                                                                              accumulated_constructed_floor_area):
+    """ Given accumulated_constructed_floor_area test that AreaForecast::_calc_area_with_construction_tek
+            returns expected floor area for TEK07
+
+        Parameters
+        ----------
+        area_forecast : fixture[AreaForecast]
+            give access to a premade AreaForecast Object
+        accumulated_constructed_floor_area: fixture[List[float]]
+            constructed_floor_area common with TEK10 test
+    """
     result = area_forecast._calc_area_with_construction_tek("TEK07", accumulated_constructed_floor_area)
     expected_tek07 = [0.0, 157116.0, 222963.0, 284985.0, 284985.0, 282728.86875, 280472.7375, 278216.60625, 275960.475,
                       273704.34375, 271448.2125, 269192.08125, 265154.79375, 261117.50625, 257080.21875, 253042.93125,
@@ -42,19 +53,11 @@ def test_area_forecast_calc_area_with_construction_tek_for_kindergarten_tek07(ar
     assert result.get('original_condition') == expected_tek07
 
 
-def test_area_forecast_calc_area_with_construction_tek_for_kindergarten_tek10(area_forecast):
-    accumulated_constructed_floor_area = [97574.0, 188218.0, 254065.0, 316087.0, 396079.0, 470969.737594328,
-                                          536934.8384640587, 599494.0807271443, 653696.2207833815, 707496.2548855395,
-                                          761822.4178627231, 797372.8973082342, 831966.4053729081, 866075.9623344169,
-                                          896321.9001178928, 923447.084904787, 947622.1337777632, 968409.0957146097,
-                                          987638.3261736097, 1003523.9020760005, 1018640.256250877, 1033603.1847635206,
-                                          1048353.7073970429, 1062932.6862624898, 1077370.9606889542,
-                                          1091661.9773190045, 1105822.3122920264, 1119722.0549342209,
-                                          1133248.6416944005, 1146404.7710138615, 1159207.4045236045, 1171661.553614607,
-                                          1184611.902433768, 1197209.5264264382, 1211951.8874597854, 1226341.5236666417,
-                                          1240370.3397231207, 1254043.3470202, 1267362.0875243337, 1280335.4275426366,
-                                          1292970.691415767]
-
+def test_area_forecast_calc_area_with_construction_tek_for_kindergarten_tek10(area_forecast,
+                                                                              accumulated_constructed_floor_area):
+    """ Given accumulated_constructed_floor_area test that AreaForecast::_calc_area_with_construction_tek
+                returns expected floor area for TEK10
+    """
     result = area_forecast._calc_area_with_construction_tek("TEK10", accumulated_constructed_floor_area)
     expected_tek10 = [0.0, 0.0, 0.0, 0.0, 79992.0, 154882.73759, 220847.83846, 283407.08073, 337609.22078, 391409.25489,
                       445735.41786, 442206.67914, 438677.94041, 435149.20169, 431620.46296, 428091.72424, 424562.98551,

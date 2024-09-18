@@ -1,15 +1,16 @@
 import argparse
+import os
 import sys
 import typing
-import os
 
-from loguru import logger
 from dotenv import load_dotenv
-import pandas as pd
+from loguru import logger
 
-from ebm.model.database_manager import DatabaseManager
+from ebm.model.bema_validation import validate_rush_rates, validate_scurves, validate_shares, validate_construction, \
+    validate_area
 from ebm.model.building_category import BuildingCategory
-from ebm.model.bema_validation import validate_rush_rates, validate_scurves, validate_shares, validate_construction, validate_area
+from ebm.model.database_manager import DatabaseManager
+
 
 def main():
     load_dotenv()
@@ -28,7 +29,8 @@ def main():
         logger.add(sys.stderr, level="INFO")
     
     database_manager = DatabaseManager()
-    
+
+    logger.info(f'Using {os.environ.get("BEMA_SPREADSHEET")}')
     for b_category in arguments.building_categories:
         building_category: BuildingCategory = BuildingCategory.from_string(b_category)
         

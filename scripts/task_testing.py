@@ -136,4 +136,3 @@ def create_shares_object(building_category):
 shares= create_shares_object(building_category)
 shares_condition = shares.calc_shares_all_conditions_teks()
 
-print(shares_condition)

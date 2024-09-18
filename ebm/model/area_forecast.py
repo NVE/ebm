@@ -4,6 +4,7 @@ import pandas as pd
 
 from .area import Area
 from .data_classes import TEKParameters
+from .building_condition import BuildingCondition
 from .tek import TEK
 
 
@@ -27,7 +28,7 @@ class AreaForecast():
                  tek_list: typing.List[str],   
                  tek_params: typing.Dict[str, TEKParameters], 
                  condition_list: typing.List[str],
-                 shares_per_condtion: typing.Dict,
+                 shares_per_condtion: typing.Dict[BuildingCondition, typing.Dict[str, pd.Series]],
                  model_start_year: int = 2010,
                  model_end_year: int = 2050,) -> None:
 
@@ -37,9 +38,27 @@ class AreaForecast():
         self.area = Area(area_params)
         self.tek_list = tek_list
         self.tek = TEK(tek_params)                                  
-        self.condition_list = condition_list            
-        self.shares_per_condition = shares_per_condtion
+        self.condition_list = condition_list  
+
+        #TODO: remove after refactoring to series
+        self.shares_per_condition = self._convert_shares_to_series(shares_per_condtion)
+
+    # TODO: remove after refactoring to series
+    def _convert_shares_to_series(self, shares_per_condtion: typing.Dict[BuildingCondition, typing.Dict[str, pd.Series]]):
+        converted_shares = {}
+        for condition, tek_shares in shares_per_condtion.items():
+            converted_tek_shares = {}
+            for tek in tek_shares:
+                shares = tek_shares[tek]
+                if isinstance(shares, pd.Series):
+                    converted_tek_shares[tek] = shares.to_list()
+                else:
+                    converted_tek_shares[tek] = shares
             
+            converted_shares[condition] = converted_tek_shares
+        
+        return converted_shares
+    
     def _calc_area_pre_construction_tek(self, tek: str) -> typing.Dict[str, typing.List]:
         """
         Calculates the area per condition for a given TEK used prior to construction.

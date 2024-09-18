@@ -53,16 +53,10 @@ class Buildings():
         - shares_condition (dict): A dictionary where the keys are the condition names and the values are
                                    the shares per condition for each TEK.
         """
-        shares_condition = SharesPerCondition(self.tek_list, self.tek_params, self.scurves, self.never_shares,
-                                              model_start_year=years.start,
-                                              model_end_year=years.end)
+        shares = SharesPerCondition(self.tek_list, self.tek_params, self.scurves, self.never_shares, years)
+        shares_condition = shares.calc_shares_all_conditions_teks()
+        return shares_condition   
 
-        shares_per_condition = shares_condition.shares_per_condition
-        return shares_per_condition
-
-    # TODO: 
-    # - add optional parameters to filter on specific TEKs and Years
-    # - use BuildingCondition, so that the missing function can handle typo's for condition
     def get_shares_per_condition(self, condition: str) -> typing.Dict:
         """
         Get the shares for a specific condition for all TEKs in the building category.

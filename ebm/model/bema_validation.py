@@ -305,27 +305,19 @@ def get_ebm_shares(building_category: BuildingCategory, database_manager: Databa
     shares = building.get_shares()
 
     df_list = []
-    for condition in BuildingCondition:
-        # Filter data and transform to df
-        df = pd.DataFrame(shares[condition])
-        
-        # Control that length of dataframe matches number of modelyears
-        if len(df) != len(modelyears): 
-            raise ValueError(f'Length of dataframe does not match number of modelyears. Length of df: {len(df)}. Number of modelyears {len(modelyears)}')
-        
-        # Format dataframe for validation/merge with BEMA data
-        df['year'] = modelyears
+    for condition in shares:
+        shares_condition = shares[condition]
+        df = pd.DataFrame(shares_condition)
+        df.reset_index(inplace=True) # index to column
         df['building_condition'] = condition
-        df = pd.melt(df, id_vars=['building_condition','year'], var_name='tek')
-        df = df[['building_condition', 'tek', 'year', 'value']]
-        df.rename(columns={'value':'ebm_value'}, inplace=True)
-
+        df = pd.melt(df, id_vars=['year', 'building_condition'], var_name='tek', value_name='ebm_value')
+        df = df[['building_condition', 'tek', 'year', 'ebm_value']]
         df_list.append(df)
+    
+    ebm_shares = pd.concat(df_list)
+    return ebm_shares  
 
-    ebm_rates = pd.concat(df_list)
-    return ebm_rates 
-
-def load_bema_shares(building_category: BuildingCategory, database_manager: Buildings, start_row: int = 20, usecols: str = "E:AS"):
+def load_bema_shares(building_category: BuildingCategory, database_manager: DatabaseManager, start_row: int = 20, usecols: str = "E:AS"):
     """
     Loads shares data from the BEMA model for a given building category, formats it, and returns it as a DataFrame for validation.
 
@@ -380,8 +372,8 @@ def load_bema_shares(building_category: BuildingCategory, database_manager: Buil
         # Increase header number for next iteration
         header = header + skip_rows
     
-    bema_rates = pd.concat(df_list)
-    return bema_rates
+    bema_shares = pd.concat(df_list)
+    return bema_shares
 
 def validate_shares(building_category: BuildingCategory, database_manager: DatabaseManager, precision: int = 5):
     """
@@ -676,10 +668,8 @@ def validate_construction(building_category: BuildingCategory, database_manager:
 
 if __name__ == '__main__':
     database_manager = DatabaseManager()
-    building_category = BuildingCategory.APARTMENT_BLOCK
+    building_category = BuildingCategory.HOUSE
         
     for building_category in BuildingCategory:
         logger.info(building_category)
-        validate_scurves(building_category, database_manager)
-
-
+        validate_shares(building_category, database_manager)

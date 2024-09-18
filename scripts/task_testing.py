@@ -106,13 +106,34 @@ def create_shares_objects(building_category):
 
     return shares_new, shares_old
 
-
-for building_category in BuildingCategory: 
-
+def compare_shares_one_condition():
     logger.info(building_category)
     shares_new, shares_old = create_shares_objects(building_category)
 
-    dict1 = shares_new.calc_all_shares("demolition")
+    dict1 = shares_new.calc_shares_all_conditions_teks("demolition")
     dict2 = shares_old.calc_shares_demolition()
     dict2 = dict_with_lists_to_series(dict2)
     compare_dict_of_series(dict1, dict2)
+
+
+
+def create_shares_object(building_category):
+    database_manager = DatabaseManager()
+    
+    scurve_condition_list = BuildingCondition.get_scruve_condition_list()
+    scurve_data_params = database_manager.get_scurve_params()
+    scurve_params = FilterScurveParams.filter(building_category, scurve_condition_list, scurve_data_params)
+    scurve_processor = ScurveProcessor(scurve_condition_list, scurve_params)
+    scurves = scurve_processor.get_scurves()
+    never_shares = scurve_processor.get_never_shares()
+
+    tek_list = FilterTek.get_filtered_list(building_category, database_manager.get_tek_list())
+    tek_params = database_manager.get_tek_params(tek_list)
+
+    shares = SharesPerConditionNew(tek_list, tek_params, scurves, never_shares)
+    return shares
+
+shares= create_shares_object(building_category)
+shares_condition = shares.calc_shares_all_conditions_teks()
+
+print(shares_condition)

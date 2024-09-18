@@ -24,9 +24,8 @@ def main():
     arg_parser.add_argument('--precision', '-p', type=int, default=5,
                             help='Number of decimals to consider in comparison')
     arguments: argparse.Namespace = arg_parser.parse_args()
-    
-    #TODO: fix if statement
-    if not arguments.debug or os.environ.get('DEBUG', '') != 'True':
+
+    if not arguments.debug and os.environ.get('DEBUG', '').upper() != 'TRUE':
         logger.remove()
         logger.add(sys.stderr, level="INFO")
 

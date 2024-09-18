@@ -40,6 +40,40 @@ def test_calc_rates_apartment_block_small_measure():
     assert s_curve._calc_post_rush_rate() == 0.0025
 
 
+def test_calc_rates_apartment_block_renovation():
+    s_curve = SCurve(earliest_age=10,
+                     average_age=30,
+                     rush_years=14,
+                     last_age=60,
+                     rush_share=0.6,
+                     never_share=0.15)
+
+    # Bema: 0,96153846153846200000 %
+    assert s_curve._calc_pre_rush_rate() == 0.0096153846154
+
+    # 4,285714285714290 %
+    # 0.0428571428571429
+    assert s_curve._calc_rush_rate() == 0.0428571428571
+    # Bema: 0,54347826087 %
+    # 0.005434782608695652
+    # 0.0054347826087
+
+    assert s_curve._calc_post_rush_rate() == 0.0054347826087
+
+
+def test_calc_rates_apartment_block_demolition():
+    s_curve = SCurve(earliest_age=60,
+                     average_age=90,
+                     rush_years=40,
+                     last_age=150,
+                     rush_share=0.7,
+                     never_share=0.05)
+
+    assert s_curve._calc_pre_rush_rate() == 0.0125
+    assert s_curve._calc_rush_rate() == 0.0175
+    assert s_curve._calc_post_rush_rate() == 0.003125
+
+
 def test_calc_rates_office_demolition():
     s_curve = SCurve(earliest_age=50,
                      average_age=100,
@@ -97,7 +131,7 @@ def test_calc_pre_rush_rate_kindergarten():
                      rush_share=0.8,
                      never_share=0.01)
     # was  0,791666666666666 %
-    expected = 0.007916666666666667
+    expected = 0.0079166666667
 
     assert s_curve._calc_pre_rush_rate() == expected
 
@@ -112,13 +146,13 @@ def test_scurve_init_positive_value_checks():
     with pytest.raises(ValueError):
         SCurve(**{**legal_values, 'earliest_age': -1})
     with pytest.raises(ValueError, match='Illegal value for average_age'):
-        SCurve(**{**legal_values, 'average_age': -1})
+        SCurve(**{**legal_values, 'average_age': -2})
     with pytest.raises(ValueError, match='Illegal value for last_age'):
         SCurve(**{**legal_values, 'last_age': -1})
     with pytest.raises(ValueError, match='Illegal value for rush_share'):
-        SCurve(**{**legal_values, 'rush_share': -1})
+        SCurve(**{**legal_values, 'rush_share': -0.1})
     with pytest.raises(ValueError, match='Illegal value for never_share'):
-        SCurve(**{**legal_values, 'never_share': -1})
+        SCurve(**{**legal_values, 'never_share': -0.2})
 
 
 def test_scurve_init_mention_all_illegal_arguments_when_raising_value_error():

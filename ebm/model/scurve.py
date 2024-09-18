@@ -73,7 +73,7 @@ class SCurve:
 
         Returns
         -------
-        pre_rush_rate : float
+        float
             Yearly measure rate in the pre-rush period.
 
         Notes
@@ -85,7 +85,7 @@ class SCurve:
         remaining_share = (100 - self._rush_share - self._never_share)
         age_range = (50 / (self._average_age - self._earliest_age - (self._rush_years / 2)))
         pre_rush_rate = remaining_share * age_range / 100
-        return pre_rush_rate / 100
+        return round(pre_rush_rate / 100, 13)
     
     def _calc_rush_rate(self) -> float:
         """
@@ -106,7 +106,7 @@ class SCurve:
         still return percent as a value between 0 and 1.
         """
         rush_rate = self._rush_share / self._rush_years
-        return rush_rate / 100
+        return round(rush_rate / 100, 13)
     
     def _calc_post_rush_rate(self) -> float:
         """
@@ -129,7 +129,7 @@ class SCurve:
         remaining_share = (100 - self._rush_share - self._never_share)
         age_range = (50 / (self._last_age - self._average_age - (self._rush_years / 2)))
         post_rush_rate = remaining_share * age_range / 100
-        return post_rush_rate / 100
+        return round(post_rush_rate / 100, 13)
 
     def get_rates_per_year_over_building_lifetime(self) -> pd.Series:
         """

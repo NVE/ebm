@@ -1,11 +1,11 @@
 import typing
-
 import pandas as pd
 
-from .area import Area
-from .data_classes import TEKParameters,YearRange
-from .building_condition import BuildingCondition
-from .tek import TEK
+from loguru import logger
+
+from ebm.model.data_classes import TEKParameters,YearRange
+from ebm.model.building_condition import BuildingCondition
+from ebm.model.building_category import BuildingCategory
 
 
 # Comments:
@@ -19,61 +19,181 @@ from .tek import TEK
 # - problemer med riving og nybygging kobling dersom tidshorisonten overstiger tidligste alder for riving på nye TEKer
 
 class AreaForecastNew():
-
-    DEMOLITION = 'demolition'
+    """
+    """
 
     def __init__(self,
-                 building_category: str,
-                 area_params: pd.DataFrame,
+                 building_category: BuildingCategory,
+                 area_start_year: pd.Series,
                  tek_list: typing.List[str],   
                  tek_params: typing.Dict[str, TEKParameters], 
-                 condition_list: typing.List[str],
                  shares_per_condtion: typing.Dict[BuildingCondition, typing.Dict[str, pd.Series]],
                  period: YearRange = YearRange(2010, 2050)) -> None:
 
         self.building_category = building_category
-        self.area_data = area_params
+        self.area_start_year = area_start_year
         self.tek_list = tek_list
         self.tek_params = tek_params                                  
-        self.condition_list = condition_list  
+        self.shares_per_condition = shares_per_condtion  
         self.period = period
-
-        #TODO: remove after refactoring to series
-        self.shares_per_condition = self._convert_shares_to_series(shares_per_condtion)
-
-    def get_area_per_building_category_tek(self, building_category: str, tek: str) -> int:
+    
+    def calc_area_pre_construction(self, tek: str, building_condition: BuildingCondition) -> pd.Series:
         """
-        Retrieves the total area (m^2) of specific building category and TEK.
+        Calculates the floor area over the model period for a given building condition and TEK used prior to construction.
 
-        This method filters the DataFrame `area_params` using the provided `building_category` and `tek`.
-        It assumes that the filtered DataFrame will contain only one row. The area value from this row,
-        in the column specified by `COL_AREA`, is then retrieved and returned.
+        Construction of new buildings first begins in the model start year. Thus, this method only works for TEKs that are
+        used before the model period begings For these TEK's, the floor area is calculated by multiplying the floor area of
+        the TEK in the model start year with the building condition share for each year in the model period.
+
+        Parameters
+        ----------
+        tek : str
+            The TEK value to calculate the area for.
+
+        Returns
+        -------
+        dict of BuildingCondition to pandas.Series
+            A dictionary where the keys are `BuildingCondition` values, and the values are `pandas.Series`
+            representing the area per building condition for each year.
         
-        Parameters:
-        - building_category (str): The building category to filter on.
-        - tek (str): The TEK value to filter on.
-
-        Returns:
-        - area_value (int): The area value for the specified building category and TEK.
+        Raises
+        ------
+        ValueError
+            If the given TEK isn't used before the model period begins.
         """
-        # Check if the building category is in the DataFrame
-        if building_category not in self.area_data[self.COL_BUILDING_CATEGORY].values:
-            raise ValueError(f"Building category '{building_category}' not found in the DataFrame.")
-        
-        # Filter dataframe on building category
-        filtered_area_data = self.area_data[self.area_data[self.COL_BUILDING_CATEGORY] == building_category]
+        tek_start_year = self.tek_params[tek].start_year
+        tek_end_year = self.tek_params[tek].end_year
+        if tek_end_year >= self.period.start:
+            msg = (f"Invalid tek parameter: {tek}. Method only works for TEK's that are used before the model period begins. " 
+                   f"{tek} is used from {tek_start_year} to {tek_end_year}, while the model period begins in {self.period.start}.")
+            raise ValueError(msg)
 
-        # Check if the tek is in the DataFrame
-        if tek not in filtered_area_data[self.COL_TEK].values:
-            raise ValueError(f"'{tek}' not found in the DataFrame.")
+        area_start_year = self.area_start_year[tek]
         
-        # Filter dataframe on building category and tek
-        filtered_area_data = filtered_area_data[filtered_area_data[self.COL_TEK] == tek]
+        shares = self.shares_per_condition[building_condition][tek]
+        area = shares * area_start_year
+        area.rename("area", inplace=True)
         
-        # Retrieve the area value, assuming there is only one row in the filtered DataFrame
-        area_value = filtered_area_data.iloc[0][self.COL_AREA]
-        return area_value
+        return area
+    
+    def calc_area_pre_construction_per_tek_condition(self) -> typing.Dict[str, typing.Dict[BuildingCondition, pd.Series]]:
+        """
+        Calculates the floor area per building condition over the model period for all TEK's used prior to construction.
+        """
+        area_per_tek = {}
+        for tek in self.tek_list:
+            tek_end_year = self.tek_params[tek].end_year
+            # Control that the TEK period is before the model start year (when new buildings are constructed)
+            if tek_end_year < self.period.start:
 
+                area_per_condition = {}
+                for building_condition in BuildingCondition:
+                    area = self.calc_area_pre_construction(tek, building_condition)
+                    area_per_condition[building_condition] = area
+
+                area_per_tek[tek] = area_per_condition
+
+        return area_per_tek 
+                
+    def calc_total_demolition_area_per_year(self) -> pd.Series:
+        """
+        Aggregates the floor area that's demolished per model year across all TEK's used prior to construction. 
+        """
+        area_pre_construction = self.calc_area_pre_construction_per_tek_condition()
+        
+        acc_total_demolition = pd.Series(0.0, index=self.period)
+        for tek in area_pre_construction:
+            acc_total_demolition += area_pre_construction[tek][BuildingCondition.DEMOLITION]
+
+        acc_total_demolition.index.name = 'year'
+        acc_total_demolition.rename(BuildingCondition.DEMOLITION, inplace=True)
+
+        total_demolition_per_year = acc_total_demolition.diff().fillna(0)
+
+        return total_demolition_per_year
+    
+    def calc_area_with_construction(self, tek: str, building_condition: BuildingCondition, accumulated_constructed_floor_area: pd.Series) -> pd.Series:
+        """
+        Calculates the floor area over the model period for a given building condition and TEK used in a period with construction.
+        """
+        tek_start_year = self.tek_params[tek].start_year
+        tek_end_year = self.tek_params[tek].end_year
+        if tek_end_year < self.period.start:
+            msg = (f"Invalid tek parameter: {tek}. Method only works for TEK's that are used after or during the start of model period. " 
+                   f"{tek} is used from {tek_start_year} to {tek_end_year}, while the model period begins in {self.period.start}.")
+            raise ValueError(msg)
+
+        period_index = pd.Index(self.period.year_range, name='year')
+        area = pd.Series(0.0, index = period_index, name = 'area')
+
+        shares = self.shares_per_condition[building_condition][tek]
+        
+        try:
+            # Retrieve area in start year
+            area_start_year = self.area_start_year[tek]
+        except KeyError:
+            # Set to 0 if TEK isn't present in area series
+            area_start_year = 0.0        
+        
+        try:
+            # Retrieve accumulated construction area from before the TEK period begins
+            acc_construction_pre_tek_period = accumulated_constructed_floor_area.loc[tek_start_year - 1] 
+        except KeyError:
+            # Set to 0 if the year before the TEK period begins isn't present in index, i.e when tek period starts before the model period
+            acc_construction_pre_tek_period = 0.0
+        
+        acc_construction_end_tek_period = accumulated_constructed_floor_area.loc[tek_end_year]
+
+        # Create year masks for different calculation methods across the model period
+        tek_period_mask = (tek_start_year <= period_index) & (period_index <= tek_end_year) 
+        post_tek_period_mask = period_index > tek_end_year
+
+        # Increase the accumulated construction area in the TEK period
+        area[tek_period_mask] = shares[tek_period_mask] * (area_start_year + accumulated_constructed_floor_area[tek_period_mask] - acc_construction_pre_tek_period)  
+
+        # Hold the accumulated construction area constant after the TEK period 
+        area[post_tek_period_mask] = shares[post_tek_period_mask] * (area_start_year + acc_construction_end_tek_period - acc_construction_pre_tek_period)
+
+        return area
+    
+    def calc_area_with_construction_per_tek_condition(self, accumulated_constructed_floor_area: pd.Series) -> typing.Dict[str, typing.Dict[BuildingCondition, pd.Series]]:
+        """
+        Calculates the floor area per building condition over the model period for all TEK's used in a period with construction.
+        """
+        area_per_tek = {}
+        for tek in self.tek_list:
+            tek_end_year = self.tek_params[tek].end_year
+            if self.period.start <= tek_end_year:
+
+                area_per_condition = {}
+                for building_condition in BuildingCondition:
+                    area = self.calc_area_with_construction(tek, building_condition, accumulated_constructed_floor_area)
+                    area_per_condition[building_condition] = area 
+                
+                area_per_tek[tek] = area_per_condition
+
+        return area_per_tek
+
+    def calc_area(self, accumulated_constructed_floor_area: pd.Series) -> typing.Dict[str, typing.Dict[BuildingCondition, pd.Series]]:
+        """
+        Calculates the floor area per building condition over the model period for all TEK's in 'self.tek_list'.
+        """
+        area_pre_construction = self.calc_area_pre_construction_per_tek_condition()
+        area_with_construction = self.calc_area_with_construction_per_tek_condition(accumulated_constructed_floor_area)
+
+        # Combine dictionaries 
+        area = area_pre_construction.copy()
+        for tek in area_with_construction:
+            area[tek] = area_with_construction[tek]
+        
+        return area
+
+
+
+
+
+
+        
 
 if __name__ == '__main__':
 
@@ -89,13 +209,17 @@ if __name__ == '__main__':
     
     building = Buildings.build_buildings(building_category, database_manager)
 
-    area_params = building.area_params
+    area_start_year = database_manager.get_area_start_year()[building_category]
+
     tek_list = building.tek_list
     tek_params = building.tek_params
     condition_list = BuildingCondition.get_full_condition_list()
     shares_per_condition = building.shares_per_condition
 
+    tek = tek_list[0]
+    logger.info(tek)
 
+    area_forecast = AreaForecastNew(building_category, area_start_year, tek_list, tek_params, condition_list, shares_per_condition)
+    area_start_year = area_forecast.area_start_year
+    print(area_start_year)
 
-
-    AreaForecastNew(building_category, area_params)

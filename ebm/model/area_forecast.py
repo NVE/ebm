@@ -180,7 +180,7 @@ class AreaForecast():
                 # Set area to 0 before the start of their TEK period
                 if year < tek_start_year:
                     area = 0.0
-                # Distinct calculation method if the start year of the model horizon is within the TEK period
+                # Distinct calculation method if the start year of the model horizon is within the TEK period (tek97)
                 elif tek_start_year <= self.model_start_year <= tek_end_year:
                         # Get area and new construction area in the model start year
                         construction_start_year = accumulated_constructed_floor_area[0]

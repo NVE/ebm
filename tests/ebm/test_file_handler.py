@@ -1,6 +1,7 @@
 import os
 import pathlib
 
+import pytest
 import pandas as pd
 
 from ebm.model.file_handler import FileHandler
@@ -91,3 +92,5 @@ def test_filehandler_create_missing_input_files(tmp_path):
     assert (input_directory / 'area_parameters.csv').is_file()
 
 
+if __name__ == "__main__":
+    pytest.main()

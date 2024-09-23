@@ -30,7 +30,7 @@ class Buildings():
                  tek_params: typing.Dict[str, TEKParameters],
                  scurve_condition_list: typing.List[str],
                  scurve_params: pd.DataFrame,
-                 area_params: pd.DataFrame):
+                 area_start_year: pd.Series):
         
         self.building_category = building_category
         self.scurve_condition_list = scurve_condition_list
@@ -40,7 +40,7 @@ class Buildings():
         self.scurves = ScurveProcessor(self.scurve_condition_list, self.scurve_params).get_scurves()
         self.never_shares = ScurveProcessor(self.scurve_condition_list, self.scurve_params).get_never_shares()
         self.shares_per_condition = self.get_shares()
-        self.area_params = area_params #TODO: change so that the area params are filtered on building category? 
+        self.area_params = area_start_year
 
     def get_shares(self, years: YearRange = YearRange(2010, 2050)) -> typing.Dict:
         """ 
@@ -116,19 +116,18 @@ class Buildings():
         -------
         """
         dm = database_manager if database_manager else DatabaseManager()
-        area_parameters = dm.get_area_parameters()
+        area_start_year = dm.get_area_start_year()[self.building_category]
         tek_params = dm.get_tek_params(self.tek_list)
         shares = self.get_shares()
 
         area_forecast = AreaForecast(
-            model_start_year=model_start_year, 
-            model_end_year=model_end_year,
             building_category=self.building_category,
-            area_params=area_parameters,
+            area_start_year=area_start_year, 
             tek_list=self.tek_list,
             tek_params=tek_params,
-            condition_list=BuildingCondition.get_full_condition_list(),
-            shares_per_condtion=shares)
+            shares_per_condtion=shares,
+            period=YearRange(model_start_year, model_end_year))
+
         return area_forecast
 
     @staticmethod
@@ -152,12 +151,12 @@ class Buildings():
         tek_list = dm.get_tek_list()
         tek_params = dm.get_tek_params(tek_list)
         scurve_params = dm.get_scurve_params()
-        area_params = dm.get_area_parameters()
+        area_start_year = dm.get_area_start_year()[building_category]
         scurve_condition_list = BuildingCondition.get_scruve_condition_list()
         building = Buildings(building_category=building_category,
                              tek_list=tek_list,
                              tek_params=tek_params,
                              scurve_condition_list=scurve_condition_list,
                              scurve_params=scurve_params,
-                             area_params=area_params)
+                             area_start_year=area_start_year)
         return building

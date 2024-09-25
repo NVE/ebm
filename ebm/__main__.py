@@ -97,6 +97,8 @@ def main() -> int:
               file=sys.stderr)
         return 2
 
+    database_manager.file_handler.validate_input_files()
+
     make_output_directory(output_filename.parent)
     if output_filename.is_file() and output_filename != default_path and not force_overwrite:
         # If the file already exists and is not the default, display error and exit unless --force was used.

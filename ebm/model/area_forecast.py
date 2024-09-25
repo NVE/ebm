@@ -1,12 +1,12 @@
 import typing
 
 import pandas as pd
-from loguru import logger
 
 from .area import Area
+from .building_condition import BuildingCondition
 from .data_classes import TEKParameters
 from .tek import TEK
- 
+
 
 # Comments:
 # - condition_list: must contain all 5 conditions -> must update input data of condition_list or hardcode, and adjust methods for scurve in buildings
@@ -28,7 +28,7 @@ class AreaForecast():
                  tek_list: typing.List[str],   
                  tek_params: typing.Dict[str, TEKParameters], 
                  condition_list: typing.List[str],
-                 shares_per_condtion: typing.Dict,
+                 shares_per_condtion: typing.Dict[BuildingCondition, typing.Dict[str, pd.Series]],
                  model_start_year: int = 2010,
                  model_end_year: int = 2050,) -> None:
 
@@ -38,9 +38,27 @@ class AreaForecast():
         self.area = Area(area_params)
         self.tek_list = tek_list
         self.tek = TEK(tek_params)                                  
-        self.condition_list = condition_list            
-        self.shares_per_condition = shares_per_condtion
+        self.condition_list = condition_list  
+
+        #TODO: remove after refactoring to series
+        self.shares_per_condition = self._convert_shares_to_series(shares_per_condtion)
+
+    # TODO: remove after refactoring to series
+    def _convert_shares_to_series(self, shares_per_condtion: typing.Dict[BuildingCondition, typing.Dict[str, pd.Series]]):
+        converted_shares = {}
+        for condition, tek_shares in shares_per_condtion.items():
+            converted_tek_shares = {}
+            for tek in tek_shares:
+                shares = tek_shares[tek]
+                if isinstance(shares, pd.Series):
+                    converted_tek_shares[tek] = shares.to_list()
+                else:
+                    converted_tek_shares[tek] = shares
             
+            converted_shares[condition] = converted_tek_shares
+        
+        return converted_shares
+    
     def _calc_area_pre_construction_tek(self, tek: str) -> typing.Dict[str, typing.List]:
         """
         Calculates the area per condition for a given TEK used prior to construction.
@@ -122,7 +140,8 @@ class AreaForecast():
         total_demolition_per_year = [total_demolition[0]] + [current - previous for previous, current in zip(total_demolition[:-1], total_demolition[1:])]
 
         return total_demolition_per_year
-    
+
+
     def _calc_area_with_construction_tek(self, tek: str, accumulated_constructed_floor_area: typing.List) -> typing.Dict[str, typing.List]:
         """
         Calculates the area per condition for a given TEK used in a period with construction of new buildings.
@@ -142,7 +161,12 @@ class AreaForecast():
 
         model_years = [*range(self.model_start_year, self.model_end_year+1)]
         tek_start_year = self.tek.get_start_year(tek)
-        tek_end_year = self.tek.get_end_year(tek)       
+        tek_end_year = self.tek.get_end_year(tek)
+
+        try:
+            area_start_year = self.area.get_area_per_building_category_tek(self.building_category, tek)
+        except ValueError:
+            area_start_year = 0.0
 
         # Empty dictionary to be filled with area per condition in for loop
         area_per_condition = {}
@@ -155,11 +179,10 @@ class AreaForecast():
                 share = shares_per_year[idx]
                 # Set area to 0 before the start of their TEK period
                 if year < tek_start_year:
-                    area = 0
+                    area = 0.0
                 # Distinct calculation method if the start year of the model horizon is within the TEK period
                 elif tek_start_year <= self.model_start_year <= tek_end_year:
                         # Get area and new construction area in the model start year
-                        area_start_year = self.area.get_area_per_building_category_tek(self.building_category, tek)
                         construction_start_year = accumulated_constructed_floor_area[0]
                         area = share * (area_start_year + construction_start_year)
                 # Distinct calculation if the TEK period begins after the start year of the model horizon
@@ -173,14 +196,15 @@ class AreaForecast():
                     construction_current_year = accumulated_constructed_floor_area[idx]
                     # Accumuluated construction area is only added in the years of the TEK period    
                     if tek_start_year <= year <= tek_end_year:
-                        area = share * (construction_current_year - construction_year_before_tek_period)
+                        area = share * (construction_current_year - construction_year_before_tek_period + area_start_year)
                     # The construction area is held constant from the last year of the TEK period 
                     else:
-                        area = share * (construction_tek_end_year - construction_year_before_tek_period) 
+                        area = share * (construction_tek_end_year - construction_year_before_tek_period + area_start_year)
 
-                area_per_year.append(area)
+                area_per_year.append(round(area, 5))
             area_per_condition[condition] = area_per_year    
-        return area_per_condition  
+        return area_per_condition
+
 
     def calc_area_with_construction(self, accumulated_constructed_floor_area: typing.List[float] = None) -> typing.Dict[str, typing.Dict[str, typing.List]]:
         """

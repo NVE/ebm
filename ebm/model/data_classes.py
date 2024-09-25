@@ -112,9 +112,9 @@ class YearRange:
         Parameters
         ----------
         offset : int
-            How many years to skip from the first years.
-        length : int
-            How many years to return after the offset.
+            How many years to skip after the first year.
+        length : int, optional
+            How many years to return after the offset. When -1, all remaining years are returned. Default: -1
 
         Returns
         -------
@@ -124,6 +124,16 @@ class YearRange:
         ------
         ValueError
             When `offset` is less than 0 or `offset` is greater than the number of years in the YearRange.
+
+        Examples
+        --------
+        >>> YearRange(2010, 2016).subset(2,3)
+        YearRange(start=2012, end=2014, year_range=(2012, 2013, 2014))
+        >>> YearRange(2010, 2016).subset(2,-1)
+        YearRange(start=2012, end=2016, year_range=(2012, 2013, 2014, 2015, 2016))
+        >>> YearRange(2010, 2016).subset(3)
+        YearRange(start=2013, end=2016, year_range=(2013, 2014, 2015, 2016))
+
         """
         if offset < 0:
             raise ValueError(f'Offset cannot be negative: {offset}')

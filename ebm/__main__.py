@@ -10,7 +10,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
-from ebm.__version__ import __version__
+from ebm.__version__ import version
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.buildings import Buildings
@@ -184,10 +184,10 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
     default_tek = TEK
 
     arg_parser = argparse.ArgumentParser(prog=program_name,
-                                         description=f'Calculate EBM area forecast v{__version__}',
+                                         description=f'Calculate EBM area forecast v{version}',
                                          formatter_class=argparse.RawTextHelpFormatter
                                          )
-    arg_parser.add_argument('--version', '-v', action='version', version=f'calculate-area-forcast {__version__}')
+    arg_parser.add_argument('--version', '-v', action='version', version=f'calculate-area-forcast {version}')
     arg_parser.add_argument('--debug', action='store_true',
                             help='Run in debug mode. (Extra information written to stdout)')
     arg_parser.add_argument('output_file', nargs='?', type=str, default=default_path,

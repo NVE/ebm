@@ -106,6 +106,8 @@ For at EBM modellen skal fungere trengs det en *.env* fil. I denne filen definer
 
 For å starte ebm fra VS Code så kjører du ebm/__main__.py
 
+---
+
 ### Nedlasting av programmer for å arbeide lokalt
 
 Dette gjelder kun dersom du skal arbeide lokalt og ikke på e-srv. 

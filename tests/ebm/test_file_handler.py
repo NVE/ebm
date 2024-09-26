@@ -3,8 +3,20 @@ import pathlib
 
 import pytest
 import pandas as pd
+import pandera as pa
+import pytest
 
 from ebm.model.file_handler import FileHandler
+
+
+@pytest.fixture
+def tmp_file_handler(tmp_path):
+    os.chdir(tmp_path)
+    input_directory = tmp_path / 'input'
+    input_directory.mkdir()
+    file_handler = FileHandler(input_directory)
+    file_handler.create_missing_input_files()
+    return file_handler
 
 
 def test_check_for_missing_files_return_list(tmp_path):
@@ -90,6 +102,48 @@ def test_filehandler_create_missing_input_files(tmp_path):
     assert (input_directory / 'new_buildings_house_share.csv').is_file()
     assert (input_directory / 'construction_building_category_yearly.csv').is_file()
     assert (input_directory / 'area_parameters.csv').is_file()
+
+
+def test_filehandler_validate_created_input_file(tmp_file_handler):
+    tmp_file_handler.validate_input_files()
+
+
+@pytest.mark.parametrize('input_file_name', [FileHandler.AREA_PARAMETERS,
+                                             FileHandler.TEK_PARAMS,
+                                             FileHandler.CONSTRUCTION_BUILDING_CATEGORY_AREA,
+                                             FileHandler.CONSTRUCTION_BUILDING_CATEGORY_SHARE,
+                                             FileHandler.CONSTRUCTION_POPULATION,
+                                             FileHandler.SCURVE_PARAMETERS])
+def test_validate_input_file_validates_expected_files(tmp_file_handler, input_file_name):
+    """
+    Ensure all files are validated in validate_input_files()
+
+    This implementation works by deleting the file to test deleting the input_file_name and look for FileNotFoundError
+    """
+    assert 'Temp' in tmp_file_handler.input_directory.parts or 'tmp' in tmp_file_handler.input_directory.parts, \
+        'Temp or tmp not found in path. Refusing to run test'
+
+    tmp_file_handler.create_missing_input_files()
+
+    input_file = tmp_file_handler.input_directory / input_file_name
+    input_file.unlink()
+    with pytest.raises(FileNotFoundError, match=f'.*{input_file_name}'):
+        tmp_file_handler.validate_input_files()
+
+
+def test_filehandler_validate_created_input_file_raises_schemaerrors_on_fail(tmp_file_handler):
+    """
+     Ensure pa.DataFrameSchema::validate is invoked lazy by checking for SchemaErrors
+    (as opposed to SchemaError without a trailing s)
+     """
+    df = tmp_file_handler.get_file(FileHandler.AREA_PARAMETERS)
+    df.loc[0, 'building_category'] = 'småhus'
+    df.loc[0, 'TEK'] = 'TAKK42'
+    df.loc[0, 'area'] = -1
+    df.to_csv(tmp_file_handler.input_directory / FileHandler.AREA_PARAMETERS)
+
+    with pytest.raises(pa.errors.SchemaErrors):
+        tmp_file_handler.validate_input_files()
 
 
 if __name__ == "__main__":

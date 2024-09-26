@@ -1,6 +1,7 @@
 import os
 import pathlib
 
+import pytest
 import pandas as pd
 import pandera as pa
 import pytest
@@ -143,3 +144,7 @@ def test_filehandler_validate_created_input_file_raises_schemaerrors_on_fail(tmp
 
     with pytest.raises(pa.errors.SchemaErrors):
         tmp_file_handler.validate_input_files()
+
+
+if __name__ == "__main__":
+    pytest.main()

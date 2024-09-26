@@ -394,11 +394,21 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
     years = YearRange(start_year, end_year)
 
     area_forecast = buildings.build_area_forecast(database_manager, years.start, years.end)
-    demolition_floor_area = pd.Series(data=area_forecast.calc_total_demolition_area_per_year(), index=years.range())
-    constructed_floor_area = ConstructionCalculator.calculate_construction_as_list(
-        building_category, demolition_floor_area, database_manager, period=years)
-
+    demolition_floor_area = area_forecast.calc_total_demolition_area_per_year()
+    constructed_floor_area = ConstructionCalculator.calculate_construction(building_category,
+                                                                           demolition_floor_area, 
+                                                                           database_manager, 
+                                                                           period=years).accumulated_constructed_floor_area
     forecast: Dict = area_forecast.calc_area(constructed_floor_area)
+
+    # Temporary method to convert series to list
+    def nested_dict_series_to_list(nested_dict):
+        return {
+            key: {inner_key: value.tolist() for inner_key, value in inner_dict.items()}
+            for key, inner_dict in nested_dict.items()
+        }
+    forecast = nested_dict_series_to_list(forecast)
+
     return forecast
 
 

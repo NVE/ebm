@@ -12,6 +12,10 @@ def check_building_condition(value) -> bool:
     return value.isin(iter(BuildingCondition))
 
 
+def check_energy_purpose(value):
+    return value.isin(('Cooling', 'Electrical equipment', 'Fans and pumps', 'HeatingDHW', 'HeatingRV', 'Lighting'))
+
+
 def check_tek(value) -> bool:
     return 'TEK' in value
 
@@ -124,6 +128,14 @@ scurve_parameters = pa.DataFrameSchema(
     },
     name='scurve_parameters')
 
+energy_by_floor_area = pa.DataFrameSchema(
+    columns={
+        'building_category': pa.Column(str, checks=[pa.Check(check_building_category)]),
+        'TEK': pa.Column(str, checks=[pa.Check(check_tek, element_wise=True)]),
+        'purpose': pa.Column(str, checks=[pa.Check(check_energy_purpose)]),
+        'kw_h_m': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0)])
+    }
+)
 
 __all__ = [area_parameters,
            tek_parameters,

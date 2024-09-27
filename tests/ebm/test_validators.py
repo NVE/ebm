@@ -13,7 +13,8 @@ from ebm.validators import (tek_parameters,
                             construction_building_category_yearly,
                             new_buildings_house_share,
                             new_buildings_population,
-                            scurve_parameters)
+                            scurve_parameters,
+                            energy_by_floor_area)
 
 
 @pytest.fixture
@@ -292,3 +293,43 @@ def test_scurve_parameters_reject_invalid_share(s_curves, attribute):
     s_curves.loc[0, attribute] = 1.01
     with pytest.raises(pa.errors.SchemaError):
         scurve_parameters.validate(s_curves)
+
+
+@pytest.fixture
+def energy_by_floor_area_df():
+    return pd.DataFrame(
+        data=[['house', 'TEK69', 'Lighting', 0.0],
+              ['apartment_block', 'TEK69', 'Lighting', 1.234]],
+        columns=['building_category', 'TEK', 'purpose', 'kw_h_m'])
+
+
+def test_energy_by_floor_area(energy_by_floor_area_df):
+    energy_by_floor_area.validate(energy_by_floor_area_df)
+
+
+def test_energy_by_floor_area_raise_schema_error_on_unknown_building_category(energy_by_floor_area_df):
+    energy_by_floor_area_df.loc[:, 'building_category'] = 'småhus'
+
+    with pytest.raises(pa.errors.SchemaError):
+        energy_by_floor_area.validate(energy_by_floor_area_df)
+
+
+def test_energy_by_floor_area_raise_schema_error_on_unknown_tek(energy_by_floor_area_df):
+    energy_by_floor_area_df.loc[:, 'TEK'] = 'TAKK'
+
+    with pytest.raises(pa.errors.SchemaError):
+        energy_by_floor_area.validate(energy_by_floor_area_df)
+
+
+def test_energy_by_floor_area_raise_schema_error_on_illegal_kwhm(energy_by_floor_area_df):
+    energy_by_floor_area_df.loc[0, 'kw_h_m'] = -0.1
+
+    with pytest.raises(pa.errors.SchemaError):
+        energy_by_floor_area.validate(energy_by_floor_area_df)
+
+
+def test_energy_by_floor_area_raise_schema_error_on_unknown_purpose(energy_by_floor_area_df):
+    energy_by_floor_area_df.loc[0, 'purpose'] = 'lys og varme'
+
+    with pytest.raises(pa.errors.SchemaError):
+        energy_by_floor_area.validate(energy_by_floor_area_df)

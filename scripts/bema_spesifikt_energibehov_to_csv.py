@@ -26,7 +26,7 @@ def main():
                             'TEK17': 'TEK21L',
                             'TEK17.1': 'TEK21',
                             'TEK17.2': 'TEK21H',
-                            'TEK17': 'TEK17',
+                            'TEK17.3': 'TEK17',
                             'Før 49': 'PRE_TEK49'})
     df['building_category'] = df['building_category_no'].apply(building_category.from_norsk)
 

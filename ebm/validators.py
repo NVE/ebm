@@ -1,26 +1,95 @@
+"""
+Pandera validators for ebm input files.
+"""
+import pandas as pd
 import pandera as pa
 
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 
 
-def check_building_category(value) -> bool:
+def check_building_category(value: pd.Series) -> pd.Series:
+    """
+    Makes sure that the series value contains values that are corresponding to a BuildingCategory
+
+    Parameters
+    ----------
+    value: pd.Series
+        A series of str that will be checked against BuildingCategory
+
+    Returns
+    -------
+    pd.Series of bool values
+
+    """
+
     return value.isin(iter(BuildingCategory))
 
 
-def check_building_condition(value) -> bool:
+def check_building_condition(value: pd.Series) -> pd.Series:
+    """
+    Makes sure that the series value contains values that are corresponding to a BuildingCondition
+
+    Parameters
+    ----------
+    value: pd.Series
+        A series of str that will be checked against BuildingCondition
+
+    Returns
+    -------
+    pd.Series of bool values
+
+    """
     return value.isin(iter(BuildingCondition))
 
 
-def check_energy_purpose(value):
+def check_energy_purpose(value: pd.Series) -> pd.Series:
+    """
+    Makes sure that the value contain one of the values corresponding to purpose
+     - 'Cooling'
+     - 'Electrical equipment'
+     - 'Fans and pumps'
+     - 'HeatingDHW'
+     - 'HeatingRV'
+     - 'Lighting'
+
+     Returns
+     -------
+     pd.Series of bool values
+
+    """
     return value.isin(('Cooling', 'Electrical equipment', 'Fans and pumps', 'HeatingDHW', 'HeatingRV', 'Lighting'))
 
 
-def check_tek(value) -> bool:
+def check_tek(value: str) -> bool:
+    """
+    A crude check to determine if value is a 'TEK'
+
+    Parameters
+    ----------
+    value: str
+    Returns
+    -------
+    bool
+        True when the function thinks that value might be a TEK
+
+    """
     return 'TEK' in value
 
 
-def check_building_category_share(values):
+def check_building_category_share(values: pd.DataFrame) -> pd.Series:
+    """
+   Make sure that the sum of values in values.new_house_share + values.new_apartment_block_share is 1.0
+
+    Parameters
+    ----------
+    values: pd.DataFrame
+        A dataframe with new_house_share and new_apartment_block_share
+    -------
+    pd.Series
+        A series of bool with the truth value of new_house_share + new_apartment_block_share equals 1.0
+
+    """
     return values.new_house_share + values.new_apartment_block_share == 1.0
 
 

@@ -77,6 +77,22 @@ def check_tek(value: str) -> bool:
     return 'TEK' in value
 
 
+def check_default_tek(value: str) -> bool:
+    """
+    A crude check to determine if value is a 'TEK' or default
+
+    Parameters
+    ----------
+    value: str
+    Returns
+    -------
+    bool
+        True when the function thinks that value might be a TEK
+
+    """
+    return check_tek(value) or value == 'default'
+
+
 def check_building_category_share(values: pd.DataFrame) -> pd.Series:
     """
    Make sure that the sum of values in values.new_house_share + values.new_apartment_block_share is 1.0
@@ -206,10 +222,20 @@ energy_by_floor_area = pa.DataFrameSchema(
     }
 )
 
+heating_reduction = pa.DataFrameSchema(
+    columns={
+        'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
+        'building_condition': pa.Column(str, checks=[pa.Check(check_building_condition)]),
+        'heating_reduction': pa.Column(float, checks=[pa.Check.between(min_value=0.0, include_min=True,
+                                                                       max_value=1.0, include_max=True)])
+    }
+)
+
 __all__ = [area_parameters,
            tek_parameters,
            construction_building_category_yearly,
            new_buildings_house_share,
            new_buildings_population,
            scurve_parameters,
-           new_buildings_house_share]
+           new_buildings_house_share,
+           heating_reduction]

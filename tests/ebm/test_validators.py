@@ -353,11 +353,16 @@ def test_heating_reduction(heating_reduction_df):
     heating_reduction.validate(heating_reduction_df)
 
 
-def test_heating_reduction_require_tek_or_default(heating_reduction_df):
+def test_heating_reduction_require_tek(heating_reduction_df):
     heating_reduction_df.loc[0, 'TEK'] = 'TAKK'
 
     with pytest.raises(pa.errors.SchemaError):
         heating_reduction.validate(heating_reduction_df)
+
+
+def test_heating_reduction_allows_default_tek(heating_reduction_df):
+    heating_reduction_df.loc[0, 'TEK'] = 'default'
+    heating_reduction.validate(heating_reduction_df)
 
 
 def test_heating_reduction_require_building_condition(heating_reduction_df):

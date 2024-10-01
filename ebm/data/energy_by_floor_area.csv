@@ -1,0 +1,703 @@
+building_category,TEK,purpose,kw_h_m
+apartment_block,PRE_TEK49,Cooling,0.0
+apartment_block,PRE_TEK49,Electrical equipment,17.52
+apartment_block,PRE_TEK49,Fans and pumps,0.5788888888888889
+apartment_block,PRE_TEK49,HeatingDHW,29.76888888888889
+apartment_block,PRE_TEK49,HeatingRV,126.73973891331498
+apartment_block,PRE_TEK49,Lighting,9.107555555555555
+apartment_block,TEK07,Cooling,0.0
+apartment_block,TEK07,Electrical equipment,17.52
+apartment_block,TEK07,Fans and pumps,9.455555555555556
+apartment_block,TEK07,HeatingDHW,29.76888888888889
+apartment_block,TEK07,HeatingRV,39.52794604570375
+apartment_block,TEK07,Lighting,9.107555555555555
+apartment_block,TEK10,Cooling,0.0
+apartment_block,TEK10,Electrical equipment,17.52
+apartment_block,TEK10,Fans and pumps,9.323177777777778
+apartment_block,TEK10,HeatingDHW,29.76888888888889
+apartment_block,TEK10,HeatingRV,38.974554801063846
+apartment_block,TEK10,Lighting,9.107555555555555
+apartment_block,TEK17,Cooling,0.0
+apartment_block,TEK17,Electrical equipment,17.52
+apartment_block,TEK17,Fans and pumps,7.566666666666666
+apartment_block,TEK17,HeatingDHW,29.76888888888889
+apartment_block,TEK17,HeatingRV,28.841170552787286
+apartment_block,TEK17,Lighting,9.107555555555555
+apartment_block,TEK21,Cooling,0.0
+apartment_block,TEK21,Electrical equipment,17.52
+apartment_block,TEK21,Fans and pumps,7.566666666666666
+apartment_block,TEK21,HeatingDHW,29.76888888888889
+apartment_block,TEK21,HeatingRV,28.841170552787286
+apartment_block,TEK21,Lighting,9.107555555555555
+apartment_block,TEK49,Cooling,0.0
+apartment_block,TEK49,Electrical equipment,17.52
+apartment_block,TEK49,Fans and pumps,0.5788888888888889
+apartment_block,TEK49,HeatingDHW,29.76888888888889
+apartment_block,TEK49,HeatingRV,126.73973891331498
+apartment_block,TEK49,Lighting,9.107555555555555
+apartment_block,TEK69,Cooling,0.0
+apartment_block,TEK69,Electrical equipment,17.52
+apartment_block,TEK69,Fans and pumps,0.5788888888888889
+apartment_block,TEK69,HeatingDHW,29.76888888888889
+apartment_block,TEK69,HeatingRV,126.73973891331498
+apartment_block,TEK69,Lighting,9.107555555555555
+apartment_block,TEK87,Cooling,0.0
+apartment_block,TEK87,Electrical equipment,17.52
+apartment_block,TEK87,Fans and pumps,0.53
+apartment_block,TEK87,HeatingDHW,29.76888888888889
+apartment_block,TEK87,HeatingRV,103.5833854421104
+apartment_block,TEK87,Lighting,9.107555555555555
+apartment_block,TEK97,Cooling,0.0
+apartment_block,TEK97,Electrical equipment,17.52
+apartment_block,TEK97,Fans and pumps,0.43333333333333335
+apartment_block,TEK97,HeatingDHW,29.76888888888889
+apartment_block,TEK97,HeatingRV,77.67867176898444
+apartment_block,TEK97,Lighting,9.107555555555555
+culture,PRE_TEK49,Cooling,20.7325
+culture,PRE_TEK49,Electrical equipment,2.870833333333333
+culture,PRE_TEK49,Fans and pumps,38.625
+culture,PRE_TEK49,HeatingDHW,10.0225
+culture,PRE_TEK49,HeatingRV,154.53103667969356
+culture,PRE_TEK49,Lighting,22.967916666666667
+culture,TEK07,Cooling,19.4325
+culture,TEK07,Electrical equipment,2.870833333333333
+culture,TEK07,Fans and pumps,26.824166666666663
+culture,TEK07,HeatingDHW,10.0225
+culture,TEK07,HeatingRV,93.95766426477772
+culture,TEK07,Lighting,22.967916666666667
+culture,TEK10,Cooling,19.4325
+culture,TEK10,Electrical equipment,2.870833333333333
+culture,TEK10,Fans and pumps,26.356437916666664
+culture,TEK10,HeatingDHW,10.0225
+culture,TEK10,HeatingRV,75.98468861891389
+culture,TEK10,Lighting,22.967916666666667
+culture,TEK17,Cooling,15.93465
+culture,TEK17,Electrical equipment,2.870833333333333
+culture,TEK17,Fans and pumps,20.29445719583333
+culture,TEK17,HeatingDHW,10.0225
+culture,TEK17,HeatingRV,58.50821023656364
+culture,TEK17,Lighting,17.225833333333334
+culture,TEK21,Cooling,15.93465
+culture,TEK21,Electrical equipment,2.870833333333333
+culture,TEK21,Fans and pumps,20.29445719583333
+culture,TEK21,HeatingDHW,10.0225
+culture,TEK21,HeatingRV,58.50821023656364
+culture,TEK21,Lighting,17.225833333333334
+culture,TEK49,Cooling,20.7325
+culture,TEK49,Electrical equipment,2.870833333333333
+culture,TEK49,Fans and pumps,38.625
+culture,TEK49,HeatingDHW,10.0225
+culture,TEK49,HeatingRV,154.53103667969356
+culture,TEK49,Lighting,22.967916666666667
+culture,TEK69,Cooling,20.7325
+culture,TEK69,Electrical equipment,2.870833333333333
+culture,TEK69,Fans and pumps,38.625
+culture,TEK69,HeatingDHW,10.0225
+culture,TEK69,HeatingRV,154.53103667969356
+culture,TEK69,Lighting,22.967916666666667
+culture,TEK87,Cooling,20.7325
+culture,TEK87,Electrical equipment,2.870833333333333
+culture,TEK87,Fans and pumps,38.625
+culture,TEK87,HeatingDHW,10.0225
+culture,TEK87,HeatingRV,129.21017220322423
+culture,TEK87,Lighting,22.967916666666667
+culture,TEK97,Cooling,20.7325
+culture,TEK97,Electrical equipment,2.870833333333333
+culture,TEK97,Fans and pumps,38.625
+culture,TEK97,HeatingDHW,10.0225
+culture,TEK97,HeatingRV,109.95302943331704
+culture,TEK97,Lighting,22.967916666666667
+hospital,PRE_TEK49,Cooling,40.494166666666665
+hospital,PRE_TEK49,Electrical equipment,46.72
+hospital,PRE_TEK49,Fans and pumps,85.42416666666666
+hospital,PRE_TEK49,HeatingDHW,29.769444444444446
+hospital,PRE_TEK49,HeatingRV,155.63856402323194
+hospital,PRE_TEK49,Lighting,46.72
+hospital,TEK07,Cooling,37.52722222222222
+hospital,TEK07,Electrical equipment,46.72
+hospital,TEK07,Fans and pumps,58.16138888888889
+hospital,TEK07,HeatingDHW,29.769444444444446
+hospital,TEK07,HeatingRV,104.61858085002443
+hospital,TEK07,Lighting,46.72
+hospital,TEK10,Cooling,37.52722222222222
+hospital,TEK10,Electrical equipment,46.72
+hospital,TEK10,Fans and pumps,58.62668
+hospital,TEK10,HeatingDHW,29.769444444444446
+hospital,TEK10,HeatingRV,105.45552949682462
+hospital,TEK10,Lighting,46.72
+hospital,TEK17,Cooling,30.77232222222222
+hospital,TEK17,Electrical equipment,46.72
+hospital,TEK17,Fans and pumps,43.3837432
+hospital,TEK17,HeatingDHW,29.769444444444446
+hospital,TEK17,HeatingRV,78.03709182765022
+hospital,TEK17,Lighting,29.190555555555555
+hospital,TEK21,Cooling,30.77232222222222
+hospital,TEK21,Electrical equipment,46.72
+hospital,TEK21,Fans and pumps,43.3837432
+hospital,TEK21,HeatingDHW,29.769444444444446
+hospital,TEK21,HeatingRV,78.03709182765022
+hospital,TEK21,Lighting,29.190555555555555
+hospital,TEK49,Cooling,40.494166666666665
+hospital,TEK49,Electrical equipment,46.72
+hospital,TEK49,Fans and pumps,85.42416666666666
+hospital,TEK49,HeatingDHW,29.769444444444446
+hospital,TEK49,HeatingRV,155.63856402323194
+hospital,TEK49,Lighting,46.72
+hospital,TEK69,Cooling,40.494166666666665
+hospital,TEK69,Electrical equipment,46.72
+hospital,TEK69,Fans and pumps,85.42416666666666
+hospital,TEK69,HeatingDHW,29.769444444444446
+hospital,TEK69,HeatingRV,155.63856402323194
+hospital,TEK69,Lighting,46.72
+hospital,TEK87,Cooling,40.494166666666665
+hospital,TEK87,Electrical equipment,46.72
+hospital,TEK87,Fans and pumps,85.38527777777777
+hospital,TEK87,HeatingDHW,29.769444444444446
+hospital,TEK87,HeatingRV,133.44596075557757
+hospital,TEK87,Lighting,46.72
+hospital,TEK97,Cooling,40.494166666666665
+hospital,TEK97,Electrical equipment,46.72
+hospital,TEK97,Fans and pumps,85.38
+hospital,TEK97,HeatingDHW,29.769444444444446
+hospital,TEK97,HeatingRV,116.10301742387263
+hospital,TEK97,Lighting,46.72
+hotel,PRE_TEK49,Cooling,27.5625
+hotel,PRE_TEK49,Electrical equipment,5.84
+hotel,PRE_TEK49,Fans and pumps,56.79125
+hotel,PRE_TEK49,HeatingDHW,29.784166666666668
+hotel,PRE_TEK49,HeatingRV,163.9124000569943
+hotel,PRE_TEK49,Lighting,46.72
+hotel,TEK07,Cooling,25.5225
+hotel,TEK07,Electrical equipment,5.84
+hotel,TEK07,Fans and pumps,39.26708333333333
+hotel,TEK07,HeatingDHW,29.784166666666668
+hotel,TEK07,HeatingRV,91.94085735222278
+hotel,TEK07,Lighting,46.72
+hotel,TEK10,Cooling,25.5225
+hotel,TEK10,Electrical equipment,5.84
+hotel,TEK10,Fans and pumps,37.82581666666667
+hotel,TEK10,HeatingDHW,29.784166666666668
+hotel,TEK10,HeatingRV,67.75243318738802
+hotel,TEK10,Lighting,46.72
+hotel,TEK17,Cooling,20.928449999999998
+hotel,TEK17,Electrical equipment,5.84
+hotel,TEK17,Fans and pumps,28.3693625
+hotel,TEK17,HeatingDHW,29.784166666666668
+hotel,TEK17,HeatingRV,50.81432489054104
+hotel,TEK17,Lighting,29.2
+hotel,TEK21,Cooling,20.928449999999998
+hotel,TEK21,Electrical equipment,5.84
+hotel,TEK21,Fans and pumps,28.3693625
+hotel,TEK21,HeatingDHW,29.784166666666668
+hotel,TEK21,HeatingRV,50.81432489054104
+hotel,TEK21,Lighting,29.2
+hotel,TEK49,Cooling,27.5625
+hotel,TEK49,Electrical equipment,5.84
+hotel,TEK49,Fans and pumps,56.79125
+hotel,TEK49,HeatingDHW,29.784166666666668
+hotel,TEK49,HeatingRV,163.9124000569943
+hotel,TEK49,Lighting,46.72
+hotel,TEK69,Cooling,27.5625
+hotel,TEK69,Electrical equipment,5.84
+hotel,TEK69,Fans and pumps,56.79125
+hotel,TEK69,HeatingDHW,29.784166666666668
+hotel,TEK69,HeatingRV,163.9124000569943
+hotel,TEK69,Lighting,46.72
+hotel,TEK87,Cooling,27.5625
+hotel,TEK87,Electrical equipment,5.84
+hotel,TEK87,Fans and pumps,56.76125
+hotel,TEK87,HeatingDHW,29.784166666666668
+hotel,TEK87,HeatingRV,136.55572728382998
+hotel,TEK87,Lighting,46.72
+hotel,TEK97,Cooling,27.5625
+hotel,TEK97,Electrical equipment,5.84
+hotel,TEK97,Fans and pumps,56.738749999999996
+hotel,TEK97,HeatingDHW,29.784166666666668
+hotel,TEK97,HeatingRV,115.46647105520273
+hotel,TEK97,Lighting,46.72
+house,PRE_TEK49,Cooling,0.0
+house,PRE_TEK49,Electrical equipment,17.51875
+house,PRE_TEK49,Fans and pumps,0.58125
+house,PRE_TEK49,HeatingDHW,29.78125
+house,PRE_TEK49,HeatingRV,155.2907120175867
+house,PRE_TEK49,Lighting,9.11
+house,TEK07,Cooling,0.0
+house,TEK07,Electrical equipment,17.51875
+house,TEK07,Fans and pumps,7.925
+house,TEK07,HeatingDHW,29.78125
+house,TEK07,HeatingRV,58.725677821201764
+house,TEK07,Lighting,9.11
+house,TEK10,Cooling,0.0
+house,TEK10,Electrical equipment,17.51875
+house,TEK10,Fans and pumps,7.81405
+house,TEK10,HeatingDHW,29.78125
+house,TEK10,HeatingRV,57.90351833170494
+house,TEK10,Lighting,9.11
+house,TEK17,Cooling,0.0
+house,TEK17,Electrical equipment,17.51875
+house,TEK17,Fans and pumps,6.407520999999999
+house,TEK17,HeatingDHW,29.78125
+house,TEK17,HeatingRV,47.48088503199805
+house,TEK17,Lighting,9.11
+house,TEK21,Cooling,0.0
+house,TEK21,Electrical equipment,17.51875
+house,TEK21,Fans and pumps,6.407520999999999
+house,TEK21,HeatingDHW,29.78125
+house,TEK21,HeatingRV,47.48088503199805
+house,TEK21,Lighting,9.11
+house,TEK49,Cooling,0.0
+house,TEK49,Electrical equipment,17.51875
+house,TEK49,Fans and pumps,0.58125
+house,TEK49,HeatingDHW,29.78125
+house,TEK49,HeatingRV,155.2907120175867
+house,TEK49,Lighting,9.11
+house,TEK69,Cooling,0.0
+house,TEK69,Electrical equipment,17.51875
+house,TEK69,Fans and pumps,0.58125
+house,TEK69,HeatingDHW,29.78125
+house,TEK69,HeatingRV,155.2907120175867
+house,TEK69,Lighting,9.11
+house,TEK87,Cooling,0.0
+house,TEK87,Electrical equipment,17.51875
+house,TEK87,Fans and pumps,0.58125
+house,TEK87,HeatingDHW,29.78125
+house,TEK87,HeatingRV,123.28858085002443
+house,TEK87,Lighting,9.11
+house,TEK97,Cooling,0.0
+house,TEK97,Electrical equipment,17.51875
+house,TEK97,Fans and pumps,0.58125
+house,TEK97,HeatingDHW,29.78125
+house,TEK97,HeatingRV,89.65613092330238
+house,TEK97,Lighting,9.11
+kindergarten,PRE_TEK49,Cooling,0.0
+kindergarten,PRE_TEK49,Electrical equipment,5.22
+kindergarten,PRE_TEK49,Fans and pumps,33.95666666666667
+kindergarten,PRE_TEK49,HeatingDHW,10.023333333333333
+kindergarten,PRE_TEK49,HeatingRV,170.38313141182218
+kindergarten,PRE_TEK49,Lighting,20.88
+kindergarten,TEK07,Cooling,0.0
+kindergarten,TEK07,Electrical equipment,5.22
+kindergarten,TEK07,Fans and pumps,22.886666666666667
+kindergarten,TEK07,HeatingDHW,10.023333333333333
+kindergarten,TEK07,HeatingRV,91.60795310210064
+kindergarten,TEK07,Lighting,20.88
+kindergarten,TEK10,Cooling,0.0
+kindergarten,TEK10,Electrical equipment,5.22
+kindergarten,TEK10,Fans and pumps,22.466783333333336
+kindergarten,TEK10,HeatingDHW,10.023333333333333
+kindergarten,TEK10,HeatingRV,74.22534704119848
+kindergarten,TEK10,Lighting,20.88
+kindergarten,TEK17,Cooling,0.0
+kindergarten,TEK17,Electrical equipment,5.22
+kindergarten,TEK17,Fans and pumps,22.466783333333336
+kindergarten,TEK17,HeatingDHW,10.023333333333333
+kindergarten,TEK17,HeatingRV,74.22534704119848
+kindergarten,TEK17,Lighting,15.66
+kindergarten,TEK21,Cooling,0.0
+kindergarten,TEK21,Electrical equipment,5.22
+kindergarten,TEK21,Fans and pumps,22.466783333333336
+kindergarten,TEK21,HeatingDHW,10.023333333333333
+kindergarten,TEK21,HeatingRV,74.22534704119848
+kindergarten,TEK21,Lighting,15.66
+kindergarten,TEK49,Cooling,0.0
+kindergarten,TEK49,Electrical equipment,5.22
+kindergarten,TEK49,Fans and pumps,33.95666666666667
+kindergarten,TEK49,HeatingDHW,10.023333333333333
+kindergarten,TEK49,HeatingRV,170.38313141182218
+kindergarten,TEK49,Lighting,20.88
+kindergarten,TEK69,Cooling,0.0
+kindergarten,TEK69,Electrical equipment,5.22
+kindergarten,TEK69,Fans and pumps,33.95666666666667
+kindergarten,TEK69,HeatingDHW,10.023333333333333
+kindergarten,TEK69,HeatingRV,170.38313141182218
+kindergarten,TEK69,Lighting,20.88
+kindergarten,TEK87,Cooling,0.0
+kindergarten,TEK87,Electrical equipment,5.22
+kindergarten,TEK87,Fans and pumps,33.95666666666667
+kindergarten,TEK87,HeatingDHW,10.023333333333333
+kindergarten,TEK87,HeatingRV,138.93204038430252
+kindergarten,TEK87,Lighting,20.88
+kindergarten,TEK97,Cooling,0.0
+kindergarten,TEK97,Electrical equipment,5.22
+kindergarten,TEK97,Fans and pumps,33.95666666666667
+kindergarten,TEK97,HeatingDHW,10.023333333333333
+kindergarten,TEK97,HeatingRV,111.38459371437845
+kindergarten,TEK97,Lighting,20.88
+nursing_home,PRE_TEK49,Cooling,0.0
+nursing_home,PRE_TEK49,Electrical equipment,23.36
+nursing_home,PRE_TEK49,Fans and pumps,72.5875
+nursing_home,PRE_TEK49,HeatingDHW,29.784166666666668
+nursing_home,PRE_TEK49,HeatingRV,161.3164309558707
+nursing_home,PRE_TEK49,Lighting,46.72
+nursing_home,TEK07,Cooling,0.0
+nursing_home,TEK07,Electrical equipment,23.36
+nursing_home,TEK07,Fans and pumps,48.56125
+nursing_home,TEK07,HeatingDHW,29.784166666666668
+nursing_home,TEK07,HeatingRV,90.24859408076857
+nursing_home,TEK07,Lighting,46.72
+nursing_home,TEK10,Cooling,0.0
+nursing_home,TEK10,Electrical equipment,23.36
+nursing_home,TEK10,Fans and pumps,49.4353525
+nursing_home,TEK10,HeatingDHW,29.784166666666668
+nursing_home,TEK10,HeatingRV,91.87306877422213
+nursing_home,TEK10,Lighting,46.72
+nursing_home,TEK17,Cooling,0.0
+nursing_home,TEK17,Electrical equipment,23.36
+nursing_home,TEK17,Fans and pumps,48.44664545
+nursing_home,TEK17,HeatingDHW,29.784166666666668
+nursing_home,TEK17,HeatingRV,90.03560739873801
+nursing_home,TEK17,Lighting,29.2
+nursing_home,TEK21,Cooling,0.0
+nursing_home,TEK21,Electrical equipment,23.36
+nursing_home,TEK21,Fans and pumps,48.44664545
+nursing_home,TEK21,HeatingDHW,29.784166666666668
+nursing_home,TEK21,HeatingRV,90.03560739873801
+nursing_home,TEK21,Lighting,29.2
+nursing_home,TEK49,Cooling,0.0
+nursing_home,TEK49,Electrical equipment,23.36
+nursing_home,TEK49,Fans and pumps,72.5875
+nursing_home,TEK49,HeatingDHW,29.784166666666668
+nursing_home,TEK49,HeatingRV,161.3164309558707
+nursing_home,TEK49,Lighting,46.72
+nursing_home,TEK69,Cooling,0.0
+nursing_home,TEK69,Electrical equipment,23.36
+nursing_home,TEK69,Fans and pumps,72.5875
+nursing_home,TEK69,HeatingDHW,29.784166666666668
+nursing_home,TEK69,HeatingRV,161.3164309558707
+nursing_home,TEK69,Lighting,46.72
+nursing_home,TEK87,Cooling,0.0
+nursing_home,TEK87,Electrical equipment,23.36
+nursing_home,TEK87,Fans and pumps,72.54291666666667
+nursing_home,TEK87,HeatingDHW,29.784166666666668
+nursing_home,TEK87,HeatingRV,134.6715500325683
+nursing_home,TEK87,Lighting,46.72
+nursing_home,TEK97,Cooling,0.0
+nursing_home,TEK97,Electrical equipment,23.36
+nursing_home,TEK97,Fans and pumps,72.51
+nursing_home,TEK97,HeatingDHW,29.784166666666668
+nursing_home,TEK97,HeatingRV,114.275464297346
+nursing_home,TEK97,Lighting,46.72
+office,PRE_TEK49,Cooling,20.104166666666668
+office,PRE_TEK49,Electrical equipment,34.458333333333336
+office,PRE_TEK49,Fans and pumps,35.26027777777778
+office,PRE_TEK49,HeatingDHW,5.011111111111111
+office,PRE_TEK49,HeatingRV,105.79210633447352
+office,PRE_TEK49,Lighting,25.05611111111111
+office,TEK07,Cooling,18.833055555555557
+office,TEK07,Electrical equipment,34.458333333333336
+office,TEK07,Fans and pumps,24.325
+office,TEK07,HeatingDHW,5.011111111111111
+office,TEK07,HeatingRV,54.07084541062803
+office,TEK07,Lighting,25.05611111111111
+office,TEK10,Cooling,18.833055555555557
+office,TEK10,Electrical equipment,34.458333333333336
+office,TEK10,Fans and pumps,24.24362444444444
+office,TEK10,HeatingDHW,5.011111111111111
+office,TEK10,HeatingRV,38.646091554442805
+office,TEK10,Lighting,25.05611111111111
+office,TEK17,Cooling,15.443105555555556
+office,TEK17,Electrical equipment,34.458333333333336
+office,TEK17,Fans and pumps,16.243228377777776
+office,TEK17,HeatingDHW,5.011111111111111
+office,TEK17,HeatingRV,25.892881341476645
+office,TEK17,Lighting,15.66
+office,TEK21,Cooling,15.443105555555556
+office,TEK21,Electrical equipment,34.458333333333336
+office,TEK21,Fans and pumps,16.243228377777776
+office,TEK21,HeatingDHW,5.011111111111111
+office,TEK21,HeatingRV,25.892881341476645
+office,TEK21,Lighting,15.66
+office,TEK49,Cooling,20.104166666666668
+office,TEK49,Electrical equipment,34.458333333333336
+office,TEK49,Fans and pumps,35.26027777777778
+office,TEK49,HeatingDHW,5.011111111111111
+office,TEK49,HeatingRV,105.79210633447352
+office,TEK49,Lighting,25.05611111111111
+office,TEK69,Cooling,20.104166666666668
+office,TEK69,Electrical equipment,34.458333333333336
+office,TEK69,Fans and pumps,35.26027777777778
+office,TEK69,HeatingDHW,5.011111111111111
+office,TEK69,HeatingRV,105.79210633447352
+office,TEK69,Lighting,25.05611111111111
+office,TEK87,Cooling,20.104166666666668
+office,TEK87,Electrical equipment,34.458333333333336
+office,TEK87,Fans and pumps,35.240833333333335
+office,TEK87,HeatingDHW,5.011111111111111
+office,TEK87,HeatingRV,85.77883515171254
+office,TEK87,Lighting,25.05611111111111
+office,TEK97,Cooling,20.104166666666668
+office,TEK97,Electrical equipment,34.458333333333336
+office,TEK97,Fans and pumps,35.24055555555556
+office,TEK97,HeatingDHW,5.011111111111111
+office,TEK97,HeatingRV,70.07203767030344
+office,TEK97,Lighting,25.05611111111111
+retail,PRE_TEK49,Cooling,38.99
+retail,PRE_TEK49,Electrical equipment,3.743888888888889
+retail,PRE_TEK49,Fans and pumps,66.66472222222222
+retail,PRE_TEK49,HeatingDHW,10.483333333333333
+retail,PRE_TEK49,HeatingRV,131.95473212831817
+retail,PRE_TEK49,Lighting,55.77861111111111
+retail,TEK07,Cooling,36.46277777777778
+retail,TEK07,Electrical equipment,3.7441666666666666
+retail,TEK07,Fans and pumps,45.8175
+retail,TEK07,HeatingDHW,10.483333333333333
+retail,TEK07,HeatingRV,82.65576765456221
+retail,TEK07,Lighting,55.77861111111111
+retail,TEK10,Cooling,36.46277777777778
+retail,TEK10,Electrical equipment,3.743888888888889
+retail,TEK10,Fans and pumps,43.709066666666665
+retail,TEK10,HeatingDHW,10.483333333333333
+retail,TEK10,HeatingRV,54.577326038104545
+retail,TEK10,Lighting,55.77861111111111
+retail,TEK17,Cooling,29.89947777777778
+retail,TEK17,Electrical equipment,3.743888888888889
+retail,TEK17,Fans and pumps,39.775250666666665
+retail,TEK17,HeatingDHW,10.483333333333333
+retail,TEK17,HeatingRV,49.66536669467513
+retail,TEK17,Lighting,41.19305555555555
+retail,TEK21,Cooling,29.89947777777778
+retail,TEK21,Electrical equipment,3.743888888888889
+retail,TEK21,Fans and pumps,39.775250666666665
+retail,TEK21,HeatingDHW,10.483333333333333
+retail,TEK21,HeatingRV,49.66536669467513
+retail,TEK21,Lighting,41.19305555555555
+retail,TEK49,Cooling,38.99
+retail,TEK49,Electrical equipment,3.743888888888889
+retail,TEK49,Fans and pumps,66.66472222222222
+retail,TEK49,HeatingDHW,10.483333333333333
+retail,TEK49,HeatingRV,131.95473212831817
+retail,TEK49,Lighting,55.77861111111111
+retail,TEK69,Cooling,38.99
+retail,TEK69,Electrical equipment,3.743888888888889
+retail,TEK69,Fans and pumps,66.66472222222222
+retail,TEK69,HeatingDHW,10.483333333333333
+retail,TEK69,HeatingRV,131.95473212831817
+retail,TEK69,Lighting,55.77861111111111
+retail,TEK87,Cooling,38.99
+retail,TEK87,Electrical equipment,3.743888888888889
+retail,TEK87,Fans and pumps,66.6225
+retail,TEK87,HeatingDHW,10.483333333333333
+retail,TEK87,HeatingRV,110.81683235629346
+retail,TEK87,Lighting,55.77861111111111
+retail,TEK97,Cooling,38.99
+retail,TEK97,Electrical equipment,3.743888888888889
+retail,TEK97,Fans and pumps,66.60583333333334
+retail,TEK97,HeatingDHW,10.483333333333333
+retail,TEK97,HeatingRV,94.27676084242512
+retail,TEK97,Lighting,55.77861111111111
+school,PRE_TEK49,Cooling,0.0
+school,PRE_TEK49,Electrical equipment,12.9
+school,PRE_TEK49,Fans and pumps,37.48291666666667
+school,PRE_TEK49,HeatingDHW,9.804166666666667
+school,PRE_TEK49,HeatingRV,136.18634037616025
+school,PRE_TEK49,Lighting,21.5
+school,TEK07,Cooling,0.0
+school,TEK07,Electrical equipment,12.9
+school,TEK07,Fans and pumps,25.2275
+school,TEK07,HeatingDHW,9.804166666666667
+school,TEK07,HeatingRV,66.88335205992513
+school,TEK07,Lighting,21.5
+school,TEK10,Cooling,0.0
+school,TEK10,Electrical equipment,12.9
+school,TEK10,Fans and pumps,24.651643333333332
+school,TEK10,HeatingDHW,9.804166666666667
+school,TEK10,HeatingRV,47.433072381126884
+school,TEK10,Lighting,21.5
+school,TEK17,Cooling,0.0
+school,TEK17,Electrical equipment,12.9
+school,TEK17,Fans and pumps,23.912094033333332
+school,TEK17,HeatingDHW,9.804166666666667
+school,TEK17,HeatingRV,46.01008020969308
+school,TEK17,Lighting,12.9
+school,TEK21,Cooling,0.0
+school,TEK21,Electrical equipment,12.9
+school,TEK21,Fans and pumps,23.912094033333332
+school,TEK21,HeatingDHW,9.804166666666667
+school,TEK21,HeatingRV,46.01008020969308
+school,TEK21,Lighting,12.9
+school,TEK49,Cooling,0.0
+school,TEK49,Electrical equipment,12.9
+school,TEK49,Fans and pumps,37.48291666666667
+school,TEK49,HeatingDHW,9.804166666666667
+school,TEK49,HeatingRV,136.18634037616025
+school,TEK49,Lighting,21.5
+school,TEK69,Cooling,0.0
+school,TEK69,Electrical equipment,12.9
+school,TEK69,Fans and pumps,37.48291666666667
+school,TEK69,HeatingDHW,9.804166666666667
+school,TEK69,HeatingRV,136.18634037616025
+school,TEK69,Lighting,21.5
+school,TEK87,Cooling,0.0
+school,TEK87,Electrical equipment,12.9
+school,TEK87,Fans and pumps,37.48291666666667
+school,TEK87,HeatingDHW,9.804166666666667
+school,TEK87,HeatingRV,111.13947585898032
+school,TEK87,Lighting,21.5
+school,TEK97,Cooling,0.0
+school,TEK97,Electrical equipment,12.9
+school,TEK97,Fans and pumps,37.46333333333333
+school,TEK97,HeatingDHW,9.804166666666667
+school,TEK97,HeatingRV,92.0552456847422
+school,TEK97,Lighting,21.5
+sports,PRE_TEK49,Cooling,0.0
+sports,PRE_TEK49,Electrical equipment,2.58
+sports,PRE_TEK49,Fans and pumps,33.8434375
+sports,PRE_TEK49,HeatingDHW,49.02
+sports,PRE_TEK49,HeatingRV,184.32064667806546
+sports,PRE_TEK49,Lighting,20.64
+sports,TEK07,Cooling,0.0
+sports,TEK07,Electrical equipment,2.58
+sports,TEK07,Fans and pumps,22.787499999999998
+sports,TEK07,HeatingDHW,49.02
+sports,TEK07,HeatingRV,88.11188843429409
+sports,TEK07,Lighting,20.64
+sports,TEK10,Cooling,0.0
+sports,TEK10,Electrical equipment,2.58
+sports,TEK10,Fans and pumps,22.174337499999996
+sports,TEK10,HeatingDHW,49.02
+sports,TEK10,HeatingRV,68.92229558500244
+sports,TEK10,Lighting,20.64
+sports,TEK17,Cooling,0.0
+sports,TEK17,Electrical equipment,2.58
+sports,TEK17,Fans and pumps,17.6285983125
+sports,TEK17,HeatingDHW,49.02
+sports,TEK17,HeatingRV,54.793224990076936
+sports,TEK17,Lighting,15.48
+sports,TEK21,Cooling,0.0
+sports,TEK21,Electrical equipment,2.58
+sports,TEK21,Fans and pumps,17.6285983125
+sports,TEK21,HeatingDHW,49.02
+sports,TEK21,HeatingRV,54.793224990076936
+sports,TEK21,Lighting,15.48
+sports,TEK49,Cooling,0.0
+sports,TEK49,Electrical equipment,2.58
+sports,TEK49,Fans and pumps,33.8434375
+sports,TEK49,HeatingDHW,49.02
+sports,TEK49,HeatingRV,184.32064667806546
+sports,TEK49,Lighting,20.64
+sports,TEK69,Cooling,0.0
+sports,TEK69,Electrical equipment,2.58
+sports,TEK69,Fans and pumps,33.8434375
+sports,TEK69,HeatingDHW,49.02
+sports,TEK69,HeatingRV,184.32064667806546
+sports,TEK69,Lighting,20.64
+sports,TEK87,Cooling,0.0
+sports,TEK87,Electrical equipment,2.58
+sports,TEK87,Fans and pumps,33.8409375
+sports,TEK87,HeatingDHW,49.02
+sports,TEK87,HeatingRV,151.8904143258427
+sports,TEK87,Lighting,20.64
+sports,TEK97,Cooling,0.0
+sports,TEK97,Electrical equipment,2.58
+sports,TEK97,Fans and pumps,33.756875
+sports,TEK97,HeatingDHW,49.02
+sports,TEK97,HeatingRV,126.22001938812896
+sports,TEK97,Lighting,20.64
+storage_repairs,PRE_TEK49,Cooling,18.900833333333335
+storage_repairs,PRE_TEK49,Electrical equipment,23.49
+storage_repairs,PRE_TEK49,Fans and pumps,35.855000000000004
+storage_repairs,PRE_TEK49,HeatingDHW,10.0225
+storage_repairs,PRE_TEK49,HeatingRV,181.590147777235
+storage_repairs,PRE_TEK49,Lighting,18.791666666666668
+storage_repairs,TEK07,Cooling,17.6975
+storage_repairs,TEK07,Electrical equipment,23.49
+storage_repairs,TEK07,Fans and pumps,25.475
+storage_repairs,TEK07,HeatingDHW,10.0225
+storage_repairs,TEK07,HeatingRV,90.30901848233184
+storage_repairs,TEK07,Lighting,18.791666666666668
+storage_repairs,TEK10,Cooling,17.6975
+storage_repairs,TEK10,Electrical equipment,23.49
+storage_repairs,TEK10,Fans and pumps,24.583375
+storage_repairs,TEK10,HeatingDHW,10.0225
+storage_repairs,TEK10,HeatingRV,87.14820283545028
+storage_repairs,TEK10,Lighting,18.791666666666668
+storage_repairs,TEK17,Cooling,14.51195
+storage_repairs,TEK17,Electrical equipment,23.49
+storage_repairs,TEK17,Fans and pumps,15.118333333333334
+storage_repairs,TEK17,HeatingDHW,10.0225
+storage_repairs,TEK17,HeatingRV,75.81893646684172
+storage_repairs,TEK17,Lighting,14.094166666666666
+storage_repairs,TEK21,Cooling,14.51195
+storage_repairs,TEK21,Electrical equipment,23.49
+storage_repairs,TEK21,Fans and pumps,15.118333333333334
+storage_repairs,TEK21,HeatingDHW,10.0225
+storage_repairs,TEK21,HeatingRV,75.81893646684172
+storage_repairs,TEK21,Lighting,14.094166666666666
+storage_repairs,TEK49,Cooling,18.900833333333335
+storage_repairs,TEK49,Electrical equipment,23.49
+storage_repairs,TEK49,Fans and pumps,35.855000000000004
+storage_repairs,TEK49,HeatingDHW,10.0225
+storage_repairs,TEK49,HeatingRV,181.590147777235
+storage_repairs,TEK49,Lighting,18.791666666666668
+storage_repairs,TEK69,Cooling,18.900833333333335
+storage_repairs,TEK69,Electrical equipment,23.49
+storage_repairs,TEK69,Fans and pumps,35.855000000000004
+storage_repairs,TEK69,HeatingDHW,10.0225
+storage_repairs,TEK69,HeatingRV,181.590147777235
+storage_repairs,TEK69,Lighting,18.791666666666668
+storage_repairs,TEK87,Cooling,18.900833333333335
+storage_repairs,TEK87,Electrical equipment,23.49
+storage_repairs,TEK87,Fans and pumps,35.778333333333336
+storage_repairs,TEK87,HeatingDHW,10.0225
+storage_repairs,TEK87,HeatingRV,143.3973656570591
+storage_repairs,TEK87,Lighting,18.791666666666668
+storage_repairs,TEK97,Cooling,18.900833333333335
+storage_repairs,TEK97,Electrical equipment,23.49
+storage_repairs,TEK97,Fans and pumps,35.745
+storage_repairs,TEK97,HeatingDHW,10.0225
+storage_repairs,TEK97,HeatingRV,114.15423546653639
+storage_repairs,TEK97,Lighting,18.791666666666668
+university,PRE_TEK49,Cooling,25.01861111111111
+university,PRE_TEK49,Electrical equipment,34.458333333333336
+university,PRE_TEK49,Fans and pumps,43.66333333333333
+university,PRE_TEK49,HeatingDHW,5.011111111111111
+university,PRE_TEK49,HeatingRV,109.21083536883243
+university,PRE_TEK49,Lighting,25.05611111111111
+university,TEK07,Cooling,23.445
+university,TEK07,Electrical equipment,34.458333333333336
+university,TEK07,Fans and pumps,30.063333333333336
+university,TEK07,HeatingDHW,5.011111111111111
+university,TEK07,HeatingRV,57.494134777180676
+university,TEK07,Lighting,25.05611111111111
+university,TEK10,Cooling,23.445
+university,TEK10,Electrical equipment,34.458333333333336
+university,TEK10,Fans and pumps,29.532364166666667
+university,TEK10,HeatingDHW,5.011111111111111
+university,TEK10,HeatingRV,38.77542232209735
+university,TEK10,Lighting,25.05611111111111
+university,TEK17,Cooling,19.224899999999998
+university,TEK17,Electrical equipment,34.458333333333336
+university,TEK17,Fans and pumps,19.49136035
+university,TEK17,HeatingDHW,5.011111111111111
+university,TEK17,HeatingRV,25.59177873258427
+university,TEK17,Lighting,18.791944444444443
+university,TEK21,Cooling,19.224899999999998
+university,TEK21,Electrical equipment,34.458333333333336
+university,TEK21,Fans and pumps,19.49136035
+university,TEK21,HeatingDHW,5.011111111111111
+university,TEK21,HeatingRV,25.59177873258427
+university,TEK21,Lighting,18.791944444444443
+university,TEK49,Cooling,25.01861111111111
+university,TEK49,Electrical equipment,34.458333333333336
+university,TEK49,Fans and pumps,43.66333333333333
+university,TEK49,HeatingDHW,5.011111111111111
+university,TEK49,HeatingRV,109.21083536883243
+university,TEK49,Lighting,25.05611111111111
+university,TEK69,Cooling,25.01861111111111
+university,TEK69,Electrical equipment,34.458333333333336
+university,TEK69,Fans and pumps,43.66333333333333
+university,TEK69,HeatingDHW,5.011111111111111
+university,TEK69,HeatingRV,109.21083536883243
+university,TEK69,Lighting,25.05611111111111
+university,TEK87,Cooling,25.01861111111111
+university,TEK87,Electrical equipment,34.458333333333336
+university,TEK87,Fans and pumps,43.635555555555555
+university,TEK87,HeatingDHW,5.011111111111111
+university,TEK87,HeatingRV,88.89531550236114
+university,TEK87,Lighting,25.05611111111111
+university,TEK97,Cooling,25.01861111111111
+university,TEK97,Electrical equipment,34.458333333333336
+university,TEK97,Fans and pumps,43.63027777777778
+university,TEK97,HeatingDHW,5.011111111111111
+university,TEK97,HeatingRV,73.011425120773
+university,TEK97,Lighting,25.05611111111111

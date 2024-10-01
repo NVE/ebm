@@ -23,6 +23,7 @@ class FileHandler:
     CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'new_buildings_house_share.csv'
     CONSTRUCTION_BUILDING_CATEGORY_AREA = 'construction_building_category_yearly.csv'
     AREA_PARAMETERS = 'area_parameters.csv'
+    ENERGY_BY_FLOOR_AREA = 'energy_by_floor_area.csv'
 
     input_directory: pathlib.Path
 
@@ -43,7 +44,7 @@ class FileHandler:
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
         self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
                                self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
-                               self.AREA_PARAMETERS]
+                               self.AREA_PARAMETERS, self.ENERGY_BY_FLOOR_AREA]
 
     def get_file(self, file_name: str) -> pd.DataFrame:
         """
@@ -255,4 +256,3 @@ class FileHandler:
             except (SchemaErrors, SchemaError):
                 logger.error(f'Got error while validating {file_to_validate}')
                 raise
-

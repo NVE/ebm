@@ -24,6 +24,7 @@ class FileHandler:
     CONSTRUCTION_BUILDING_CATEGORY_AREA = 'construction_building_category_yearly.csv'
     AREA_PARAMETERS = 'area_parameters.csv'
     ENERGY_BY_FLOOR_AREA = 'energy_by_floor_area.csv'
+    HEATING_REDUCTION = 'heating_reduction.csv'
 
     input_directory: pathlib.Path
 
@@ -44,7 +45,7 @@ class FileHandler:
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
         self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
                                self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
-                               self.AREA_PARAMETERS, self.ENERGY_BY_FLOOR_AREA]
+                               self.AREA_PARAMETERS, self.ENERGY_BY_FLOOR_AREA, self.HEATING_REDUCTION]
 
     def get_file(self, file_name: str) -> pd.DataFrame:
         """
@@ -214,11 +215,10 @@ class FileHandler:
         -------
         None
         """
-
         if self.input_directory.is_file():
             raise NotADirectoryError(f'{self.input_directory} is a file')
         if not self.input_directory.is_dir():
-            logger.debug(f'{self.input_directory} is not a directory')
+            logger.debug(f'Creating directory: {self.input_directory}')
             self.input_directory.mkdir()
         for file in self.files_to_check:
             logger.debug(f'Create input file {file}')

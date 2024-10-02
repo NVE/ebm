@@ -37,7 +37,8 @@ def test_check_for_missing_files_return_list(tmp_path):
     assert 'construction_building_category_yearly.csv' in missing_files
     assert 'area_parameters.csv' in missing_files
     assert 'energy_by_floor_area.csv' in missing_files
-    assert len(missing_files) == 8, 'Unexpected list length returned from check_for_missing_files'
+    assert 'heating_reduction.csv' in missing_files
+    assert len(missing_files) == 9, 'Unexpected list length returned from check_for_missing_files'
 
 
 def test_filehandler_init_supports_alternative_path(tmp_path):

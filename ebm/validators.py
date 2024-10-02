@@ -92,6 +92,19 @@ def check_default_tek(value: str) -> bool:
     """
     return check_tek(value) or value == 'default'
 
+#TODO: must add logic to filter TEK for residential and commercial, and edge cases
+def check_overlapping_tek_periods(df: pd.DataFrame) -> pd.Series:
+    """
+    """
+    df = df.sort_values(["period_end_year"])
+    end_years = df['period_end_year'] + 1
+    start_years = df["period_start_year"].shift(-1)
+
+    end_years = end_years.iloc[:-1]
+    start_years = start_years.iloc[:-1]
+    check = end_years == start_years
+    
+    return pd.Series(check.to_list() +[True]) 
 
 def check_building_category_share(values: pd.DataFrame) -> pd.Series:
     """
@@ -139,20 +152,22 @@ area_parameters = pa.DataFrameSchema(
 )
 
 tek_parameters = pa.DataFrameSchema(columns={
-    "TEK": pa.Column(str, unique=True, checks=[pa.Check(check_tek, element_wise=True)]),
-    'building_year': pa.Column(int, checks=[
-        pa.Check.greater_than_or_equal_to(1940),
-        pa.Check.less_than_or_equal_to(2070)]),
-    'period_start_year': pa.Column(int, checks=[
-        pa.Check.greater_than_or_equal_to(0),
-        pa.Check.less_than_or_equal_to(2070),
-    ]),
-    'period_end_year': pa.Column(int, checks=[
-        pa.Check.greater_than_or_equal_to(1940),
-        pa.Check.less_than_or_equal_to(2070, error='period_end_year should be 2070 or lower'),
-        pa.Check.between(1940, 2070, error='period_end_year should be between 1940 and 2070')])},
+        "TEK": pa.Column(str, unique=True, checks=[pa.Check(check_tek, element_wise=True)]),
+        'building_year': pa.Column(int, checks=[
+            pa.Check.greater_than_or_equal_to(1940),
+            pa.Check.less_than_or_equal_to(2070)]),
+        'period_start_year': pa.Column(int, checks=[
+            pa.Check.greater_than_or_equal_to(0),
+            pa.Check.less_than_or_equal_to(2070),
+        ]),
+        'period_end_year': pa.Column(int, checks=[
+            pa.Check.greater_than_or_equal_to(1940),
+            pa.Check.less_than_or_equal_to(2070, error='period_end_year should be 2070 or lower'),
+            pa.Check.between(1940, 2070, error='period_end_year should be between 1940 and 2070')])},
     checks=[pa.Check(lambda df: df["period_end_year"] > df["period_start_year"],
-                     error="period_end_year should be greater than period_start_year")],
+                     error="period_end_year should be greater than period_start_year"),
+            pa.Check(check_overlapping_tek_periods, 
+                     error="tek periods do not overlap")],
     name='tek_parameters'
 )
 

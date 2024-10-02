@@ -15,7 +15,8 @@ from ebm.validators import (tek_parameters,
                             new_buildings_population,
                             scurve_parameters,
                             energy_by_floor_area,
-                            heating_reduction)
+                            heating_reduction,
+                            check_overlapping_tek_periods)
 
 
 @pytest.fixture
@@ -23,9 +24,31 @@ def ok_tek_parameters() -> pd.DataFrame:
     return pd.DataFrame({
         'TEK': ['PRE_TEK49_1940', 'TEK69_COM', 'TEK07'],
         'building_year': [1940, 1978, 1990],
-        'period_start_year': [0, 1971, 2014],
-        'period_end_year': [1955, 1990, 2024]
+        'period_start_year': [0, 1956, 2014],
+        'period_end_year': [1955, 2013, 2050]
     })
+
+
+def test_tek_overlapping_periods():
+    df = pd.DataFrame({
+        'TEK': ['PRE_TEK49_1940', 'TEK07'],
+        'building_year': [1940, 1990],
+        'period_start_year': [0, 2014],
+        'period_end_year': [1955, 2050]
+    })
+    
+    with pytest.raises(pa.errors.SchemaError):
+        tek_parameters.validate(df)
+
+
+def test_tek_overlapping_periods_when_tek_parameters_are_unsorted():
+    df = pd.DataFrame([{'TEK':'TEK3', 'building_year': 1955, 'period_start_year': 1951, 'period_end_year': 2050},
+                       {'TEK':'TEK2', 'building_year': 1945, 'period_start_year': 1940, 'period_end_year': 1950}])
+    
+    pd.testing.assert_series_equal(
+        check_overlapping_tek_periods(df),
+        pd.Series([True, True]), check_index=False)
+    
 
 
 def test_tek_parameters_when_all_are_correct(ok_tek_parameters: pd.DataFrame):

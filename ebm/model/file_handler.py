@@ -175,6 +175,28 @@ class FileHandler:
                                           building category and TEK.
         """
         return self.get_file(self.AREA_PARAMETERS)
+    
+    def get_energy_by_floor_area(self) -> pd.DataFrame:
+        """
+        Get dataframe with energy requirement by floor area (m^2).
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing energy requirement by floor area (m^2) per building category and purpose.
+        """
+        return self.get_file(self.ENERGY_BY_FLOOR_AREA)
+    
+    def get_heating_reduction(self) -> pd.DataFrame:
+        """
+        Get dataframe with reduction rates for Heating RV per building condition.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing reduction rates for Heating RV per building condition.
+        """
+        return self.get_file(self.HEATING_REDUCTION)
 
     def _check_is_file(self, filename: str) -> bool:
         """

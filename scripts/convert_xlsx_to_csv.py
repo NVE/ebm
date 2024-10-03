@@ -24,5 +24,5 @@ def csv_to_xlsx(folder_path, filename):
 
     print(df)
 
-xlsx_to_csv(folder_path, filename)
-#csv_to_xlsx(folder_path, filename)
+#xlsx_to_csv(folder_path, filename)
+csv_to_xlsx(folder_path, filename)

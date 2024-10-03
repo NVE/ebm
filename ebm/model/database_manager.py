@@ -2,9 +2,11 @@ import typing
 
 import pandas as pd
 
-from .building_category import BuildingCategory
-from .data_classes import TEKParameters
-from .file_handler import FileHandler
+from ebm.model.file_handler import FileHandler
+from ebm.model.building_category import BuildingCategory
+from ebm.model.building_condition import BuildingCondition
+from ebm.model.energy_purpose import EnergyPurpose
+from ebm.model.data_classes import TEKParameters
 
 
 # TODO:
@@ -22,9 +24,12 @@ class DatabaseManager():
     COL_TEK_START_YEAR = 'period_start_year'
     COL_TEK_END_YEAR = 'period_end_year'
     COL_BUILDING_CATEGORY = 'building_category'
-    COL_BUILDING_CONDITION = 'condition'
+    COL_BUILDING_CONDITION = 'building_condition'
     COL_AREA = 'area'
-    
+    COL_ENERGY_REQUIREMENT_PURPOSE = 'purpose'
+    COL_ENERGY_REQUIREMENT_VALUE = 'kw_h_m'
+    COL_HEATING_REDUCTION = 'heating_reduction'
+
     def __init__(self, file_handler: FileHandler = None):
         # Create default FileHandler if file_hander is None
         self.file_handler = file_handler if file_handler is not None else FileHandler()
@@ -174,7 +179,53 @@ class DatabaseManager():
             area_dict[BuildingCategory.from_string(building_category)] = area_series
 
         return area_dict
+    
+    #TODO: evaluate method based on further use in calculations + add docstrings
+    def get_energy_by_floor_area(self) -> typing.Dict[BuildingCategory, typing.Dict[EnergyPurpose, typing.Dict[str, float]]]: 
+        """
+        """
+        df = self.file_handler.get_energy_by_floor_area()
+
+        energy_req = {}
+        for building_category in df[self.COL_BUILDING_CATEGORY].unique():
+            df_building_category = df[df[self.COL_BUILDING_CATEGORY] == building_category]
+            purpose_dict = {}
+            for purpose in df_building_category[self.COL_ENERGY_REQUIREMENT_PURPOSE]:
+                df_purpose = df_building_category[df_building_category[self.COL_ENERGY_REQUIREMENT_PURPOSE] == purpose]
+                tek_dict = {}
+                for tek in df_purpose[self.COL_TEK].unique():
+                    df_tek = df_purpose[df_purpose[self.COL_TEK] == tek]
+                    energy_req_val = float(df_tek.iloc[0][self.COL_ENERGY_REQUIREMENT_VALUE])
+                    tek_dict[tek] = energy_req_val
+                purpose_dict[EnergyPurpose(purpose)] = tek_dict
+            energy_req[BuildingCategory.from_string(building_category)] = purpose_dict 
+        
+        return energy_req
+
+    #TODO: evaluate method based on further use in calculations + add docstrings
+    def get_heating_reduction(self) -> typing.Dict[str, typing.Dict[BuildingCondition, float]]:
+        """
+        """
+        df = self.file_handler.get_heating_reduction()
+        
+        heating_red = {}
+        for tek in df[self.COL_TEK].unique():
+            df_tek = df[df[self.COL_TEK] == tek]
+            heating_red_condition = {}
+            for condition in df_tek[self.COL_BUILDING_CONDITION].unique():
+                df_condition = df_tek[df_tek[self.COL_BUILDING_CONDITION] == condition]
+                heating_red_val = float(df_condition.iloc[0][self.COL_HEATING_REDUCTION])
+                heating_red_condition[BuildingCondition(condition)] = heating_red_val
+            heating_red[tek] = heating_red_condition
+        
+        return heating_red
 
     def validate_database(self):
         missing_files = self.file_handler.check_for_missing_files()
         return True
+    
+if __name__ == '__main__':
+    db = DatabaseManager()
+    a = db.get_energy_by_floor_area()
+    #a = db.get_heating_reduction()
+    print(a)

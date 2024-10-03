@@ -62,3 +62,37 @@ def calculate_proportional_energy_change_based_on_end_year(
     kw_h_m2.loc[period] = np.linspace(kw_h_m2.loc[period.start], requirement_at_period_end, len(period))
 
     return kw_h_m2
+
+
+def calculate_energy_requirement_reduction(
+        energy_requirements: pd.Series,
+        yearly_reduction: float,
+        reduction_period: YearRange) -> pd.Series:
+    """
+    Calculate the energy requirement reduction over a specified period.
+
+    Parameters
+    ----------
+    energy_requirements : pd.Series
+        A pandas Series containing the initial energy requirements.
+    yearly_reduction : float
+        The yearly reduction rate (e.g., 0.1 for 10% reduction).
+    reduction_period : pd.Index
+        The period over which the reduction is applied.
+
+    Returns
+    -------
+    pd.Series
+        A pandas Series with the reduced energy requirements over the specified period.
+    """
+    if not all(year in energy_requirements.index for year in reduction_period):
+        msg = f'Did not find all years from {reduction_period.start} - {reduction_period.end} in energy_requirements'
+        raise ValueError(msg)
+    kw_h_m2 = energy_requirements.copy()
+    reduction_factor = 1 - yearly_reduction
+
+    reduction_factors = pd.Series([reduction_factor] * len(reduction_period)).cumprod()
+    reduction_factors.index = reduction_period
+    kw_h_m2.loc[reduction_period] = kw_h_m2.loc[reduction_period] * reduction_factors
+
+    return kw_h_m2

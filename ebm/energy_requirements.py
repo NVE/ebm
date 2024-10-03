@@ -1,7 +1,10 @@
+import numpy as np
 import pandas as pd
 
+from ebm.model.data_classes import YearRange
 
-def transform_energy_requirements_by_condition(
+
+def calculate_energy_requirement_reduction_by_condition(
         energy_requirements: pd.DataFrame,
         condition_reduction: pd.DataFrame
 ) -> pd.DataFrame:
@@ -16,3 +19,46 @@ def transform_energy_requirements_by_condition(
                'purpose',
                'building_condition',
                'kw_h_m']]
+
+
+def apply_heating_reduction_by_tek():
+    pass
+
+
+def calculate_proportional_energy_change_based_on_end_year(
+        energy_requirements: pd.Series,
+        requirement_at_period_end: float,
+        period: YearRange) -> pd.Series:
+    """
+    Calculate proportional energy savings to a Pandas Series over a specified period.
+
+    Parameters
+    ----------
+    energy_requirements : pd.Series
+        A Pandas Series containing the initial energy requirements. The index must correspond to years
+    requirement_at_period_end : float
+        The energy requirement at the end of the period.
+    period : YearRange
+        A named tuple containing the start and end years of the period used for the proportional energy change.
+
+    Returns
+    -------
+    pd.Series
+        A Pandas Series with the energy requirements adjusted proportionally over the specified period.
+
+    Raises
+    ------
+    ValueError
+        If period is a subset of the years in the energy_requirements index.
+    """
+    if not all(year in energy_requirements.index for year in period):
+        msg = f'Did not find all years from {period.start} - {period.end} in energy_requirements'
+        raise ValueError(msg)
+
+    kw_h_m2 = energy_requirements.copy()
+    # Ensure values beyond the period end are set to the end requirement
+    kw_h_m2.loc[period.end:] = requirement_at_period_end
+    # Apply linear interpolation for the period
+    kw_h_m2.loc[period] = np.linspace(kw_h_m2.loc[period.start], requirement_at_period_end, len(period))
+
+    return kw_h_m2

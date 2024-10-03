@@ -59,7 +59,10 @@ def calculate_proportional_energy_change_based_on_end_year(
     # Ensure values beyond the period end are set to the end requirement
     kw_h_m2.loc[period.end:] = requirement_at_period_end
     # Apply linear interpolation for the period
-    kw_h_m2.loc[period] = np.linspace(kw_h_m2.loc[period.start], requirement_at_period_end, len(period))
+    kw_h_m2.loc[period] = np.linspace(
+        kw_h_m2.loc[period.start],
+        requirement_at_period_end,
+        len(period))
 
     return kw_h_m2
 
@@ -89,10 +92,10 @@ def calculate_energy_requirement_reduction(
         msg = f'Did not find all years from {reduction_period.start} - {reduction_period.end} in energy_requirements'
         raise ValueError(msg)
     kw_h_m2 = energy_requirements.copy()
-    reduction_factor = 1 - yearly_reduction
+    reduction_factor = 1.0 - yearly_reduction
 
     reduction_factors = pd.Series([reduction_factor] * len(reduction_period)).cumprod()
     reduction_factors.index = reduction_period
-    kw_h_m2.loc[reduction_period] = kw_h_m2.loc[reduction_period] * reduction_factors
+    kw_h_m2.loc[reduction_period] = (kw_h_m2.loc[reduction_period] * reduction_factors)
 
     return kw_h_m2

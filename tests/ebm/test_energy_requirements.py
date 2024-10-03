@@ -100,3 +100,27 @@ def test_calculate_energy_requirement_reduction_raise_value_error_when_period_is
             energy_requirements=kw_h_m2,
             yearly_reduction=0.25,
             reduction_period=YearRange(2011, 2014))
+
+
+def test_calculate_lighting_reduction_and_proportional_energy_change_based_on_end_year():
+    bema_years = YearRange(2010, 2050)
+    kw_h_m2 = pd.Series(data=[9.1075556] * 41, index=bema_years, name='kw_h_m2')
+
+    based_on_end_year = calculate_proportional_energy_change_based_on_end_year(kw_h_m2,
+                                                                               3.6430222,
+                                                                               YearRange(2018, 2030))
+    lighting = calculate_energy_requirement_reduction(based_on_end_year,
+                                                      yearly_reduction=0.005,
+                                                      reduction_period=YearRange(2031, 2050))
+    assert round(lighting.loc[2010], 5) == 9.10756
+    assert round(lighting.loc[2018], 5) == 9.10756
+    assert round(lighting.loc[2019], 5) == 8.65218
+    assert round(lighting.loc[2030], 5) == 3.64302
+    assert round(lighting.loc[2031], 5) == 3.62481
+    assert round(lighting.loc[2036], 5) == 3.53509
+    assert round(lighting.loc[2050], 5) == 3.29552
+
+
+
+
+

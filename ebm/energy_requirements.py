@@ -8,6 +8,25 @@ def calculate_energy_requirement_reduction_by_condition(
         energy_requirements: pd.DataFrame,
         condition_reduction: pd.DataFrame
 ) -> pd.DataFrame:
+    """
+    Calculate the reduced energy requirements for building_category, TEK, purpose for every conditions.
+
+    Parameters
+    ----------
+    energy_requirements : pd.DataFrame
+        DataFrame containing the energy requirements for different buildings.
+        Must include columns: 'building_category', 'TEK', 'purpose', 'kw_h_m'.
+    condition_reduction : pd.DataFrame
+        DataFrame containing the reduction conditions.
+        Must include columns: 'building_condition', 'reduction'.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with the reduced energy requirements.
+        Includes columns: 'building_category', 'TEK', 'purpose', 'building_condition', 'kw_h_m'.
+    """
+    # Adding `key` to help merging every row in energy_requirements with every condition
     condition_reduction['key'] = 1
     energy_requirements['key'] = 1
     df = pd.merge(energy_requirements, condition_reduction, on='key')
@@ -45,7 +64,6 @@ def calculate_proportional_energy_change_based_on_end_year(
     -------
     pd.Series
         A Pandas Series with the energy requirements adjusted proportionally over the specified period.
-
     Raises
     ------
     ValueError

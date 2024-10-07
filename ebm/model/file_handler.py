@@ -25,6 +25,8 @@ class FileHandler:
     AREA_PARAMETERS = 'area_parameters.csv'
     ENERGY_BY_FLOOR_AREA = 'energy_by_floor_area.csv'
     HEATING_REDUCTION = 'heating_reduction.csv'
+    ENERGY_REQ_YEARLY_IMPROVEMENTS = 'energy_requirement_yearly_improvements.csv'
+    ENERGY_REQ_POLICY_IMPROVEMENTS = 'energy_requirement_policy_improvements.csv'
 
     input_directory: pathlib.Path
 
@@ -45,7 +47,8 @@ class FileHandler:
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
         self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
                                self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
-                               self.AREA_PARAMETERS, self.ENERGY_BY_FLOOR_AREA, self.HEATING_REDUCTION]
+                               self.AREA_PARAMETERS, self.ENERGY_BY_FLOOR_AREA, self.HEATING_REDUCTION, 
+                               self.ENERGY_REQ_YEARLY_IMPROVEMENTS, self.ENERGY_REQ_POLICY_IMPROVEMENTS]
 
     def get_file(self, file_name: str) -> pd.DataFrame:
         """
@@ -197,6 +200,32 @@ class FileHandler:
             Dataframe containing reduction rates for Heating RV per building condition.
         """
         return self.get_file(self.HEATING_REDUCTION)
+    
+    def get_energy_req_yearly_improvements(self) -> pd.DataFrame:
+        """
+        Get dataframe with yearly efficiency rates for energy requirement improvements per building category, 
+        tek and purpose.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing yearly efficiency rates for energy requirement improvements. Columns:
+            "building_category","TEK","purpose","yearly_efficiency_improvements" 
+        """
+        return self.get_file(self.ENERGY_REQ_YEARLY_IMPROVEMENTS)
+    
+    def get_energy_req_policy_improvements(self) -> pd.DataFrame:
+        """
+        Get dataframe with total energy requirement improvement in a period related to a policy per building category, 
+        tek and purpose.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing total energy requirement improvement (%) in a policy period. Columns:
+            "building_category","TEK","purpose","period_start_year","period_end_year","improvement_at_period_end" 
+        """
+        return self.get_file(self.ENERGY_REQ_POLICY_IMPROVEMENTS)
 
     def _check_is_file(self, filename: str) -> bool:
         """

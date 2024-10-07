@@ -60,7 +60,7 @@ class EnergyRequirement():
             """
             pass
 
-        def calc_energy_req_effeciency_improvement_rates(self, tek: str, effiency_rate: float):
+        def calc_energy_req_effeciency_improvement_rates(self):
             """
             calculate yearly energy req by taking the original energy req and adjusting for yearly efficiency improvements
 
@@ -107,7 +107,8 @@ class EnergyRequirement():
             
             This method should determine the appropriate calculation method that should be called for each purpose based on
             the parameters in the different input data that is given to this class.
-            
+
+
             """
             pass
     

@@ -36,8 +36,8 @@ def test_check_for_missing_files_return_list(tmp_path):
     assert 'new_buildings_house_share.csv' in missing_files
     assert 'construction_building_category_yearly.csv' in missing_files
     assert 'area_parameters.csv' in missing_files
-    assert 'energy_by_floor_area.csv' in missing_files
-    assert 'heating_reduction.csv' in missing_files
+    assert 'energy_requirement_original_condition.csv' in missing_files
+    assert 'energy_requirement_reduction_per_condition.csv' in missing_files
     assert 'energy_requirement_yearly_improvements.csv' in missing_files
     assert 'energy_requirement_policy_improvements.csv' in missing_files
     assert len(missing_files) == 11, 'Unexpected list length returned from check_for_missing_files'
@@ -106,7 +106,8 @@ def test_filehandler_create_missing_input_files(tmp_path):
     assert (input_directory / 'new_buildings_house_share.csv').is_file()
     assert (input_directory / 'construction_building_category_yearly.csv').is_file()
     assert (input_directory / 'area_parameters.csv').is_file()
-    assert (input_directory / 'energy_by_floor_area.csv').is_file()
+    assert (input_directory / 'energy_requirement_original_condition.csv').is_file()
+    assert (input_directory / 'energy_requirement_reduction_per_condition.csv').is_file()
     assert (input_directory / 'energy_requirement_yearly_improvements.csv').is_file()
     assert (input_directory / 'energy_requirement_policy_improvements.csv').is_file()
 

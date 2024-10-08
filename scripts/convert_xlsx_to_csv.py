@@ -4,7 +4,7 @@ import pandas as pd
 # Convert a file from xlsx to csv (with same filename) in same directory
 
 folder_path = 'ebm/data'
-filename = 'energy_by_floor_area'
+filename = 'energy_requirement_reduction_per_condition'
 
 def xlsx_to_csv(folder_path, filename):
     source = pathlib.Path(f'{folder_path}/{filename}.xlsx')
@@ -24,5 +24,5 @@ def csv_to_xlsx(folder_path, filename):
 
     print(df)
 
-#xlsx_to_csv(folder_path, filename)
-csv_to_xlsx(folder_path, filename)
+xlsx_to_csv(folder_path, filename)
+#csv_to_xlsx(folder_path, filename)

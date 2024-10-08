@@ -27,8 +27,8 @@ class DatabaseManager():
     COL_BUILDING_CONDITION = 'building_condition'
     COL_AREA = 'area'
     COL_ENERGY_REQUIREMENT_PURPOSE = 'purpose'
-    COL_ENERGY_REQUIREMENT_VALUE = 'kw_h_m'
-    COL_HEATING_REDUCTION = 'heating_reduction'
+    COL_ENERGY_REQUIREMENT_VALUE = 'kwh_m2'
+    COL_HEATING_REDUCTION = 'reduction_share'
 
     def __init__(self, file_handler: FileHandler = None):
         # Create default FileHandler if file_hander is None
@@ -181,10 +181,10 @@ class DatabaseManager():
         return area_dict
     
     #TODO: evaluate method based on further use in calculations + add docstrings
-    def get_energy_by_floor_area(self) -> typing.Dict[BuildingCategory, typing.Dict[EnergyPurpose, typing.Dict[str, float]]]: 
+    def get_energy_req_original_condition(self) -> typing.Dict[BuildingCategory, typing.Dict[EnergyPurpose, typing.Dict[str, float]]]: 
         """
         """
-        df = self.file_handler.get_energy_by_floor_area()
+        df = self.file_handler.get_energy_req_original_condition()
 
         energy_req = {}
         for building_category in df[self.COL_BUILDING_CATEGORY].unique():
@@ -202,30 +202,12 @@ class DatabaseManager():
         
         return energy_req
 
-    #TODO: evaluate method based on further use in calculations + add docstrings
-    def get_heating_reduction(self) -> typing.Dict[str, typing.Dict[BuildingCondition, float]]:
-        """
-        """
-        df = self.file_handler.get_heating_reduction()
-        
-        heating_red = {}
-        for tek in df[self.COL_TEK].unique():
-            df_tek = df[df[self.COL_TEK] == tek]
-            heating_red_condition = {}
-            for condition in df_tek[self.COL_BUILDING_CONDITION].unique():
-                df_condition = df_tek[df_tek[self.COL_BUILDING_CONDITION] == condition]
-                heating_red_val = float(df_condition.iloc[0][self.COL_HEATING_REDUCTION])
-                heating_red_condition[BuildingCondition(condition)] = heating_red_val
-            heating_red[tek] = heating_red_condition
-        
-        return heating_red
-
     def validate_database(self):
         missing_files = self.file_handler.check_for_missing_files()
         return True
     
 if __name__ == '__main__':
     db = DatabaseManager()
-    a = db.get_energy_by_floor_area()
+    a = db.get_energy_req_original_condition()
     #a = db.get_heating_reduction()
     print(a)

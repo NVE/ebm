@@ -14,8 +14,10 @@ from ebm.validators import (tek_parameters,
                             new_buildings_house_share,
                             new_buildings_population,
                             scurve_parameters,
-                            energy_by_floor_area,
-                            heating_reduction)
+                            energy_requirement_original_condition,
+                            energy_requirement_reduction_per_condition,
+                            energy_requirement_yearly_improvements,
+                            energy_requirement_policy_improvements)
 
 
 @pytest.fixture
@@ -299,86 +301,112 @@ def test_scurve_parameters_reject_invalid_share(s_curves, attribute):
 @pytest.fixture
 def energy_by_floor_area_df():
     return pd.DataFrame(
-        data=[['house', 'TEK69', 'Lighting', 0.0],
-              ['apartment_block', 'TEK69', 'Lighting', 1.234]],
-        columns=['building_category', 'TEK', 'purpose', 'kw_h_m'])
+        data=[['house', 'TEK69', 'lighting', 0.0],
+              ['apartment_block', 'TEK69', 'lighting', 1.234]],
+        columns=['building_category', 'TEK', 'purpose', 'kwh_m2'])
 
 
 def test_energy_by_floor_area(energy_by_floor_area_df):
-    energy_by_floor_area.validate(energy_by_floor_area_df)
+    energy_requirement_original_condition.validate(energy_by_floor_area_df)
 
 
 def test_energy_by_floor_area_raise_schema_error_on_unknown_building_category(energy_by_floor_area_df):
     energy_by_floor_area_df.loc[:, 'building_category'] = 'småhus'
 
     with pytest.raises(pa.errors.SchemaError):
-        energy_by_floor_area.validate(energy_by_floor_area_df)
+        energy_requirement_original_condition.validate(energy_by_floor_area_df)
 
 
 def test_energy_by_floor_area_raise_schema_error_on_unknown_tek(energy_by_floor_area_df):
     energy_by_floor_area_df.loc[:, 'TEK'] = 'TAKK'
 
     with pytest.raises(pa.errors.SchemaError):
-        energy_by_floor_area.validate(energy_by_floor_area_df)
+        energy_requirement_original_condition.validate(energy_by_floor_area_df)
 
 
 def test_energy_by_floor_area_raise_schema_error_on_illegal_kwhm(energy_by_floor_area_df):
-    energy_by_floor_area_df.loc[0, 'kw_h_m'] = -0.1
+    energy_by_floor_area_df.loc[0, 'kwh_m2'] = -0.1
 
     with pytest.raises(pa.errors.SchemaError):
-        energy_by_floor_area.validate(energy_by_floor_area_df)
+        energy_requirement_original_condition.validate(energy_by_floor_area_df)
 
 
 def test_energy_by_floor_area_raise_schema_error_on_unknown_purpose(energy_by_floor_area_df):
     energy_by_floor_area_df.loc[0, 'purpose'] = 'lys og varme'
 
     with pytest.raises(pa.errors.SchemaError):
-        energy_by_floor_area.validate(energy_by_floor_area_df)
+        energy_requirement_original_condition.validate(energy_by_floor_area_df)
 
 
 @pytest.fixture
 def heating_reduction_df():
-    return pd.DataFrame(columns=['TEK', 'building_condition', 'heating_reduction'],
-                        data=[['default', 'original_condition', 0.1],
-                              ['default', 'small_measure', 0.2],
-                              ['default', 'renovation', 0.3],
-                              ['default', 'renovation_and_small_measure', 0.4],
-                              ['TEK21', 'original_condition', 0.5],
-                              ['TEK21', 'small_measure', 0.6],
-                              ['TEK21', 'renovation', 0.7],
-                              ['TEK21', 'renovation_and_small_measure', 0.8]])
+    return pd.DataFrame(columns=['building_category','TEK', 'purpose', 'building_condition', 'reduction_share'],
+                        data=[['house','default', 'heating_rv','original_condition', 0.1],
+                              ['house', 'default', 'heating_rv', 'small_measure', 0.2],
+                              ['house', 'default', 'heating_rv', 'renovation', 0.3],
+                              ['house', 'default', 'heating_rv', 'renovation_and_small_measure', 0.4],
+                              ['house', 'TEK21', 'heating_rv', 'original_condition', 0.5],
+                              ['house', 'TEK21', 'heating_rv', 'small_measure', 0.6],
+                              ['house', 'TEK21', 'heating_rv', 'renovation', 0.7],
+                              ['house', 'TEK21', 'heating_rv', 'renovation_and_small_measure', 0.8]])
 
 
 def test_heating_reduction(heating_reduction_df):
-    heating_reduction.validate(heating_reduction_df)
+    energy_requirement_reduction_per_condition.validate(heating_reduction_df)
 
 
 def test_heating_reduction_require_tek(heating_reduction_df):
     heating_reduction_df.loc[0, 'TEK'] = 'TAKK'
 
     with pytest.raises(pa.errors.SchemaError):
-        heating_reduction.validate(heating_reduction_df)
+        energy_requirement_reduction_per_condition.validate(heating_reduction_df)
 
 
 def test_heating_reduction_allows_default_tek(heating_reduction_df):
     heating_reduction_df.loc[0, 'TEK'] = 'default'
-    heating_reduction.validate(heating_reduction_df)
+    energy_requirement_reduction_per_condition.validate(heating_reduction_df)
 
 
 def test_heating_reduction_require_building_condition(heating_reduction_df):
     heating_reduction_df.loc[0, 'building_condition'] = 'riving'
 
     with pytest.raises(pa.errors.SchemaError):
-        heating_reduction.validate(heating_reduction_df)
+        energy_requirement_reduction_per_condition.validate(heating_reduction_df)
 
 
 def test_heating_reduction_value_between_zero_and_one(heating_reduction_df):
-    heating_reduction_df.loc[0, 'heating_reduction'] = -1
+    heating_reduction_df.loc[0, 'reduction_share'] = -1
 
     with pytest.raises(pa.errors.SchemaError):
-        heating_reduction.validate(heating_reduction_df)
+        energy_requirement_reduction_per_condition.validate(heating_reduction_df)
 
-    heating_reduction_df.loc[0, 'heating_reduction'] = 1.01
+    heating_reduction_df.loc[0, 'reduction_share'] = 1.01
 
     with pytest.raises(pa.errors.SchemaError):
-        heating_reduction.validate(heating_reduction_df)
+        energy_requirement_reduction_per_condition.validate(heating_reduction_df)
+
+
+#TODO: add more test for energy requirement input data 
+@pytest.fixture
+def energy_req_policy_improv_df() -> pd.DataFrame:
+    df = pd.DataFrame(
+        columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year', 'improvement_at_period_end'],
+        data=[['default', 'default', 'lighting', 2018, 2030, 0.6]])
+    return df
+
+def test_energy_req_policy_improv_ok(energy_req_policy_improv_df: pd.DataFrame):
+    energy_requirement_policy_improvements.validate(energy_req_policy_improv_df)
+
+def test_energy_req_policy_improv_wrong_year_range(energy_req_policy_improv_df: pd.DataFrame):
+    energy_req_policy_improv_df['period_start_year'] = 2050
+    energy_req_policy_improv_df['period_end_year'] = 2010
+    
+    with pytest.raises(pa.errors.SchemaError):
+        energy_requirement_policy_improvements.validate(energy_req_policy_improv_df)
+
+@pytest.mark.parametrize('start_year', [-1, ""])
+def test_energy_req_policy_improv_wrong_start_year(energy_req_policy_improv_df: pd.DataFrame, start_year):
+    energy_req_policy_improv_df['period_start_year'] = start_year
+    
+    with pytest.raises(pa.errors.SchemaError):
+        energy_requirement_policy_improvements.validate(energy_req_policy_improv_df)

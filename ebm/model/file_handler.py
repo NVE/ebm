@@ -14,6 +14,7 @@ class FileHandler:
     """
     Handles file operations.
     """
+
     # Filenames
     BUILDING_CONDITIONS = 'building_conditions.csv'
     TEK_ID = 'TEK_ID.csv'
@@ -23,8 +24,8 @@ class FileHandler:
     CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'new_buildings_house_share.csv'
     CONSTRUCTION_BUILDING_CATEGORY_AREA = 'construction_building_category_yearly.csv'
     AREA_PARAMETERS = 'area_parameters.csv'
-    ENERGY_BY_FLOOR_AREA = 'energy_by_floor_area.csv'
-    HEATING_REDUCTION = 'heating_reduction.csv'
+    ENERGY_REQ_ORIGINAL_CONDITION = 'energy_requirement_original_condition.csv'
+    ENERGY_REQ_REDUCTION_CONDITION = 'energy_requirement_reduction_per_condition.csv'
     ENERGY_REQ_YEARLY_IMPROVEMENTS = 'energy_requirement_yearly_improvements.csv'
     ENERGY_REQ_POLICY_IMPROVEMENTS = 'energy_requirement_policy_improvements.csv'
 
@@ -47,7 +48,7 @@ class FileHandler:
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
         self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
                                self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
-                               self.AREA_PARAMETERS, self.ENERGY_BY_FLOOR_AREA, self.HEATING_REDUCTION, 
+                               self.AREA_PARAMETERS, self.ENERGY_REQ_ORIGINAL_CONDITION, self.ENERGY_REQ_REDUCTION_CONDITION, 
                                self.ENERGY_REQ_YEARLY_IMPROVEMENTS, self.ENERGY_REQ_POLICY_IMPROVEMENTS]
 
     def get_file(self, file_name: str) -> pd.DataFrame:
@@ -179,51 +180,51 @@ class FileHandler:
         """
         return self.get_file(self.AREA_PARAMETERS)
     
-    def get_energy_by_floor_area(self) -> pd.DataFrame:
+    def get_energy_req_original_condition(self) -> pd.DataFrame:
         """
-        Get dataframe with energy requirement by floor area (m^2).
+        Get dataframe with energy requirement (kWh/m^2) for floor area in original condition.
 
         Returns
         -------
         pd.DataFrame
-            Dataframe containing energy requirement by floor area (m^2) per building category and purpose.
+            Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
+            per building category and purpose.
         """
-        return self.get_file(self.ENERGY_BY_FLOOR_AREA)
+        return self.get_file(self.ENERGY_REQ_ORIGINAL_CONDITION)
     
-    def get_heating_reduction(self) -> pd.DataFrame:
+    def get_energy_req_reduction_per_condition(self) -> pd.DataFrame:
         """
-        Get dataframe with reduction rates for Heating RV per building condition.
+        Get dataframe with shares for reducing the energy requirement of the different building conditions.
 
         Returns
         -------
         pd.DataFrame
-            Dataframe containing reduction rates for Heating RV per building condition.
+            Dataframe containing energy requirement reduction shares for the different building conditions, 
+            per building category, TEK and purpose.
         """
-        return self.get_file(self.HEATING_REDUCTION)
+        return self.get_file(self.ENERGY_REQ_REDUCTION_CONDITION)
     
     def get_energy_req_yearly_improvements(self) -> pd.DataFrame:
         """
-        Get dataframe with yearly efficiency rates for energy requirement improvements per building category, 
-        tek and purpose.
+        Get dataframe with yearly efficiency rates for energy requirement improvements.
 
         Returns
         -------
         pd.DataFrame
-            Dataframe containing yearly efficiency rates for energy requirement improvements. Columns:
-            "building_category","TEK","purpose","yearly_efficiency_improvements" 
+            Dataframe containing yearly efficiency rates (%) for energy requirement improvements,
+            per building category, tek and purpose.
         """
         return self.get_file(self.ENERGY_REQ_YEARLY_IMPROVEMENTS)
     
     def get_energy_req_policy_improvements(self) -> pd.DataFrame:
         """
-        Get dataframe with total energy requirement improvement in a period related to a policy per building category, 
-        tek and purpose.
+        Get dataframe with total energy requirement improvement in a period related to a policy.
 
         Returns
         -------
         pd.DataFrame
-            Dataframe containing total energy requirement improvement (%) in a policy period. Columns:
-            "building_category","TEK","purpose","period_start_year","period_end_year","improvement_at_period_end" 
+            Dataframe containing total energy requirement improvement (%) in a policy period,
+            per building category, tek and purpose.
         """
         return self.get_file(self.ENERGY_REQ_POLICY_IMPROVEMENTS)
 

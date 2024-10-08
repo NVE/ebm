@@ -6,7 +6,8 @@ import pytest
 from ebm.energy_requirements import (
     calculate_energy_requirement_reduction_by_condition,
     calculate_proportional_energy_change_based_on_end_year,
-    calculate_energy_requirement_reduction)
+    calculate_energy_requirement_reduction,
+    calculate_lighting_reduction)
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
 
@@ -102,16 +103,20 @@ def test_calculate_energy_requirement_reduction_raise_value_error_when_period_is
             reduction_period=YearRange(2011, 2014))
 
 
-def test_calculate_lighting_reduction_and_proportional_energy_change_based_on_end_year():
+def test_calculate_lighting_reduction():
     bema_years = YearRange(2010, 2050)
-    kw_h_m2 = pd.Series(data=[9.1075556] * 41, index=bema_years, name='kw_h_m2')
+    normal_energy_requirement = 9.1075556
+    sixty_percent_reduction_by_2030 = normal_energy_requirement * 0.4
+    energy_requirement = pd.Series(data=[normal_energy_requirement] * len(bema_years),
+                                   index=bema_years,
+                                   name='kw_h_m2')
 
-    based_on_end_year = calculate_proportional_energy_change_based_on_end_year(kw_h_m2,
-                                                                               3.6430222,
-                                                                               YearRange(2018, 2030))
-    lighting = calculate_energy_requirement_reduction(based_on_end_year,
-                                                      yearly_reduction=0.005,
-                                                      reduction_period=YearRange(2031, 2050))
+    lighting = calculate_lighting_reduction(energy_requirement,
+                                            yearly_reduction=0.005,
+                                            end_year_energy_requirement=sixty_percent_reduction_by_2030,
+                                            interpolated_reduction_period=YearRange(2018, 2030),
+                                            year_range=bema_years)
+
     assert round(lighting.loc[2010], 5) == 9.10756
     assert round(lighting.loc[2018], 5) == 9.10756
     assert round(lighting.loc[2019], 5) == 8.65218

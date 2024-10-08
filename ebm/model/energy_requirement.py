@@ -23,7 +23,7 @@ class EnergyRequirement():
                  calibration_year: int = 2019,
                  period: YearRange = YearRange(2010, 2050)) -> None:
         
-        self.building_category = building_category
+        self.building_category = building_category  
         self.energy_by_floor_area = energy_by_floor_area
         self.heating_reduction = heating_reduction
         self.area_forecast = area_forecast
@@ -106,9 +106,22 @@ class EnergyRequirement():
             "main" function to calculate the energy requirement per year for each purpose, tek and building condition
             
             This method should determine the appropriate calculation method that should be called for each purpose based on
-            the parameters in the different input data that is given to this class.
+            the parameters in the different input data that is given to this class. Steps and calculations:
 
+            1. all energy requirement data must be converted to series, where the value is repeated n periods corresponding
+            to the model years
 
+            2. checks on purpose and input data to decide which calculation should be performed.
+                - if purpose is heating_rv, then perform that calculation. Or alter the input data to also have a purpose identifier to search for. 
+                    - must first convert data to have the 4 building conditions 
+                - if purpose is in yearly_improvements data, then perform that calculation from after the calibration year
+                - check if purpose is in policy measure, then perform that calculation for the period specified by the years in the input
+                    - both of the calculations are regardless of the condition, so only performed on the initial value. After the series is calculated,
+                    building conditions can be added (same series for all conditions)
+
+            3. after calculations method is decided, the calculations should be performed for each tek.
+               - check if the TEK is present in the relevant input data, if not use the 'default' value
+               
             """
             pass
     

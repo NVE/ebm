@@ -5,6 +5,9 @@ import typing
 
 import pandas as pd
 from loguru import logger
+from pandera.errors import SchemaErrors, SchemaError
+
+import ebm.validators as validators
 
 
 class FileHandler:
@@ -20,6 +23,7 @@ class FileHandler:
     CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'new_buildings_house_share.csv'
     CONSTRUCTION_BUILDING_CATEGORY_AREA = 'construction_building_category_yearly.csv'
     AREA_PARAMETERS = 'area_parameters.csv'
+    ENERGY_BY_FLOOR_AREA = 'energy_by_floor_area.csv'
 
     input_directory: pathlib.Path
 
@@ -40,7 +44,7 @@ class FileHandler:
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
         self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
                                self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
-                               self.AREA_PARAMETERS]
+                               self.AREA_PARAMETERS, self.ENERGY_BY_FLOOR_AREA]
 
     def get_file(self, file_name: str) -> pd.DataFrame:
         """
@@ -218,13 +222,37 @@ class FileHandler:
             self.input_directory.mkdir()
         for file in self.files_to_check:
             logger.debug(f'Create input file {file}')
-            target_file = self.input_directory / file
-            source_file = pathlib.Path(__file__).parent.parent / 'data' / file
-            if target_file.is_file():
-                logger.warning(f'Skipping existing file {target_file}')
-                continue
-            if not source_file.is_file():
-                logger.error(f'Source file {source_file} does not exist!')
-                continue
+            self.create_input_file(file)
+
+    def create_input_file(self, file):
+        target_file = self.input_directory / file
+        source_file = pathlib.Path(__file__).parent.parent / 'data' / file
+        if target_file.is_file():
+            logger.warning(f'Skipping existing file {target_file}')
+        elif not source_file.is_file():
+            logger.error(f'Source file {source_file} does not exist!')
+        else:
             shutil.copy(source_file, target_file)
             logger.info(f'Created {target_file}')
+
+    def validate_input_files(self):
+        """
+        Validates the input files for correct formatting.
+
+        Raises
+        ------
+        pa.errors.SchemaErrors
+            If any invalid data for formatting is found when validating files. The validation is lazy, meaning
+            multiple errors may be listed in the exception.
+        """
+        for file_to_validate in self.files_to_check:
+            if file_to_validate == 'TEK_ID.csv':
+                # No validator for tek_id exists. Fix this later.
+                continue
+            df = self.get_file(file_to_validate)
+            validator = getattr(validators, file_to_validate[:-4].lower())
+            try:
+                validator.validate(df, lazy=True)
+            except (SchemaErrors, SchemaError):
+                logger.error(f'Got error while validating {file_to_validate}')
+                raise

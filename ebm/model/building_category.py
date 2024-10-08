@@ -46,3 +46,32 @@ class BuildingCategory(StrEnum):
             if search == building_category.value.lower().replace('_', ''):
                 return building_category
         raise ValueError(f'No such building category {category_name}')
+
+
+def from_norsk(norsk: str) -> BuildingCategory:
+    if norsk.lower() == 'småhus':
+        return BuildingCategory.HOUSE
+    if norsk.lower() == 'leilighet':
+        return BuildingCategory.APARTMENT_BLOCK
+    if norsk.lower() == 'barnehage':
+        return BuildingCategory.KINDERGARTEN
+    if norsk.lower() == 'kontor':
+        return BuildingCategory.OFFICE
+    if norsk.lower() == 'skole':
+        return BuildingCategory.SCHOOL
+    if norsk.lower() == 'universitet':
+        return BuildingCategory.UNIVERSITY
+    if norsk.lower() == 'sykehjem':
+        return BuildingCategory.NURSING_HOME
+    if norsk.lower() == 'sykehus':
+        return BuildingCategory.HOSPITAL
+    if norsk.lower() == 'hotell':
+        return BuildingCategory.HOTEL
+    if norsk.lower() == 'idrettsbygg':
+        return BuildingCategory.SPORTS
+    if norsk.lower() == 'forretningsbygg':
+        return BuildingCategory.RETAIL
+    if norsk.lower() == 'kulturbygg':
+        return BuildingCategory.CULTURE
+    return BuildingCategory.from_string(norsk)
+

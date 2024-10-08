@@ -23,6 +23,7 @@ class DatabaseManager():
     COL_TEK_END_YEAR = 'period_end_year'
     COL_BUILDING_CATEGORY = 'building_category'
     COL_BUILDING_CONDITION = 'condition'
+    COL_AREA = 'area'
     
     def __init__(self, file_handler: FileHandler = None):
         # Create default FileHandler if file_hander is None
@@ -134,6 +135,7 @@ class DatabaseManager():
 
         return building_category_floor_area
 
+    #TODO: remove after refactoring
     def get_area_parameters(self) -> pd.DataFrame:
         """
         Get total area (m^2) per building category and TEK.
@@ -147,6 +149,31 @@ class DatabaseManager():
         """
         area_params = self.file_handler.get_area_parameters()
         return area_params
+    
+    def get_area_start_year(self) -> typing.Dict[BuildingCategory, pd.Series]:
+        """
+        Retrieve total floor area in the model start year for each TEK within a building category.
+
+        Returns
+        -------
+        dict
+            A dictionary where:
+            - keys are `BuildingCategory` objects derived from the building category string.
+            - values are `pandas.Series` with the 'tek' column as the index and the corresponding
+              'area' column as the values.
+        """
+        area_data = self.file_handler.get_area_parameters()
+        
+        area_dict = {}
+        for building_category in area_data[self.COL_BUILDING_CATEGORY].unique():
+            area_building_category = area_data[area_data[self.COL_BUILDING_CATEGORY] == building_category]
+            area_series = area_building_category.set_index(self.COL_TEK)[self.COL_AREA]
+            area_series.index.name = "tek"
+            area_series.rename(f"{BuildingCategory.from_string(building_category)}_area", inplace=True)
+            
+            area_dict[BuildingCategory.from_string(building_category)] = area_series
+
+        return area_dict
 
     def validate_database(self):
         missing_files = self.file_handler.check_for_missing_files()

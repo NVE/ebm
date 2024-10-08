@@ -1,4 +1,5 @@
 import pathlib
+
 import pandas as pd
 import pytest
 
@@ -7,6 +8,7 @@ from ebm.model import FileHandler, DatabaseManager, Buildings, BuildingCategory
 from ebm.model.area_forecast import AreaForecast
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
+
 
 @pytest.fixture
 def area_forecast() -> AreaForecast:
@@ -51,8 +53,7 @@ def test_area_forecast_calc_area_with_construction_tek_for_kindergarten_tek07(ar
         Parameters
         ----------
         area_forecast : fixture[AreaForecast]
-            give access to a premade AreaForecast Object
-        accumulated_constructed_floor_area: fixture[List[float]]
+            give access to a premade AreaForecast Object        accumulated_constructed_floor_area: fixture[List[float]]
             constructed_floor_area common with TEK10 test
     """
     result = area_forecast.calc_area_with_construction("TEK07", BuildingCondition.ORIGINAL_CONDITION,accumulated_constructed_floor_area)

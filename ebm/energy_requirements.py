@@ -26,10 +26,7 @@ def calculate_energy_requirement_reduction_by_condition(
         DataFrame with the reduced energy requirements.
         Includes columns: 'building_category', 'TEK', 'purpose', 'building_condition', 'kw_h_m'.
     """
-    # Adding `key` to help merging every row in energy_requirements with every condition
-    condition_reduction['key'] = 1
-    energy_requirements['key'] = 1
-    df = pd.merge(energy_requirements, condition_reduction, on='key')
+    df = pd.merge(energy_requirements, condition_reduction, how='cross')
 
     df.kw_h_m = df.kw_h_m * (1.0 - df['reduction'])
 
@@ -155,11 +152,11 @@ def calculate_lighting_reduction(energy_requirement: pd.Series,
     based_on_end_year = calculate_proportional_energy_change_based_on_end_year(
         energy_requirement,
         end_year_energy_requirement,
-        YearRange(2018, 2030))
+        interpolated_reduction_period)
 
     lighting = calculate_energy_requirement_reduction(
         based_on_end_year,
-        yearly_reduction=0.005,
-        reduction_period=YearRange(2031, 2050))
+        yearly_reduction=yearly_reduction,
+        reduction_period=YearRange(interpolated_reduction_period.end + 1, year_range.end))
 
     return lighting

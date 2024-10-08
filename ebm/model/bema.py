@@ -141,3 +141,39 @@ def load_construction_building_category(building_category: BuildingCategory,
     df_transposed = df_transposed.set_index('year')
 
     return df_transposed
+
+
+def filter_existing_area(area_forecast: pd.DataFrame) -> pd.DataFrame:
+    """
+
+    Filter area_forecast to only include TEK and year defined as existing. The cut-off value is TEK10 for 2020 and later
+        in addition to any TEK beyond TEK10.
+
+    Parameters
+    ----------
+    area_forecast : pd.DataFrame
+        DataFrame with columns year, building_category, TEK, building_condition, area
+
+    Returns
+    -------
+    pd.Series
+        pct percentage of total floor area by year, building_category, TEK and building_condition
+
+    """
+    area_forecast = area_forecast.reset_index()
+    area_existing = area_forecast.reset_index().loc[~area_forecast.TEK.isin(['TEK10', 'TEK17', 'TEK21'])][
+        ['year', 'building_category', 'building_condition', 'TEK', 'area']]
+    tek10_before_2020 = area_forecast.loc[area_forecast.TEK.isin(['TEK10'])][
+        ['year', 'building_category', 'building_condition', 'TEK', 'area']]
+
+    area_2019 = tek10_before_2020.loc[(tek10_before_2020['year'] == 2019) & (
+                tek10_before_2020['building_condition'] == 'original_condition'), 'area'].values
+
+    # Update the area for all rows in tek10_before_2020 to the area from 2019
+    tek10_before_2020.loc[(tek10_before_2020['year'] > 2019) & (
+            tek10_before_2020['building_condition'] == 'original_condition'), 'area'] = area_2019[0]
+    tek10_before_2020.loc[(tek10_before_2020['year'] > 2019) & (
+            tek10_before_2020['building_condition'] != 'original_condition'), 'area'] = 0.0
+    existing_area = pd.concat([area_existing, tek10_before_2020])
+
+    return existing_area.set_index(['building_category', 'TEK', 'building_condition', 'year'])

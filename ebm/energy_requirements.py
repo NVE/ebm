@@ -117,3 +117,49 @@ def calculate_energy_requirement_reduction(
     kw_h_m2.loc[reduction_period] = (kw_h_m2.loc[reduction_period] * reduction_factors)
 
     return kw_h_m2
+
+
+def calculate_lighting_reduction(energy_requirement: pd.Series,
+                                 yearly_reduction: float,
+                                 end_year_energy_requirement: float,
+                                 interpolated_reduction_period: YearRange = YearRange(2018, 2030),
+                                 year_range: YearRange = YearRange(2010, 2050)):
+    """
+        Calculate the lighting energy requirement reduction over a specified period.
+
+        Parameters
+        ----------
+        energy_requirement : pd.Series
+            The initial energy requirements for lighting.
+        yearly_reduction : float
+            The yearly reduction rate in energy requirements.
+        end_year_energy_requirement : float
+            The target energy requirement by the end of the interpolated reduction period.
+        interpolated_reduction_period : YearRange, optional
+            The period over which the energy requirement is interpolated to reach the end year requirement.
+            Default is YearRange(2018, 2030).
+        year_range : YearRange, optional
+            The overall period for the calculation. Default is YearRange(2010, 2050).
+
+        Returns
+        -------
+        pd.Series
+            The calculated lighting energy requirements over the specified period.
+
+        Notes
+        -----
+        This function first calculates the proportional energy change based on the end year requirement
+        and then applies a yearly reduction rate to determine the final energy requirements.
+"""
+
+    based_on_end_year = calculate_proportional_energy_change_based_on_end_year(
+        energy_requirement,
+        end_year_energy_requirement,
+        YearRange(2018, 2030))
+
+    lighting = calculate_energy_requirement_reduction(
+        based_on_end_year,
+        yearly_reduction=0.005,
+        reduction_period=YearRange(2031, 2050))
+
+    return lighting

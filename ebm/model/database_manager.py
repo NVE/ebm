@@ -30,6 +30,8 @@ class DatabaseManager():
     COL_ENERGY_REQUIREMENT_VALUE = 'kwh_m2'
     COL_HEATING_REDUCTION = 'reduction_share'
 
+    DEFAULT_VALUE = 'default'
+
     def __init__(self, file_handler: FileHandler = None):
         # Create default FileHandler if file_hander is None
         self.file_handler = file_handler if file_handler is not None else FileHandler()
@@ -180,27 +182,48 @@ class DatabaseManager():
 
         return area_dict
     
-    #TODO: evaluate method based on further use in calculations + add docstrings
-    def get_energy_req_original_condition(self) -> typing.Dict[BuildingCategory, typing.Dict[EnergyPurpose, typing.Dict[str, float]]]: 
+    def filter_df_on_building_category(self, df: pd.DataFrame, building_category: BuildingCategory) -> pd.DataFrame:
         """
+        Filters a dataframe on Building Category and returns a dataframe without the building_category column.
         """
-        df = self.file_handler.get_energy_req_original_condition()
+        building_category_col = df[self.COL_BUILDING_CATEGORY].unique()
 
-        energy_req = {}
-        for building_category in df[self.COL_BUILDING_CATEGORY].unique():
-            df_building_category = df[df[self.COL_BUILDING_CATEGORY] == building_category]
-            purpose_dict = {}
-            for purpose in df_building_category[self.COL_ENERGY_REQUIREMENT_PURPOSE]:
-                df_purpose = df_building_category[df_building_category[self.COL_ENERGY_REQUIREMENT_PURPOSE] == purpose]
-                tek_dict = {}
-                for tek in df_purpose[self.COL_TEK].unique():
-                    df_tek = df_purpose[df_purpose[self.COL_TEK] == tek]
-                    energy_req_val = float(df_tek.iloc[0][self.COL_ENERGY_REQUIREMENT_VALUE])
-                    tek_dict[tek] = energy_req_val
-                purpose_dict[EnergyPurpose(purpose)] = tek_dict
-            energy_req[BuildingCategory.from_string(building_category)] = purpose_dict 
+        if building_category in building_category_col:
+            df = df[df[self.COL_BUILDING_CATEGORY] == building_category]
+        else:
+            df = df[df[self.COL_BUILDING_CATEGORY] == self.DEFAULT_VALUE]
         
-        return energy_req
+        df.drop(columns=[self.COL_BUILDING_CATEGORY], inplace=True)
+        return df
+
+    def get_energy_req_original_condition(self, building_category: BuildingCategory) -> pd.DataFrame: 
+        """
+        """
+        original_df = self.file_handler.get_energy_req_original_condition()
+        df = self.filter_df_on_building_category(original_df, building_category)
+        return df 
+
+    def get_energy_req_reduction_per_condition(self, building_category: BuildingCategory) -> pd.DataFrame:
+        """
+        """
+        original_df = self.file_handler.get_energy_req_reduction_per_condition()
+        df = self.filter_df_on_building_category(original_df, building_category)
+        return df
+    
+    def get_energy_req_yearly_improvements(self, building_category: BuildingCategory) -> pd.DataFrame:
+        """
+        """
+        original_df = self.file_handler.get_energy_req_yearly_improvements()
+        df = self.filter_df_on_building_category(original_df, building_category)
+        return df
+    
+    def get_energy_req_policy_improvements(self, building_category: BuildingCategory) -> pd.DataFrame:
+        """
+        """
+        original_df = self.file_handler.get_energy_req_policy_improvements()
+        df = self.filter_df_on_building_category(original_df, building_category)
+        return df
+
 
     def validate_database(self):
         missing_files = self.file_handler.check_for_missing_files()
@@ -208,6 +231,7 @@ class DatabaseManager():
     
 if __name__ == '__main__':
     db = DatabaseManager()
-    a = db.get_energy_req_original_condition()
-    #a = db.get_heating_reduction()
+    building_category = BuildingCategory.HOUSE
+
+    a = db.get_energy_req_policy_improvements(building_category)
     print(a)

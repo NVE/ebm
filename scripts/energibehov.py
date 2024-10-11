@@ -154,8 +154,8 @@ def calculate_lighting(building_category, purpose):
     return existing_heating_rv_by_year
 
 
-def main():
-    building_category = BuildingCategory.KINDERGARTEN
+def main(building_category = BuildingCategory.KINDERGARTEN):
+
 
     return pd.DataFrame({'heating_rv': calculate_heating_rv(building_category=building_category),
                          'fans_and_pumps': calculate_purpose(building_category, 'fans_and_pumps'),
@@ -167,6 +167,8 @@ def main():
 
 df = None
 if __name__ == '__main__':
-    df = main()
+    building_category = BuildingCategory.KINDERGARTEN
+    df = main(building_category)
 
+    print('=== ', building_category, ' === ')
     rich_display_dataframe(df)

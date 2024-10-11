@@ -9,11 +9,12 @@ from datetime import datetime
 from typing import Optional
 
 import pandas as pd
-from rich.errors import NotRenderableError
 from rich import box
 from rich.console import Console
+from rich.errors import NotRenderableError
 from rich.table import Table
 
+from services.spreadsheet import iter_cells
 
 console = Console()
 
@@ -35,11 +36,13 @@ def rich_display_dataframe(df, title="Dataframe") -> None:
     df = df.astype(str)
 
     table = Table(title=title)
+    table.add_column('year')
     for col in df.columns:
         table.add_column(col)
-    for row in df.values:
+    for row, (year, cell,) in zip(df.values, enumerate(iter_cells(first_column='E', left_padding=' '), 2010), ):
         with contextlib.suppress(NotRenderableError):
-            table.add_row(*row)
+            the_row = [f'{year}{cell}', *row]
+            table.add_row(*the_row)
     print(table)
 
 

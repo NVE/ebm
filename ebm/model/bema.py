@@ -177,3 +177,28 @@ def filter_existing_area(area_forecast: pd.DataFrame) -> pd.DataFrame:
     existing_area = pd.concat([area_existing, tek10_before_2020])
 
     return existing_area.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+
+
+def calculate_area_distribution(area_requirements: pd.DataFrame, existing_area: pd.DataFrame) -> pd.Series:
+    """
+    Calculate the distribution of building_conditions (pct) and recalculate area_requirements.kwh_m2 based
+        on area distribution (adjusted).
+
+    Parameters
+    ----------
+    area_requirements : pd.DataFrame
+        Pandas Dataframe with building_category, year and kwh_m2
+    existing_area : pd.DataFrame
+        Pandas Dataframe with building_category, year, area
+
+    Returns
+    -------
+    pd.DataFrame
+        building_category, year indexed dataframe with the sum of all kwh_m2 adjusted by relative area
+
+    """
+    total_area = existing_area.groupby(level=['building_category', 'year']).sum()[['area']]
+    existing_area['pct'] = existing_area.area / total_area.area
+    area_requirements['adjusted'] = existing_area.pct * area_requirements.kwh_m2
+    existing_heating_rv_by_year = area_requirements.groupby(level=['building_category', 'year'])['adjusted'].sum()
+    return existing_heating_rv_by_year

@@ -2,7 +2,7 @@ import pandas as pd
 
 from ebm.__main__ import calculate_building_category_area_forecast
 from ebm.model import BuildingCategory, DatabaseManager
-from ebm.model.bema import filter_existing_area
+from ebm.model.bema import filter_existing_area, calculate_area_distribution
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.energy_requirement import (calculate_energy_requirement_reduction_by_condition,
                                           calculate_energy_requirement_reduction,
@@ -121,14 +121,6 @@ def calculate_electrical_equipment(building_category, purpose):
     existing_area = filter_existing_area(area_forecast)
     existing_heating_rv_by_year = calculate_area_distribution(area_requirements, existing_area)
 
-    return existing_heating_rv_by_year
-
-
-def calculate_area_distribution(area_requirements, existing_area):
-    total_area = existing_area.groupby(level=['building_category', 'year']).sum()[['area']]
-    existing_area['pct'] = existing_area.area / total_area.area
-    area_requirements['adjusted'] = existing_area.pct * area_requirements.kwh_m2
-    existing_heating_rv_by_year = area_requirements.groupby(level=['building_category', 'year'])['adjusted'].sum()
     return existing_heating_rv_by_year
 
 

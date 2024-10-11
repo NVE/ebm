@@ -2,9 +2,11 @@ import typing
 
 import pandas as pd
 
-from .building_category import BuildingCategory
-from .data_classes import TEKParameters
-from .file_handler import FileHandler
+from ebm.model.file_handler import FileHandler
+from ebm.model.building_category import BuildingCategory
+from ebm.model.building_condition import BuildingCondition
+from ebm.model.energy_purpose import EnergyPurpose
+from ebm.model.data_classes import TEKParameters
 
 
 # TODO:
@@ -22,9 +24,14 @@ class DatabaseManager():
     COL_TEK_START_YEAR = 'period_start_year'
     COL_TEK_END_YEAR = 'period_end_year'
     COL_BUILDING_CATEGORY = 'building_category'
-    COL_BUILDING_CONDITION = 'condition'
+    COL_BUILDING_CONDITION = 'building_condition'
     COL_AREA = 'area'
-    
+    COL_ENERGY_REQUIREMENT_PURPOSE = 'purpose'
+    COL_ENERGY_REQUIREMENT_VALUE = 'kwh_m2'
+    COL_HEATING_REDUCTION = 'reduction_share'
+
+    DEFAULT_VALUE = 'default'
+
     def __init__(self, file_handler: FileHandler = None):
         # Create default FileHandler if file_hander is None
         self.file_handler = file_handler if file_handler is not None else FileHandler()
@@ -174,7 +181,57 @@ class DatabaseManager():
             area_dict[BuildingCategory.from_string(building_category)] = area_series
 
         return area_dict
+    
+    def filter_df_on_building_category(self, df: pd.DataFrame, building_category: BuildingCategory) -> pd.DataFrame:
+        """
+        Filters a dataframe on Building Category and returns a dataframe without the building_category column.
+        """
+        building_category_col = df[self.COL_BUILDING_CATEGORY].unique()
+
+        if building_category in building_category_col:
+            df = df[df[self.COL_BUILDING_CATEGORY] == building_category]
+        else:
+            df = df[df[self.COL_BUILDING_CATEGORY] == self.DEFAULT_VALUE]
+        
+        df.drop(columns=[self.COL_BUILDING_CATEGORY], inplace=True)
+        return df
+
+    def get_energy_req_original_condition(self, building_category: BuildingCategory) -> pd.DataFrame: 
+        """
+        """
+        original_df = self.file_handler.get_energy_req_original_condition()
+        df = self.filter_df_on_building_category(original_df, building_category)
+        return df 
+
+    def get_energy_req_reduction_per_condition(self, building_category: BuildingCategory) -> pd.DataFrame:
+        """
+        """
+        original_df = self.file_handler.get_energy_req_reduction_per_condition()
+        df = self.filter_df_on_building_category(original_df, building_category)
+        return df
+    
+    def get_energy_req_yearly_improvements(self, building_category: BuildingCategory) -> pd.DataFrame:
+        """
+        """
+        original_df = self.file_handler.get_energy_req_yearly_improvements()
+        df = self.filter_df_on_building_category(original_df, building_category)
+        return df
+    
+    def get_energy_req_policy_improvements(self, building_category: BuildingCategory) -> pd.DataFrame:
+        """
+        """
+        original_df = self.file_handler.get_energy_req_policy_improvements()
+        df = self.filter_df_on_building_category(original_df, building_category)
+        return df
+
 
     def validate_database(self):
         missing_files = self.file_handler.check_for_missing_files()
         return True
+    
+if __name__ == '__main__':
+    db = DatabaseManager()
+    building_category = BuildingCategory.HOUSE
+
+    a = db.get_energy_req_policy_improvements(building_category)
+    print(a)

@@ -1,0 +1,6 @@
+building_category,TEK,purpose,yearly_efficiency_improvement
+default,default,cooling,0.0
+default,default,electrical_equipment,0.1
+default,default,fans_and_pumps,0.0
+default,default,heating_dhw,0.0
+default,default,lighting,0.05

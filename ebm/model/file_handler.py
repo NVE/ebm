@@ -14,6 +14,7 @@ class FileHandler:
     """
     Handles file operations.
     """
+
     # Filenames
     BUILDING_CONDITIONS = 'building_conditions.csv'
     TEK_ID = 'TEK_ID.csv'
@@ -23,7 +24,10 @@ class FileHandler:
     CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'new_buildings_house_share.csv'
     CONSTRUCTION_BUILDING_CATEGORY_AREA = 'construction_building_category_yearly.csv'
     AREA_PARAMETERS = 'area_parameters.csv'
-    ENERGY_BY_FLOOR_AREA = 'energy_by_floor_area.csv'
+    ENERGY_REQ_ORIGINAL_CONDITION = 'energy_requirement_original_condition.csv'
+    ENERGY_REQ_REDUCTION_CONDITION = 'energy_requirement_reduction_per_condition.csv'
+    ENERGY_REQ_YEARLY_IMPROVEMENTS = 'energy_requirement_yearly_improvements.csv'
+    ENERGY_REQ_POLICY_IMPROVEMENTS = 'energy_requirement_policy_improvements.csv'
 
     input_directory: pathlib.Path
 
@@ -44,7 +48,8 @@ class FileHandler:
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
         self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
                                self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
-                               self.AREA_PARAMETERS, self.ENERGY_BY_FLOOR_AREA]
+                               self.AREA_PARAMETERS, self.ENERGY_REQ_ORIGINAL_CONDITION, self.ENERGY_REQ_REDUCTION_CONDITION, 
+                               self.ENERGY_REQ_YEARLY_IMPROVEMENTS, self.ENERGY_REQ_POLICY_IMPROVEMENTS]
 
     def get_file(self, file_name: str) -> pd.DataFrame:
         """
@@ -174,6 +179,54 @@ class FileHandler:
                                           building category and TEK.
         """
         return self.get_file(self.AREA_PARAMETERS)
+    
+    def get_energy_req_original_condition(self) -> pd.DataFrame:
+        """
+        Get dataframe with energy requirement (kWh/m^2) for floor area in original condition.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
+            per building category and purpose.
+        """
+        return self.get_file(self.ENERGY_REQ_ORIGINAL_CONDITION)
+    
+    def get_energy_req_reduction_per_condition(self) -> pd.DataFrame:
+        """
+        Get dataframe with shares for reducing the energy requirement of the different building conditions.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing energy requirement reduction shares for the different building conditions, 
+            per building category, TEK and purpose.
+        """
+        return self.get_file(self.ENERGY_REQ_REDUCTION_CONDITION)
+    
+    def get_energy_req_yearly_improvements(self) -> pd.DataFrame:
+        """
+        Get dataframe with yearly efficiency rates for energy requirement improvements.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing yearly efficiency rates (%) for energy requirement improvements,
+            per building category, tek and purpose.
+        """
+        return self.get_file(self.ENERGY_REQ_YEARLY_IMPROVEMENTS)
+    
+    def get_energy_req_policy_improvements(self) -> pd.DataFrame:
+        """
+        Get dataframe with total energy requirement improvement in a period related to a policy.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing total energy requirement improvement (%) in a policy period,
+            per building category, tek and purpose.
+        """
+        return self.get_file(self.ENERGY_REQ_POLICY_IMPROVEMENTS)
 
     def _check_is_file(self, filename: str) -> bool:
         """
@@ -214,11 +267,10 @@ class FileHandler:
         -------
         None
         """
-
         if self.input_directory.is_file():
             raise NotADirectoryError(f'{self.input_directory} is a file')
         if not self.input_directory.is_dir():
-            logger.debug(f'{self.input_directory} is not a directory')
+            logger.debug(f'Creating directory: {self.input_directory}')
             self.input_directory.mkdir()
         for file in self.files_to_check:
             logger.debug(f'Create input file {file}')

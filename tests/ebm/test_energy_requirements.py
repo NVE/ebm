@@ -14,10 +14,10 @@ from ebm.model.data_classes import YearRange
 
 def test_calculate_energy_requirement_reduction_by_condition():
     test_data = io.StringIO("""building_category,TEK,purpose,kw_h_m
-apartment_block,PRE_TEK49,HeatingRV, 100
-apartment_block,TEK07,HeatingRV,200
-house,TEK07,HeatingRV,400""")
-    energy_requirements = pd.read_csv(test_data)
+                               apartment_block,PRE_TEK49,HeatingRV, 100
+                               apartment_block,TEK07,HeatingRV,200
+                               house,TEK07,HeatingRV,400""")
+    energy_requirements = pd.read_csv(test_data, skipinitialspace=True)
     condition_reduction = pd.DataFrame(data=[[BuildingCondition.ORIGINAL_CONDITION, 0],
                                              [BuildingCondition.SMALL_MEASURE, 0.2],
                                              [BuildingCondition.RENOVATION, 0.4],

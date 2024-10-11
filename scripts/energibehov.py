@@ -33,13 +33,13 @@ def load_area_forecast(building_category: BuildingCategory = BuildingCategory.KI
     return area_forecast
 
 
-def load_heating_reduction(building_category, purpose='heating_rv'):
-    def make_zero_reduction(purpose):
+def load_heating_reduction(purpose='heating_rv'):
+    def make_zero_reduction():
         r = [{'building_condition': condition, 'reduction': 0} for condition in BuildingCondition if condition != BuildingCondition.DEMOLITION]
         return r
     heating_reduction = pd.read_csv('input/energy_requirement_reduction_per_condition.csv')
     if purpose != 'heating_rv':
-        return pd.DataFrame(data=make_zero_reduction(purpose))
+        return pd.DataFrame(data=make_zero_reduction())
     heating_reduction['reduction'] = heating_reduction['reduction_share']
     heating_reduction = heating_reduction[heating_reduction.TEK == 'default'][['building_condition', 'reduction']]
     return heating_reduction
@@ -53,7 +53,7 @@ def load_energy_by_floor_area(building_category, purpose='heating_rv'):
 
 
 def calculate_heating_rv(building_category=BuildingCategory.KINDERGARTEN):
-    heating_reduction = load_heating_reduction(building_category)
+    heating_reduction = load_heating_reduction('heating_rv')
 
     area_forecast = load_area_forecast(building_category=building_category)
     heating_rv_requirements = load_energy_by_floor_area(building_category, purpose='heating_rv')
@@ -76,11 +76,11 @@ def calculate_heating_rv(building_category=BuildingCategory.KINDERGARTEN):
 
 def calculate_purpose(building_category, purpose):
     # By default there is no heating_reduction defined for fans n pumps
-    heating_reduction = load_heating_reduction(building_category, purpose)
+    heating_reduction = load_heating_reduction(purpose)
 
     # heating_reduction.reduction = 0
     area_forecast = load_area_forecast(building_category=building_category)
-    fans_n_pumps_requirements = load_energy_by_floor_area(building_category, purpose=purpose)
+    fans_n_pumps_requirements = load_energy_by_floor_area(purpose=purpose)
 
     requirement_by_condition = calculate_energy_requirement_reduction_by_condition(
         energy_requirements=fans_n_pumps_requirements,
@@ -100,7 +100,7 @@ def calculate_purpose(building_category, purpose):
 
 def calculate_electrical_equipment(building_category, purpose):
     # By default there is no heating_reduction defined for fans n pumps
-    heating_reduction = load_heating_reduction(building_category, purpose)
+    heating_reduction = load_heating_reduction(purpose)
 
     # heating_reduction.reduction = 0
     area_forecast = load_area_forecast(building_category=building_category)
@@ -126,11 +126,11 @@ def calculate_electrical_equipment(building_category, purpose):
 
 def calculate_lighting(building_category, purpose):
     # By default there is no heating_reduction defined for fans n pumps
-    heating_reduction = load_heating_reduction(building_category, purpose)
+    heating_reduction = load_heating_reduction(purpose)
 
     # heating_reduction.reduction = 0
     area_forecast = load_area_forecast(building_category=building_category)
-    lighting = load_energy_by_floor_area(building_category, purpose=purpose)
+    lighting = load_energy_by_floor_area(purpose=purpose)
     requirement_by_condition = pd.merge(lighting, heating_reduction, how='cross')
 
     idx = YearRange(2010, 2050).to_index()

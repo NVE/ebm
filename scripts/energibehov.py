@@ -1,12 +1,12 @@
 import pandas as pd
 
 from ebm.__main__ import calculate_building_category_area_forecast
-from ebm.energy_requirements import (calculate_energy_requirement_reduction_by_condition,
-                                     calculate_energy_requirement_reduction,
-                                     calculate_lighting_reduction)
 from ebm.model import BuildingCategory, DatabaseManager
 from ebm.model.bema import filter_existing_area
 from ebm.model.building_condition import BuildingCondition
+from ebm.model.energy_requirement import (calculate_energy_requirement_reduction_by_condition,
+                                          calculate_energy_requirement_reduction,
+                                          calculate_lighting_reduction)
 from model.data_classes import YearRange
 
 
@@ -37,18 +37,16 @@ def load_heating_reduction(building_category, purpose='heating_rv'):
     def make_zero_reduction(purpose):
         r = [{'building_condition': condition, 'reduction': 0} for condition in BuildingCondition if condition != BuildingCondition.DEMOLITION]
         return r
-    heating_reduction = pd.read_csv('input/heating_reduction.csv')
+    heating_reduction = pd.read_csv('input/energy_requirement_reduction_per_condition.csv')
     if purpose != 'heating_rv':
         return pd.DataFrame(data=make_zero_reduction(purpose))
-    heating_reduction['reduction'] = heating_reduction['heating_reduction']
+    heating_reduction['reduction'] = heating_reduction['reduction_share']
     heating_reduction = heating_reduction[heating_reduction.TEK == 'default'][['building_condition', 'reduction']]
     return heating_reduction
 
 
-
-
 def load_energy_by_floor_area(building_category, purpose='heating_rv'):
-    energy_by_floor_area = pd.read_csv('input/energy_by_floor_area2.csv')
+    energy_by_floor_area = pd.read_csv('input/energy_requirement_original_condition.csv')
     df = energy_by_floor_area[(energy_by_floor_area.building_category == building_category) &
                               (energy_by_floor_area.purpose == purpose)]
     return df
@@ -111,8 +109,8 @@ def calculate_electrical_equipment(building_category, purpose):
 
     idx = YearRange(2010, 2050).to_index()
     idx.name='year'
-    energy_requirement = pd.Series([requirement_by_condition['kw_h_m'].iloc[0]] * 41, index=idx,
-                                   name='kw_h_m')
+    energy_requirement = pd.Series([requirement_by_condition['kwh_m2'].iloc[0]] * 41, index=idx,
+                                   name='kwh_m2')
     light_requirements = calculate_energy_requirement_reduction(energy_requirements=energy_requirement,
                                                                 yearly_reduction=0.01,
                                                                 reduction_period=YearRange(2020, 2050))
@@ -129,7 +127,7 @@ def calculate_electrical_equipment(building_category, purpose):
 def calculate_area_distribution(area_requirements, existing_area):
     total_area = existing_area.groupby(level=['building_category', 'year']).sum()[['area']]
     existing_area['pct'] = existing_area.area / total_area.area
-    area_requirements['adjusted'] = existing_area.pct * area_requirements.kw_h_m
+    area_requirements['adjusted'] = existing_area.pct * area_requirements.kwh_m2
     existing_heating_rv_by_year = area_requirements.groupby(level=['building_category', 'year'])['adjusted'].sum()
     return existing_heating_rv_by_year
 
@@ -145,9 +143,9 @@ def calculate_lighting(building_category, purpose):
 
     idx = YearRange(2010, 2050).to_index()
     idx.name='year'
-    energy_requirement = pd.Series([requirement_by_condition['kw_h_m'].iloc[0]] * 41, index=idx,
-                                   name='kw_h_m')
-    end_year_requirement = requirement_by_condition['kw_h_m'].iloc[0] * (1-0.6)
+    energy_requirement = pd.Series([requirement_by_condition['kwh_m2'].iloc[0]] * 41, index=idx,
+                                   name='kwh_m2')
+    end_year_requirement = requirement_by_condition['kwh_m2'].iloc[0] * (1-0.6)
     light_requirements = calculate_lighting_reduction(
             energy_requirement=energy_requirement,
             yearly_reduction=0.005,

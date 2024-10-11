@@ -142,7 +142,7 @@ def calculate_lighting(building_category, purpose):
     requirement_by_condition = pd.merge(lighting, heating_reduction, how='cross')
 
     idx = YearRange(2010, 2050).to_index()
-    idx.name='year'
+    idx.name = 'year'
     energy_requirement = pd.Series([requirement_by_condition['kwh_m2'].iloc[0]] * 41, index=idx,
                                    name='kwh_m2')
     end_year_requirement = requirement_by_condition['kwh_m2'].iloc[0] * (1-0.6)

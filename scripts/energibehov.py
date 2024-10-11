@@ -4,10 +4,11 @@ from ebm.__main__ import calculate_building_category_area_forecast
 from ebm.model import BuildingCategory, DatabaseManager
 from ebm.model.bema import filter_existing_area, calculate_area_distribution
 from ebm.model.building_condition import BuildingCondition
+from ebm.model.data_classes import YearRange
 from ebm.model.energy_requirement import (calculate_energy_requirement_reduction_by_condition,
                                           calculate_energy_requirement_reduction,
                                           calculate_lighting_reduction)
-from model.data_classes import YearRange
+from ebm.services.console import rich_display_dataframe
 
 
 def load_area_forecast(building_category: BuildingCategory = BuildingCategory.KINDERGARTEN) -> pd.DataFrame:
@@ -80,7 +81,7 @@ def calculate_purpose(building_category, purpose):
 
     # heating_reduction.reduction = 0
     area_forecast = load_area_forecast(building_category=building_category)
-    fans_n_pumps_requirements = load_energy_by_floor_area(purpose=purpose)
+    fans_n_pumps_requirements = load_energy_by_floor_area(building_category=building_category, purpose=purpose)
 
     requirement_by_condition = calculate_energy_requirement_reduction_by_condition(
         energy_requirements=fans_n_pumps_requirements,
@@ -130,7 +131,7 @@ def calculate_lighting(building_category, purpose):
 
     # heating_reduction.reduction = 0
     area_forecast = load_area_forecast(building_category=building_category)
-    lighting = load_energy_by_floor_area(purpose=purpose)
+    lighting = load_energy_by_floor_area(building_category=building_category, purpose=purpose)
     requirement_by_condition = pd.merge(lighting, heating_reduction, how='cross')
 
     idx = YearRange(2010, 2050).to_index()
@@ -154,7 +155,7 @@ def calculate_lighting(building_category, purpose):
 
 
 def main():
-    building_category = BuildingCategory.STORAGE_REPAIRS
+    building_category = BuildingCategory.KINDERGARTEN
 
     return pd.DataFrame({'heating_rv': calculate_heating_rv(building_category=building_category),
                          'fans_and_pumps': calculate_purpose(building_category, 'fans_and_pumps'),
@@ -167,4 +168,5 @@ def main():
 df = None
 if __name__ == '__main__':
     df = main()
-    print(df)
+
+    rich_display_dataframe(df)

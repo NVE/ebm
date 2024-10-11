@@ -14,7 +14,7 @@ from rich.console import Console
 from rich.errors import NotRenderableError
 from rich.table import Table
 
-from services.spreadsheet import iter_cells
+from ebm.services.spreadsheet import iter_cells
 
 console = Console()
 

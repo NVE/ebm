@@ -53,50 +53,27 @@ def load_energy_by_floor_area(building_category, purpose='heating_rv'):
     return df
 
 
-def calculate_heating_rv(building_category=BuildingCategory.KINDERGARTEN):
-    heating_reduction = load_heating_reduction('heating_rv')
+def distribute_energy_requirement_over_area(area_forecast, requirement_by_condition):
+    area_requirements = pd.merge(left=area_forecast,
+                                 right=requirement_by_condition,
+                                 on=['building_category', 'TEK', 'building_condition']).copy()
+    area_requirements = area_requirements.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+    existing_area = filter_existing_area(area_forecast)
+    existing_heating_rv_by_year = calculate_area_distribution(area_requirements, existing_area)
+    return existing_heating_rv_by_year
+
+
+def calculate_heating_reduction(building_category=BuildingCategory.KINDERGARTEN, purpose='heating_rv'):
+    heating_reduction = load_heating_reduction(purpose)
 
     area_forecast = load_area_forecast(building_category=building_category)
-    heating_rv_requirements = load_energy_by_floor_area(building_category, purpose='heating_rv')
+    heating_rv_requirements = load_energy_by_floor_area(building_category, purpose=purpose)
 
     requirement_by_condition = calculate_energy_requirement_reduction_by_condition(
         energy_requirements=heating_rv_requirements,
         condition_reduction=heating_reduction)
 
-    area_requirements = pd.merge(left=area_forecast,
-                                 right=requirement_by_condition,
-                                 on=['building_category', 'TEK', 'building_condition']).copy()
-
-    area_requirements = area_requirements.set_index(['building_category', 'TEK', 'building_condition', 'year'])
-
-    existing_area = filter_existing_area(area_forecast)
-    existing_heating_rv_by_year = calculate_area_distribution(area_requirements, existing_area)
-
-    return existing_heating_rv_by_year
-
-
-def calculate_purpose(building_category, purpose):
-    # By default there is no heating_reduction defined for fans n pumps
-    heating_reduction = load_heating_reduction(purpose)
-
-    # heating_reduction.reduction = 0
-    area_forecast = load_area_forecast(building_category=building_category)
-    fans_n_pumps_requirements = load_energy_by_floor_area(building_category=building_category, purpose=purpose)
-
-    requirement_by_condition = calculate_energy_requirement_reduction_by_condition(
-        energy_requirements=fans_n_pumps_requirements,
-        condition_reduction=heating_reduction)
-
-    area_requirements = pd.merge(left=area_forecast,
-                                 right=requirement_by_condition,
-                                 on=['building_category', 'TEK', 'building_condition']).copy()
-
-    area_requirements = area_requirements.set_index(['building_category', 'TEK', 'building_condition', 'year'])
-
-    existing_area = filter_existing_area(area_forecast)
-    existing_heating_rv_by_year = calculate_area_distribution(area_requirements, existing_area)
-
-    return existing_heating_rv_by_year
+    return requirement_by_condition
 
 
 def calculate_electrical_equipment(building_category, purpose):
@@ -155,14 +132,28 @@ def calculate_lighting(building_category, purpose):
 
 
 def main(building_category = BuildingCategory.KINDERGARTEN):
-
-
-    return pd.DataFrame({'heating_rv': calculate_heating_rv(building_category=building_category),
-                         'fans_and_pumps': calculate_purpose(building_category, 'fans_and_pumps'),
-                         'heating_dhw': calculate_purpose(building_category, 'heating_dhw'),
-                         'lighting': calculate_lighting(building_category, 'lighting'),
-                         'electrical_equipment': calculate_electrical_equipment(building_category, 'electrical_equipment'),
-                         'cooling': calculate_purpose(building_category, 'cooling')})
+    area_forecast = load_area_forecast(building_category=building_category)
+    return pd.DataFrame({
+        'heating_rv': distribute_energy_requirement_over_area(
+            area_forecast=area_forecast,
+            requirement_by_condition=calculate_heating_reduction(
+                building_category=building_category)),
+        'fans_and_pumps': distribute_energy_requirement_over_area(
+            area_forecast=area_forecast,
+            requirement_by_condition=calculate_heating_reduction(
+                building_category=building_category, purpose='fans_and_pumps')),
+        'heating_dhw': distribute_energy_requirement_over_area(
+            area_forecast=area_forecast,
+            requirement_by_condition=calculate_heating_reduction(
+                building_category=building_category,
+                purpose='heating_dhw')),
+        'lighting': calculate_lighting(building_category, 'lighting'),
+        'electrical_equipment': calculate_electrical_equipment(building_category, 'electrical_equipment'),
+        'cooling': distribute_energy_requirement_over_area(
+            area_forecast=area_forecast,
+            requirement_by_condition=calculate_heating_reduction(
+                building_category=building_category,
+                purpose='cooling'))})
 
 
 df = None

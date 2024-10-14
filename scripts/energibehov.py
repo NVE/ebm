@@ -102,11 +102,9 @@ def calculate_electrical_equipment(building_category, purpose):
 
 
 def calculate_lighting(building_category, purpose):
-    # By default there is no heating_reduction defined for fans n pumps
     heating_reduction = load_heating_reduction(purpose)
 
     # heating_reduction.reduction = 0
-    area_forecast = load_area_forecast(building_category=building_category)
     lighting = load_energy_by_floor_area(building_category=building_category, purpose=purpose)
     requirement_by_condition = pd.merge(lighting, heating_reduction, how='cross')
 
@@ -121,13 +119,11 @@ def calculate_lighting(building_category, purpose):
             end_year_energy_requirement=end_year_requirement,
             interpolated_reduction_period=YearRange(2018, 2030),
             year_range=YearRange(2010, 2050))
-
-    area_requirements = pd.merge(left=area_forecast, right=light_requirements, left_on='year', right_on='year')
-    area_requirements = area_requirements.set_index(['building_category', 'TEK', 'building_condition', 'year'])
-
-    existing_area = filter_existing_area(area_forecast)
-    existing_heating_rv_by_year = calculate_area_distribution(area_requirements, existing_area)
-    return existing_heating_rv_by_year
+    merged = pd.merge(
+        requirement_by_condition[['building_category', 'TEK', 'building_condition']],
+        pd.DataFrame({'kwh_m2': light_requirements, 'year': light_requirements.index.values}),
+        how='cross')
+    return merged
 
 
 def main(building_category = BuildingCategory.KINDERGARTEN):
@@ -151,7 +147,9 @@ def main(building_category = BuildingCategory.KINDERGARTEN):
             requirement_by_condition=calculate_heating_reduction(
                 building_category=building_category,
                 purpose='heating_dhw')),
-     #   'lighting': calculate_lighting(building_category, 'lighting'),
+        'lighting': distribute_energy_requirement_over_area(
+            area_forecast=area_forecast,
+            requirement_by_condition=calculate_lighting(building_category, 'lighting')),
         'electrical_equipment': distribute_energy_requirement_over_area(
             area_forecast=area_forecast,
             requirement_by_condition=calculate_electrical_equipment(building_category, 'electrical_equipment')),

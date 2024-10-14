@@ -201,4 +201,5 @@ def calculate_area_distribution(area_requirements: pd.DataFrame, existing_area: 
     existing_area['pct'] = existing_area.area / total_area.area
     area_requirements['adjusted'] = existing_area.pct * area_requirements.kwh_m2
     existing_heating_rv_by_year = area_requirements.groupby(level=['building_category', 'year'])['adjusted'].sum()
+    existing_heating_rv_by_year.name = 'kwh_m2'
     return existing_heating_rv_by_year

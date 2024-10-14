@@ -56,7 +56,7 @@ def load_energy_by_floor_area(building_category, purpose='heating_rv'):
 def distribute_energy_requirement_over_area(area_forecast, requirement_by_condition):
     area_requirements = pd.merge(left=area_forecast,
                                  right=requirement_by_condition,
-                                 on=['building_category', 'TEK', 'building_condition']).copy()
+                                 on=['building_category', 'TEK', 'building_condition', 'year']).copy()
     area_requirements = area_requirements.set_index(['building_category', 'TEK', 'building_condition', 'year'])
     existing_area = filter_existing_area(area_forecast)
     existing_heating_rv_by_year = calculate_area_distribution(area_requirements, existing_area)
@@ -66,14 +66,16 @@ def distribute_energy_requirement_over_area(area_forecast, requirement_by_condit
 def calculate_heating_reduction(building_category=BuildingCategory.KINDERGARTEN, purpose='heating_rv'):
     heating_reduction = load_heating_reduction(purpose)
 
-    area_forecast = load_area_forecast(building_category=building_category)
     heating_rv_requirements = load_energy_by_floor_area(building_category, purpose=purpose)
 
     requirement_by_condition = calculate_energy_requirement_reduction_by_condition(
         energy_requirements=heating_rv_requirements,
         condition_reduction=heating_reduction)
-
-    return requirement_by_condition
+   # return requirement_by_condition
+    heating_reduction = pd.merge(left=requirement_by_condition,
+                                 right=pd.DataFrame({'year': YearRange(2010, 2050).year_range}),
+                                 how='cross')
+    return heating_reduction
 
 
 def calculate_electrical_equipment(building_category, purpose):
@@ -81,25 +83,22 @@ def calculate_electrical_equipment(building_category, purpose):
     heating_reduction = load_heating_reduction(purpose)
 
     # heating_reduction.reduction = 0
-    area_forecast = load_area_forecast(building_category=building_category)
     lighting = load_energy_by_floor_area(building_category, purpose=purpose)
     requirement_by_condition = pd.merge(lighting, heating_reduction, how='cross')
 
     idx = YearRange(2010, 2050).to_index()
-    idx.name='year'
+    idx.name = 'year'
     energy_requirement = pd.Series([requirement_by_condition['kwh_m2'].iloc[0]] * 41, index=idx,
                                    name='kwh_m2')
     light_requirements = calculate_energy_requirement_reduction(energy_requirements=energy_requirement,
                                                                 yearly_reduction=0.01,
                                                                 reduction_period=YearRange(2020, 2050))
+    merged = pd.merge(
+        requirement_by_condition[['building_category', 'TEK', 'building_condition']],
+        pd.DataFrame({'kwh_m2': light_requirements, 'year': light_requirements.index.values}),
+        how='cross')
 
-    area_requirements = pd.merge(left=area_forecast, right=light_requirements, left_on='year', right_on='year')
-    area_requirements = area_requirements.set_index(['building_category', 'TEK', 'building_condition', 'year'])
-
-    existing_area = filter_existing_area(area_forecast)
-    existing_heating_rv_by_year = calculate_area_distribution(area_requirements, existing_area)
-
-    return existing_heating_rv_by_year
+    return merged
 
 
 def calculate_lighting(building_category, purpose):
@@ -133,6 +132,11 @@ def calculate_lighting(building_category, purpose):
 
 def main(building_category = BuildingCategory.KINDERGARTEN):
     area_forecast = load_area_forecast(building_category=building_category)
+
+    print(distribute_energy_requirement_over_area(
+            area_forecast=area_forecast,
+            requirement_by_condition=calculate_electrical_equipment(building_category, 'electrical_equipment')))
+
     return pd.DataFrame({
         'heating_rv': distribute_energy_requirement_over_area(
             area_forecast=area_forecast,
@@ -147,13 +151,16 @@ def main(building_category = BuildingCategory.KINDERGARTEN):
             requirement_by_condition=calculate_heating_reduction(
                 building_category=building_category,
                 purpose='heating_dhw')),
-        'lighting': calculate_lighting(building_category, 'lighting'),
-        'electrical_equipment': calculate_electrical_equipment(building_category, 'electrical_equipment'),
+     #   'lighting': calculate_lighting(building_category, 'lighting'),
+        'electrical_equipment': distribute_energy_requirement_over_area(
+            area_forecast=area_forecast,
+            requirement_by_condition=calculate_electrical_equipment(building_category, 'electrical_equipment')),
         'cooling': distribute_energy_requirement_over_area(
             area_forecast=area_forecast,
             requirement_by_condition=calculate_heating_reduction(
                 building_category=building_category,
-                purpose='cooling'))})
+                purpose='cooling'))
+        })
 
 
 df = None

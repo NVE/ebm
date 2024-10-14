@@ -56,6 +56,23 @@ def test_calculate_proportional_energy_change_based_on_end_year():
     pd.testing.assert_series_equal(result, expected)
 
 
+@pytest.mark.skip('Draft test not working')
+def test_calculate_proportional_energy_change_based_on_end_year_with_no_requirement_at_period_end():
+    kwh_m2 = pd.Series(data=[100.0]*8, index=YearRange(2010, 2017), name='kwh_m2')
+
+    result = calculate_proportional_energy_change_based_on_end_year(
+        energy_requirements=kwh_m2,
+        requirement_at_period_end=100.0,
+        period=None
+    )
+
+    expected = pd.Series(data=[100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0],
+                         index=YearRange(2010, 2017),
+                         name='kwh_m2')
+
+    pd.testing.assert_series_equal(result, expected)
+
+
 def test_calculate_proportional_energy_change_based_on_end_year_raise_value_error_when_period_is_missing_from_index():
 
     kwh_m2 = pd.Series(data=[20]*8, index=YearRange(2001, 2008), name='kwh_m2')
@@ -125,6 +142,28 @@ def test_calculate_lighting_reduction():
     assert round(lighting.loc[2036], 5) == 3.53509
     assert round(lighting.loc[2050], 5) == 3.29552
 
+
+@pytest.mark.skip('Draft test not working')
+def test_calculate_lighting_no_reduction():
+    bema_years = YearRange(2010, 2050)
+    normal_energy_requirement = 10
+    energy_requirement = pd.Series(data=[normal_energy_requirement] * len(bema_years),
+                                   index=bema_years,
+                                   name='kwh_m2')
+
+    lighting = calculate_lighting_reduction(energy_requirement,
+                                            yearly_reduction=0.000,
+                                            end_year_energy_requirement=0,
+                                            interpolated_reduction_period=YearRange(2010, 2050),
+                                            year_range=bema_years)
+
+    assert lighting.loc[2010] == 10
+    assert lighting.loc[2018] == 10
+    assert lighting.loc[2019] == 10
+    assert lighting.loc[2030] == 10
+    assert lighting.loc[2031] == 10
+    assert lighting.loc[2036] == 10
+    assert lighting.loc[2050] == 10
 
 
 

@@ -229,7 +229,7 @@ def calculate_energy_requirement_reduction_by_condition(
 
 def calculate_proportional_energy_change_based_on_end_year(
         energy_requirements: pd.Series,
-        requirement_at_period_end: float,
+        requirement_at_period_end: typing.Union[float, None],
         period: YearRange) -> pd.Series:
     """
     Calculate proportional energy savings to a Pandas Series over a specified period.
@@ -252,6 +252,8 @@ def calculate_proportional_energy_change_based_on_end_year(
     ValueError
         If period is a subset of the years in the energy_requirements index.
     """
+    if requirement_at_period_end is None:
+        return energy_requirements
     if not all(year in energy_requirements.index for year in period):
         msg = f'Did not find all years from {period.start} - {period.end} in energy_requirements'
         raise ValueError(msg)

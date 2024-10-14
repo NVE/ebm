@@ -78,9 +78,8 @@ def calculate_heating_reduction(building_category=BuildingCategory.KINDERGARTEN,
     return heating_reduction
 
 
-def calculate_electrical_equipment(building_category, purpose):
+def calculate_electrical_equipment(building_category, heating_reduction, purpose):
     # By default there is no heating_reduction defined for fans n pumps
-    heating_reduction = load_heating_reduction(purpose)
 
     # heating_reduction.reduction = 0
     lighting = load_energy_by_floor_area(building_category, purpose=purpose)
@@ -129,10 +128,6 @@ def calculate_lighting(building_category, purpose):
 def main(building_category = BuildingCategory.KINDERGARTEN):
     area_forecast = load_area_forecast(building_category=building_category)
 
-    print(distribute_energy_requirement_over_area(
-            area_forecast=area_forecast,
-            requirement_by_condition=calculate_electrical_equipment(building_category, 'electrical_equipment')))
-
     return pd.DataFrame({
         'heating_rv': distribute_energy_requirement_over_area(
             area_forecast=area_forecast,
@@ -152,7 +147,10 @@ def main(building_category = BuildingCategory.KINDERGARTEN):
             requirement_by_condition=calculate_lighting(building_category, 'lighting')),
         'electrical_equipment': distribute_energy_requirement_over_area(
             area_forecast=area_forecast,
-            requirement_by_condition=calculate_electrical_equipment(building_category, 'electrical_equipment')),
+            requirement_by_condition=calculate_electrical_equipment(
+                building_category=building_category,
+                heating_reduction=load_heating_reduction('electrical_equipment'),
+                purpose='electrical_equipment')),
         'cooling': distribute_energy_requirement_over_area(
             area_forecast=area_forecast,
             requirement_by_condition=calculate_heating_reduction(

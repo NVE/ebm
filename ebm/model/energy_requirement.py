@@ -9,6 +9,62 @@ from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
 
 
+class EnergyRequirementFilter:
+    def __init__(self,
+                 building_category: BuildingCategory,
+                 energy_requirement_original_condition,
+                 energy_requirement_reduction_per_condition,
+                 energy_requirement_yearly_improvements,
+                 energy_requirement_policy_improvement):
+        self.building_category = building_category
+        self.energy_requirement_policy_improvement = energy_requirement_policy_improvement
+        self.energy_requirement_yearly_improvements = energy_requirement_yearly_improvements
+        self.energy_requirement_reduction_per_condition = energy_requirement_reduction_per_condition
+        if not isinstance(energy_requirement_original_condition, pd.DataFrame):
+            actual_type = type(energy_requirement_original_condition)
+            msg = f'energy_requirement_original_condition is expected to be pd.DataFrame. Got: {actual_type}'
+            raise TypeError(msg)
+        self.original_condition = energy_requirement_original_condition
+
+    def get_original_condition(self, tek, purpose) -> float:
+        return float(self.original_condition[
+            (self.original_condition.building_category == self.building_category) &
+            (self.original_condition.TEK == tek) &
+            (self.original_condition.purpose == purpose)].kwh_m2)
+        return 0.0
+
+    def get_reduction_per_condition(self, purpose, building_condition) -> float:
+        return 0.0
+
+    def get_policy_improvement(self, tek, purpose) -> typing.Union[typing.Tuple[YearRange, typing.Union[float, None]]]:
+        if purpose == 'lighting':
+            return YearRange(2018, 2030), 0.6
+        return YearRange(2010, 2050), None
+
+    def get_yearly_improvements(self, tek, purpose) -> float:
+        if purpose == 'electrical_equipment':
+            return 0.01
+        if purpose == 'lighting':
+            return 0.005
+        return 0.0
+
+
+class EnergyRequirementCalculator:
+
+    def __init__(self,
+                 original_condition,
+                 reduction_per_condition,
+                 yearly_improvements,
+                 policy_improvements):
+        self.original_condition = original_condition
+        self.reduction_per_condition = reduction_per_condition
+        self.yearly_improvements = yearly_improvements
+        self.policy_improvements = policy_improvements
+
+    def calculate(self):
+        return None
+
+
 class EnergyRequirement:
     """
     """

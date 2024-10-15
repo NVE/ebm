@@ -136,31 +136,30 @@ building_category	TEK	purpose	kwh_m2
 
 
     def _filter_df(self, df: pd.DataFrame, filter_col: str, filter_val: typing.Union[BuildingCategory, EnergyPurpose, str]) -> pd.DataFrame:
-        pass
+        """
+        """
+        if filter_val in df[filter_col].unique():
+            return df[df[filter_col] == filter_val]
+        elif self.DEFAULT in df[filter_col].unique():
+            return df[df[filter_col] == self.DEFAULT]
+        else:
+            return False
 
     def get_policy_improvement(self, tek: str, purpose: EnergyPurpose) -> typing.Union[typing.Tuple[YearRange, float], None]:
-
+        """
+        """
         df = self.energy_requirement_policy_improvement
 
-        if self.building_category in df[self.BUILDING_CATEGORY].unique():
-            df = df[df[self.BUILDING_CATEGORY] == self.building_category]
-        elif self.DEFAULT in df[self.BUILDING_CATEGORY].unique():
-            df = df[df[self.BUILDING_CATEGORY] == self.DEFAULT]
-        else:
-            return None 
-
-        if purpose in df[self.PURPOSE].unique():
-            df = df[df[self.PURPOSE] == purpose] 
-        elif self.DEFAULT in df[self.PURPOSE].unique():
-            df = df[df[self.PURPOSE] == self.DEFAULT]
-        else:
+        df = self._filter_df(df, self.BUILDING_CATEGORY, self.building_category)
+        if df is False:
             return None
 
-        if tek in df[self.TEK].unique():
-            df = df[df[self.TEK] == tek]
-        elif self.DEFAULT in df[self.TEK].unique():
-            df = df[df[self.TEK] == self.DEFAULT]
-        else: 
+        df = self._filter_df(df, self.PURPOSE, purpose)
+        if df is False:
+            return None
+
+        df = self._filter_df(df, self.TEK, tek)
+        if df is False:
             return None
         
         start = df.period_start_year.iloc[0]

@@ -200,6 +200,7 @@ class DatabaseManager():
         """
         """
         original_df = self.file_handler.get_energy_req_original_condition()
+        return original_df
         df = self.filter_df_on_building_category(original_df, building_category)
         return df 
 

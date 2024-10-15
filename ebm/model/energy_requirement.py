@@ -1,8 +1,10 @@
+import itertools
 import typing
 
 import numpy as np
 import pandas as pd
 
+from ebm.model import DatabaseManager
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
@@ -32,15 +34,16 @@ class EnergyRequirement:
     """
 
     # TODO: add input params for yearly efficiency improvements and policy measure improvements
-    def __init__(self,
-                 building_category: BuildingCategory,
-                 energy_by_floor_area: typing.Dict[EnergyPurpose, typing.Dict[str, float]], 
-                 heating_reduction: typing.Dict[str, typing.Dict[BuildingCondition, float]],
-                 area_forecast: typing.Dict[str, typing.Dict[BuildingCondition, pd.Series]],
-                 tek_list: typing.List[str],   
-                 # tek_params: typing.Dict[str, TEKParameters],
-                 calibration_year: int = 2019,
-                 period: YearRange = YearRange(2010, 2050)) -> None:
+    def __init__(self): #,
+                # building_category: BuildingCategory,
+                # energy_by_floor_area: typing.Dict[EnergyPurpose, typing.Dict[str, float]],
+                # heating_reduction: typing.Dict[str, typing.Dict[BuildingCondition, float]],
+                # area_forecast: typing.Dict[str, typing.Dict[BuildingCondition, pd.Series]],
+                # tek_list: typing.List[str],
+                # # tek_params: typing.Dict[str, TEKParameters],
+                # calibration_year: int = 2019,
+                # period: YearRange = YearRange(2010, 2050)) -> None:
+        return
         
         self.building_category = building_category  
         self.energy_by_floor_area = energy_by_floor_area
@@ -53,7 +56,7 @@ class EnergyRequirement:
         
     def get_energy_req_per_condition(
             self,
-            energy_req_purpose: typing.Dict[str, typing.Union[float, pd.Series]]) \
+            energy_req_purpose: typing.Dict[str, typing.Union[float, pd.Series]] = None) \
             -> typing.Dict[str, typing.Dict[BuildingCondition, typing.Union[float, pd.Series]]]:
         """
         Take dict for a single purpose and distribute the energy req values on the different building conditions.
@@ -70,6 +73,46 @@ class EnergyRequirement:
         note:
         - the values can either be
         """
+        #PRE_TEK49_RES_1950
+        TEK = '''PRE_TEK49_COM
+        TEK49_COM
+        TEK69_COM
+        TEK87_RES
+        TEK87_COM
+        TEK97_COM
+        TEK07
+        TEK10
+        TEK17
+        TEK21'''.strip().split('\n')
+
+        for building_category in [b for b in BuildingCategory if not b.is_residential()]:
+            er_filter = EnergyRequirementFilter(building_category, DatabaseManager().get_energy_req_original_condition(
+                building_category=building_category), None, None, None)
+            for tek, purpose in itertools.product(TEK,  [str(p) for p in EnergyPurpose]):
+                building_conditions = [b for b in BuildingCondition if b != BuildingCondition.DEMOLITION]
+
+                energy_requirement_original_condition = er_filter.get_original_condition(
+                    tek=tek, purpose=purpose)
+                yearly_improvements = er_filter.get_yearly_improvements(tek=tek, purpose=purpose)
+                reduction_share = er_filter.get_reduction_per_condition(purpose=purpose, tek=tek)
+                policy_improvement = er_filter.get_policy_improvement(
+                    tek=tek, purpose=purpose)
+
+                requirement_by_condition = calculate_energy_requirement_reduction_by_condition(
+                    energy_requirements=energy_requirement_original_condition,
+                    condition_reduction=reduction_share)
+
+                heating_reduction = pd.merge(left=requirement_by_condition,
+                                             right=pd.DataFrame({'year': YearRange(2010, 2050).year_range}),
+                                             how='cross')
+
+                print(building_category, tek, purpose, building_conditions)
+
+                yield heating_reduction
+
+
+
+
         pass
 
     def calc_heating_rv_reduction(self):

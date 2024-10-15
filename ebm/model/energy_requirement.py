@@ -1,6 +1,7 @@
 import itertools
 import typing
 
+from loguru import logger
 import numpy as np
 import pandas as pd
 
@@ -75,15 +76,14 @@ class EnergyRequirement:
         """
         #PRE_TEK49_RES_1950
         TEK = '''PRE_TEK49_COM
-        TEK49_COM
-        TEK69_COM
-        TEK87_RES
-        TEK87_COM
-        TEK97_COM
-        TEK07
-        TEK10
-        TEK17
-        TEK21'''.strip().split('\n')
+TEK49_COM
+TEK69_COM
+TEK87_COM
+TEK97_COM
+TEK07
+TEK10
+TEK17
+TEK21'''.strip().split('\n')
 
         for building_category in [b for b in BuildingCategory if not b.is_residential()]:
             er_filter = EnergyRequirementFilter(building_category, DatabaseManager().get_energy_req_original_condition(
@@ -106,11 +106,10 @@ class EnergyRequirement:
                                              right=pd.DataFrame({'year': YearRange(2010, 2050).year_range}),
                                              how='cross')
 
-                print(building_category, tek, purpose, building_conditions)
+                logger.info(building_category, tek, purpose, building_conditions)
 
                 if policy_improvement[1]:
                     for building_condition in building_conditions:
-
                         kwh_m2 = heating_reduction[heating_reduction['building_condition'] == building_condition].copy().set_index('year').kwh_m2
                         kwh_m2.name = 'kwh_m2'
                         energy_req_end = kwh_m2.iloc[0] * (1-0.6)
@@ -118,15 +117,11 @@ class EnergyRequirement:
                             kwh_m2,
                             energy_req_end,
                             policy_improvement[0])
-                        #heating_reduction.loc[heating_reduction['building_condition'] == building_condition] , 'kwh_m2'] = kwh_m2_policy
-                        print(kwh_m2_policy)
+                        heating_reduction.loc[
+                            heating_reduction['building_condition'] == building_condition, 'kwh_m2'] = kwh_m2_policy.values
 
                 yield heating_reduction
 
-
-
-
-        pass
 
     def calc_heating_rv_reduction(self):
         """

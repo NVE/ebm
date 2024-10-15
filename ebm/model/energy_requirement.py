@@ -108,6 +108,19 @@ class EnergyRequirement:
 
                 print(building_category, tek, purpose, building_conditions)
 
+                if policy_improvement[1]:
+                    for building_condition in building_conditions:
+
+                        kwh_m2 = heating_reduction[heating_reduction['building_condition'] == building_condition].copy().set_index('year').kwh_m2
+                        kwh_m2.name = 'kwh_m2'
+                        energy_req_end = kwh_m2.iloc[0] * (1-0.6)
+                        kwh_m2_policy = calculate_proportional_energy_change_based_on_end_year(
+                            kwh_m2,
+                            energy_req_end,
+                            policy_improvement[0])
+                        #heating_reduction.loc[heating_reduction['building_condition'] == building_condition] , 'kwh_m2'] = kwh_m2_policy
+                        print(kwh_m2_policy)
+
                 yield heating_reduction
 
 

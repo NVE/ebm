@@ -98,4 +98,17 @@ def test_get_policy_improvement_use_default(original_condition, policy_improveme
                                          policy_improvement)
     
     assert e_r_filter.get_policy_improvement(tek='TEK17', purpose='cooling') == (YearRange(2011, 2012), 0.5)
+
+
+def test_get_policy_improvement_filter_purpose_and_tek(original_condition, policy_improvement):
+    policy_improvement = pd.read_csv(io.StringIO("""
+                         building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
+                         default,TEK01,lighting,2011,2012,0.1
+                         default,default,heating_rv,2012,2013,0.2""".strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(BuildingCategory.KINDERGARTEN,
+                                         original_condition,
+                                         None,
+                                         None,
+                                         policy_improvement)
     
+    assert e_r_filter.get_policy_improvement(tek='TEK01', purpose='heating_rv') == (YearRange(2012, 2013), 0.2)

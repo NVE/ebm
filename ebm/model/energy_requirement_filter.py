@@ -135,28 +135,13 @@ building_category	TEK	purpose	kwh_m2
             return YearRange(start, end), improvement_value
 
         df = self.energy_requirement_policy_improvement
-        #tek = tek if df.TEK.unique() else 'default'
-        #purpose = purpose if df.purpose.unique() else 'default'
-
-        if purpose in df.purpose.unique():
-            df = df[df.purpose == purpose]
-            if tek in df.TEK.unique():
-                df = df[df.TEK == tek]
-                return filter_return_values(df)
-            elif 'default' in df.TEK.unique():
-                df = df[df.TEK == 'default']
-                return filter_return_values(df)            
-       
-        elif 'default' in df.purpose.unique():
-            df = df[df.purpose == 'default']
-            if tek in df.TEK.unique():
-                df = df[df.TEK == tek]
-                return filter_return_values(df)
-            elif 'default' in df.TEK.unique():
-                df = df[df.TEK == 'default']
-                return filter_return_values(df)
-        return None
-
+        tek = tek if tek in df.TEK.unique() else 'default'
+        purpose = purpose if purpose in df.purpose.unique() else 'default'
+        df = df[((df.TEK == tek) | (df.TEK == 'default')) & 
+                ((df.purpose == purpose) | (df.purpose == 'default'))]
+        if len(df) == 0:
+            return None
+        return filter_return_values(df)
 
     def get_yearly_improvements(self, tek, purpose) -> float:
         if purpose == 'electrical_equipment':

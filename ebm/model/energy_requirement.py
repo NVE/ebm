@@ -107,9 +107,8 @@ TEK21'''.strip().split('\n')
                                              how='cross')
 
                 logger.info(building_category, tek, purpose, building_conditions)
-
-                if policy_improvement[1]:
-                    for building_condition in building_conditions:
+                for building_condition in building_conditions:
+                    if policy_improvement[1]:
                         kwh_m2 = heating_reduction[heating_reduction['building_condition'] == building_condition].copy().set_index('year').kwh_m2
                         kwh_m2.name = 'kwh_m2'
                         energy_req_end = kwh_m2.iloc[0] * (1-0.6)
@@ -117,9 +116,21 @@ TEK21'''.strip().split('\n')
                             kwh_m2,
                             energy_req_end,
                             policy_improvement[0])
+                        improvement = calculate_energy_requirement_reduction(
+                            kwh_m2_policy,
+                            yearly_improvements,
+                            YearRange(2031, 2050))
                         heating_reduction.loc[
-                            heating_reduction['building_condition'] == building_condition, 'kwh_m2'] = kwh_m2_policy.values
+                            heating_reduction['building_condition'] == building_condition, 'kwh_m2'] = improvement.values
+                    else:
+                        kwh_m2 = heating_reduction[heating_reduction['building_condition'] == building_condition].copy().set_index('year').kwh_m2
+                        kwh_m2.name = 'kwh_m2'
+                        improvement = calculate_energy_requirement_reduction(
+                            kwh_m2,
+                            yearly_improvements,
+                            YearRange(2018, 2050))
 
+                        heating_reduction.loc[heating_reduction['building_condition'] == building_condition, 'kwh_m2'] = improvement.values
                 yield heating_reduction
 
 

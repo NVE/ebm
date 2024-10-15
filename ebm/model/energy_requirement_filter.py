@@ -3,24 +3,35 @@ import typing
 import pandas as pd
 from ebm.model import BuildingCategory
 from ebm.model.data_classes import YearRange
+from ebm.model.energy_purpose import EnergyPurpose
 
 
 class EnergyRequirementFilter:
+    
+    
+    
     def __init__(self,
                  building_category: BuildingCategory,
                  energy_requirement_original_condition,
                  energy_requirement_reduction_per_condition,
                  energy_requirement_yearly_improvements,
                  energy_requirement_policy_improvement):
+        def _check_var_type(var:any, var_name:str):
+            if not isinstance(var, pd.DataFrame):
+                actual_type = type(var)
+                msg = f'{var_name} is expected to be pd.DataFrame. Got: {actual_type}'
+                raise TypeError(msg)
+
         self.building_category = building_category
+        
+        _check_var_type(energy_requirement_original_condition, 'energy_requirement_original_condition')
+        _check_var_type(energy_requirement_policy_improvement, 'energy_requirement_policy_improvement')
+                
+        self.original_condition = energy_requirement_original_condition
         self.energy_requirement_policy_improvement = energy_requirement_policy_improvement
         self.energy_requirement_yearly_improvements = energy_requirement_yearly_improvements
         self.energy_requirement_reduction_per_condition = energy_requirement_reduction_per_condition
-        if not isinstance(energy_requirement_original_condition, pd.DataFrame):
-            actual_type = type(energy_requirement_original_condition)
-            msg = f'energy_requirement_original_condition is expected to be pd.DataFrame. Got: {actual_type}'
-            raise TypeError(msg)
-        self.original_condition = energy_requirement_original_condition
+        
 
     def get_original_condition(self, tek, purpose) -> pd.DataFrame:
         """
@@ -116,10 +127,36 @@ building_category	TEK	purpose	kwh_m2
                                 3: 'renovation_and_small_measure'},
          'reduction': {0: 0.0, 1: 0, 2: 0, 3: 0}})
 
-    def get_policy_improvement(self, tek, purpose) -> typing.Union[typing.Tuple[YearRange, float], None]:
-        if purpose == 'lighting':
-            return YearRange(2018, 2030), 0.6
-        return YearRange(2010, 2050), None
+    def get_policy_improvement(self, tek: str, purpose: EnergyPurpose) -> typing.Union[typing.Tuple[YearRange, float], None]:
+        def filter_return_values(df):
+            start = df.period_start_year.iloc[0]
+            end = df.period_end_year.iloc[0]
+            improvement_value = df.improvement_at_period_end.iloc[0]
+            return YearRange(start, end), improvement_value
+
+        df = self.energy_requirement_policy_improvement
+        #tek = tek if df.TEK.unique() else 'default'
+        #purpose = purpose if df.purpose.unique() else 'default'
+
+        if purpose in df.purpose.unique():
+            df = df[df.purpose == purpose]
+            if tek in df.TEK.unique():
+                df = df[df.TEK == tek]
+                return filter_return_values(df)
+            elif 'default' in df.TEK.unique():
+                df = df[df.TEK == 'default']
+                return filter_return_values(df)            
+       
+        elif 'default' in df.purpose.unique():
+            df = df[df.purpose == 'default']
+            if tek in df.TEK.unique():
+                df = df[df.TEK == tek]
+                return filter_return_values(df)
+            elif 'default' in df.TEK.unique():
+                df = df[df.TEK == 'default']
+                return filter_return_values(df)
+        return None
+
 
     def get_yearly_improvements(self, tek, purpose) -> float:
         if purpose == 'electrical_equipment':

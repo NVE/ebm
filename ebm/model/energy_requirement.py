@@ -75,20 +75,32 @@ class EnergyRequirement:
         - the values can either be
         """
         #PRE_TEK49_RES_1950
-        TEK = '''PRE_TEK49_COM
+        TEK = '''PRE_TEK49_RES_1950
+PRE_TEK49_RES_1940
+PRE_TEK49_COM
+TEK49_RES
 TEK49_COM
+TEK69_RES_1976
+TEK69_RES_1986
 TEK69_COM
+TEK87_RES
 TEK87_COM
+TEK97_RES
 TEK97_COM
 TEK07
 TEK10
 TEK17
 TEK21'''.strip().split('\n')
 
-        for building_category in [b for b in BuildingCategory if not b.is_residential()]:
+        for building_category in [b for b in BuildingCategory]:
             er_filter = EnergyRequirementFilter(building_category, DatabaseManager().get_energy_req_original_condition(
                 building_category=building_category), None, None, None)
             for tek, purpose in itertools.product(TEK,  [str(p) for p in EnergyPurpose]):
+                if not building_category.is_residential() and 'RES' in tek:
+                    continue
+                if building_category.is_residential() and 'COM' in tek:
+                    continue
+
                 building_conditions = [b for b in BuildingCondition if b != BuildingCondition.DEMOLITION]
 
                 energy_requirement_original_condition = er_filter.get_original_condition(
@@ -106,7 +118,6 @@ TEK21'''.strip().split('\n')
                                              right=pd.DataFrame({'year': YearRange(2010, 2050).year_range}),
                                              how='cross')
 
-                logger.info(building_category, tek, purpose, building_conditions)
                 for building_condition in building_conditions:
                     if policy_improvement[1]:
                         kwh_m2 = heating_reduction[heating_reduction['building_condition'] == building_condition].copy().set_index('year').kwh_m2
@@ -132,7 +143,6 @@ TEK21'''.strip().split('\n')
 
                         heating_reduction.loc[heating_reduction['building_condition'] == building_condition, 'kwh_m2'] = improvement.values
                 yield heating_reduction
-
 
     def calc_heating_rv_reduction(self):
         """

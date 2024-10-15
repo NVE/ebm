@@ -116,7 +116,7 @@ building_category	TEK	purpose	kwh_m2
                                 3: 'renovation_and_small_measure'},
          'reduction': {0: 0.0, 1: 0, 2: 0, 3: 0}})
 
-    def get_policy_improvement(self, tek, purpose) -> typing.Union[typing.Tuple[YearRange, typing.Union[float, None]]]:
+    def get_policy_improvement(self, tek, purpose) -> typing.Union[typing.Tuple[YearRange, float], None]:
         if purpose == 'lighting':
             return YearRange(2018, 2030), 0.6
         return YearRange(2010, 2050), None

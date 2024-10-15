@@ -42,10 +42,8 @@ def test_energy_requirement_filter_returns_correct_bema_defaults(energy_requirem
                                          None,
                                          None,
                                          None)
-
     assert e_r_filter.get_yearly_improvements(tek='default', purpose='electrical_equipment') == 0.01
     assert e_r_filter.get_yearly_improvements(tek='default', purpose='lighting') == 0.005
-    assert e_r_filter.get_policy_improvement(tek='default', purpose='lighting') == (YearRange(2018, 2030), 0.6)
     assert e_r_filter.get_reduction_per_condition(purpose='default', building_condition='default') == 0.0
 
 
@@ -68,3 +66,13 @@ apartment_block,TEK07,default,7.0""".strip()))
                                          energy_requirement_policy_improvement=None)
     assert e_r_filter.get_original_condition(tek='PRE_TEK49_RES_1950', purpose='cooling') == 1.1
     assert e_r_filter.get_original_condition(tek='TEK07', purpose='electrical_equipment') == 2.2
+
+
+def test_get_policy_improvement_correct_defaults(energy_requirement_original_condition):
+    e_r_filter = EnergyRequirementFilter(BuildingCategory.KINDERGARTEN,
+                                         energy_requirement_original_condition,
+                                         None,
+                                         None,
+                                         None)
+
+    assert e_r_filter.get_policy_improvement(tek='default', purpose='lighting') == (YearRange(2018, 2030), 0.6)

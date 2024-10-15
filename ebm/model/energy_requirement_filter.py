@@ -8,7 +8,14 @@ from ebm.model.energy_purpose import EnergyPurpose
 
 class EnergyRequirementFilter:
     
-    
+    # Column names
+    BUILDING_CATEGORY = 'building_category'
+    TEK = 'TEK'
+    PURPOSE = 'purpose'
+    START_YEAR = 'period_start_year'
+    END_YEAR = 'period_end_year'
+
+    DEFAULT = 'default'
     
     def __init__(self,
                  building_category: BuildingCategory,
@@ -127,21 +134,40 @@ building_category	TEK	purpose	kwh_m2
                                 3: 'renovation_and_small_measure'},
          'reduction': {0: 0.0, 1: 0, 2: 0, 3: 0}})
 
+
+    def _filter_df(self, df: pd.DataFrame, filter_col: str, filter_val: typing.Union[BuildingCategory, EnergyPurpose, str]) -> pd.DataFrame:
+        pass
+
     def get_policy_improvement(self, tek: str, purpose: EnergyPurpose) -> typing.Union[typing.Tuple[YearRange, float], None]:
-        def filter_return_values(df):
-            start = df.period_start_year.iloc[0]
-            end = df.period_end_year.iloc[0]
-            improvement_value = df.improvement_at_period_end.iloc[0]
-            return YearRange(start, end), improvement_value
 
         df = self.energy_requirement_policy_improvement
-        tek = tek if tek in df.TEK.unique() else 'default'
-        purpose = purpose if purpose in df.purpose.unique() else 'default'
-        df = df[((df.TEK == tek) | (df.TEK == 'default')) & 
-                ((df.purpose == purpose) | (df.purpose == 'default'))]
-        if len(df) == 0:
+
+        if self.building_category in df[self.BUILDING_CATEGORY].unique():
+            df = df[df[self.BUILDING_CATEGORY] == self.building_category]
+        elif self.DEFAULT in df[self.BUILDING_CATEGORY].unique():
+            df = df[df[self.BUILDING_CATEGORY] == self.DEFAULT]
+        else:
+            return None 
+
+        if purpose in df[self.PURPOSE].unique():
+            df = df[df[self.PURPOSE] == purpose] 
+        elif self.DEFAULT in df[self.PURPOSE].unique():
+            df = df[df[self.PURPOSE] == self.DEFAULT]
+        else:
             return None
-        return filter_return_values(df)
+
+        if tek in df[self.TEK].unique():
+            df = df[df[self.TEK] == tek]
+        elif self.DEFAULT in df[self.TEK].unique():
+            df = df[df[self.TEK] == self.DEFAULT]
+        else: 
+            return None
+        
+        start = df.period_start_year.iloc[0]
+        end = df.period_end_year.iloc[0]
+        improvement_value = df.improvement_at_period_end.iloc[0]
+
+        return YearRange(start, end), improvement_value
 
     def get_yearly_improvements(self, tek, purpose) -> float:
         if purpose == 'electrical_equipment':

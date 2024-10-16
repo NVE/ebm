@@ -172,11 +172,14 @@ building_category	TEK	purpose	kwh_m2
 
         return YearRange(start, end), improvement_value
 
-    def get_yearly_improvements(self, tek, purpose) -> float:
-        
+    def get_yearly_improvements(self, tek: str, purpose: EnergyPurpose) -> float:
         df = self.energy_requirement_yearly_improvements
 
         false_return_value = 0.0
+
+        df = self._filter_df(df, self.BUILDING_CATEGORY, self.building_category)
+        if df is False:
+            return false_return_value
 
         df = self._filter_df(df, self.PURPOSE, purpose)
         if df is False:

@@ -176,32 +176,6 @@ def test_get_policy_improvement_filter_purpose_and_tek(default_parameters):
     assert e_r_filter.get_policy_improvement(tek='TEK01', purpose='heating_rv') == (YearRange(2012, 2013), 0.2)
 
 
-def test_get_policy_improvement_filter_building_category_return_default_building_category(default_parameters):
-    policy_improvement = pd.read_csv(io.StringIO("""
-                         building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
-                         default,TEK01,lighting,2011,2012,0.1
-                         house,TEK01,lighting,2012,2013,0.2""".strip()), skipinitialspace=True)
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
-                                            'building_category': BuildingCategory.KINDERGARTEN,
-                                            'policy_improvement': policy_improvement})
-
-    tek01_and_lighting = e_r_filter.get_policy_improvement(tek='TEK01', purpose=EnergyPurpose.LIGHTING)
-    assert tek01_and_lighting == (YearRange(2011, 2012), 0.1)
-
-
-def test_get_policy_improvement_filter_building_category_return_default_building_category(default_parameters):
-    policy_improvement = pd.read_csv(io.StringIO("""
-                         building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
-                         default,TEK01,lighting,2011,2012,0.1
-                         house,TEK01,lighting,2012,2013,0.2""".strip()), skipinitialspace=True)
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
-                                            'building_category': BuildingCategory.KINDERGARTEN,
-                                            'policy_improvement': policy_improvement})
-
-    tek01_and_lighting = e_r_filter.get_policy_improvement(tek='TEK01', purpose=EnergyPurpose.LIGHTING)
-    assert tek01_and_lighting == (YearRange(2011, 2012), 0.1)
-
-
 def test_get_policy_improvement_filter_building_category_none(default_parameters):
     policy_improvement = pd.read_csv(io.StringIO("""
                          building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
@@ -215,21 +189,49 @@ def test_get_policy_improvement_filter_building_category_none(default_parameters
 
 # -------------------------------------- get_yearly_improvements -------------------------------------
 
-def test_get_yearly_improvements_filter_purpose(default_parameters):
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 'building_category': BuildingCategory.HOUSE})
-
-    assert e_r_filter.get_yearly_improvements(tek='default', purpose='electrical_equipment') == 0.1
-
-def test_get_yearly_improvements_filter_purpuse_use_default(default_parameters):
+def test_get_yearly_improvements_use_default(default_parameters):
     yearly_improvements = pd.read_csv(io.StringIO("""
             building_category,TEK,purpose,yearly_efficiency_improvement
             default,default,default,0.9
+            """.strip()), skipinitialspace=True)
+    
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
+                                            'building_category': BuildingCategory.HOUSE,
+                                            'yearly_improvements': yearly_improvements})
+    
+    house_tek01_cooling = e_r_filter.get_yearly_improvements(tek='TEK01', purpose=EnergyPurpose.COOLING)
+    assert house_tek01_cooling == 0.9
+
+def test_get_yearly_improvements_filter_building_category(default_parameters):
+    yearly_improvements = pd.read_csv(io.StringIO("""
+            building_category,TEK,purpose,yearly_efficiency_improvement
+            kindergarten,default,default,0.9
+            house,default,default,0.123
             """.strip()), skipinitialspace=True)
     e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
                                             'building_category': BuildingCategory.HOUSE,
                                             'yearly_improvements': yearly_improvements})
     
-    assert e_r_filter.get_yearly_improvements(tek='default', purpose='not_a_purpose') == 0.9
+    house_tek01_cooling = e_r_filter.get_yearly_improvements(tek='TEK01', purpose=EnergyPurpose.COOLING) 
+    assert house_tek01_cooling == 0.123
+
+def test_get_yearly_improvements_building_category_not_in_df(default_parameters):
+    yearly_improvements = pd.read_csv(io.StringIO("""
+            building_category,TEK,purpose,yearly_efficiency_improvement
+            kindergarten,default,default,0.9
+            """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
+                                            'building_category': BuildingCategory.HOUSE,
+                                            'yearly_improvements': yearly_improvements})
+    
+    house_tek01_cooling = e_r_filter.get_yearly_improvements(tek='TEK01', purpose=EnergyPurpose.COOLING) 
+    assert house_tek01_cooling == 0.0
+
+def test_get_yearly_improvements_filter_purpose(default_parameters):
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 'building_category': BuildingCategory.HOUSE})
+    
+    default_and_lighting = e_r_filter.get_yearly_improvements(tek='default', purpose=EnergyPurpose.LIGHTING)
+    assert default_and_lighting == 0.05
 
 def test_get_yearly_improvements_purpose_not_in_df(default_parameters):
     yearly_improvements = pd.read_csv(io.StringIO("""
@@ -239,5 +241,29 @@ def test_get_yearly_improvements_purpose_not_in_df(default_parameters):
     e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
                                             'building_category': BuildingCategory.HOUSE,
                                             'yearly_improvements': yearly_improvements})
+    default_and_not_a_purpose = e_r_filter.get_yearly_improvements(tek='default', purpose='not_a_purpose')
+    assert default_and_not_a_purpose == 0.0
+
+def test_get_yearly_improvements_filter_tek(default_parameters):
+    yearly_improvements = pd.read_csv(io.StringIO("""
+            building_category,TEK,purpose,yearly_efficiency_improvement
+            default,TEK01,cooling,0.1
+            """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
+                                            'building_category': BuildingCategory.HOUSE,
+                                            'yearly_improvements': yearly_improvements})
     
-    assert e_r_filter.get_yearly_improvements(tek='default', purpose='not_a_purpose') == 0.0
+    tek01_and_cooling = e_r_filter.get_yearly_improvements(tek='TEK01', purpose=EnergyPurpose.COOLING) 
+    assert tek01_and_cooling == 0.1
+
+def test_get_yearly_improvements_tek_not_in_df(default_parameters):
+    yearly_improvements = pd.read_csv(io.StringIO("""
+            building_category,TEK,purpose,yearly_efficiency_improvement
+            default,TEK01,cooling,0.1
+            """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
+                                            'building_category': BuildingCategory.HOUSE,
+                                            'yearly_improvements': yearly_improvements})
+    
+    tek02_and_cooling = e_r_filter.get_yearly_improvements(tek='TEK02', purpose=EnergyPurpose.COOLING) 
+    assert tek02_and_cooling == 0.0

@@ -11,6 +11,7 @@ from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.energy_requirement_filter import EnergyRequirementFilter
+from ebm.model.filter_tek import FilterTek
 
 
 class EnergyRequirement:
@@ -21,83 +22,101 @@ class EnergyRequirement:
     def __init__(self,
                  tek_list: typing.List[str],
                  period: YearRange = YearRange(2010, 2050),
-                 calibration_year: int = 2019):
+                 calibration_year: int = 1999):
         self.tek_list = tek_list
         self.period = period
         self.calibration_year = calibration_year
+        if calibration_year not in period.subset(1):
+            logger.warning(f'Calibration year {calibration_year} is outside period {period.start}-{period.end}')
+        elif calibration_year == period.start:
+            logger.warning(f'Calibration year {calibration_year} is same as start year {period.start}')
 
-        
-    def get_energy_req_per_condition(
-            self,
-            energy_req_purpose: typing.Dict[str, typing.Union[float, pd.Series]] = None) \
-            -> typing.Dict[str, typing.Dict[BuildingCondition, typing.Union[float, pd.Series]]]:
+    def calculate_for_building_category(self, building_category: BuildingCategory) \
+            -> typing.Iterable[pd.Series]:
         """
-        Take dict for a single purpose and distribute the energy req values on the different building conditions.
-        Note: building_condition demolition cannot be used.
+        Calculates energy requirements for a single building category
 
         Parameters
         ----------
-        - dict for a single purpose (keys are TEK identifiers, values are either floats or series)
+        building_category : BuildingCategory
 
         Returns
         -------
-        - altered purpose dict, where building condition keys are added and values are the energy requirement
+        Iterable of pd.Series
+            indexed by year, building_category, TEK, purpose, building_condition
+            column kwh_m2 representing energy requirement
 
-        note:
-        - the values can either be
         """
+        er_filter = EnergyRequirementFilter(building_category, DatabaseManager().get_energy_req_original_condition(
+            building_category=building_category), None, None, None)
+        
+        for tek, purpose in itertools.product(FilterTek.get_filtered_list(building_category, self.tek_list),
+                                              [str(p) for p in EnergyPurpose]):
+            energy_requirement_original_condition = er_filter.get_original_condition(tek=tek, purpose=purpose)
+            yearly_improvements = er_filter.get_yearly_improvements(tek=tek, purpose=purpose)
+            reduction_share = er_filter.get_reduction_per_condition(purpose=purpose, tek=tek)
+            policy_improvement = er_filter.get_policy_improvement(tek=tek, purpose=purpose)
 
-        for building_category in [b for b in BuildingCategory]:
-            er_filter = EnergyRequirementFilter(building_category, DatabaseManager().get_energy_req_original_condition(
-                building_category=building_category), None, None, None)
-            for tek, purpose in itertools.product(self.tek_list,  [str(p) for p in EnergyPurpose]):
-                if not building_category.is_residential() and 'RES' in tek:
-                    continue
-                if building_category.is_residential() and 'COM' in tek:
-                    continue
+            requirement_by_condition = calculate_energy_requirement_reduction_by_condition(
+                energy_requirements=energy_requirement_original_condition,
+                condition_reduction=reduction_share)
 
-                building_conditions = [b for b in BuildingCondition if b != BuildingCondition.DEMOLITION]
+            heating_reduction = pd.merge(left=requirement_by_condition,
+                                         right=pd.DataFrame({'year': self.period.year_range}),
+                                         how='cross')
 
-                energy_requirement_original_condition = er_filter.get_original_condition(
-                    tek=tek, purpose=purpose)
-                yearly_improvements = er_filter.get_yearly_improvements(tek=tek, purpose=purpose)
-                reduction_share = er_filter.get_reduction_per_condition(purpose=purpose, tek=tek)
-                policy_improvement = er_filter.get_policy_improvement(
-                    tek=tek, purpose=purpose)
+            for building_condition in BuildingCondition.existing_conditions():
+                if policy_improvement[1]:
+                    kwh_m2 = heating_reduction[
+                        heating_reduction['building_condition'] == building_condition].copy().set_index('year').kwh_m2
+                    kwh_m2.name = 'kwh_m2'
+                    energy_req_end = kwh_m2.iloc[0] * (1 - 0.6)
+                    kwh_m2_policy = calculate_proportional_energy_change_based_on_end_year(
+                        kwh_m2,
+                        energy_req_end,
+                        policy_improvement[0])
+                    improvement = calculate_energy_requirement_reduction(
+                        kwh_m2_policy,
+                        yearly_improvements,
+                        YearRange(2031, self.period.end))
+                    heating_reduction.loc[
+                        heating_reduction['building_condition'] == building_condition, 'kwh_m2'] = improvement.values
+                else:
+                    kwh_m2 = heating_reduction[
+                        heating_reduction['building_condition'] == building_condition].copy().set_index('year').kwh_m2
+                    kwh_m2.name = 'kwh_m2'
+                    improvement = calculate_energy_requirement_reduction(
+                        kwh_m2,
+                        yearly_improvements,
+                        YearRange(self.calibration_year - 1, self.period.end))
 
-                requirement_by_condition = calculate_energy_requirement_reduction_by_condition(
-                    energy_requirements=energy_requirement_original_condition,
-                    condition_reduction=reduction_share)
+                    heating_reduction.loc[
+                        heating_reduction['building_condition'] == building_condition, 'kwh_m2'] = improvement.values
+            yield heating_reduction
 
-                heating_reduction = pd.merge(left=requirement_by_condition,
-                                             right=pd.DataFrame({'year': YearRange(2010, 2050).year_range}),
-                                             how='cross')
+    def calculate_energy_requirements(
+            self,
+            building_categories: typing.Iterable[BuildingCategory] = None) -> typing.Iterable[pd.Series]:
+        """
+        Calculates energy requirements for building categories
 
-                for building_condition in building_conditions:
-                    if policy_improvement[1]:
-                        kwh_m2 = heating_reduction[heating_reduction['building_condition'] == building_condition].copy().set_index('year').kwh_m2
-                        kwh_m2.name = 'kwh_m2'
-                        energy_req_end = kwh_m2.iloc[0] * (1-0.6)
-                        kwh_m2_policy = calculate_proportional_energy_change_based_on_end_year(
-                            kwh_m2,
-                            energy_req_end,
-                            policy_improvement[0])
-                        improvement = calculate_energy_requirement_reduction(
-                            kwh_m2_policy,
-                            yearly_improvements,
-                            YearRange(2031, 2050))
-                        heating_reduction.loc[
-                            heating_reduction['building_condition'] == building_condition, 'kwh_m2'] = improvement.values
-                    else:
-                        kwh_m2 = heating_reduction[heating_reduction['building_condition'] == building_condition].copy().set_index('year').kwh_m2
-                        kwh_m2.name = 'kwh_m2'
-                        improvement = calculate_energy_requirement_reduction(
-                            kwh_m2,
-                            yearly_improvements,
-                            YearRange(2018, 2050))
+        Parameters
+        ----------
+        building_categories : Iterable[BuildingCategory]
+            Iterable containing building categories on which to calculate energy requirements.
 
-                        heating_reduction.loc[heating_reduction['building_condition'] == building_condition, 'kwh_m2'] = improvement.values
-                yield heating_reduction
+        Returns
+        -------
+        Iterable of pd.Series
+            indexed by year, building_category, TEK, purpose, building_condition
+            column kwh_m2 representing energy requirement
+
+        """
+        building_categories = building_categories if building_categories else iter(BuildingCategory)
+
+        for building_category in building_categories:
+            yield from self.calculate_for_building_category(building_category)
+
 
     @staticmethod
     def new_instance(database_manager=None):
@@ -264,7 +283,7 @@ def calculate_lighting_reduction(energy_requirement: pd.Series,
 if __name__ == '__main__':
     er = EnergyRequirement.new_instance()
     energy_requirements = []
-    for s in er.get_energy_req_per_condition():
+    for s in er.calculate_energy_requirements():
         energy_requirements.append(s)
 
     df = pd.concat(energy_requirements).set_index(['year', 'building_category', 'TEK', 'purpose', 'building_condition'])

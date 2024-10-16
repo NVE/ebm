@@ -210,5 +210,19 @@ def test_get_yearly_improvements_filter_purpose(original_condition, reduction_pe
                                          yearly_improvements,
                                          policy_improvement)
     
-    assert e_r_filter.get_yearly_improvements(tek='default', purpose='electrical_equipment') == 0.01
-    assert e_r_filter.get_yearly_improvements(tek='default', purpose='lighting') == 0.005
+    assert e_r_filter.get_yearly_improvements(tek='default', purpose='electrical_equipment') == 0.1
+    assert e_r_filter.get_yearly_improvements(tek='default', purpose='lighting') == 0.05
+
+def test_get_yearly_improvements_missing_purpose_none(original_condition, reduction_per_condition, yearly_improvements, policy_improvement):
+    yearly_improvements = pd.read_csv(io.StringIO("""
+            building_category,TEK,purpose,yearly_efficiency_improvement
+            default,default,cooling,0.0
+
+            """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(BuildingCategory.HOUSE,
+                                         original_condition,
+                                         reduction_per_condition,
+                                         yearly_improvements,
+                                         policy_improvement)
+    
+    assert e_r_filter.get_yearly_improvements(tek='default', purpose='electrical_equipment') == 0.0

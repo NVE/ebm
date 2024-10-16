@@ -170,8 +170,18 @@ building_category	TEK	purpose	kwh_m2
         return YearRange(start, end), improvement_value
 
     def get_yearly_improvements(self, tek, purpose) -> float:
-        if purpose == 'electrical_equipment':
-            return 0.01
-        if purpose == 'lighting':
-            return 0.005
-        return 0.0
+        
+        df = self.energy_requirement_yearly_improvements
+
+        false_return_value = 0.0
+
+        df = self._filter_df(df, self.PURPOSE, purpose)
+        if df is False:
+            return false_return_value
+        
+        df = self._filter_df(df, self.TEK, tek)
+        if df is False:
+            return false_return_value
+        
+        eff_rate = df.yearly_efficiency_improvement.iloc[0]
+        return eff_rate

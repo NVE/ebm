@@ -100,8 +100,11 @@ def test_energy_requirement_returns_original_condition_from_dataframe(original_c
                                          reduction_per_condition,
                                          yearly_improvements,
                                          policy_improvement)
-    assert e_r_filter.get_original_condition(tek='PRE_TEK49_RES_1950', purpose='cooling') == 1.1
-    assert e_r_filter.get_original_condition(tek='TEK07', purpose='electrical_equipment') == 2.2
+    pre_tek49_cooling = e_r_filter.get_original_condition(tek='PRE_TEK49_RES_1950', purpose='cooling')
+    assert pre_tek49_cooling.iloc[0].kwh_m2 == 1.1
+
+    tek07_and_electical_equipment = e_r_filter.get_original_condition(tek='TEK07', purpose='electrical_equipment')
+    assert tek07_and_electical_equipment.iloc[0].kwh_m2 == 2.2
 
 # -------------------------------------- get_reduction_per_condition ---------------------------------
 

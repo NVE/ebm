@@ -28,17 +28,18 @@ class EnergyRequirementFilter:
                 actual_type = type(var)
                 msg = f'{var_name} is expected to be pd.DataFrame. Got: {actual_type}'
                 raise TypeError(msg)
-
-        self.building_category = building_category
         
         _check_var_type(energy_requirement_original_condition, 'energy_requirement_original_condition')
+        _check_var_type(energy_requirement_reduction_per_condition, 'energy_requirement_reduction_per_condition')
         _check_var_type(energy_requirement_policy_improvement, 'energy_requirement_policy_improvement')
-                
+        _check_var_type(energy_requirement_yearly_improvements, 'energy_requirement_yearly_improvements')
+
+        self.building_category = building_category                
         self.original_condition = energy_requirement_original_condition
-        self.energy_requirement_policy_improvement = energy_requirement_policy_improvement
-        self.energy_requirement_yearly_improvements = energy_requirement_yearly_improvements
         self.energy_requirement_reduction_per_condition = energy_requirement_reduction_per_condition
-        
+        self.energy_requirement_yearly_improvements = energy_requirement_yearly_improvements
+        self.energy_requirement_policy_improvement = energy_requirement_policy_improvement
+
 
     def get_original_condition(self, tek, purpose) -> pd.DataFrame:
         """

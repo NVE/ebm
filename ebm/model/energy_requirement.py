@@ -259,3 +259,14 @@ def calculate_lighting_reduction(energy_requirement: pd.Series,
         reduction_period=YearRange(interpolated_reduction_period.end + 1, year_range.end))
 
     return lighting
+
+
+if __name__ == '__main__':
+    er = EnergyRequirement.new_instance()
+    energy_requirements = []
+    for s in er.get_energy_req_per_condition():
+        energy_requirements.append(s)
+
+    df = pd.concat(energy_requirements).set_index(['year', 'building_category', 'TEK', 'purpose', 'building_condition'])
+    print(df)
+    

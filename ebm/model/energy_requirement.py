@@ -78,7 +78,7 @@ class EnergyRequirement:
                     improvement = calculate_energy_requirement_reduction(
                         kwh_m2_policy,
                         yearly_improvements,
-                        YearRange(2031, self.period.end))
+                        YearRange(policy_improvement[0].end + 1, self.period.end))
                     heating_reduction.loc[
                         heating_reduction['building_condition'] == building_condition, 'kwh_m2'] = improvement.values
                 else:
@@ -92,7 +92,12 @@ class EnergyRequirement:
 
                     heating_reduction.loc[
                         heating_reduction['building_condition'] == building_condition, 'kwh_m2'] = improvement.values
-            yield heating_reduction.set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year']).kwh_m2
+
+                result = heating_reduction.loc[heating_reduction['building_condition'] == building_condition]
+                result = result.set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year'])
+                yield result.kwh_m2
+
+
 
     def calculate_energy_requirements(
             self,

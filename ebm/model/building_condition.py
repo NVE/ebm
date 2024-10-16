@@ -60,6 +60,17 @@ class BuildingCondition(StrEnum):
         condition_list = [condition.value for condition in iter(BuildingCondition)]
         return condition_list
 
+    @staticmethod
+    def existing_conditions() -> typing.Iterable['BuildingCondition']:
+        """
+        Returns all BuildingCondition except demolition
+
+        Returns
+        -------
+            Iterable of all BuildingCondition except demolition
+        """
+        yield from (b for b in BuildingCondition if b != BuildingCondition.DEMOLITION)
+
 
 if __name__ == '__main__':
     for building_condition in BuildingCondition:

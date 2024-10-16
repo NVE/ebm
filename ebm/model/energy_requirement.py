@@ -92,7 +92,7 @@ class EnergyRequirement:
 
                     heating_reduction.loc[
                         heating_reduction['building_condition'] == building_condition, 'kwh_m2'] = improvement.values
-            yield heating_reduction
+            yield heating_reduction.set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year']).kwh_m2
 
     def calculate_energy_requirements(
             self,
@@ -282,10 +282,6 @@ def calculate_lighting_reduction(energy_requirement: pd.Series,
 
 if __name__ == '__main__':
     er = EnergyRequirement.new_instance()
-    energy_requirements = []
-    for s in er.calculate_energy_requirements():
-        energy_requirements.append(s)
-
-    df = pd.concat(energy_requirements).set_index(['year', 'building_category', 'TEK', 'purpose', 'building_condition'])
+    df = pd.concat([s for s in er.calculate_energy_requirements()])
     print(df)
     

@@ -12,14 +12,6 @@ from ebm.model.energy_requirement import (calculate_energy_requirement_reduction
 from ebm.services.console import rich_display_dataframe
 
 
-
-
-
-
-
-
-
-
 def distribute_energy_requirement_over_area(area_forecast, requirement_by_condition):
     area_requirements = pd.merge(left=area_forecast,
                                  right=requirement_by_condition,

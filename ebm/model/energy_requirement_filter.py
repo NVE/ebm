@@ -19,26 +19,26 @@ class EnergyRequirementFilter:
 
     def __init__(self,
                  building_category: BuildingCategory,
-                 energy_requirement_original_condition,
-                 energy_requirement_reduction_per_condition,
-                 energy_requirement_yearly_improvements,
-                 energy_requirement_policy_improvement):
+                 original_condition,
+                 reduction_per_condition,
+                 yearly_improvements,
+                 policy_improvement):
         def _check_var_type(var: any, var_name: str):
             if not isinstance(var, pd.DataFrame):
                 actual_type = type(var)
-                msg = f'{var_name} is expected to be pd.DataFrame. Got: {actual_type}'
+                msg = f'{var_name} expected to be of type pd.DataFrame. Got: {actual_type}'
                 raise TypeError(msg)
 
-        _check_var_type(energy_requirement_original_condition, 'energy_requirement_original_condition')
-        _check_var_type(energy_requirement_reduction_per_condition, 'energy_requirement_reduction_per_condition')
-        _check_var_type(energy_requirement_policy_improvement, 'energy_requirement_policy_improvement')
-        _check_var_type(energy_requirement_yearly_improvements, 'energy_requirement_yearly_improvements')
+        _check_var_type(original_condition, 'energy_requirement_original_condition')
+        _check_var_type(reduction_per_condition, 'energy_requirement_reduction_per_condition')
+        _check_var_type(policy_improvement, 'energy_requirement_policy_improvement')
+        _check_var_type(yearly_improvements, 'energy_requirement_yearly_improvements')
 
         self.building_category = building_category
-        self.original_condition = energy_requirement_original_condition
-        self.energy_requirement_reduction_per_condition = energy_requirement_reduction_per_condition
-        self.energy_requirement_yearly_improvements = energy_requirement_yearly_improvements
-        self.energy_requirement_policy_improvement = energy_requirement_policy_improvement
+        self.original_condition = original_condition
+        self.energy_requirement_reduction_per_condition = reduction_per_condition
+        self.energy_requirement_yearly_improvements = yearly_improvements
+        self.energy_requirement_policy_improvement = policy_improvement
 
     def get_original_condition(self, tek, purpose) -> pd.DataFrame:
         """

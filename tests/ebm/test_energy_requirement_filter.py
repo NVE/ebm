@@ -64,51 +64,42 @@ def yearly_improvements():
             default,default,lighting,0.05
             """.strip()), skipinitialspace=True)
 
+
+@pytest.fixture
+def default_parameters(original_condition, reduction_per_condition, yearly_improvements, policy_improvement) \
+        -> typing.Dict[str, pd.DataFrame]:
+    return {'building_category': BuildingCategory.APARTMENT_BLOCK,
+            'original_condition': original_condition,
+            'reduction_per_condition': reduction_per_condition,
+            'yearly_improvements': yearly_improvements,
+            'policy_improvement': policy_improvement}
+
+
 # -------------------------------------- init method ------------------------------------------------
 
-def test_instance_var_dtype(original_condition, reduction_per_condition, yearly_improvements, policy_improvement):
-    with pytest.raises(TypeError):
-        EnergyRequirementFilter(BuildingCategory.APARTMENT_BLOCK,
-                                None,
-                                reduction_per_condition,
-                                yearly_improvements,
-                                policy_improvement)
+def test_instance_var_dtype(default_parameters):
+    with pytest.raises(TypeError, match="_condition expected to be of type pd.DataFrame. Got: <class 'NoneType'>"):
+        EnergyRequirementFilter(**{**default_parameters, 'original_condition': None})
 
     with pytest.raises(TypeError):
-        EnergyRequirementFilter(BuildingCategory.APARTMENT_BLOCK,
-                                original_condition,
-                                None,
-                                yearly_improvements,
-                                policy_improvement)
+        EnergyRequirementFilter(**{**default_parameters, 'reduction_per_condition': None})
 
     with pytest.raises(TypeError):
-        EnergyRequirementFilter(BuildingCategory.APARTMENT_BLOCK,
-                                original_condition,
-                                reduction_per_condition,
-                                None,
-                                policy_improvement)
+        EnergyRequirementFilter(**{**default_parameters, 'yearly_improvements': None})
 
     with pytest.raises(TypeError):
-        EnergyRequirementFilter(BuildingCategory.APARTMENT_BLOCK,
-                                original_condition,
-                                reduction_per_condition,
-                                yearly_improvements,
-                                None)
+        EnergyRequirementFilter(**{**default_parameters, 'policy_improvement': None})
 
 
 # -------------------------------------- get_original condition --------------------------------------
 
-def test_energy_requirement_returns_original_condition_from_dataframe(original_condition, reduction_per_condition, yearly_improvements, policy_improvement):
-    e_r_filter = EnergyRequirementFilter(BuildingCategory.APARTMENT_BLOCK,
-                                         original_condition,
-                                         reduction_per_condition,
-                                         yearly_improvements,
-                                         policy_improvement)
-    pre_tek49_cooling = e_r_filter.get_original_condition(tek='PRE_TEK49_RES_1950', purpose='cooling')
+def test_energy_requirement_returns_original_condition_from_dataframe(default_parameters):
+    e_r_filter = EnergyRequirementFilter(**default_parameters)
+    pre_tek49_cooling = e_r_filter.get_original_condition(tek='PRE_TEK49_RES_1950', purpose=EnergyPurpose.COOLING)
     assert pre_tek49_cooling.iloc[0].kwh_m2 == 1.1
 
-    tek07_and_electical_equipment = e_r_filter.get_original_condition(tek='TEK07', purpose='electrical_equipment')
-    assert tek07_and_electical_equipment.iloc[0].kwh_m2 == 2.2
+    tek07_and_electrical_equipment = e_r_filter.get_original_condition(tek='TEK07', purpose='electrical_equipment')
+    assert tek07_and_electrical_equipment.iloc[0].kwh_m2 == 2.2
 
 
 # -------------------------------------- get_reduction_per_condition ---------------------------------
@@ -117,123 +108,94 @@ def test_energy_requirement_returns_original_condition_from_dataframe(original_c
 
 # -------------------------------------- get_policy_improvement --------------------------------------
 
-def test_get_policy_improvement_filter_purpose(original_condition, reduction_per_condition, yearly_improvements,
-                                               policy_improvement):
-    e_r_filter = EnergyRequirementFilter(BuildingCategory.KINDERGARTEN,
-                                         original_condition,
-                                         reduction_per_condition,
-                                         yearly_improvements,
-                                         policy_improvement)
+def test_get_policy_improvement_filter_purpose(default_parameters):
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 'building_category': BuildingCategory.KINDERGARTEN})
 
-    assert e_r_filter.get_policy_improvement(tek='default', purpose=EnergyPurpose.LIGHTING) == (
-    YearRange(2011, 2012), 0.5)
+    assert e_r_filter.get_policy_improvement(tek='default',
+                                             purpose=EnergyPurpose.LIGHTING) == (YearRange(2011, 2012), 0.5)
     assert e_r_filter.get_policy_improvement(tek='default', purpose='meaningoflife') is None
 
 
-def test_get_policy_improvement_filter_tek(original_condition, reduction_per_condition, yearly_improvements,
-                                           policy_improvement):
+def test_get_policy_improvement_filter_tek(default_parameters):
     policy_improvement = pd.read_csv(io.StringIO("""
                          building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
                          default,default,lighting,2011,2012,0.5
                          default,TEK17,lighting,2012,2013,0.9""".strip()), skipinitialspace=True)
-    e_r_filter = EnergyRequirementFilter(BuildingCategory.KINDERGARTEN,
-                                         original_condition,
-                                         reduction_per_condition,
-                                         yearly_improvements,
-                                         policy_improvement)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
+                                            'building_category': BuildingCategory.KINDERGARTEN,
+                                            'policy_improvement': policy_improvement})
 
-    assert e_r_filter.get_policy_improvement(tek='TEK17', purpose=EnergyPurpose.LIGHTING) == (
-    YearRange(2012, 2013), 0.9)
-    assert e_r_filter.get_policy_improvement(tek='meaningoflife', purpose=EnergyPurpose.LIGHTING) == (
-    YearRange(2011, 2012), 0.5)
+    tek17_and_lighting = e_r_filter.get_policy_improvement(tek='TEK17', purpose=EnergyPurpose.LIGHTING)
+    assert tek17_and_lighting == (YearRange(2012, 2013), 0.9)
+
+    unknown_tek_and_lighting = e_r_filter.get_policy_improvement(tek='meaningoflife', purpose=EnergyPurpose.LIGHTING)
+    assert unknown_tek_and_lighting == (YearRange(2011, 2012), 0.5)
 
 
-def test_get_policy_improvement_use_default(original_condition, reduction_per_condition, yearly_improvements,
-                                            policy_improvement):
+def test_get_policy_improvement_use_default(default_parameters):
     policy_improvement = pd.read_csv(io.StringIO("""
                          building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
                          default,default,default,2011,2012,0.5""".strip()), skipinitialspace=True)
-    e_r_filter = EnergyRequirementFilter(BuildingCategory.KINDERGARTEN,
-                                         original_condition,
-                                         reduction_per_condition,
-                                         yearly_improvements,
-                                         policy_improvement)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
+                                            'building_category': BuildingCategory.KINDERGARTEN,
+                                            'policy_improvement': policy_improvement})
 
     assert e_r_filter.get_policy_improvement(tek='TEK17', purpose=EnergyPurpose.COOLING) == (YearRange(2011, 2012), 0.5)
 
 
-def test_get_policy_improvement_filter_purpose_and_tek(original_condition, reduction_per_condition, yearly_improvements,
-                                                       policy_improvement):
+def test_get_policy_improvement_filter_purpose_and_tek(default_parameters):
     policy_improvement = pd.read_csv(io.StringIO("""
                          building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
                          default,TEK01,lighting,2011,2012,0.1
                          default,default,heating_rv,2012,2013,0.2""".strip()), skipinitialspace=True)
-    e_r_filter = EnergyRequirementFilter(BuildingCategory.KINDERGARTEN,
-                                         original_condition,
-                                         reduction_per_condition,
-                                         yearly_improvements,
-                                         policy_improvement)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
+                                            'building_category': BuildingCategory.KINDERGARTEN,
+                                            'policy_improvement': policy_improvement})
 
     assert e_r_filter.get_policy_improvement(tek='TEK01', purpose='heating_rv') == (YearRange(2012, 2013), 0.2)
 
 
-def test_get_policy_improvement_filter_building_category(original_condition, reduction_per_condition,
-                                                         yearly_improvements, policy_improvement):
+def test_get_policy_improvement_filter_building_category_return_default_building_category(default_parameters):
     policy_improvement = pd.read_csv(io.StringIO("""
                          building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
                          default,TEK01,lighting,2011,2012,0.1
                          house,TEK01,lighting,2012,2013,0.2""".strip()), skipinitialspace=True)
-    e_r_filter = EnergyRequirementFilter(BuildingCategory.HOUSE,
-                                         original_condition,
-                                         reduction_per_condition,
-                                         yearly_improvements,
-                                         policy_improvement)
-
-    tek01_and_lighting = e_r_filter.get_policy_improvement(tek='TEK01', purpose=EnergyPurpose.LIGHTING)
-    assert tek01_and_lighting == (YearRange(2012, 2013), 0.2)
-
-
-def test_get_policy_improvement_filter_building_category_default(original_condition, reduction_per_condition,
-                                                                 yearly_improvements, policy_improvement):
-    policy_improvement = pd.read_csv(io.StringIO("""
-                         building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
-                         default,TEK01,lighting,2011,2012,0.1
-                         house,TEK01,lighting,2012,2013,0.2""".strip()), skipinitialspace=True)
-    e_r_filter = EnergyRequirementFilter(BuildingCategory.KINDERGARTEN,
-                                         original_condition,
-                                         reduction_per_condition,
-                                         yearly_improvements,
-                                         policy_improvement)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
+                                            'building_category': BuildingCategory.KINDERGARTEN,
+                                            'policy_improvement': policy_improvement})
 
     tek01_and_lighting = e_r_filter.get_policy_improvement(tek='TEK01', purpose=EnergyPurpose.LIGHTING)
     assert tek01_and_lighting == (YearRange(2011, 2012), 0.1)
 
 
-def test_get_policy_improvement_filter_building_category_none(original_condition,
-                                                              reduction_per_condition,
-                                                              yearly_improvements,
-                                                              policy_improvement):
+def test_get_policy_improvement_filter_building_category_return_default_building_category(default_parameters):
+    policy_improvement = pd.read_csv(io.StringIO("""
+                         building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
+                         default,TEK01,lighting,2011,2012,0.1
+                         house,TEK01,lighting,2012,2013,0.2""".strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
+                                            'building_category': BuildingCategory.KINDERGARTEN,
+                                            'policy_improvement': policy_improvement})
+
+    tek01_and_lighting = e_r_filter.get_policy_improvement(tek='TEK01', purpose=EnergyPurpose.LIGHTING)
+    assert tek01_and_lighting == (YearRange(2011, 2012), 0.1)
+
+
+def test_get_policy_improvement_filter_building_category_none(default_parameters):
     policy_improvement = pd.read_csv(io.StringIO("""
                          building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
                          house,TEK01,lighting,2012,2013,0.2""".strip()), skipinitialspace=True)
-    e_r_filter = EnergyRequirementFilter(BuildingCategory.KINDERGARTEN,
-                                         original_condition,
-                                         reduction_per_condition,
-                                         yearly_improvements,
-                                         policy_improvement)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
+                                            'building_category': BuildingCategory.KINDERGARTEN,
+                                            'policy_improvement': policy_improvement})
 
     assert e_r_filter.get_policy_improvement(tek='TEK01', purpose=EnergyPurpose.LIGHTING) is None
 
 
 # -------------------------------------- get_yearly_improvements -------------------------------------
 
-def test_get_yearly_improvements_filter_purpose(original_condition, reduction_per_condition, yearly_improvements,
-                                                policy_improvement):
-    e_r_filter = EnergyRequirementFilter(BuildingCategory.HOUSE,
-                                         original_condition,
-                                         reduction_per_condition,
-                                         yearly_improvements,
-                                         policy_improvement)
+def test_get_yearly_improvements_filter_purpose(default_parameters):
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 'building_category': BuildingCategory.HOUSE})
 
     assert e_r_filter.get_yearly_improvements(tek='default', purpose='electrical_equipment') == 0.01
     assert e_r_filter.get_yearly_improvements(tek='default', purpose=EnergyPurpose.LIGHTING) == 0.005

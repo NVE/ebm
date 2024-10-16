@@ -69,6 +69,8 @@ building_category	TEK	purpose	kwh_m2
                 self.original_condition.TEK == tek) & (self.original_condition.purpose == purpose)]
         if len(df):
             return df
+        #TODO: return should be df, per tek and purpose, with value 0, when no conditions are met
+        #TODO: throw logger.error
         return pd.DataFrame(data={'building_category': {286: self.building_category,
                                                         292: self.building_category,
                                                         298: self.building_category,
@@ -105,6 +107,7 @@ building_category	TEK	purpose	kwh_m2
                                              322: 170.3831314118222,
                                              328: 138.9320403843025,
                                              334: 111.3845937143784}})
+
 
     def get_reduction_per_condition(self, purpose: str, tek: str) -> pd.DataFrame:
         """

@@ -91,6 +91,27 @@ def test_instance_var_dtype(default_parameters):
         EnergyRequirementFilter(**{**default_parameters, 'policy_improvement': None})
 
 
+# -------------------------------------- _filter_df ---------------------------------------------------
+#TODO: evaluate if this edge case should be allowed or not 
+def test_filter_df_filter_val_edge_case(default_parameters):
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
+                                            'building_category': 'not_a_building_category'})
+    
+    df = pd.read_csv(io.StringIO("""
+            building_category,TEK,purpose,value
+            default,default,default,100
+            """.strip()), skipinitialspace=True)
+    
+    # If allowed this should pass:
+    assert e_r_filter._filter_df(df, 'building_category', 'not_a_building_category').value.iloc[0] == 100
+    assert e_r_filter._filter_df(df, 'purpose', 'not_a_purpose').value.iloc[0] == 100
+    assert e_r_filter._filter_df(df, 'TEK', 'not_a_tek').value.iloc[0] == 100
+    
+    ## if not allowed this should pass:
+    #assert e_r_filter._filter_df(df, 'building_category', 'not_a_building_category') is False
+    #assert e_r_filter._filter_df(df, 'purpose', 'not_a_purpose') is False
+    #assert e_r_filter._filter_df(df, 'TEK', 'not_a_tek') is False
+
 # -------------------------------------- get_original condition --------------------------------------
 
 def test_energy_requirement_returns_original_condition_from_dataframe(default_parameters):
@@ -198,18 +219,25 @@ def test_get_yearly_improvements_filter_purpose(default_parameters):
     e_r_filter = EnergyRequirementFilter(**{**default_parameters, 'building_category': BuildingCategory.HOUSE})
 
     assert e_r_filter.get_yearly_improvements(tek='default', purpose='electrical_equipment') == 0.1
-    assert e_r_filter.get_yearly_improvements(tek='default', purpose=EnergyPurpose.LIGHTING) == 0.05
 
-def test_get_yearly_improvements_missing_purpose_none(original_condition, reduction_per_condition, yearly_improvements, policy_improvement):
+def test_get_yearly_improvements_filter_purpuse_use_default(default_parameters):
     yearly_improvements = pd.read_csv(io.StringIO("""
             building_category,TEK,purpose,yearly_efficiency_improvement
-            default,default,cooling,0.0
-
+            default,default,default,0.9
             """.strip()), skipinitialspace=True)
-    e_r_filter = EnergyRequirementFilter(BuildingCategory.HOUSE,
-                                         original_condition,
-                                         reduction_per_condition,
-                                         yearly_improvements,
-                                         policy_improvement)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
+                                            'building_category': BuildingCategory.HOUSE,
+                                            'yearly_improvements': yearly_improvements})
     
-    assert e_r_filter.get_yearly_improvements(tek='default', purpose='electrical_equipment') == 0.0
+    assert e_r_filter.get_yearly_improvements(tek='default', purpose='not_a_purpose') == 0.9
+
+def test_get_yearly_improvements_purpose_not_in_df(default_parameters):
+    yearly_improvements = pd.read_csv(io.StringIO("""
+            building_category,TEK,purpose,yearly_efficiency_improvement
+            default,default,electrical_equipment,0.1
+            """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
+                                            'building_category': BuildingCategory.HOUSE,
+                                            'yearly_improvements': yearly_improvements})
+    
+    assert e_r_filter.get_yearly_improvements(tek='default', purpose='not_a_purpose') == 0.0

@@ -153,7 +153,7 @@ def calculate_energy_requirement_reduction_by_condition(
     """
     df = pd.merge(energy_requirements, condition_reduction, how='cross')
 
-    df.kwh_m2 = df.kwh_m2 * (1.0 - df['reduction'])
+    df.kwh_m2 = df.kwh_m2 * (1.0 - df['reduction_share'])
 
     return df[['building_category',
                'TEK',

@@ -50,6 +50,21 @@ class EnergyRequirementFilter:
     def _filter_df(self, df: pd.DataFrame, filter_col: str,
                    filter_val: typing.Union[BuildingCategory, EnergyPurpose, str]) -> pd.DataFrame:
         """
+         Filters the given DataFrame based on the specified column and value.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The DataFrame to filter.
+        filter_col : str
+            The column name to apply the filter on.
+        filter_val : BuildingCategory, EnergyPurpose, or str
+            The value to filter the DataFrame by.
+
+        Returns
+        -------
+        pd.DataFrame or bool
+            The filtered DataFrame or False if the filter value and default value are not found.
         """
         if filter_val in df[filter_col].unique():
             return df[df[filter_col] == filter_val]
@@ -59,20 +74,21 @@ class EnergyRequirementFilter:
             return False
     
     #TODO: should this return a dataframe or just the kwh_m2 value?
-    def get_original_condition(self, tek, purpose) -> pd.DataFrame:
+    def get_original_condition(self, tek: str, purpose: EnergyPurpose) -> pd.DataFrame:
         """
-        Returns a dataframe with original condition energy use for a building_category
-        filtered by tek and purpose
+        Retrieves a dataframe with the energy requirement (kwh_m2) for original condition.
+
+        If the specified conditions are not found, returns a default DataFrame with a kwh_m2 value of 0 and logs an error.
 
         Parameters
         ----------
-        tek
-        purpose
+        tek: str
+        purpose: EnergyPurpose
 
         Returns
         -------
         pd.DataFrame
-            columns: building_category, TEK, purpose, kwh_m2
+            A DataFrame with columns: building_category, TEK, purpose, kwh_m2.
         """
         df = self.original_condition
         
@@ -104,17 +120,19 @@ class EnergyRequirementFilter:
 
     def get_reduction_per_condition(self, tek: str, purpose: EnergyPurpose) -> pd.DataFrame:
         """
-        Returns energy use reduction for building condition
+        Retrieves  the energy requirement reduction share for the different building conditions.
+
+        If the specified conditions are not found, returns a default DataFrame with zero reduction shares.
 
         Parameters
         ----------
         tek : str
-        purpose : str
+        purpose : EnergyPurpose
 
         Returns
         -------
         pd.DataFrame
-            columns building_condition, reduction_share
+            A DataFrame with columns: building_condition, reduction_share.
         """
         df = self.reduction_per_condition
 
@@ -145,6 +163,20 @@ class EnergyRequirementFilter:
                                tek: str,
                                purpose: typing.Union[EnergyPurpose, str]) -> \
             typing.Union[typing.Tuple[YearRange, float], None]:
+        """
+        Retrieves the policy improvement period and the energy requirement reduction value.    
+
+        Parameters
+        ----------
+        tek: str
+        purpose: EnergyPurpose
+
+        Returns
+        -------
+        tuple of (YearRange, float) or None
+                A tuple containing the YearRange for the policy improvement period and 
+                the improvement value, or None if not found.
+        """
         df = self.policy_improvement
 
         false_return_value = None
@@ -168,6 +200,21 @@ class EnergyRequirementFilter:
         return YearRange(start, end), improvement_value
 
     def get_yearly_improvements(self, tek: str, purpose: EnergyPurpose) -> float:
+        """
+        Retrieves the yearly efficiency rate for energy requirement improvements.   
+
+        If the specified conditions are not found, returns a default value of 0.0.
+        
+        Parameters
+        ----------
+        tek: str
+        purpose: EnergyPurpose
+
+        Returns
+        -------
+        float
+            The yearly efficiency rate for energy requirement improvements.
+        """
         df = self.yearly_improvements
 
         false_return_value = 0.0

@@ -5,15 +5,21 @@ import pandas as pd
 from ebm.model import BuildingCategory
 from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
+from ebm.model.building_condition import BuildingCondition
 
 
 class EnergyRequirementFilter:
+    """
+    """
+    
     # Column names
     BUILDING_CATEGORY = 'building_category'
     TEK = 'TEK'
     PURPOSE = 'purpose'
     START_YEAR = 'period_start_year'
     END_YEAR = 'period_end_year'
+    BUILDING_CONDITION = 'building_condition'
+    REDUCTION_SHARE = 'reduction_share'
 
     DEFAULT = 'default'
 
@@ -36,10 +42,21 @@ class EnergyRequirementFilter:
 
         self.building_category = building_category
         self.original_condition = original_condition
-        self.energy_requirement_reduction_per_condition = reduction_per_condition
-        self.energy_requirement_yearly_improvements = yearly_improvements
-        self.energy_requirement_policy_improvement = policy_improvement
+        self.reduction_per_condition = reduction_per_condition
+        self.yearly_improvements = yearly_improvements
+        self.policy_improvement = policy_improvement
 
+    def _filter_df(self, df: pd.DataFrame, filter_col: str,
+                   filter_val: typing.Union[BuildingCategory, EnergyPurpose, str]) -> pd.DataFrame:
+        """
+        """
+        if filter_val in df[filter_col].unique():
+            return df[df[filter_col] == filter_val]
+        elif self.DEFAULT in df[filter_col].unique():
+            return df[df[filter_col] == self.DEFAULT]
+        else:
+            return False
+    
     def get_original_condition(self, tek, purpose) -> pd.DataFrame:
         """
         Returns a dataframe with original condition energy use for a building_category
@@ -109,62 +126,64 @@ building_category	TEK	purpose	kwh_m2
                                              334: 111.3845937143784}})
 
 
-    def get_reduction_per_condition(self, purpose: str, tek: str) -> pd.DataFrame:
+    def get_reduction_per_condition(self, tek: str, purpose: EnergyPurpose) -> pd.DataFrame:
         """
         Returns energy use reduction for building condition
 
         Parameters
         ----------
-        purpose : str
         tek : str
+        purpose : str
 
         Returns
         -------
         pd.DataFrame
             columns building_condition, reduction
-
         """
-        if purpose == 'heating_rv':
-            return pd.DataFrame(data={'building_condition': {0: 'original_condition',
-                                                             1: 'small_measure',
-                                                             2: 'renovation',
-                                                             3: 'renovation_and_small_measure'},
-                                      'reduction': {0: 0.0, 1: 0.07, 2: 0.2, 3: 0.25}})
+        df = self.reduction_per_condition
 
-        return pd.DataFrame(data={'building_condition': {0: 'original_condition',
-                                                         1: 'small_measure',
-                                                         2: 'renovation',
-                                                         3: 'renovation_and_small_measure'},
-                                  'reduction': {0: 0.0, 1: 0, 2: 0, 3: 0}})
+        false_return_value = pd.DataFrame(data={self.BUILDING_CONDITION: {0: BuildingCondition.ORIGINAL_CONDITION,
+                                                                          1: BuildingCondition.SMALL_MEASURE,
+                                                                          2: BuildingCondition.RENOVATION,
+                                                                          3: BuildingCondition.RENOVATION_AND_SMALL_MEASURE},
+                                                self.REDUCTION_SHARE: {0: 0.0, 1: 0, 2: 0, 3: 0}})
+        
+        df = self._filter_df(df, self.BUILDING_CATEGORY, self.building_category)
+        if df is False:
+            return false_return_value
 
-    def _filter_df(self, df: pd.DataFrame, filter_col: str,
-                   filter_val: typing.Union[BuildingCategory, EnergyPurpose, str]) -> pd.DataFrame:
-        """
-        """
-        if filter_val in df[filter_col].unique():
-            return df[df[filter_col] == filter_val]
-        elif self.DEFAULT in df[filter_col].unique():
-            return df[df[filter_col] == self.DEFAULT]
-        else:
-            return False
+        df = self._filter_df(df, self.PURPOSE, purpose)
+        if df is False:
+            return false_return_value
+        
+        df = self._filter_df(df, self.TEK, tek)
+        if df is False:
+            return false_return_value
+        
+        df = df[[self.BUILDING_CONDITION, self.REDUCTION_SHARE]]
+        df.reset_index(drop=True, inplace=True)
+
+        return df
 
     def get_policy_improvement(self,
                                tek: str,
                                purpose: typing.Union[EnergyPurpose, str]) -> \
             typing.Union[typing.Tuple[YearRange, float], None]:
-        df = self.energy_requirement_policy_improvement
+        df = self.policy_improvement
+
+        false_return_value = None
 
         df = self._filter_df(df, self.BUILDING_CATEGORY, self.building_category)
         if df is False:
-            return None
-
+            return false_return_value
+        
         df = self._filter_df(df, self.PURPOSE, purpose)
         if df is False:
-            return None
+            return false_return_value
 
         df = self._filter_df(df, self.TEK, tek)
         if df is False:
-            return None
+            return false_return_value
 
         start = df.period_start_year.iloc[0]
         end = df.period_end_year.iloc[0]
@@ -173,7 +192,7 @@ building_category	TEK	purpose	kwh_m2
         return YearRange(start, end), improvement_value
 
     def get_yearly_improvements(self, tek: str, purpose: EnergyPurpose) -> float:
-        df = self.energy_requirement_yearly_improvements
+        df = self.yearly_improvements
 
         false_return_value = 0.0
 

@@ -92,7 +92,7 @@ def test_instance_var_dtype(default_parameters):
 
 
 # -------------------------------------- _filter_df ---------------------------------------------------
-#TODO: evaluate if this edge case should be allowed or not 
+#TODO: evaluate if this edge case should be allowed or not (depends on criterias for TEK id-column)
 def test_filter_df_filter_val_edge_case(default_parameters):
     e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
                                             'building_category': 'not_a_building_category'})
@@ -124,8 +124,93 @@ def test_energy_requirement_returns_original_condition_from_dataframe(default_pa
 
 
 # -------------------------------------- get_reduction_per_condition ---------------------------------
+# TODO: remove after finishing tests
+@pytest.fixture
+def reduction_per_condition():
+    return pd.read_csv(io.StringIO("""
+            building_category,TEK,purpose,building_condition,reduction_share
+            default,default,heating_rv,original_condition,0.0
+            default,default,heating_rv,small_measure,0.07
+            default,default,heating_rv,renovation,0.2
+            default,default,heating_rv,renovation_and_small_measure,0.25
+            default,TEK17,heating_rv,original_condition,0.0
+            default,TEK17,heating_rv,small_measure,0.02
+            default,TEK17,heating_rv,renovation,0.05
+            default,TEK17,heating_rv,renovation_and_small_measure,0.07
+            default,TEK21,heating_rv,original_condition,0.0
+            default,TEK21,heating_rv,small_measure,0.02
+            default,TEK21,heating_rv,renovation,0.05
+            default,TEK21,heating_rv,renovation_and_small_measure,0.07
+            """.strip()), skipinitialspace=True)
 
-# TODO
+@pytest.fixture
+def reduction_value_name():
+    return 'reduction_share'
+
+
+def test_get_reduction_per_condition_filter_building_category_tek_and_purpose(default_parameters, reduction_value_name):
+    reduction_per_condition = pd.read_csv(io.StringIO("""
+                                building_category,TEK,purpose,building_condition,reduction_share
+                                house,TEK17,heating_rv,original_condition,0.0
+                                house,TEK17,heating_rv,small_measure,0.07
+                                house,TEK17,heating_rv,renovation,0.2
+                                house,TEK17,heating_rv,renovation_and_small_measure,0.25
+                                default,TEK17,heating_rv,original_condition,0.123                      
+                                house,default,heating_rv,original_condition,0.123
+                                house,TEK17,default,original_condition,0.123 
+                                default,default,default,original_condition,0.123                                           
+                                """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 'building_category':BuildingCategory.HOUSE,
+                                            'reduction_per_condition': reduction_per_condition})
+    result = e_r_filter.get_reduction_per_condition(tek='TEK17', purpose=EnergyPurpose.HEATING_RV)
+    expected = pd.DataFrame(data={'building_condition': {0: 'original_condition',
+                                                             1: 'small_measure',
+                                                             2: 'renovation',
+                                                             3: 'renovation_and_small_measure'},
+                                   reduction_value_name: {0: 0.0, 1: 0.07, 2: 0.2, 3: 0.25}})
+    pd.testing.assert_frame_equal(result, expected)
+
+
+def test_get_reduction_per_condition_filter_tek_and_use_default(default_parameters, reduction_value_name):
+    e_r_filter = EnergyRequirementFilter(**default_parameters)
+    result = e_r_filter.get_reduction_per_condition(tek='PRE_TEK49_RES_1950', purpose=EnergyPurpose.HEATING_RV)
+    expected = pd.DataFrame(data={'building_condition': {0: 'original_condition',
+                                                             1: 'small_measure',
+                                                             2: 'renovation',
+                                                             3: 'renovation_and_small_measure'},
+                                        reduction_value_name: {0: 0.0, 1: 0.07, 2: 0.2, 3: 0.25}})
+    pd.testing.assert_frame_equal(result, expected)
+
+
+def test_get_reduction_per_condition_filter_purpose_and_use_default(default_parameters, reduction_value_name):
+    reduction_per_condition = pd.read_csv(io.StringIO("""
+                                building_category,TEK,purpose,building_condition,reduction_share
+                                default,default,default,original_condition,0.0
+                                default,default,default,small_measure,0.07
+                                default,default,default,renovation,0.2
+                                default,default,default,renovation_and_small_measure,0.25
+                                default,PRE_TEK49_RES_1950,heating_rv,original_condition,0.123                      
+                                """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 'reduction_per_condition': reduction_per_condition})
+    result = e_r_filter.get_reduction_per_condition(tek='PRE_TEK49_RES_1950', purpose=EnergyPurpose.LIGHTING)
+    expected = pd.DataFrame(data={'building_condition': {0: 'original_condition',
+                                                             1: 'small_measure',
+                                                             2: 'renovation',
+                                                             3: 'renovation_and_small_measure'},
+                                        reduction_value_name: {0: 0.0, 1: 0.07, 2: 0.2, 3: 0.25}})
+    pd.testing.assert_frame_equal(result, expected)
+
+
+def test_get_reduction_per_condition_return_false_value_when_purpose_not_found(default_parameters, reduction_value_name):
+    e_r_filter = EnergyRequirementFilter(**default_parameters)
+    result = e_r_filter.get_reduction_per_condition(tek='default', purpose=EnergyPurpose.LIGHTING)
+    expected = pd.DataFrame(data={'building_condition': {0: 'original_condition',
+                                                         1: 'small_measure',
+                                                         2: 'renovation',
+                                                         3: 'renovation_and_small_measure'},
+                                  reduction_value_name: {0: 0.0, 1: 0, 2: 0, 3: 0}})
+    pd.testing.assert_frame_equal(result, expected)
+
 
 # -------------------------------------- get_policy_improvement --------------------------------------
 
@@ -166,15 +251,15 @@ def test_get_policy_improvement_use_default(default_parameters):
 
 def test_get_policy_improvement_filter_purpose_and_tek(default_parameters):
     policy_improvement = pd.read_csv(io.StringIO("""
-                         building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
+                         building_category,TEK,purpose,period_start_year,period_end_year,"improvement_at_period_end"
                          default,TEK01,lighting,2011,2012,0.1
-                         default,default,heating_rv,2012,2013,0.2""".strip()), skipinitialspace=True)
+                         default,default,heating_rv,2012,2013,0.2                       
+                         """.strip()), skipinitialspace=True)
     e_r_filter = EnergyRequirementFilter(**{**default_parameters,
                                             'building_category': BuildingCategory.KINDERGARTEN,
                                             'policy_improvement': policy_improvement})
-
-    assert e_r_filter.get_policy_improvement(tek='TEK01', purpose='heating_rv') == (YearRange(2012, 2013), 0.2)
-
+    tek01_heating_rv = e_r_filter.get_policy_improvement(tek='TEK01', purpose='heating_rv')  
+    assert tek01_heating_rv == (YearRange(2012, 2013), 0.2)
 
 def test_get_policy_improvement_filter_building_category_none(default_parameters):
     policy_improvement = pd.read_csv(io.StringIO("""
@@ -205,6 +290,7 @@ def test_get_yearly_improvements_use_default(default_parameters):
 def test_get_yearly_improvements_filter_building_category(default_parameters):
     yearly_improvements = pd.read_csv(io.StringIO("""
             building_category,TEK,purpose,yearly_efficiency_improvement
+            default,default,default,0.9
             kindergarten,default,default,0.9
             house,default,default,0.123
             """.strip()), skipinitialspace=True)
@@ -215,7 +301,7 @@ def test_get_yearly_improvements_filter_building_category(default_parameters):
     house_tek01_cooling = e_r_filter.get_yearly_improvements(tek='TEK01', purpose=EnergyPurpose.COOLING) 
     assert house_tek01_cooling == 0.123
 
-def test_get_yearly_improvements_building_category_not_in_df(default_parameters):
+def test_get_yearly_improvements_return_false_value_when_building_category_not_found(default_parameters):
     yearly_improvements = pd.read_csv(io.StringIO("""
             building_category,TEK,purpose,yearly_efficiency_improvement
             kindergarten,default,default,0.9
@@ -267,3 +353,30 @@ def test_get_yearly_improvements_tek_not_in_df(default_parameters):
     
     tek02_and_cooling = e_r_filter.get_yearly_improvements(tek='TEK02', purpose=EnergyPurpose.COOLING) 
     assert tek02_and_cooling == 0.0
+
+@pytest.mark.skip()
+def test_get_yearly_improvements_building_category_fail(default_parameters):
+    yearly_improvements = pd.read_csv(io.StringIO("""
+            building_category,TEK,purpose,yearly_efficiency_improvement
+            default,TEK01,cooling,0.1
+            house,TEK02,cooling,0.123                                                   
+            """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
+                                            'building_category': BuildingCategory.HOUSE,
+                                            'yearly_improvements': yearly_improvements})
+    tek01_cooling = e_r_filter.get_yearly_improvements(tek='TEK01', purpose=EnergyPurpose.COOLING) 
+    assert tek01_cooling == 0.1
+
+
+@pytest.mark.skip()
+def test_get_yearly_improvements_purpose_fail(default_parameters):
+    yearly_improvements = pd.read_csv(io.StringIO("""
+            building_category,TEK,purpose,yearly_efficiency_improvement
+            default,TEK02,lighting,0.5 
+            default,default,default,0.123                                                                                                   
+            """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
+                                            'building_category': BuildingCategory.HOUSE,
+                                            'yearly_improvements': yearly_improvements})
+    tek01_cooling = e_r_filter.get_yearly_improvements(tek='TEK01', purpose=EnergyPurpose.LIGHTING) 
+    assert tek01_cooling == 0.123

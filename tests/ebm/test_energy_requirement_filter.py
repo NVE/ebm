@@ -13,17 +13,26 @@ from ebm.model.energy_requirement_filter import EnergyRequirementFilter
 @pytest.fixture
 def original_condition():
     return pd.read_csv(io.StringIO("""
-            building_category,TEK,purpose,kwh_m2
-            apartment_block,PRE_TEK49_RES_1950,cooling,1.1
-            apartment_block,PRE_TEK49_RES_1950,electrical_equipment,2.2
-            apartment_block,PRE_TEK49_RES_1950,fans_and_pumps,3.3
-            apartment_block,PRE_TEK49_RES_1950,heating_dhw,4.4
-            apartment_block,PRE_TEK49_RES_1950,heating_rv,5.5
-            apartment_block,PRE_TEK49_RES_1950,lighting,5.5
-            apartment_block,TEK07,cooling,2.1
-            apartment_block,TEK07,electrical_equipment,2.2
-            apartment_block,TEK07,default,7.0
-            """.strip()), skipinitialspace=True)
+building_category,TEK,purpose,kwh_m2
+apartment_block,PRE_TEK49_RES_1950,cooling,1.1
+apartment_block,PRE_TEK49_RES_1950,electrical_equipment,2.2
+apartment_block,PRE_TEK49_RES_1950,fans_and_pumps,3.3
+apartment_block,PRE_TEK49_RES_1950,heating_dhw,4.4
+apartment_block,PRE_TEK49_RES_1950,heating_rv,5.5
+apartment_block,PRE_TEK49_RES_1950,lighting,5.5
+apartment_block,TEK07,cooling,2.1
+apartment_block,TEK07,electrical_equipment,2.2                      
+apartment_block,TEK07,default,7.0
+apartment_block,default,cooling,7.1
+default,TEK07,cooling,7.3
+apartment_block,default,default,7.4
+default,default,cooling,7.5
+default,default,default,7.6
+house,PRE_TEK49_RES_1950,cooling,3.1
+house,PRE_TEK49_RES_1950,electrical_equipment,3.2
+house,TEK07,cooling,4.1
+house,TEK07,electrical_equipment,4.2                                                                                                                                                                                                                                            
+""".strip()), skipinitialspace=True)
 
 
 @pytest.fixture
@@ -92,8 +101,10 @@ def test_instance_var_dtype(default_parameters):
 
 
 # -------------------------------------- _filter_df ---------------------------------------------------
-#TODO: evaluate if this edge case should be allowed or not (depends on criterias for TEK id-column)
-def test_filter_df_filter_val_edge_case(default_parameters):
+#TODO: evaluate if default should be used when values that doesn't make sense are passed
+# - could ensure that the passed filter values also must be a BuildingCategory or EnergyPurpose in order
+# for default to be used, but currently we do not have any criteria defined for TEK.  
+def test_filter_df_filter_values_goes_to_default_when_not_in_filter_col(default_parameters):
     e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
                                             'building_category': 'not_a_building_category'})
     
@@ -114,35 +125,52 @@ def test_filter_df_filter_val_edge_case(default_parameters):
 
 # -------------------------------------- get_original condition --------------------------------------
 
-def test_energy_requirement_returns_original_condition_from_dataframe(default_parameters):
-    e_r_filter = EnergyRequirementFilter(**default_parameters)
-    pre_tek49_cooling = e_r_filter.get_original_condition(tek='PRE_TEK49_RES_1950', purpose=EnergyPurpose.COOLING)
-    assert pre_tek49_cooling.iloc[0].kwh_m2 == 1.1
+#TODO: add more tests when output of the method is decided
 
-    tek07_and_electrical_equipment = e_r_filter.get_original_condition(tek='TEK07', purpose='electrical_equipment')
-    assert tek07_and_electrical_equipment.iloc[0].kwh_m2 == 2.2
+def test_energy_requirement_return_df_specified_building_category_tek_purpose(default_parameters):
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
+                                               'building_category': BuildingCategory.APARTMENT_BLOCK})
+    
+    result1 = e_r_filter.get_original_condition(tek='PRE_TEK49_RES_1950', purpose=EnergyPurpose.COOLING)
 
+    expected1 = pd.read_csv(io.StringIO("""
+    building_category,TEK,purpose,kwh_m2
+    apartment_block,PRE_TEK49_RES_1950,cooling,1.1                                                                                                                                                                                                                                         
+    """.strip()), skipinitialspace=True)
+
+    pd.testing.assert_frame_equal(result1, expected1)
+
+    result2 = e_r_filter.get_original_condition(tek='TEK07', purpose=EnergyPurpose.ELECTRICAL_EQUIPMENT)
+
+    expected2 = pd.read_csv(io.StringIO("""
+    building_category,TEK,purpose,kwh_m2
+    apartment_block,TEK07,electrical_equipment,2.2
+    """.strip()), skipinitialspace=True)
+
+    pd.testing.assert_frame_equal(result2, expected2)
+
+
+def test_energy_requirement_return_false_value_when_not_found(default_parameters):
+    
+    original_condition = pd.read_csv(io.StringIO("""
+building_category,TEK,purpose,kwh_m2
+apartment_block,PRE_TEK49_RES_1950,cooling,1.1                                                                                                                                                                                                                                           
+""".strip()), skipinitialspace=True)
+    
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
+                                               'building_category': BuildingCategory.APARTMENT_BLOCK,
+                                               'original_condition':original_condition})
+
+    result = e_r_filter.get_original_condition(tek='TEK07', purpose=EnergyPurpose.ELECTRICAL_EQUIPMENT)
+
+    expected = pd.DataFrame(data={'building_category': {0: BuildingCategory.APARTMENT_BLOCK},
+                                  'TEK': {0: 'TEK07'},
+                                  'purpose': {0: EnergyPurpose.ELECTRICAL_EQUIPMENT},
+                                  'kwh_m2': {0: 0.0}})
+
+    pd.testing.assert_frame_equal(result, expected)
 
 # -------------------------------------- get_reduction_per_condition ---------------------------------
-# TODO: remove after finishing tests
-@pytest.fixture
-def reduction_per_condition():
-    return pd.read_csv(io.StringIO("""
-            building_category,TEK,purpose,building_condition,reduction_share
-            default,default,heating_rv,original_condition,0.0
-            default,default,heating_rv,small_measure,0.07
-            default,default,heating_rv,renovation,0.2
-            default,default,heating_rv,renovation_and_small_measure,0.25
-            default,TEK17,heating_rv,original_condition,0.0
-            default,TEK17,heating_rv,small_measure,0.02
-            default,TEK17,heating_rv,renovation,0.05
-            default,TEK17,heating_rv,renovation_and_small_measure,0.07
-            default,TEK21,heating_rv,original_condition,0.0
-            default,TEK21,heating_rv,small_measure,0.02
-            default,TEK21,heating_rv,renovation,0.05
-            default,TEK21,heating_rv,renovation_and_small_measure,0.07
-            """.strip()), skipinitialspace=True)
-
 @pytest.fixture
 def reduction_value_name():
     return 'reduction_share'
@@ -261,6 +289,7 @@ def test_get_policy_improvement_filter_purpose_and_tek(default_parameters):
     tek01_heating_rv = e_r_filter.get_policy_improvement(tek='TEK01', purpose='heating_rv')  
     assert tek01_heating_rv == (YearRange(2012, 2013), 0.2)
 
+
 def test_get_policy_improvement_filter_building_category_none(default_parameters):
     policy_improvement = pd.read_csv(io.StringIO("""
                          building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
@@ -373,7 +402,7 @@ def test_get_yearly_improvements_purpose_fail(default_parameters):
     yearly_improvements = pd.read_csv(io.StringIO("""
             building_category,TEK,purpose,yearly_efficiency_improvement
             default,TEK02,lighting,0.5 
-            default,default,default,0.123                                                                                                   
+            default,TEK01,default,0.123                                                                                                   
             """.strip()), skipinitialspace=True)
     e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
                                             'building_category': BuildingCategory.HOUSE,

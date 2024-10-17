@@ -1,6 +1,7 @@
 import typing
 
 import pandas as pd
+from loguru import logger
 
 from ebm.model import BuildingCategory
 from ebm.model.data_classes import YearRange
@@ -57,20 +58,11 @@ class EnergyRequirementFilter:
         else:
             return False
     
+    #TODO: should this return a dataframe or just the kwh_m2 value?
     def get_original_condition(self, tek, purpose) -> pd.DataFrame:
         """
         Returns a dataframe with original condition energy use for a building_category
-            filtered by tek and purpose
-building_category	TEK	purpose	kwh_m2
-286	kindergarten	PRE_TEK49_COM	heating_rv	170.3831314118222
-292	kindergarten	TEK07	heating_rv	91.60795310210064
-298	kindergarten	TEK10	heating_rv	74.22534704119848
-304	kindergarten	TEK17	heating_rv	74.22534704119848
-310	kindergarten	TEK21	heating_rv	74.22534704119848
-316	kindergarten	TEK49_COM	heating_rv	170.3831314118222
-322	kindergarten	TEK69_COM	heating_rv	170.3831314118222
-328	kindergarten	TEK87_COM	heating_rv	138.9320403843025
-334	kindergarten	TEK97_COM	heating_rv	111.3845937143784
+        filtered by tek and purpose
 
         Parameters
         ----------
@@ -79,52 +71,36 @@ building_category	TEK	purpose	kwh_m2
 
         Returns
         -------
-        pd.DataFrame (pd.Series ?)
-            with column kwh_m2 indexed(?) by building_category, TEK, purpose
+        pd.DataFrame
+            columns: building_category, TEK, purpose, kwh_m2
         """
-        df = self.original_condition[(self.original_condition.building_category == self.building_category) & (
-                self.original_condition.TEK == tek) & (self.original_condition.purpose == purpose)]
-        if len(df):
-            return df
-        #TODO: return should be df, per tek and purpose, with value 0, when no conditions are met
-        #TODO: throw logger.error
-        return pd.DataFrame(data={'building_category': {286: self.building_category,
-                                                        292: self.building_category,
-                                                        298: self.building_category,
-                                                        304: self.building_category,
-                                                        310: self.building_category,
-                                                        316: self.building_category,
-                                                        322: self.building_category,
-                                                        328: self.building_category,
-                                                        334: self.building_category},
-                                  'TEK': {286: 'PRE_TEK49_COM',
-                                          292: 'TEK07',
-                                          298: 'TEK10',
-                                          304: 'TEK17',
-                                          310: 'TEK21',
-                                          316: 'TEK49_COM',
-                                          322: 'TEK69_COM',
-                                          328: 'TEK87_COM',
-                                          334: 'TEK97_COM'},
-                                  'purpose': {286: 'heating_rv',
-                                              292: 'heating_rv',
-                                              298: 'heating_rv',
-                                              304: 'heating_rv',
-                                              310: 'heating_rv',
-                                              316: 'heating_rv',
-                                              322: 'heating_rv',
-                                              328: 'heating_rv',
-                                              334: 'heating_rv'},
-                                  'kwh_m2': {286: 170.3831314118222,
-                                             292: 91.60795310210064,
-                                             298: 74.22534704119848,
-                                             304: 74.22534704119848,
-                                             310: 74.22534704119848,
-                                             316: 170.3831314118222,
-                                             322: 170.3831314118222,
-                                             328: 138.9320403843025,
-                                             334: 111.3845937143784}})
+        df = self.original_condition
+        
+        false_return_value = pd.DataFrame(data={'building_category': {0: self.building_category},
+                                  'TEK': {0: tek},
+                                  'purpose': {0: purpose},
+                                  'kwh_m2': {0: 0.0}})
+        false_error_msg = (f"No energy requirement value (kwh_m2) found for original condition with variables:"
+                           f"building_category={self.building_category}, tek={tek} and purpose={purpose}. Calculating with value = 0.")
 
+        df = self._filter_df(df, self.BUILDING_CATEGORY, self.building_category)
+        if df is False:
+            logger.error(false_error_msg)
+            return false_return_value
+
+        df = self._filter_df(df, self.PURPOSE, purpose)
+        if df is False:
+            logger.error(false_error_msg)
+            return false_return_value
+        
+        df = self._filter_df(df, self.TEK, tek)
+        if df is False:
+            logger.error(false_error_msg)
+            return false_return_value
+        
+        df.reset_index(drop=True, inplace=True)
+
+        return df
 
     def get_reduction_per_condition(self, tek: str, purpose: EnergyPurpose) -> pd.DataFrame:
         """
@@ -138,7 +114,7 @@ building_category	TEK	purpose	kwh_m2
         Returns
         -------
         pd.DataFrame
-            columns building_condition, reduction
+            columns building_condition, reduction_share
         """
         df = self.reduction_per_condition
 

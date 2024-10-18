@@ -359,6 +359,8 @@ def test_get_reduction_per_condition_return_false_value_when_tek_not_found(defau
 
 # -------------------------------------- get_policy_improvement --------------------------------------
 
+#TODO: refactor and add/change tests as done for get_orginal_condition and get_reduction_per_condition
+
 def test_get_policy_improvement_filter_purpose(default_parameters):
     e_r_filter = EnergyRequirementFilter(**{**default_parameters, 'building_category': BuildingCategory.KINDERGARTEN})
 
@@ -419,6 +421,8 @@ def test_get_policy_improvement_filter_building_category_none(default_parameters
 
 
 # -------------------------------------- get_yearly_improvements -------------------------------------
+
+#TODO: refactor and add/change tests as done for get_orginal_condition and get_reduction_per_condition
 
 def test_get_yearly_improvements_use_default(default_parameters):
     yearly_improvements = pd.read_csv(io.StringIO("""

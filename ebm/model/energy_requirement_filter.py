@@ -21,6 +21,9 @@ class EnergyRequirementFilter:
     END_YEAR = 'period_end_year'
     BUILDING_CONDITION = 'building_condition'
     REDUCTION_SHARE = 'reduction_share'
+    KWH_M2 = 'kwh_m2'
+    POLICY_IMPROVEMENT = 'improvement_at_period_end'
+    YEARLY_IMPROVEMENT = 'yearly_efficiency_improvement'
 
     DEFAULT = 'default'
 
@@ -77,7 +80,7 @@ class EnergyRequirementFilter:
         """
         Retrieves a dataframe with the energy requirement (kwh_m2) for original condition.
 
-        If the specified conditions are not found, returns a default DataFrame with a kwh_m2 value of 0 and logs an error.
+        If the specified conditions are not found, returns a default DataFrame with a kwh_m2 value of 0.0 and logs an error.
 
         Parameters
         ----------
@@ -91,10 +94,10 @@ class EnergyRequirementFilter:
         """
         df = self.original_condition
         
-        false_return_value = pd.DataFrame(data={'building_category': {0: self.building_category},
-                                  'TEK': {0: tek},
-                                  'purpose': {0: purpose},
-                                  'kwh_m2': {0: 0.0}})
+        false_return_value = pd.DataFrame(data={self.BUILDING_CATEGORY: {0: self.building_category},
+                                                self.TEK: {0: tek},
+                                                self.PURPOSE: {0: purpose},
+                                                self.KWH_M2: {0: 0.0}})
         false_error_msg = (f"No energy requirement value (kwh_m2) found for original condition with variables:"
                            f"building_category={self.building_category}, tek={tek} and purpose={purpose}. Calculating with value = 0.")
 
@@ -160,7 +163,7 @@ class EnergyRequirementFilter:
 
     def get_policy_improvement(self,
                                tek: str,
-                               purpose: typing.Union[EnergyPurpose, str]) -> \
+                               purpose: EnergyPurpose) -> \
             typing.Union[typing.Tuple[YearRange, float], None]:
         """
         Retrieves the policy improvement period and the energy requirement reduction value.    
@@ -192,9 +195,9 @@ class EnergyRequirementFilter:
         if df is False:
             return false_return_value
 
-        start = df.period_start_year.iloc[0]
-        end = df.period_end_year.iloc[0]
-        improvement_value = df.improvement_at_period_end.iloc[0]
+        start = df[self.START_YEAR].iloc[0]
+        end = df[self.END_YEAR].iloc[0]
+        improvement_value = df[self.POLICY_IMPROVEMENT].iloc[0]
 
         return YearRange(start, end), improvement_value
 
@@ -230,5 +233,6 @@ class EnergyRequirementFilter:
         if df is False:
             return false_return_value
         
-        eff_rate = df.yearly_efficiency_improvement.iloc[0]
+        eff_rate = df[self.YEARLY_IMPROVEMENT].iloc[0]
         return eff_rate
+    

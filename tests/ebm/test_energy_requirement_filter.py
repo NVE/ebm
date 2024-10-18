@@ -4,6 +4,7 @@ import typing
 import pandas as pd
 import pytest
 
+from ebm.model.database_manager import DatabaseManager
 from ebm.model import BuildingCategory
 from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
@@ -542,3 +543,21 @@ def test_get_yearly_improvements_return_value_for_best_match_on_filter_variables
                                             'yearly_improvements': yearly_improvements})
     tek01_cooling = e_r_filter.get_yearly_improvements(tek='TEK01', purpose=EnergyPurpose.LIGHTING) 
     assert tek01_cooling == 0.123
+
+# -------------------------------------- new_instance ------------------------------------------------
+
+def test_new_instance():
+    building_category = BuildingCategory.APARTMENT_BLOCK
+    energy_requirement_filter = EnergyRequirementFilter.new_instance(building_category)
+    dm = DatabaseManager()
+    expected_original_condition = dm.get_energy_req_original_condition()
+    expected_reduction_per_condition = dm.get_energy_req_reduction_per_condition()
+    expected_yearly_improvements = dm.get_energy_req_yearly_improvements()
+    expected_policy_improvement = dm.get_energy_req_policy_improvements()
+
+    assert isinstance(energy_requirement_filter, EnergyRequirementFilter)
+    assert energy_requirement_filter.building_category == building_category
+    pd.testing.assert_frame_equal(energy_requirement_filter.original_condition, expected_original_condition)
+    pd.testing.assert_frame_equal(energy_requirement_filter.reduction_per_condition, expected_reduction_per_condition)
+    pd.testing.assert_frame_equal(energy_requirement_filter.yearly_improvements, expected_yearly_improvements)
+    pd.testing.assert_frame_equal(energy_requirement_filter.policy_improvement, expected_policy_improvement)

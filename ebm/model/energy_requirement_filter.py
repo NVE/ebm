@@ -3,6 +3,7 @@ import typing
 import pandas as pd
 from loguru import logger
 
+from ebm.model.database_manager import DatabaseManager
 from ebm.model import BuildingCategory
 from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
@@ -236,3 +237,37 @@ class EnergyRequirementFilter:
         eff_rate = df[self.YEARLY_IMPROVEMENT].iloc[0]
         return eff_rate
     
+    @staticmethod
+    def new_instance(building_category: BuildingCategory, 
+                     database_manager: DatabaseManager = None) -> 'EnergyRequirementFilter':
+        """
+        Creates a new instance of the EnergyRequirementFilter class, using the specified building category
+        and an optional database manager.
+
+        If a database manager is not provided, a new DatabaseManager instance will be created.
+
+        Parameters
+        ----------
+        building_category: BuildingCategory
+        database_manager: DatabaseManager
+
+        Returns 
+        -------
+         EnergyRequirementFilter
+             A new instance of EnergyRequirementFilter initialized with data from the specified 
+             database manager.
+        """
+        dm = database_manager if isinstance(database_manager, DatabaseManager) else DatabaseManager()
+        original_condition = dm.get_energy_req_original_condition()
+        reduction_per_condition = dm.get_energy_req_reduction_per_condition()
+        yearly_improvements = dm.get_energy_req_yearly_improvements()
+        policy_improvement = dm.get_energy_req_policy_improvements()
+        return EnergyRequirementFilter(building_category=building_category,
+                                       original_condition=original_condition,
+                                       reduction_per_condition=reduction_per_condition,
+                                       yearly_improvements=yearly_improvements,
+                                       policy_improvement=policy_improvement)
+
+if __name__ == '__main__':
+    erf = EnergyRequirementFilter.new_instance(building_category=BuildingCategory.HOUSE)
+    print(erf.get_original_condition)

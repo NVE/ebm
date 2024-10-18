@@ -86,8 +86,8 @@ class EnergyRequirement:
         TEK21'''.strip().split('\n')
 
         for building_category in [b for b in BuildingCategory if not b.is_residential()]:
-            er_filter = EnergyRequirementFilter(building_category, DatabaseManager().get_energy_req_original_condition(
-                building_category=building_category), None, None, None)
+            er_filter = EnergyRequirementFilter(building_category, DatabaseManager().get_energy_req_original_condition(),
+                                                None, None, None)
             for tek, purpose in itertools.product(TEK,  [str(p) for p in EnergyPurpose]):
                 building_conditions = [b for b in BuildingCondition if b != BuildingCondition.DEMOLITION]
 

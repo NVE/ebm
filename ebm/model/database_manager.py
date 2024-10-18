@@ -181,50 +181,54 @@ class DatabaseManager():
             area_dict[BuildingCategory.from_string(building_category)] = area_series
 
         return area_dict
+
+    def get_energy_req_original_condition(self) -> pd.DataFrame: 
+        """
+        Get dataframe with energy requirement (kWh/m^2) for floor area in original condition.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
+            per building category and purpose.
+        """
+        return self.file_handler.get_energy_req_original_condition()
+
+    def get_energy_req_reduction_per_condition(self) -> pd.DataFrame:
+        """
+        Get dataframe with shares for reducing the energy requirement of the different building conditions.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing energy requirement reduction shares for the different building conditions, 
+            per building category, TEK and purpose.        
+        """
+        return self.file_handler.get_energy_req_reduction_per_condition()
     
-    def filter_df_on_building_category(self, df: pd.DataFrame, building_category: BuildingCategory) -> pd.DataFrame:
+    def get_energy_req_yearly_improvements(self) -> pd.DataFrame:
         """
-        Filters a dataframe on Building Category and returns a dataframe without the building_category column.
-        """
-        building_category_col = df[self.COL_BUILDING_CATEGORY].unique()
+        Get dataframe with yearly efficiency rates for energy requirement improvements.
 
-        if building_category in building_category_col:
-            df = df[df[self.COL_BUILDING_CATEGORY] == building_category]
-        else:
-            df = df[df[self.COL_BUILDING_CATEGORY] == self.DEFAULT_VALUE]
-        
-        df.drop(columns=[self.COL_BUILDING_CATEGORY], inplace=True)
-        return df
-
-    def get_energy_req_original_condition(self, building_category: BuildingCategory) -> pd.DataFrame: 
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing yearly efficiency rates (%) for energy requirement improvements,
+            per building category, tek and purpose.        
         """
-        """
-        original_df = self.file_handler.get_energy_req_original_condition()
-        return original_df
-        df = self.filter_df_on_building_category(original_df, building_category)
-        return df 
-
-    def get_energy_req_reduction_per_condition(self, building_category: BuildingCategory) -> pd.DataFrame:
-        """
-        """
-        original_df = self.file_handler.get_energy_req_reduction_per_condition()
-        df = self.filter_df_on_building_category(original_df, building_category)
-        return df
+        return self.file_handler.get_energy_req_yearly_improvements()
     
-    def get_energy_req_yearly_improvements(self, building_category: BuildingCategory) -> pd.DataFrame:
+    def get_energy_req_policy_improvements(self) -> pd.DataFrame:
         """
-        """
-        original_df = self.file_handler.get_energy_req_yearly_improvements()
-        df = self.filter_df_on_building_category(original_df, building_category)
-        return df
-    
-    def get_energy_req_policy_improvements(self, building_category: BuildingCategory) -> pd.DataFrame:
-        """
-        """
-        original_df = self.file_handler.get_energy_req_policy_improvements()
-        df = self.filter_df_on_building_category(original_df, building_category)
-        return df
+        Get dataframe with total energy requirement improvement in a period related to a policy.
 
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing total energy requirement improvement (%) in a policy period,
+            per building category, tek and purpose.        
+        """
+        return self.file_handler.get_energy_req_policy_improvements()
 
     def validate_database(self):
         missing_files = self.file_handler.check_for_missing_files()

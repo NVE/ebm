@@ -11,7 +11,7 @@ from ebm.model.energy_requirement_filter import EnergyRequirementFilter
 
 
 @pytest.fixture
-def original_condition():
+def original_condition() -> pd.DataFrame:
     return pd.read_csv(io.StringIO("""
 building_category,TEK,purpose,kwh_m2
 apartment_block,PRE_TEK49_RES_1950,cooling,1.1
@@ -36,7 +36,7 @@ house,TEK07,electrical_equipment,4.2
 
 
 @pytest.fixture
-def reduction_per_condition():
+def reduction_per_condition() -> pd.DataFrame:
     return pd.read_csv(io.StringIO("""
             building_category,TEK,purpose,building_condition,reduction_share
             default,default,heating_rv,original_condition,0.0
@@ -55,7 +55,7 @@ def reduction_per_condition():
 
 
 @pytest.fixture
-def policy_improvement():
+def policy_improvement() -> pd.DataFrame:
     return pd.read_csv(io.StringIO("""
             building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
             default,default,lighting,2011,2012,0.5
@@ -63,7 +63,7 @@ def policy_improvement():
 
 
 @pytest.fixture
-def yearly_improvements():
+def yearly_improvements() -> pd.DataFrame:
     return pd.read_csv(io.StringIO("""
             building_category,TEK,purpose,yearly_efficiency_improvement
             default,default,cooling,0.0
@@ -83,9 +83,12 @@ def default_parameters(original_condition, reduction_per_condition, yearly_impro
             'yearly_improvements': yearly_improvements,
             'policy_improvement': policy_improvement}
 
+@pytest.fixture
+def reduction_value_name() -> str:
+    return 'reduction_share'
 
 # -------------------------------------- init method ------------------------------------------------
-
+#TODO: add match string to the rest
 def test_instance_var_dtype(default_parameters):
     with pytest.raises(TypeError, match="_condition expected to be of type pd.DataFrame. Got: <class 'NoneType'>"):
         EnergyRequirementFilter(**{**default_parameters, 'original_condition': None})
@@ -125,58 +128,121 @@ def test_filter_df_filter_values_goes_to_default_when_not_in_filter_col(default_
 
 # -------------------------------------- get_original condition --------------------------------------
 
-#TODO: add more tests when output of the method is decided
-
-def test_energy_requirement_return_df_specified_building_category_tek_purpose(default_parameters):
+def test_energy_requirement_return_df_for_specified_building_category_tek_purpose(default_parameters):
+    """
+    Return df for best match on filter variables (building_category, tek and purpose) when all the 
+    specified filter variables are present in the original dataframe. 
+    """
     e_r_filter = EnergyRequirementFilter(**{**default_parameters,
                                                'building_category': BuildingCategory.APARTMENT_BLOCK})
-    
     result1 = e_r_filter.get_original_condition(tek='PRE_TEK49_RES_1950', purpose=EnergyPurpose.COOLING)
-
     expected1 = pd.read_csv(io.StringIO("""
     building_category,TEK,purpose,kwh_m2
     apartment_block,PRE_TEK49_RES_1950,cooling,1.1                                                                                                                                                                                                                                         
     """.strip()), skipinitialspace=True)
-
     pd.testing.assert_frame_equal(result1, expected1)
 
     result2 = e_r_filter.get_original_condition(tek='TEK07', purpose=EnergyPurpose.ELECTRICAL_EQUIPMENT)
-
     expected2 = pd.read_csv(io.StringIO("""
     building_category,TEK,purpose,kwh_m2
     apartment_block,TEK07,electrical_equipment,2.2
     """.strip()), skipinitialspace=True)
-
     pd.testing.assert_frame_equal(result2, expected2)
 
 
-def test_energy_requirement_return_false_value_when_not_found(default_parameters):
-    
+def test_energy_requirement_return_default_df_when_not_found(default_parameters):
+    """
+    When the specified filter variables (building_category, tek and/or purpose) aren't present in the
+    original dataframe, and there is a 'default' option available for those variables, then return the
+    df of those 'default' options.  
+    """
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
+                                            'building_category': BuildingCategory.CULTURE})
+    result1 = e_r_filter.get_original_condition(tek='TEK07', purpose=EnergyPurpose.ELECTRICAL_EQUIPMENT)
+    expected1 = pd.read_csv(io.StringIO("""
+    building_category,TEK,purpose,kwh_m2
+    default,default,default,7.6""".strip()), skipinitialspace=True)
+
+    pd.testing.assert_frame_equal(result1, expected1)
+
+
+def test_energy_requirement_return_false_value_when_building_category_not_found(default_parameters):
+    """
+    When the specified filter variable (building_category, tek or purpose) isn't present in the
+    original dataframe, and there isn't a 'default' option available for that variable, then return 
+    the false_return_value of the function.
+    """
     original_condition = pd.read_csv(io.StringIO("""
-building_category,TEK,purpose,kwh_m2
-apartment_block,PRE_TEK49_RES_1950,cooling,1.1                                                                                                                                                                                                                                           
-""".strip()), skipinitialspace=True)
+    building_category,TEK,purpose,kwh_m2
+    apartment_block,PRE_TEK49_RES_1950,cooling,1.1                                                                                                                                                                                                                                           
+    """.strip()), skipinitialspace=True)
+    
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
+                                               'building_category': BuildingCategory.HOUSE,
+                                               'original_condition':original_condition})
+
+    result = e_r_filter.get_original_condition(tek='PRE_TEK49_RES_1950', purpose=EnergyPurpose.COOLING)
+
+    expected = pd.DataFrame(data={'building_category': {0: BuildingCategory.HOUSE},
+                                  'TEK': {0: 'PRE_TEK49_RES_1950'},
+                                  'purpose': {0: EnergyPurpose.COOLING},
+                                  'kwh_m2': {0: 0.0}})
+
+    pd.testing.assert_frame_equal(result, expected)
+
+
+def test_energy_requirement_return_false_value_when_purpose_not_found(default_parameters):
+    """
+    When the specified filter variable (building_category, tek or purpose) isn't present in the
+    original dataframe, and there isn't a 'default' option available for that variable, then return 
+    the false_return_value of the function.
+    """
+    original_condition = pd.read_csv(io.StringIO("""
+    building_category,TEK,purpose,kwh_m2
+    apartment_block,PRE_TEK49_RES_1950,cooling,1.1                                                                                                                                                                                                                                           
+    """.strip()), skipinitialspace=True)
     
     e_r_filter = EnergyRequirementFilter(**{**default_parameters,
                                                'building_category': BuildingCategory.APARTMENT_BLOCK,
                                                'original_condition':original_condition})
 
-    result = e_r_filter.get_original_condition(tek='TEK07', purpose=EnergyPurpose.ELECTRICAL_EQUIPMENT)
+    result = e_r_filter.get_original_condition(tek='PRE_TEK49_RES_1950', purpose=EnergyPurpose.LIGHTING)
 
     expected = pd.DataFrame(data={'building_category': {0: BuildingCategory.APARTMENT_BLOCK},
-                                  'TEK': {0: 'TEK07'},
-                                  'purpose': {0: EnergyPurpose.ELECTRICAL_EQUIPMENT},
+                                  'TEK': {0: 'PRE_TEK49_RES_1950'},
+                                  'purpose': {0: EnergyPurpose.LIGHTING},
+                                  'kwh_m2': {0: 0.0}})
+
+    pd.testing.assert_frame_equal(result, expected)
+
+
+def test_energy_requirement_return_false_value_when_tek_not_found(default_parameters):
+    """
+    When the specified filter variable (building_category, tek or purpose) isn't present in the
+    original dataframe, and there isn't a 'default' option available for that variable, then return 
+    the false_return_value of the function.
+    """
+    original_condition = pd.read_csv(io.StringIO("""
+    building_category,TEK,purpose,kwh_m2
+    apartment_block,PRE_TEK49_RES_1950,cooling,1.1                                                                                                                                                                                                                                           
+    """.strip()), skipinitialspace=True)
+    
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
+                                               'building_category': BuildingCategory.APARTMENT_BLOCK,
+                                               'original_condition':original_condition})
+
+    result = e_r_filter.get_original_condition(tek='TEK21', purpose=EnergyPurpose.COOLING)
+
+    expected = pd.DataFrame(data={'building_category': {0: BuildingCategory.APARTMENT_BLOCK},
+                                  'TEK': {0: 'TEK21'},
+                                  'purpose': {0: EnergyPurpose.COOLING},
                                   'kwh_m2': {0: 0.0}})
 
     pd.testing.assert_frame_equal(result, expected)
 
 # -------------------------------------- get_reduction_per_condition ---------------------------------
-@pytest.fixture
-def reduction_value_name():
-    return 'reduction_share'
 
-
-def test_get_reduction_per_condition_filter_building_category_tek_and_purpose(default_parameters, reduction_value_name):
+def test_get_reduction_per_condition_return_df_for_specified_building_category_tek_purpose(default_parameters, reduction_value_name):
     reduction_per_condition = pd.read_csv(io.StringIO("""
                                 building_category,TEK,purpose,building_condition,reduction_share
                                 house,TEK17,heating_rv,original_condition,0.0
@@ -384,7 +450,13 @@ def test_get_yearly_improvements_tek_not_in_df(default_parameters):
     assert tek02_and_cooling == 0.0
 
 @pytest.mark.skip()
-def test_get_yearly_improvements_building_category_fail(default_parameters):
+def test_get_yearly_improvements_return_value_for_best_match_on_filter_variables_example1(default_parameters):
+    """
+    Fails because of the sequential way that the df is filtered in the function. 
+
+    In this example, it excludes the correct option (building category = default) when filtering
+    on the building category column, as it doesn't consider the specified TEK at the same time.
+    """
     yearly_improvements = pd.read_csv(io.StringIO("""
             building_category,TEK,purpose,yearly_efficiency_improvement
             default,TEK01,cooling,0.1
@@ -398,7 +470,13 @@ def test_get_yearly_improvements_building_category_fail(default_parameters):
 
 
 @pytest.mark.skip()
-def test_get_yearly_improvements_purpose_fail(default_parameters):
+def test_get_yearly_improvements_return_value_for_best_match_on_filter_variables_example2(default_parameters):
+    """
+    Fails because of the sequential way that the df is filtered in the function. 
+
+    In this example, it excludes the correct option (purpose = default) when filtering
+    on the purpose column, as it doesn't consider the specified TEK at the same time.
+    """
     yearly_improvements = pd.read_csv(io.StringIO("""
             building_category,TEK,purpose,yearly_efficiency_improvement
             default,TEK02,lighting,0.5 

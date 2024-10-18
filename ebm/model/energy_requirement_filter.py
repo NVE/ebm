@@ -73,7 +73,6 @@ class EnergyRequirementFilter:
         else:
             return False
     
-    #TODO: should this return a dataframe or just the kwh_m2 value?
     def get_original_condition(self, tek: str, purpose: EnergyPurpose) -> pd.DataFrame:
         """
         Retrieves a dataframe with the energy requirement (kwh_m2) for original condition.
@@ -204,7 +203,7 @@ class EnergyRequirementFilter:
         Retrieves the yearly efficiency rate for energy requirement improvements.   
 
         If the specified conditions are not found, returns a default value of 0.0.
-        
+
         Parameters
         ----------
         tek: str

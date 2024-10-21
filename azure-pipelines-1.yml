@@ -4,7 +4,7 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
 trigger:
-- sprint10
+- sprint11
 
 pool:
   vmImage: ubuntu-latest

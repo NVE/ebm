@@ -42,7 +42,7 @@ def main() -> int:
         logger.remove()
         logger.add(sys.stderr, level="INFO")
 
-    default_path = pathlib.Path('output/ebm_area_forecast.xlsx')
+    default_path = pathlib.Path('output/ebm_output.xlsx')
 
     logger.debug(f'Starting {sys.executable} {__file__}')
 
@@ -102,6 +102,7 @@ You can overwrite the {output_filename} by using --force: {program_name} {' '.jo
     output = None
 
     for building_category in building_categories:
+        #logger.info(f'Using {building_category}')
         area_forecast_result = calculate_building_category_area_forecast(building_category=building_category,
                                                            database_manager=database_manager,
                                                            start_year=start_year,
@@ -122,7 +123,7 @@ You can overwrite the {output_filename} by using --force: {program_name} {' '.jo
                 tek_in_index = [t for t in tek_filter if any(df.index.isin([t], level=1))]
                 df = df.loc[:, tek_in_index, :]
 
-        if 'energy_requirements' in arguments.step:
+        if 'energy-requirements' in arguments.step:
             energy_requirements_result = calculate_building_category_energy_requirements(
                 building_category=building_category,
                 area_forecast=df,

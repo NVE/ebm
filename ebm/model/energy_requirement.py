@@ -70,7 +70,7 @@ class EnergyRequirement:
                     kwh_m2 = heating_reduction[
                         heating_reduction['building_condition'] == building_condition].copy().set_index('year').kwh_m2
                     kwh_m2.name = 'kwh_m2'
-                    energy_req_end = kwh_m2.iloc[0] * (1 - 0.6)
+                    energy_req_end = kwh_m2.iloc[0] * (1.0 - 0.6)
                     kwh_m2_policy = calculate_proportional_energy_change_based_on_end_year(
                         kwh_m2,
                         energy_req_end,

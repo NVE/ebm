@@ -73,8 +73,8 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
     arg_parser.add_argument('--debug', action='store_true',
                             help='Run in debug mode. (Extra information written to stdout)')
     arg_parser.add_argument('step', type=str, nargs='?',
-                            choices=['area-forecast', 'energy_requirements'],
-                            default='energy_requirements')
+                            choices=['area-forecast', 'energy-requirements'],
+                            default='energy-requirements')
     arg_parser.add_argument('output_file', nargs='?', type=str, default=default_path,
                             help=textwrap.dedent(
                                 f'''The location of the file you want to be written. default: {default_path}
@@ -91,16 +91,18 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
                             help='path to the directory with input files')
     arg_parser.add_argument('--conditions', '--building-conditions', '-n',
                             nargs='*', type=str, default=default_building_conditions,
-                            help=textwrap.dedent(f"""
-                                   One or more of the following building conditions: 
-                                       {", ".join(default_building_conditions)}"""
-                                                 ))
+                            help=argparse.SUPPRESS)
+                            #help=textwrap.dedent(f"""
+                            #       One or more of the following building conditions:
+                            #           {", ".join(default_building_conditions)}"""
+                            #                     ))
     arg_parser.add_argument('--tek', '-t',
                             nargs='*', type=str, default=default_tek,
-                            help=textwrap.dedent(f"""
-                                       One or more of the following TEK: 
-                                           {", ".join(default_tek)}"""
-                                                 ))
+                            help=argparse.SUPPRESS)
+                            #help=textwrap.dedent(f"""
+                            #           One or more of the following TEK:
+                            #               {", ".join(default_tek)}"""
+                            #                     ))
     arg_parser.add_argument('--force', '-f', action='store_true',
                             help='Write to <filename> even if it already exists')
     arg_parser.add_argument('--open', '-o', action='store_true',
@@ -229,7 +231,6 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
     series = []
     for s in energy_requirement.calculate_for_building_category(BuildingCategory.KINDERGARTEN):
         series.append(s)
-        print(s)
     df = pd.concat(series)
     df = df.rename({'TEK': 'tek'}, axis='index')
     df.index.names = ['building_category', 'tek', 'purpose', 'building_condition', 'year']

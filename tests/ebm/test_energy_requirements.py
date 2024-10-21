@@ -23,7 +23,7 @@ def test_calculate_energy_requirement_reduction_by_condition():
                                              [BuildingCondition.SMALL_MEASURE, 0.2],
                                              [BuildingCondition.RENOVATION, 0.4],
                                              [BuildingCondition.RENOVATION_AND_SMALL_MEASURE, 0.8]],
-                                       columns=['building_condition', 'reduction'])
+                                       columns=['building_condition', 'reduction_share'])
 
     df = calculate_energy_requirement_reduction_by_condition(energy_requirements, condition_reduction)
 

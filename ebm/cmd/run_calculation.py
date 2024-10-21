@@ -229,7 +229,8 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
     energy_requirement = EnergyRequirement.new_instance()
 
     series = []
-    for s in energy_requirement.calculate_for_building_category(BuildingCategory.KINDERGARTEN):
+    for s in energy_requirement.calculate_for_building_category(building_category=building_category,
+                                                                database_manager=database_manager):
         series.append(s)
     df = pd.concat(series)
     df = df.rename({'TEK': 'tek'}, axis='index')

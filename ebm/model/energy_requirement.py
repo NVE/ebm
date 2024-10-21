@@ -31,14 +31,17 @@ class EnergyRequirement:
         elif calibration_year == period.start:
             logger.warning(f'Calibration year {calibration_year} is same as start year {period.start}')
 
-    def calculate_for_building_category(self, building_category: BuildingCategory) \
-            -> typing.Iterable[pd.Series]:
+    def calculate_for_building_category(self,
+                                        building_category: BuildingCategory,
+                                        database_manager: DatabaseManager = None) -> typing.Iterable[pd.Series]:
         """
         Calculates energy requirements for a single building category
 
         Parameters
         ----------
         building_category : BuildingCategory
+        database_manager: DatabaseManager
+            optional database_manager used to load input parameters
 
         Returns
         -------
@@ -47,8 +50,7 @@ class EnergyRequirement:
             column kwh_m2 representing energy requirement
 
         """
-        er_filter = EnergyRequirementFilter(building_category, DatabaseManager().get_energy_req_original_condition(
-            building_category=building_category), None, None, None)
+        er_filter = EnergyRequirementFilter.new_instance(building_category, database_manager)
         
         for tek, purpose in itertools.product(FilterTek.get_filtered_list(building_category, self.tek_list),
                                               [str(p) for p in EnergyPurpose]):
@@ -66,7 +68,7 @@ class EnergyRequirement:
                                          how='cross')
 
             for building_condition in BuildingCondition.existing_conditions():
-                if policy_improvement[1]:
+                if policy_improvement:
                     kwh_m2 = heating_reduction[
                         heating_reduction['building_condition'] == building_condition].copy().set_index('year').kwh_m2
                     kwh_m2.name = 'kwh_m2'
@@ -96,7 +98,6 @@ class EnergyRequirement:
                 result = heating_reduction.loc[heating_reduction['building_condition'] == building_condition]
                 result = result.set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year'])
                 yield result.kwh_m2
-
 
 
     def calculate_energy_requirements(

@@ -10,19 +10,13 @@ import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
-from ebm.__version__ import version
 from ebm.cmd.run_calculation import calculate_building_category_area_forecast, \
     area_forecast_result_to_horisontal_dataframe, area_forecast_result_to_dataframe, make_arguments, validate_years, \
     calculate_building_category_energy_requirements
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
-from ebm.model.buildings import Buildings
-from ebm.model.construction import ConstructionCalculator
-from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
-
-
 
 
 def main() -> int:
@@ -37,7 +31,7 @@ def main() -> int:
     exit code : int
         zero when the program exits gracefully
     """
-    load_dotenv()
+    load_dotenv(pathlib.Path('.env'))
     if '--debug' not in sys.argv and os.environ.get('DEBUG', '') != 'True':
         logger.remove()
         logger.add(sys.stderr, level="INFO")

@@ -220,20 +220,49 @@ class EnergyRequirementFilter:
         """
         df = self.yearly_improvements
 
+        # Default return value if no match is found
         false_return_value = 0.0
 
-        df = self._filter_df(df, self.BUILDING_CATEGORY, self.building_category)
-        if df is False:
-            return false_return_value
+        # Filter for exact matches on all columns
+        df = df[
+            (df['building_category'].isin([self.building_category, 'default'])) &
+            (df['TEK'].isin([tek, 'default'])) &
+            (df['purpose'].isin([purpose.value, 'default']))
+        ]
 
-        df = self._filter_df(df, self.PURPOSE, purpose)
-        if df is False:
-            return false_return_value
+        # Return default return value if no match is found
+        if df.empty:
+            return false_return_value 
         
-        df = self._filter_df(df, self.TEK, tek)
-        if df is False:
-            return false_return_value
-        
+        # Add priority column: 3 means exact match, 0 means all defaults
+        df.loc[:, 'priority'] = (
+            (df['building_category'] != 'default').astype(int) +
+            (df['TEK'] != 'default').astype(int) +
+            (df['purpose'] != 'default').astype(int)
+        ) 
+
+        # Sort by priority (descending) to get the best match first
+        df = df.sort_values(by='priority', ascending=False)
+
+        # Check if there are ties in the priority
+        top_rank = df['priority'].iloc[0]
+        tied_rank = df[df['priority'] == top_rank].copy()
+
+        if len(tied_rank) > 1:
+            # Add rank columns based on preference order: building_category, TEK, purpose
+            tied_rank['building_category_rank'] = (tied_rank['building_category'] != 'default').astype(int)
+            tied_rank['TEK_rank'] = (tied_rank['TEK'] != 'default').astype(int)
+            tied_rank['purpose_rank'] = (tied_rank['purpose'] != 'default').astype(int)
+
+            # Sort by the ranks to prioritize: building_category, TEK, and purpose
+            tied_rank = tied_rank.sort_values(
+                by=['building_category_rank', 'TEK_rank', 'purpose_rank'],
+                ascending=[False, False, False] 
+            )
+
+            # Update df with new ranking
+            df = tied_rank
+
         eff_rate = df[self.YEARLY_IMPROVEMENT].iloc[0]
         return eff_rate
     
@@ -270,4 +299,4 @@ class EnergyRequirementFilter:
 
 if __name__ == '__main__':
     erf = EnergyRequirementFilter.new_instance(building_category=BuildingCategory.HOUSE)
-    print(erf.get_original_condition)
+    print(erf.get_ye)

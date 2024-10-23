@@ -202,6 +202,7 @@ class EnergyRequirementFilter:
 
         return YearRange(start, end), improvement_value
 
+    #TODO: create helper function from this method and apply in other functions
     def get_yearly_improvements(self, tek: str, purpose: EnergyPurpose) -> float:
         """
         Retrieves the yearly efficiency rate for energy requirement improvements.   
@@ -218,16 +219,16 @@ class EnergyRequirementFilter:
         float
             The yearly efficiency rate for energy requirement improvements.
         """
-        df = self.yearly_improvements
+        df = self.yearly_improvements.copy()
 
         # Default return value if no match is found
         false_return_value = 0.0
 
         # Filter for exact matches on all columns
         df = df[
-            (df['building_category'].isin([self.building_category, 'default'])) &
-            (df['TEK'].isin([tek, 'default'])) &
-            (df['purpose'].isin([purpose.value, 'default']))
+            (df[self.BUILDING_CATEGORY].isin([self.building_category, self.DEFAULT])) &
+            (df[self.TEK].isin([tek, self.DEFAULT])) &
+            (df[self.PURPOSE].isin([purpose.value, self.DEFAULT]))
         ]
 
         # Return default return value if no match is found
@@ -236,10 +237,10 @@ class EnergyRequirementFilter:
         
         # Add priority column: 3 means exact match, 0 means all defaults
         df.loc[:, 'priority'] = (
-            (df['building_category'] != 'default').astype(int) +
-            (df['TEK'] != 'default').astype(int) +
-            (df['purpose'] != 'default').astype(int)
-        ) 
+            (df[self.BUILDING_CATEGORY] != self.DEFAULT).astype(int) +
+            (df[self.TEK] != self.DEFAULT).astype(int) +
+            (df[self.PURPOSE] != self.DEFAULT).astype(int)
+        )
 
         # Sort by priority (descending) to get the best match first
         df = df.sort_values(by='priority', ascending=False)
@@ -250,13 +251,13 @@ class EnergyRequirementFilter:
 
         if len(tied_rank) > 1:
             # Add rank columns based on preference order: building_category, TEK, purpose
-            tied_rank['building_category_rank'] = (tied_rank['building_category'] != 'default').astype(int)
-            tied_rank['TEK_rank'] = (tied_rank['TEK'] != 'default').astype(int)
-            tied_rank['purpose_rank'] = (tied_rank['purpose'] != 'default').astype(int)
+            tied_rank[f'{self.BUILDING_CATEGORY}_rank'] = (tied_rank[self.BUILDING_CATEGORY] != self.DEFAULT).astype(int)
+            tied_rank[f'{self.TEK}_rank'] = (tied_rank[self.TEK] != self.DEFAULT).astype(int)
+            tied_rank[f'{self.PURPOSE}_rank'] = (tied_rank[self.PURPOSE] != self.DEFAULT).astype(int)
 
             # Sort by the ranks to prioritize: building_category, TEK, and purpose
             tied_rank = tied_rank.sort_values(
-                by=['building_category_rank', 'TEK_rank', 'purpose_rank'],
+                by=[f'{self.BUILDING_CATEGORY}_rank', f'{self.TEK}_rank', f'{self.PURPOSE}_rank'],
                 ascending=[False, False, False] 
             )
 

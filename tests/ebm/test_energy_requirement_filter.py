@@ -151,7 +151,9 @@ def test_get_orginal_condition_return_df_for_specified_building_category_tek_pur
     pd.testing.assert_frame_equal(result2, expected2)
 
 
-# TODO: is it necessary to have individual checks on this for building_cat, tek and purpose? (applies to all method tests in script) 
+# TODO:
+# - 'default' should not be returned in columns, but be replaced with the given category, tek and purpose (if this should return df)  
+# - is it necessary to have individual checks on this for building_cat, tek and purpose? (applies to all method tests in script) 
 def test_get_orginal_condition_return_default_df_when_not_found(default_parameters):
     """
     When the specified filter variables (building_category, tek and/or purpose) aren't present in the
@@ -160,11 +162,11 @@ def test_get_orginal_condition_return_default_df_when_not_found(default_paramete
     """
     e_r_filter = EnergyRequirementFilter(**{**default_parameters,
                                             'building_category': BuildingCategory.CULTURE})
-    result1 = e_r_filter.get_original_condition(tek='TEK07', purpose=EnergyPurpose.ELECTRICAL_EQUIPMENT)
-    expected1 = pd.read_csv(io.StringIO("""
+    result = e_r_filter.get_original_condition(tek='TEK07', purpose=EnergyPurpose.ELECTRICAL_EQUIPMENT)
+    expected = pd.read_csv(io.StringIO("""
     building_category,TEK,purpose,kwh_m2
     default,default,default,7.6""".strip()), skipinitialspace=True)
-    pd.testing.assert_frame_equal(result1, expected1)
+    pd.testing.assert_frame_equal(result, expected)
 
 
 def test_get_orginal_condition_return_false_value_when_building_category_not_found(default_parameters):
@@ -472,6 +474,53 @@ def test_get_policy_improvement_filter_building_category_none(default_parameters
 
     assert e_r_filter.get_policy_improvement(tek='TEK01', purpose=EnergyPurpose.LIGHTING) is None
 
+#TODO: parameterize tests
+def test_get_policy_improvement_return_value_for_best_match_case1(default_parameters):
+    policy_improvement = pd.read_csv(io.StringIO("""
+                         building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
+                         default,TEK01,lighting,2011,2012,0.123
+                         house,TEK02,lighting,2012,2013,0.2
+                         """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
+                                            'building_category': BuildingCategory.HOUSE,
+                                            'policy_improvement': policy_improvement})
+
+    result = e_r_filter.get_policy_improvement(tek='TEK01', purpose=EnergyPurpose.LIGHTING)
+    expected =  (YearRange(2011, 2012), 0.123)
+    assert result == expected
+
+def test_get_policy_improvement_return_value_for_best_match_case2(default_parameters):
+    policy_improvement = pd.read_csv(io.StringIO("""
+                         building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
+                         default,TEK02,lighting,2011,2030,0.5
+                         default,TEK01,default,2011,2012,0.123
+                         """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
+                                            'building_category': BuildingCategory.HOUSE,
+                                            'policy_improvement': policy_improvement})
+
+    result = e_r_filter.get_policy_improvement(tek='TEK01', purpose=EnergyPurpose.LIGHTING)
+    expected =  (YearRange(2011, 2012), 0.123)
+    assert result == expected
+
+def test_get_policy_improvement_return_value_when_matches_has_equal_priority(default_parameters):
+    """
+    If all matches fits the given params, then prioritize in this order: building_category, tek and purpose 
+    """
+    policy_improvement = pd.read_csv(io.StringIO("""
+                         building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
+                         default,TEK01,lighting,2011,2030,0.1
+                         house,default,lighting,2011,2030,0.2
+                         house,TEK01,default,2011,2030,0.3                                                 
+                         default,default,default,2011,2030,0.4
+                         """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
+                                            'building_category': BuildingCategory.HOUSE,
+                                            'policy_improvement': policy_improvement})
+
+    result = e_r_filter.get_policy_improvement(tek='TEK01', purpose=EnergyPurpose.LIGHTING)
+    expected =  (YearRange(2011, 2030), 0.3)
+    assert result == expected
 
 # -------------------------------------- get_yearly_improvements -------------------------------------
 
@@ -623,6 +672,8 @@ def test_get_yearly_improvements_return_value_when_match_has_same_priority(defau
                                             'yearly_improvements': yearly_improvements})
     tek01_cooling = e_r_filter.get_yearly_improvements(tek='TEK01', purpose=EnergyPurpose.LIGHTING) 
     assert tek01_cooling == 0.1
+
+#TODO: add test for ambigious rows 
 
 # -------------------------------------- new_instance ------------------------------------------------
 

@@ -139,6 +139,7 @@ class EnergyRequirementFilter:
         """
         df = self.reduction_per_condition
 
+        #TODO: make dataframe more readable (like a dataframe)
         false_return_value = pd.DataFrame(data={self.BUILDING_CONDITION: {0: BuildingCondition.ORIGINAL_CONDITION,
                                                                           1: BuildingCondition.SMALL_MEASURE,
                                                                           2: BuildingCondition.RENOVATION,
@@ -184,51 +185,11 @@ class EnergyRequirementFilter:
 
         false_return_value = None
 
-        df = self._filter_df(df, self.BUILDING_CATEGORY, self.building_category)
-        if df is False:
-            return false_return_value
-        
-        df = self._filter_df(df, self.PURPOSE, purpose)
-        if df is False:
-            return false_return_value
-
-        df = self._filter_df(df, self.TEK, tek)
-        if df is False:
-            return false_return_value
-
-        start = df[self.START_YEAR].iloc[0]
-        end = df[self.END_YEAR].iloc[0]
-        improvement_value = df[self.POLICY_IMPROVEMENT].iloc[0]
-
-        return YearRange(start, end), improvement_value
-
-    #TODO: create helper function from this method and apply in other functions
-    def get_yearly_improvements(self, tek: str, purpose: EnergyPurpose) -> float:
-        """
-        Retrieves the yearly efficiency rate for energy requirement improvements.   
-
-        If the specified conditions are not found, returns a default value of 0.0.
-
-        Parameters
-        ----------
-        tek: str
-        purpose: EnergyPurpose
-
-        Returns
-        -------
-        float
-            The yearly efficiency rate for energy requirement improvements.
-        """
-        df = self.yearly_improvements.copy()
-
-        # Default return value if no match is found
-        false_return_value = 0.0
-
         # Filter for exact matches on all columns
         df = df[
             (df[self.BUILDING_CATEGORY].isin([self.building_category, self.DEFAULT])) &
             (df[self.TEK].isin([tek, self.DEFAULT])) &
-            (df[self.PURPOSE].isin([purpose.value, self.DEFAULT]))
+            (df[self.PURPOSE].isin([purpose, self.DEFAULT]))
         ]
 
         # Return default return value if no match is found
@@ -264,6 +225,75 @@ class EnergyRequirementFilter:
             # Update df with new ranking
             df = tied_rank
 
+        start = df[self.START_YEAR].iloc[0]
+        end = df[self.END_YEAR].iloc[0]
+        improvement_value = df[self.POLICY_IMPROVEMENT].iloc[0]
+
+        return YearRange(start, end), improvement_value
+
+    #TODO: create helper function from this method and apply in other functions
+    def get_yearly_improvements(self, tek: str, purpose: EnergyPurpose) -> float:
+        """
+        Retrieves the yearly efficiency rate for energy requirement improvements.   
+
+        If the specified conditions are not found, returns a default value of 0.0.
+
+        Parameters
+        ----------
+        tek: str
+        purpose: EnergyPurpose
+
+        Returns
+        -------
+        float
+            The yearly efficiency rate for energy requirement improvements.
+        """
+        df = self.yearly_improvements.copy()
+
+        # Default return value if no match is found
+        false_return_value = 0.0
+
+        # Filter for exact matches on all columns
+        df = df[
+            (df[self.BUILDING_CATEGORY].isin([self.building_category, self.DEFAULT])) &
+            (df[self.TEK].isin([tek, self.DEFAULT])) &
+            (df[self.PURPOSE].isin([purpose, self.DEFAULT]))
+        ]
+
+        # Return default return value if no match is found
+        if df.empty:
+            return false_return_value 
+        
+        # Add priority column: 3 means exact match, 0 means all defaults
+        df.loc[:, 'priority'] = (
+            (df[self.BUILDING_CATEGORY] != self.DEFAULT).astype(int) +
+            (df[self.TEK] != self.DEFAULT).astype(int) +
+            (df[self.PURPOSE] != self.DEFAULT).astype(int)
+        )
+
+        # Sort by priority (descending) to get the best match first
+        df = df.sort_values(by='priority', ascending=False)
+
+        # Check if there are ties in the priority
+        top_rank = df['priority'].iloc[0]
+        tied_rank = df[df['priority'] == top_rank].copy()
+
+        if len(tied_rank) > 1:
+            # Add rank columns based on preference order: building_category, TEK, purpose
+            tied_rank[f'{self.BUILDING_CATEGORY}_rank'] = (tied_rank[self.BUILDING_CATEGORY] != self.DEFAULT).astype(int)
+            tied_rank[f'{self.TEK}_rank'] = (tied_rank[self.TEK] != self.DEFAULT).astype(int)
+            tied_rank[f'{self.PURPOSE}_rank'] = (tied_rank[self.PURPOSE] != self.DEFAULT).astype(int)
+
+            # Sort by the ranks to prioritize: building_category, TEK, and purpose
+            tied_rank = tied_rank.sort_values(
+                by=[f'{self.BUILDING_CATEGORY}_rank', f'{self.TEK}_rank', f'{self.PURPOSE}_rank'],
+                ascending=[False, False, False] 
+            )
+
+            # Update df with new ranking
+            df = tied_rank
+        
+        #TODO: crash if there are ambigious rows 
         eff_rate = df[self.YEARLY_IMPROVEMENT].iloc[0]
         return eff_rate
     

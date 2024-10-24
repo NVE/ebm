@@ -168,7 +168,7 @@ def filter_existing_area(area_forecast: pd.DataFrame) -> pd.DataFrame:
 
     """
     area_forecast = area_forecast.reset_index()
-    area_existing = area_forecast.reset_index().loc[~area_forecast.TEK.isin(['TEK10', 'TEK17', 'TEK21'])][
+    area_existing = area_forecast.loc[~area_forecast.TEK.isin(['TEK10', 'TEK17', 'TEK21'])][
         ['year', 'building_category', 'building_condition', 'TEK', 'area']]
     tek10_before_2020 = area_forecast.loc[area_forecast.TEK.isin(['TEK10'])][
         ['year', 'building_category', 'building_condition', 'TEK', 'area']]
@@ -184,6 +184,52 @@ def filter_existing_area(area_forecast: pd.DataFrame) -> pd.DataFrame:
     existing_area = pd.concat([area_existing, tek10_before_2020])
 
     return existing_area.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+
+
+def filter_transition_area(area_forecast: pd.DataFrame, tek_name='TEK10') -> pd.DataFrame:
+    # Filtrer ut TEK10 til ny tek10n dataframe
+    tek10n = area_forecast.query(f'TEK == "{tek_name}"')
+    tek10n = tek10n.reset_index()
+    tek10n
+
+    # Lag filter for byggningskategori og tilstand
+    logger.warning('Assuming building_category kindergarten')
+    filter_building_category = tek10n.building_category == 'kindergarten'
+    filter_building_condition = tek10n.building_condition == 'original_condition'
+
+    # Finn areal TEK10 i 2019 som skal trekkes fra original_condition i TEK10n
+    area_2019 = tek10n.loc[filter_building_category & filter_building_condition & (tek10n.year == 2019), 'area'].iloc[
+        0]  # 391409.25
+    area_2019
+
+    # tek10n_not_original_condition = tek10n.loc[filter_building_category & ~filter_building_condition].groupby(by=['building_category', 'year']).sum()['area'].reset_index()
+    # + tek10n_not_original_condition.area
+
+    # Areal for tek10 2019 skal trekkes fra TEK10n original_condition siden det allerede er med i existing,
+    # dette vil medføre negativt areal for original_condition!
+    tek10n.loc[filter_building_category & filter_building_condition, 'area'] = tek10n[
+                                                                                   filter_building_category & filter_building_condition].area - area_2019
+
+    # Areal før 2020 er allerede med i existing så dette på settes til 0 for tek10n
+    tek10n.loc[filter_building_category & filter_building_condition & (tek10n.year < 2020), 'area'] = 0.0
+
+    # Sett index lik den brukt i existing, TEK21 og TEK17
+    tek10n = tek10n.reset_index()
+
+    tek10n = tek10n.set_index(
+        ['building_category', 'TEK', 'building_condition', 'year']).drop(
+            columns=['index'], errors='ignore')
+    return tek10n
+
+
+def filter_future_area(area_forecast: pd.DataFrame, tek_name) -> pd.DataFrame:
+    future_tek = area_forecast.query(f'TEK == "{tek_name}"').copy().reset_index()
+
+    if 'index' in future_tek.columns.names:
+        future_tek = future_tek.drop(columns=['index'])
+
+    future_tek = future_tek.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+    return future_tek
 
 
 def calculate_area_distribution(area_requirements: pd.DataFrame, existing_area: pd.DataFrame) -> pd.Series:

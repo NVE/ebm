@@ -110,6 +110,26 @@ def test_calculate_energy_requirement_reduction():
     pd.testing.assert_series_equal(result, expected)
 
 
+def test_calculate_energy_requirement_reduction_kindergarten_electrical():
+    kwh_m2 = pd.Series(data=[5.22] * 41, index=YearRange(2010, 2050), name='kwh_m2')
+
+    result = calculate_energy_requirement_reduction(
+        energy_requirements=kwh_m2,
+        yearly_reduction=0.01,
+        reduction_period=YearRange(2020, 2050)
+    )
+
+    assert result.loc[2010] == 5.22
+    assert result.loc[2018] == 5.22
+    assert result.loc[2019] == 5.22
+    assert result.loc[2020] == 5.1678
+    assert result.loc[2021] == 5.116122
+    assert round(result.loc[2030], 8) == 4.67366569
+    assert round(result.loc[2031], 8) == 4.62692903
+    assert result.loc[2049] == 3.86123594908682
+    assert result.loc[2050] == 3.82262358959595
+
+
 def test_calculate_energy_requirement_reduction_raise_value_error_when_period_is_missing_from_index():
     kwh_m2 = pd.Series(data=[20]*8, index=YearRange(2001, 2008), name='kwh_m2')
 

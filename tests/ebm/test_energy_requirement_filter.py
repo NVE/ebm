@@ -1,14 +1,16 @@
 import io
 import typing
+import re
+import pytest
 
 import pandas as pd
-import pytest
 
 from ebm.model.database_manager import DatabaseManager
 from ebm.model import BuildingCategory
 from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.energy_requirement_filter import EnergyRequirementFilter
+from ebm.model.custom_exceptions import AmbiguousDataError
 
 
 @pytest.fixture
@@ -673,7 +675,29 @@ def test_get_yearly_improvements_return_value_when_match_has_same_priority(defau
     tek01_cooling = e_r_filter.get_yearly_improvements(tek='TEK01', purpose=EnergyPurpose.LIGHTING) 
     assert tek01_cooling == 0.1
 
-#TODO: add test for ambigious rows 
+
+def test_get_yearly_improvements_raise_error_for_duplicate_rows_with_different_values(default_parameters):
+    """
+    Test to ensure an AmbiguousDataError is raised when duplicate rows
+    with different 'yearly_efficiency_improvement' values are found.
+    """
+    yearly_improvements = pd.read_csv(io.StringIO("""
+            building_category,TEK,purpose,yearly_efficiency_improvement
+            house,TEK01,lighting,0.1 
+            house,TEK01,lighting,0.2
+            default,TEK01,lighting,0.3
+            default,TEK01,lighting,0.4                                                                                                                                                                                                                                
+            """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
+                                            'building_category': BuildingCategory.HOUSE,
+                                            'yearly_improvements': yearly_improvements}) 
+    expected_error_msg = re.escape(
+        "Conflicting data found for building_category='house', tek='TEK01' "
+        "and purpose='lighting', in file 'energy_requirement_original_condition'. "
+        "Conflicting values in 'yearly_efficiency_improvement' column: [0.1 0.2]"
+    )
+    with pytest.raises(AmbiguousDataError, match=expected_error_msg):
+        e_r_filter.get_yearly_improvements(tek='TEK01', purpose=EnergyPurpose.LIGHTING)    
 
 # -------------------------------------- new_instance ------------------------------------------------
 

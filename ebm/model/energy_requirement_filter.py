@@ -8,12 +8,20 @@ from ebm.model import BuildingCategory
 from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.building_condition import BuildingCondition
+from ebm.model.custom_exceptions import AmbiguousDataError
+
 
 
 class EnergyRequirementFilter:
     """
     """
     
+    #File names 
+    ORIGINAL_CONDITION = 'energy_requirement_original_condition'
+    REDUCITON_PER_CONDITION = 'energy_requirement_reduction_per_condition'
+    POLICY_IMPROVEMENT = 'energy_requirement_policy_improvement'
+    YEARLY_IMPROVEMENT = 'energy_requirement_yearly_improvements'
+
     # Column names
     BUILDING_CATEGORY = 'building_category'
     TEK = 'TEK'
@@ -293,7 +301,19 @@ class EnergyRequirementFilter:
             # Update df with new ranking
             df = tied_rank
         
-        #TODO: crash if there are ambigious rows 
+        # Check for duplicate rows with different yearly efficiency improvement 
+        duplicated_rows = df[df.duplicated(subset=['building_category', 'TEK', 'purpose'], keep=False)]
+        if not duplicated_rows.empty:
+            n_unique_values = duplicated_rows[self.YEARLY_IMPROVEMENT].nunique()
+            if n_unique_values > 1:
+                msg = (
+                    f"Conflicting data found for building_category='{self.building_category}', "
+                    f"{tek=} and purpose='{purpose}', in file '{self.ORIGINAL_CONDITION}'. " 
+                    f"Conflicting values in '{self.YEARLY_IMPROVEMENT}' column: "
+                    f"{duplicated_rows[self.YEARLY_IMPROVEMENT].unique()}"
+                )   
+                raise AmbiguousDataError(msg)
+
         eff_rate = df[self.YEARLY_IMPROVEMENT].iloc[0]
         return eff_rate
     

@@ -17,10 +17,10 @@ class EnergyRequirementFilter:
     """
     
     #File names 
-    ORIGINAL_CONDITION = 'energy_requirement_original_condition'
-    REDUCITON_PER_CONDITION = 'energy_requirement_reduction_per_condition'
-    POLICY_IMPROVEMENT = 'energy_requirement_policy_improvement'
-    YEARLY_IMPROVEMENT = 'energy_requirement_yearly_improvements'
+    FILE_ORIGINAL_CONDITION = 'energy_requirement_original_condition'
+    FILE_REDUCITON_PER_CONDITION = 'energy_requirement_reduction_per_condition'
+    FILE_POLICY_IMPROVEMENT = 'energy_requirement_policy_improvements'
+    FILE_YEARLY_IMPROVEMENT = 'energy_requirement_yearly_improvements'
 
     # Column names
     BUILDING_CATEGORY = 'building_category'
@@ -50,7 +50,7 @@ class EnergyRequirementFilter:
 
         _check_var_type(original_condition, 'energy_requirement_original_condition')
         _check_var_type(reduction_per_condition, 'energy_requirement_reduction_per_condition')
-        _check_var_type(policy_improvement, 'energy_requirement_policy_improvement')
+        _check_var_type(policy_improvement, 'energy_requirement_policy_improvements')
         _check_var_type(yearly_improvements, 'energy_requirement_yearly_improvements')
 
         self.building_category = building_category
@@ -233,6 +233,21 @@ class EnergyRequirementFilter:
             # Update df with new ranking
             df = tied_rank
 
+        # Check for duplicate rows with conflicting data in the three target columns
+        duplicated_rows = df[df.duplicated(subset=[self.BUILDING_CATEGORY, self.TEK, self.PURPOSE], keep=False)]
+        if not duplicated_rows.empty:
+            n_unique_start = duplicated_rows[self.START_YEAR].nunique()
+            n_unique_end = duplicated_rows[self.END_YEAR].nunique()
+            n_unique = duplicated_rows[self.POLICY_IMPROVEMENT].nunique()
+
+            # Check if any of the three fields have conflicting values
+            if n_unique_start > 1 or n_unique_end > 1 or n_unique > 1:
+                msg = (
+                    f"Conflicting data found for building_category='{self.building_category}', "
+                    f"{tek=} and purpose='{purpose}', in file '{self.FILE_POLICY_IMPROVEMENT}'. "
+                )
+                raise AmbiguousDataError(msg)
+
         start = df[self.START_YEAR].iloc[0]
         end = df[self.END_YEAR].iloc[0]
         improvement_value = df[self.POLICY_IMPROVEMENT].iloc[0]
@@ -302,15 +317,13 @@ class EnergyRequirementFilter:
             df = tied_rank
         
         # Check for duplicate rows with different yearly efficiency improvement 
-        duplicated_rows = df[df.duplicated(subset=['building_category', 'TEK', 'purpose'], keep=False)]
+        duplicated_rows = df[df.duplicated(subset=[self.BUILDING_CATEGORY, self.TEK, self.PURPOSE], keep=False)]
         if not duplicated_rows.empty:
             n_unique_values = duplicated_rows[self.YEARLY_IMPROVEMENT].nunique()
             if n_unique_values > 1:
                 msg = (
                     f"Conflicting data found for building_category='{self.building_category}', "
-                    f"{tek=} and purpose='{purpose}', in file '{self.ORIGINAL_CONDITION}'. " 
-                    f"Conflicting values in '{self.YEARLY_IMPROVEMENT}' column: "
-                    f"{duplicated_rows[self.YEARLY_IMPROVEMENT].unique()}"
+                    f"{tek=} and purpose='{purpose}', in file '{self.FILE_YEARLY_IMPROVEMENT}'."
                 )   
                 raise AmbiguousDataError(msg)
 

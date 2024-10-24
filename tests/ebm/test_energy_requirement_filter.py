@@ -524,6 +524,29 @@ def test_get_policy_improvement_return_value_when_matches_has_equal_priority(def
     expected =  (YearRange(2011, 2030), 0.3)
     assert result == expected
 
+def test_get_policy_improvement_raise_error_for_duplicate_rows_with_different_values(default_parameters):
+    """
+    Test to ensure an AmbiguousDataError is raised when duplicate rows
+    with different values are found in the value columns: period_start_year,
+    period_end_year, improvement_at_period_end.
+    """
+    policy_improvement = pd.read_csv(io.StringIO("""
+            building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
+            house,TEK01,lighting,2011,2030,0.1 
+            house,TEK01,lighting,2012,2031,0.2
+            default,TEK01,lighting,2013,2033,0.3
+            default,TEK01,lighting,2014,2034,0.4                                                                                                                                                                                                                            
+            """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
+                                            'building_category': BuildingCategory.HOUSE,
+                                            'policy_improvement': policy_improvement}) 
+    expected_error_msg = re.escape(
+        "Conflicting data found for building_category='house', tek='TEK01' "
+        "and purpose='lighting', in file 'energy_requirement_policy_improvements'."
+    )
+    with pytest.raises(AmbiguousDataError, match=expected_error_msg):
+        e_r_filter.get_policy_improvement(tek='TEK01', purpose=EnergyPurpose.LIGHTING)    
+
 # -------------------------------------- get_yearly_improvements -------------------------------------
 
 #TODO: refactor and add/change tests as done for get_orginal_condition and get_reduction_per_condition
@@ -693,8 +716,7 @@ def test_get_yearly_improvements_raise_error_for_duplicate_rows_with_different_v
                                             'yearly_improvements': yearly_improvements}) 
     expected_error_msg = re.escape(
         "Conflicting data found for building_category='house', tek='TEK01' "
-        "and purpose='lighting', in file 'energy_requirement_original_condition'. "
-        "Conflicting values in 'yearly_efficiency_improvement' column: [0.1 0.2]"
+        "and purpose='lighting', in file 'energy_requirement_yearly_improvements'."
     )
     with pytest.raises(AmbiguousDataError, match=expected_error_msg):
         e_r_filter.get_yearly_improvements(tek='TEK01', purpose=EnergyPurpose.LIGHTING)    

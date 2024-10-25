@@ -74,10 +74,10 @@ class EnergyRequirement:
                     kwh_m2.name = 'kwh_m2'
                     energy_req_end = kwh_m2.iloc[0] * (1.0 - 0.6)
                     lighting = calculate_lighting_reduction(kwh_m2,
-                                                            yearly_reduction=0.005,
+                                                            yearly_reduction=yearly_improvements,
                                                             end_year_energy_requirement=energy_req_end,
                                                             interpolated_reduction_period=policy_improvement[0],
-                                                            year_range=YearRange(2010, 2050))
+                                                            year_range=self.period)
                     heating_reduction.loc[
                         heating_reduction['building_condition'] == building_condition, 'kwh_m2'] = lighting.values
                 else:

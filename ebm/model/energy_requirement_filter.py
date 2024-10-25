@@ -145,7 +145,7 @@ class EnergyRequirementFilter:
         pd.DataFrame
             A DataFrame with columns: building_condition, reduction_share.
         """
-        df = self.reduction_per_condition
+        df = self.reduction_per_condition.copy()
 
         #TODO: make dataframe more readable (like a dataframe)
         false_return_value = pd.DataFrame(data={self.BUILDING_CONDITION: {0: BuildingCondition.ORIGINAL_CONDITION,
@@ -154,18 +154,78 @@ class EnergyRequirementFilter:
                                                                           3: BuildingCondition.RENOVATION_AND_SMALL_MEASURE},
                                                 self.REDUCTION_SHARE: {0: 0.0, 1: 0, 2: 0, 3: 0}})
         
-        df = self._filter_df(df, self.BUILDING_CATEGORY, self.building_category)
-        if df is False:
-            return false_return_value
+        # Filter for exact matches on all columns
+        df = df[
+            (df[self.BUILDING_CATEGORY].isin([self.building_category, self.DEFAULT])) &
+            (df[self.TEK].isin([tek, self.DEFAULT])) &
+            (df[self.PURPOSE].isin([purpose, self.DEFAULT]))
+        ]
 
-        df = self._filter_df(df, self.PURPOSE, purpose)
-        if df is False:
-            return false_return_value
+        # Return default return value if no match is found
+        if df.empty:
+            return false_return_value 
         
-        df = self._filter_df(df, self.TEK, tek)
-        if df is False:
-            return false_return_value
-        
+        # Add priority column: 3 means exact match, 0 means all defaults
+        df.loc[:, 'priority'] = (
+            (df[self.BUILDING_CATEGORY] != self.DEFAULT).astype(int) +
+            (df[self.TEK] != self.DEFAULT).astype(int) +
+            (df[self.PURPOSE] != self.DEFAULT).astype(int)
+        )
+
+        # Sort by priority (descending) to get the best match first
+        df = df.sort_values(by='priority', ascending=False)
+
+        # Check if there are ties in the priority
+        top_rank = df['priority'].iloc[0]
+        tied_rank = df[df['priority'] == top_rank].copy()
+
+        if len(tied_rank) > 1:
+            # Add rank columns based on preference order: building_category, TEK, purpose
+            tied_rank[f'{self.BUILDING_CATEGORY}_rank'] = (tied_rank[self.BUILDING_CATEGORY] != self.DEFAULT).astype(int)
+            tied_rank[f'{self.TEK}_rank'] = (tied_rank[self.TEK] != self.DEFAULT).astype(int)
+            tied_rank[f'{self.PURPOSE}_rank'] = (tied_rank[self.PURPOSE] != self.DEFAULT).astype(int)
+
+            # Sort by the ranks to prioritize: building_category, TEK, and purpose
+            tied_rank = tied_rank.sort_values(
+                by=[f'{self.BUILDING_CATEGORY}_rank', f'{self.TEK}_rank', f'{self.PURPOSE}_rank'],
+                ascending=[False, False, False] 
+            )
+
+            # Update df with new ranking
+            df = tied_rank
+
+        # Check for duplicate rows with different reduction_share
+        duplicated_rows = df[df.duplicated(subset=[self.BUILDING_CATEGORY, self.TEK, self.PURPOSE, self.BUILDING_CONDITION], keep=False)]
+        if not duplicated_rows.empty:
+            n_unique_values = duplicated_rows[self.REDUCTION_SHARE].nunique()
+            if n_unique_values > 1:
+                msg = (
+                    f"Conflicting data found for building_category='{self.building_category}', "
+                    f"{tek=} and purpose='{purpose}', in file '{self.FILE_REDUCITON_PER_CONDITION}'."
+                )
+                raise AmbiguousDataError(msg)
+
+        # Get the 4 building conditions with top priority (best match)
+        df = df[:4]
+
+        # Iterable object with expected conditions
+        expected_conditions = BuildingCondition.existing_conditions()
+
+        # Check if all expected building conditions are present
+        missing_conditions = [cond for cond in expected_conditions if cond not in df[self.BUILDING_CONDITION].values]
+
+        if missing_conditions:
+            # Log the missing building conditions
+            missing_conditions_str = ", ".join(str(cond) for cond in missing_conditions)
+            print(f"Error: Missing expected building conditions: {missing_conditions_str}. Returning default values.")
+
+            # Append rows with missing conditions to the dataframe, setting reduction_share to 0
+            for cond in missing_conditions:
+                df = pd.concat([
+                    df,
+                    pd.DataFrame({self.BUILDING_CONDITION: [cond], self.REDUCTION_SHARE: [0.0]})
+                ])
+
         df = df[[self.BUILDING_CONDITION, self.REDUCTION_SHARE]]
         df.reset_index(drop=True, inplace=True)
 
@@ -189,7 +249,7 @@ class EnergyRequirementFilter:
                 A tuple containing the YearRange for the policy improvement period and 
                 the improvement value, or None if not found.
         """
-        df = self.policy_improvement
+        df = self.policy_improvement.copy()
 
         false_return_value = None
 

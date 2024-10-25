@@ -362,8 +362,8 @@ def test_get_reduction_per_condition_return_false_value_when_tek_not_found(defau
                                   reduction_value_name: {0: 0.0, 1: 0, 2: 0, 3: 0}})
     pd.testing.assert_frame_equal(result, expected)
 
-@pytest.mark.skip()
-def test_get_reduction_per_condition_return_value_for_best_match_on_filter_variables_example1(default_parameters):
+
+def test_get_reduction_per_condition_return_value_for_best_match_on_filter_variables_example1(default_parameters, reduction_value_name):
     """
     """
     reduction_per_condition = pd.read_csv(io.StringIO("""
@@ -388,8 +388,8 @@ def test_get_reduction_per_condition_return_value_for_best_match_on_filter_varia
                                   reduction_value_name: {0 : 0.123, 1: 0.234, 2: 0.345, 3: 0.456}})
     pd.testing.assert_frame_equal(result, expected)
 
-@pytest.mark.skip()
-def test_get_reduction_per_condition_return_value_for_best_match_on_filter_variables_example2(default_parameters):
+
+def test_get_reduction_per_condition_return_value_for_best_match_on_filter_variables_example2(default_parameters, reduction_value_name):
     """
     """
     reduction_per_condition = pd.read_csv(io.StringIO("""
@@ -413,6 +413,102 @@ def test_get_reduction_per_condition_return_value_for_best_match_on_filter_varia
                                                          3: 'renovation_and_small_measure'},
                                   reduction_value_name: {0 : 0.123, 1: 0.234, 2: 0.345, 3: 0.456}})
     pd.testing.assert_frame_equal(result, expected)
+
+
+def test_get_reduction_per_condition_return_correct_df_when_matches_has_equal_priority(default_parameters, reduction_value_name):
+    """
+    If all matches fits the given params, then prioritize in this order: building_category, tek and purpose 
+    """
+    reduction_per_condition = pd.read_csv(io.StringIO("""
+                        building_category,TEK,purpose,building_condition,reduction_share
+                        default,TEK21,heating_rv,original_condition,0.11
+                        default,TEK21,heating_rv,small_measure,0.12
+                        default,TEK21,heating_rv,renovation,0.13
+                        default,TEK21,heating_rv,renovation_and_small_measure,0.14
+                        house,default,heating_rv,original_condition,0.21
+                        house,default,heating_rv,small_measure,0.22
+                        house,default,heating_rv,renovation,0.23
+                        house,default,heating_rv,renovation_and_small_measure,0.24
+                        house,TEK21,default,original_condition,0.31
+                        house,TEK21,default,small_measure,0.32
+                        house,TEK21,default,renovation,0.33
+                        house,TEK21,default,renovation_and_small_measure,0.34
+                        default,default,default,original_condition,0.9
+                        default,default,default,small_measure,0.9
+                        default,default,default,renovation,0.9
+                        default,default,default,renovation_and_small_measure,0.9                                                                                                                                                              
+                        """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
+                                            'building_category':BuildingCategory.HOUSE,
+                                            'reduction_per_condition': reduction_per_condition})
+    expected = pd.DataFrame(data={'building_condition': {0: 'original_condition',
+                                                        1: 'small_measure',
+                                                        2: 'renovation',
+                                                        3: 'renovation_and_small_measure'},
+                                reduction_value_name: {0 : 0.31, 1: 0.32, 2: 0.33, 3: 0.34}})
+    result = e_r_filter.get_reduction_per_condition(tek='TEK21', purpose=EnergyPurpose.HEATING_RV)
+    pd.testing.assert_frame_equal(result, expected)
+
+
+def test_get_reduction_per_condition_raise_error_for_duplicate_rows_with_different_values(default_parameters, reduction_value_name):
+    """
+    Test to ensure an AmbiguousDataError is raised when duplicate rows
+    with different 'reduction_share' values are found.
+    """
+    reduction_per_condition = pd.read_csv(io.StringIO("""
+                        building_category,TEK,purpose,building_condition,reduction_share
+                        house,TEK21,heating_rv,original_condition,0.11
+                        house,TEK21,heating_rv,small_measure,0.12
+                        house,TEK21,heating_rv,renovation,0.13
+                        house,TEK21,heating_rv,renovation_and_small_measure,0.14
+                        house,TEK21,heating_rv,original_condition,0.21
+                        house,TEK21,heating_rv,small_measure,0.22
+                        house,TEK21,heating_rv,renovation,0.23
+                        house,TEK21,heating_rv,renovation_and_small_measure,0.24
+                        default,default,default,original_condition,0.31
+                        default,default,default,small_measure,0.32
+                        default,default,default,renovation,0.33
+                        default,default,default,renovation_and_small_measure,0.34
+                        default,default,default,original_condition,0.9
+                        default,default,default,small_measure,0.9
+                        default,default,default,renovation,0.9
+                        default,default,default,renovation_and_small_measure,0.9                                                                                                                                                              
+                        """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
+                                            'building_category':BuildingCategory.HOUSE,
+                                            'reduction_per_condition': reduction_per_condition})
+    expected_error_msg = re.escape(
+        "Conflicting data found for building_category='house', tek='TEK21' "
+        "and purpose='heating_rv', in file 'energy_requirement_reduction_per_condition'."
+    )
+    with pytest.raises(AmbiguousDataError, match=expected_error_msg):
+        e_r_filter.get_reduction_per_condition(tek='TEK21', purpose=EnergyPurpose.HEATING_RV)
+
+# add tests on this where same building condition is duplicated
+def test_get_reduction_per_condition_return_df_with_default_values_when_building_condition_missing(default_parameters, reduction_value_name):
+    """
+    """
+    reduction_per_condition = pd.read_csv(io.StringIO("""
+                        building_category,TEK,purpose,building_condition,reduction_share
+                        house,TEK21,heating_rv,original_condition,0.11
+                        house,TEK21,heating_rv,small_measure,0.12
+                        default,default,default,original_condition,0.9
+                        default,default,default,small_measure,0.9
+                        default,default,default,renovation,0.9
+                        default,default,default,renovation_and_small_measure,0.9                                                                                                                                                              
+                        """.strip()), skipinitialspace=True)
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
+                                            'building_category':BuildingCategory.HOUSE,
+                                            'reduction_per_condition': reduction_per_condition})
+
+    result = e_r_filter.get_reduction_per_condition(tek='TEK21', purpose=EnergyPurpose.HEATING_RV)
+    expected = pd.DataFrame(data={'building_condition': {0: 'original_condition',
+                                                         1: 'small_measure',
+                                                         2: 'renovation',
+                                                         3: 'renovation_and_small_measure'},
+                                  reduction_value_name: {0 : 0.11, 1: 0.12, 2: 0.0, 3: 0.0}})
+    pd.testing.assert_frame_equal(result, expected)
+
 
 # -------------------------------------- get_policy_improvement --------------------------------------
 
@@ -715,7 +811,7 @@ def test_get_yearly_improvements_raise_error_for_duplicate_rows_with_different_v
                                             'building_category': BuildingCategory.HOUSE,
                                             'yearly_improvements': yearly_improvements}) 
     expected_error_msg = re.escape(
-        "Conflicting data found for building_category='house', tek='TEK01' "
+        "Conflicting data found for building_category='house', tek='TEK01', "
         "and purpose='lighting', in file 'energy_requirement_yearly_improvements'."
     )
     with pytest.raises(AmbiguousDataError, match=expected_error_msg):

@@ -238,7 +238,9 @@ energy_requirement_original_condition = pa.DataFrameSchema(
     }
 )
 
-### TODO: remove strong restrictions on float values and add warnings (should be able to be neg values)
+### TODO: 
+# - ensure column values have energy purpose without demolition
+# - remove strong restrictions on float values and add warnings (should be able to be neg values)
 energy_requirement_reduction_per_condition = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),

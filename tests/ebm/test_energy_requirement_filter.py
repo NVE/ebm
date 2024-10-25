@@ -811,7 +811,7 @@ def test_get_yearly_improvements_raise_error_for_duplicate_rows_with_different_v
                                             'building_category': BuildingCategory.HOUSE,
                                             'yearly_improvements': yearly_improvements}) 
     expected_error_msg = re.escape(
-        "Conflicting data found for building_category='house', tek='TEK01', "
+        "Conflicting data found for building_category='house', tek='TEK01' "
         "and purpose='lighting', in file 'energy_requirement_yearly_improvements'."
     )
     with pytest.raises(AmbiguousDataError, match=expected_error_msg):

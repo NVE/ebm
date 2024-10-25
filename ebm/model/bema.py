@@ -197,10 +197,6 @@ def filter_transition_area(area_forecast: pd.DataFrame, tek_name='TEK10') -> pd.
     filter_building_category = df.building_category == 'kindergarten'
     filter_original_condition = df.building_condition == 'original_condition'
 
-    # Finn areal TEK10 i 2019 som skal trekkes fra original_condition i TEK10n
-    # 391409.25
-
-    #Dataframe for area after 2019 (TEK10n)
     tr = df.copy()
 
     area_2019 = df.loc[filter_building_category & filter_original_condition & (tr.year == 2019), 'area'].iloc[0]
@@ -209,14 +205,15 @@ def filter_transition_area(area_forecast: pd.DataFrame, tek_name='TEK10') -> pd.
     s = tr.groupby(by=['building_category', 'TEK', 'year']).sum()['area'] - area_2019
 
     tr.loc[:, 'area_n'] = s
-    tr.loc[tr['building_condition'] != 'original_condition', 'area_n'] = 0
-    tr.loc[tr.index.get_level_values('year') < 2020, 'area_n'] = 0.0
+    tr.loc[tr['building_condition'] != 'original_condition', 'area'] = 0
+    tr.loc[tr.index.get_level_values('year') > 2019, 'area'] = area_2019
+    tr.loc[(tr.index.get_level_values('year') < 2020) & ~(filter_original_condition), 'area'] = 0.0
 
     tr = tr.reset_index().set_index(['building_category', 'TEK', 'building_condition', 'year'])
-    #df = df.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+    after_2019 = tr.index.get_level_values('year') > 2019
+    tr.loc[after_2019, 'area'] = tr.loc[after_2019, 'area'] - tr.loc[after_2019, 'area_n']
 
     return tr
-
 
 
 def filter_future_area(area_forecast: pd.DataFrame, tek_name) -> pd.DataFrame:

@@ -84,6 +84,57 @@ class EnergyRequirementFilter:
             return df[df[filter_col] == self.DEFAULT]
         else:
             return False
+
+    def _apply_filter(self,
+                      df: pd.DataFrame,
+                      building_category: BuildingCategory,
+                      tek: str,
+                      purpose: EnergyPurpose) -> pd.DataFrame:
+        """
+        """
+        # Filter for exact matches on building category, tek and purpose
+        filtered_df = df[
+            (df[self.BUILDING_CATEGORY].isin([building_category, self.DEFAULT])) &
+            (df[self.TEK].isin([tek, self.DEFAULT])) &
+            (df[self.PURPOSE].isin([purpose, self.DEFAULT]))
+        ]
+        return filtered_df
+    
+    def _add_priority(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        """
+        # Add priority column: 3 means exact match, 0 means all defaults
+        df.loc[:, 'priority'] = (
+            (df[self.BUILDING_CATEGORY] != self.DEFAULT).astype(int) +
+            (df[self.TEK] != self.DEFAULT).astype(int) +
+            (df[self.PURPOSE] != self.DEFAULT).astype(int)
+        )
+
+        # Sort by priority (descending) to get the best match first
+        df = df.sort_values(by='priority', ascending=False)
+        return df
+    
+    def _check_and_resolve_tied_priority(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        """
+        # Check if there are ties in the priority
+        top_rank = df['priority'].iloc[0]
+        tied_rank = df[df['priority'] == top_rank].copy()
+
+        if len(tied_rank) > 1:
+            # Add rank columns based on preference order: building_category, TEK, purpose
+            tied_rank[f'{self.BUILDING_CATEGORY}_rank'] = (tied_rank[self.BUILDING_CATEGORY] != self.DEFAULT).astype(int)
+            tied_rank[f'{self.TEK}_rank'] = (tied_rank[self.TEK] != self.DEFAULT).astype(int)
+            tied_rank[f'{self.PURPOSE}_rank'] = (tied_rank[self.PURPOSE] != self.DEFAULT).astype(int)
+
+            # Sort by the ranks to prioritize: building_category, TEK, and purpose
+            tied_rank = tied_rank.sort_values(
+                by=[f'{self.BUILDING_CATEGORY}_rank', f'{self.TEK}_rank', f'{self.PURPOSE}_rank'],
+                ascending=[False, False, False] 
+            )
+
+            df = tied_rank
+        return df
     
     def get_original_condition(self, tek: str, purpose: EnergyPurpose) -> pd.DataFrame:
         """
@@ -131,7 +182,7 @@ class EnergyRequirementFilter:
 
     def get_reduction_per_condition(self, tek: str, purpose: EnergyPurpose) -> pd.DataFrame:
         """
-        Retrieves  the energy requirement reduction share for the different building conditions.
+        Retrieves the energy requirement reduction share for the different building conditions.
 
         If the specified conditions are not found, returns a default DataFrame with zero reduction shares.
 
@@ -155,44 +206,17 @@ class EnergyRequirementFilter:
                                                 self.REDUCTION_SHARE: {0: 0.0, 1: 0, 2: 0, 3: 0}})
         
         # Filter for exact matches on all columns
-        df = df[
-            (df[self.BUILDING_CATEGORY].isin([self.building_category, self.DEFAULT])) &
-            (df[self.TEK].isin([tek, self.DEFAULT])) &
-            (df[self.PURPOSE].isin([purpose, self.DEFAULT]))
-        ]
+        df = self._apply_filter(df, self.building_category, tek, purpose)
 
         # Return default return value if no match is found
         if df.empty:
             return false_return_value 
         
-        # Add priority column: 3 means exact match, 0 means all defaults
-        df.loc[:, 'priority'] = (
-            (df[self.BUILDING_CATEGORY] != self.DEFAULT).astype(int) +
-            (df[self.TEK] != self.DEFAULT).astype(int) +
-            (df[self.PURPOSE] != self.DEFAULT).astype(int)
-        )
+        # Sort rows by priority to get best match
+        df = self._add_priority(df)
 
-        # Sort by priority (descending) to get the best match first
-        df = df.sort_values(by='priority', ascending=False)
-
-        # Check if there are ties in the priority
-        top_rank = df['priority'].iloc[0]
-        tied_rank = df[df['priority'] == top_rank].copy()
-
-        if len(tied_rank) > 1:
-            # Add rank columns based on preference order: building_category, TEK, purpose
-            tied_rank[f'{self.BUILDING_CATEGORY}_rank'] = (tied_rank[self.BUILDING_CATEGORY] != self.DEFAULT).astype(int)
-            tied_rank[f'{self.TEK}_rank'] = (tied_rank[self.TEK] != self.DEFAULT).astype(int)
-            tied_rank[f'{self.PURPOSE}_rank'] = (tied_rank[self.PURPOSE] != self.DEFAULT).astype(int)
-
-            # Sort by the ranks to prioritize: building_category, TEK, and purpose
-            tied_rank = tied_rank.sort_values(
-                by=[f'{self.BUILDING_CATEGORY}_rank', f'{self.TEK}_rank', f'{self.PURPOSE}_rank'],
-                ascending=[False, False, False] 
-            )
-
-            # Update df with new ranking
-            df = tied_rank
+        # Check for tied priorities and resolve by sorting after prefered priority
+        df = self._check_and_resolve_tied_priority(df)
 
         # Check for duplicate rows with different reduction_share
         duplicated_rows = df[df.duplicated(subset=[self.BUILDING_CATEGORY, self.TEK, self.PURPOSE, self.BUILDING_CONDITION], keep=False)]
@@ -254,44 +278,17 @@ class EnergyRequirementFilter:
         false_return_value = None
 
         # Filter for exact matches on all columns
-        df = df[
-            (df[self.BUILDING_CATEGORY].isin([self.building_category, self.DEFAULT])) &
-            (df[self.TEK].isin([tek, self.DEFAULT])) &
-            (df[self.PURPOSE].isin([purpose, self.DEFAULT]))
-        ]
+        df = self._apply_filter(df, self.building_category, tek, purpose)
 
         # Return default return value if no match is found
         if df.empty:
             return false_return_value 
         
-        # Add priority column: 3 means exact match, 0 means all defaults
-        df.loc[:, 'priority'] = (
-            (df[self.BUILDING_CATEGORY] != self.DEFAULT).astype(int) +
-            (df[self.TEK] != self.DEFAULT).astype(int) +
-            (df[self.PURPOSE] != self.DEFAULT).astype(int)
-        )
+        # Sort rows by priority to get best match
+        df = self._add_priority(df)
 
-        # Sort by priority (descending) to get the best match first
-        df = df.sort_values(by='priority', ascending=False)
-
-        # Check if there are ties in the priority
-        top_rank = df['priority'].iloc[0]
-        tied_rank = df[df['priority'] == top_rank].copy()
-
-        if len(tied_rank) > 1:
-            # Add rank columns based on preference order: building_category, TEK, purpose
-            tied_rank[f'{self.BUILDING_CATEGORY}_rank'] = (tied_rank[self.BUILDING_CATEGORY] != self.DEFAULT).astype(int)
-            tied_rank[f'{self.TEK}_rank'] = (tied_rank[self.TEK] != self.DEFAULT).astype(int)
-            tied_rank[f'{self.PURPOSE}_rank'] = (tied_rank[self.PURPOSE] != self.DEFAULT).astype(int)
-
-            # Sort by the ranks to prioritize: building_category, TEK, and purpose
-            tied_rank = tied_rank.sort_values(
-                by=[f'{self.BUILDING_CATEGORY}_rank', f'{self.TEK}_rank', f'{self.PURPOSE}_rank'],
-                ascending=[False, False, False] 
-            )
-
-            # Update df with new ranking
-            df = tied_rank
+        # Check for tied priorities and resolve by sorting after prefered priority
+        df = self._check_and_resolve_tied_priority(df)
 
         # Check for duplicate rows with conflicting data in the three target columns
         duplicated_rows = df[df.duplicated(subset=[self.BUILDING_CATEGORY, self.TEK, self.PURPOSE], keep=False)]
@@ -314,7 +311,6 @@ class EnergyRequirementFilter:
 
         return YearRange(start, end), improvement_value
 
-    #TODO: create helper function from this method and apply in other functions
     def get_yearly_improvements(self, tek: str, purpose: EnergyPurpose) -> float:
         """
         Retrieves the yearly efficiency rate for energy requirement improvements.   
@@ -337,44 +333,17 @@ class EnergyRequirementFilter:
         false_return_value = 0.0
 
         # Filter for exact matches on all columns
-        df = df[
-            (df[self.BUILDING_CATEGORY].isin([self.building_category, self.DEFAULT])) &
-            (df[self.TEK].isin([tek, self.DEFAULT])) &
-            (df[self.PURPOSE].isin([purpose, self.DEFAULT]))
-        ]
+        df = self._apply_filter(df, self.building_category, tek, purpose)
 
         # Return default return value if no match is found
         if df.empty:
             return false_return_value 
         
-        # Add priority column: 3 means exact match, 0 means all defaults
-        df.loc[:, 'priority'] = (
-            (df[self.BUILDING_CATEGORY] != self.DEFAULT).astype(int) +
-            (df[self.TEK] != self.DEFAULT).astype(int) +
-            (df[self.PURPOSE] != self.DEFAULT).astype(int)
-        )
+        # Sort rows by priority to get best match
+        df = self._add_priority(df)
 
-        # Sort by priority (descending) to get the best match first
-        df = df.sort_values(by='priority', ascending=False)
-
-        # Check if there are ties in the priority
-        top_rank = df['priority'].iloc[0]
-        tied_rank = df[df['priority'] == top_rank].copy()
-
-        if len(tied_rank) > 1:
-            # Add rank columns based on preference order: building_category, TEK, purpose
-            tied_rank[f'{self.BUILDING_CATEGORY}_rank'] = (tied_rank[self.BUILDING_CATEGORY] != self.DEFAULT).astype(int)
-            tied_rank[f'{self.TEK}_rank'] = (tied_rank[self.TEK] != self.DEFAULT).astype(int)
-            tied_rank[f'{self.PURPOSE}_rank'] = (tied_rank[self.PURPOSE] != self.DEFAULT).astype(int)
-
-            # Sort by the ranks to prioritize: building_category, TEK, and purpose
-            tied_rank = tied_rank.sort_values(
-                by=[f'{self.BUILDING_CATEGORY}_rank', f'{self.TEK}_rank', f'{self.PURPOSE}_rank'],
-                ascending=[False, False, False] 
-            )
-
-            # Update df with new ranking
-            df = tied_rank
+        # Check for tied priorities and resolve by sorting after prefered priority
+        df = self._check_and_resolve_tied_priority(df)
         
         # Check for duplicate rows with different yearly efficiency improvement 
         duplicated_rows = df[df.duplicated(subset=[self.BUILDING_CATEGORY, self.TEK, self.PURPOSE], keep=False)]

@@ -16,7 +16,7 @@ class EnergyRequirementFilter:
     """
     """
     
-    #File names 
+    # File names 
     FILE_ORIGINAL_CONDITION = 'energy_requirement_original_condition'
     FILE_REDUCITON_PER_CONDITION = 'energy_requirement_reduction_per_condition'
     FILE_POLICY_IMPROVEMENT = 'energy_requirement_policy_improvements'
@@ -59,40 +59,29 @@ class EnergyRequirementFilter:
         self.yearly_improvements = yearly_improvements
         self.policy_improvement = policy_improvement
 
-    def _filter_df(self, df: pd.DataFrame, filter_col: str,
-                   filter_val: typing.Union[BuildingCategory, EnergyPurpose, str]) -> pd.DataFrame:
-        """
-         Filters the given DataFrame based on the specified column and value.
-
-        Parameters
-        ----------
-        df : pd.DataFrame
-            The DataFrame to filter.
-        filter_col : str
-            The column name to apply the filter on.
-        filter_val : BuildingCategory, EnergyPurpose, or str
-            The value to filter the DataFrame by.
-
-        Returns
-        -------
-        pd.DataFrame or bool
-            The filtered DataFrame or False if the filter value and default value are not found.
-        """
-        if filter_val in df[filter_col].unique():
-            return df[df[filter_col] == filter_val]
-        elif self.DEFAULT in df[filter_col].unique():
-            return df[df[filter_col] == self.DEFAULT]
-        else:
-            return False
-
     def _apply_filter(self,
                       df: pd.DataFrame,
                       building_category: BuildingCategory,
                       tek: str,
                       purpose: EnergyPurpose) -> pd.DataFrame:
         """
+        Filters the Dataframe for exact matches or 'default' for building_cateogry,
+        tek and purpose. 
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The DataFrame to filter. Must contain following cols:
+            'building_category', 'tek' and 'purpose'
+        building_category: BuildingCategory
+        tek: str
+        purpose: EnergyPurpose
+
+        Returns
+        -------
+        pd.DataFrame
+            The filtered DataFrame.
         """
-        # Filter for exact matches on building category, tek and purpose
         filtered_df = df[
             (df[self.BUILDING_CATEGORY].isin([building_category, self.DEFAULT])) &
             (df[self.TEK].isin([tek, self.DEFAULT])) &
@@ -136,7 +125,7 @@ class EnergyRequirementFilter:
             df = tied_rank
         return df
     
-    def get_original_condition(self, tek: str, purpose: EnergyPurpose) -> pd.DataFrame:
+    def get_original_condition(self, tek: str, purpose: EnergyPurpose) -> float:
         """
         Retrieves a dataframe with the energy requirement (kwh_m2) for original condition.
 
@@ -154,31 +143,38 @@ class EnergyRequirementFilter:
         """
         df = self.original_condition
         
-        false_return_value = pd.DataFrame(data={self.BUILDING_CATEGORY: {0: self.building_category},
-                                                self.TEK: {0: tek},
-                                                self.PURPOSE: {0: purpose},
-                                                self.KWH_M2: {0: 0.0}})
+        false_return_value = 0.0
         false_error_msg = (f"No energy requirement value (kwh_m2) found for original condition with variables:"
                            f"building_category={self.building_category}, tek={tek} and purpose={purpose}. Calculating with value = 0.")
 
-        df = self._filter_df(df, self.BUILDING_CATEGORY, self.building_category)
-        if df is False:
-            logger.error(false_error_msg)
-            return false_return_value
+         # Filter for exact matches on all columns
+        df = self._apply_filter(df, self.building_category, tek, purpose)
 
-        df = self._filter_df(df, self.PURPOSE, purpose)
-        if df is False:
+        # Return default return value if no match is found
+        if df.empty:
             logger.error(false_error_msg)
-            return false_return_value
+            return false_return_value 
         
-        df = self._filter_df(df, self.TEK, tek)
-        if df is False:
-            logger.error(false_error_msg)
-            return false_return_value
+        # Sort rows by priority to get best match
+        df = self._add_priority(df)
+
+        # Check for tied priorities and resolve by sorting after prefered priority
+        df = self._check_and_resolve_tied_priority(df)
+
+        # Check for duplicate rows with different energy requirement (kwh_m2) 
+        duplicated_rows = df[df.duplicated(subset=[self.BUILDING_CATEGORY, self.TEK, self.PURPOSE], keep=False)]
+        if not duplicated_rows.empty:
+            n_unique_values = duplicated_rows[self.KWH_M2].nunique()
+            if n_unique_values > 1:
+                msg = (
+                    f"Conflicting data found for building_category='{self.building_category}', "
+                    f"{tek=} and purpose='{purpose}', in file '{self.FILE_ORIGINAL_CONDITION}'."
+                )   
+                raise AmbiguousDataError(msg)
         
         df.reset_index(drop=True, inplace=True)
-
-        return df
+        khw_m2 = df[self.KWH_M2].iloc[0]
+        return khw_m2
 
     def get_reduction_per_condition(self, tek: str, purpose: EnergyPurpose) -> pd.DataFrame:
         """

@@ -1,7 +1,10 @@
 import typing
 
+import pandas as pd
+
 from ebm.model.building_category import BuildingCategory
 from ebm.model.data_classes import TEKParameters
+
 
 class FilterTek:
     """
@@ -71,3 +74,53 @@ class FilterTek:
 
         return filtered_tek_params
 
+    @staticmethod
+    def merge_tek(df: pd.DataFrame,
+                  new_tek_name: str,
+                  old_tek_names: typing.List[str],
+                  aggregates: typing.Dict[str, str] = None) -> pd.DataFrame:
+        """
+        Merge rows in a DataFrame based on specified 'tek' names and aggregate their values.
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            The input DataFrame with a MultiIndex.
+        new_tek_name : str
+            The new 'tek' name to assign to the merged rows.
+        old_tek_names : typing.List[str]
+            A list of 'tek' names to be merged.
+        aggregates : typing.Dict[str, str], optional
+            A dictionary specifying the aggregation functions for each column.
+            If not provided, default aggregations will be used:
+            {'tek': 'max', 'm2': 'first', 'kwh_m2': 'mean', 'energy_requirement': 'sum'}.
+
+        Returns
+        -------
+        pd.DataFrame
+            The DataFrame with the specified 'tek' rows merged and aggregated.
+        """
+        if not isinstance(df, pd.DataFrame):
+            raise ValueError("`df` should be a pandas DataFrame.")
+        if not isinstance(old_tek_names, list):
+            raise ValueError("`old_tek_names` should be a list of strings.")
+
+        # Apply default aggregates if the parameter is empty
+        aggregates = aggregates or {'tek': 'max', 'm2': 'first', 'kwh_m2': 'mean', 'energy_requirement': 'sum'}
+
+        residential = df.loc[
+            (['house', 'apartment_block'], slice(None), slice(None), slice(None), slice(None))].reset_index()
+
+        tek_to_merge = residential[residential.tek.isin(old_tek_names)]
+        agg_tek = tek_to_merge.groupby(by=['building_category',
+                                           'building_condition',
+                                           'purpose',
+                                           'year']).agg(aggregates)
+        agg_tek = agg_tek.reset_index()
+
+        agg_tek['tek'] = new_tek_name
+        rows_to_remove = df.loc[(slice(None), slice(None), slice(None), old_tek_names, slice(None))].index
+        df = df.drop(rows_to_remove)
+        df = pd.concat([df, agg_tek.set_index(['building_category', 'building_condition', 'purpose', 'tek', 'year'])])
+
+        return df

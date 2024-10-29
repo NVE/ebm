@@ -1,7 +1,6 @@
 import os
 import pathlib
 
-import pytest
 import pandas as pd
 import pandera as pa
 import pytest
@@ -40,7 +39,8 @@ def test_check_for_missing_files_return_list(tmp_path):
     assert 'energy_requirement_reduction_per_condition.csv' in missing_files
     assert 'energy_requirement_yearly_improvements.csv' in missing_files
     assert 'energy_requirement_policy_improvements.csv' in missing_files
-    assert len(missing_files) == 11, 'Unexpected list length returned from check_for_missing_files'
+    assert 'tekandeler.csv' in missing_files
+    assert len(missing_files) == 12, 'Unexpected list length returned from check_for_missing_files'
 
 
 def test_filehandler_init_supports_alternative_path(tmp_path):

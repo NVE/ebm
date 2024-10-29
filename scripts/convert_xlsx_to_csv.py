@@ -1,28 +1,82 @@
+import os
 import pathlib
+import sys
+import typing
+
+from dotenv import load_dotenv
+from loguru import logger
 import pandas as pd
 
-# Convert a file from xlsx to csv (with same filename) in same directory
 
-folder_path = 'ebm/data'
-filename = 'energy_requirement_reduction_per_condition'
+DEFAULT_SOURCE = pathlib.Path('ebm/data/output/energy_requirement_reduction_per_condition.xlsx')
 
-def xlsx_to_csv(folder_path, filename):
-    source = pathlib.Path(f'{folder_path}/{filename}.xlsx')
-    target = pathlib.Path(f'{folder_path}/{filename}.csv')
-    
+
+def add_number_to_filename(file: pathlib.Path):
+    if not file.exists():
+        return file
+    logger.debug(f'{file} exists. Incrementing filename.')
+    counter = 1
+    new_file = file.with_stem(f"{file.stem}_{counter}")
+    while new_file.exists():
+        counter += 1
+        new_file = file.with_stem(f"{file.stem}_{counter}")
+    logger.debug(f'{new_file=}')
+    return new_file
+
+
+def xlsx_to_csv(source, target):
+    logger.debug(f'Converting {source} to {target}')
     df = pd.read_excel(source)
     df.to_csv(target, sep=',', encoding='utf-8', index=False)
 
-    print(df)
+    return True
 
-def csv_to_xlsx(folder_path, filename):
-    source = pathlib.Path(f'{folder_path}/{filename}.csv')
-    target = pathlib.Path(f'{folder_path}/{filename}.xlsx')
 
+def csv_to_xlsx(source, target):
+    logger.debug(f'Converting {source} to {target}')
     df = pd.read_csv(source)
     df.to_excel(target, index=False)
 
-    print(df)
+    return True
 
-xlsx_to_csv(folder_path, filename)
-#csv_to_xlsx(folder_path, filename)
+
+def any_to_other(file_path: typing.Union[pathlib.Path, str], allow_overwrite=False):
+    source = file_path if isinstance(file_path, pathlib.Path) else pathlib.Path(file_path)
+    logger.debug(f'{source=}')
+    if not source.is_file():
+        raise FileNotFoundError(f'Source file {DEFAULT_SOURCE} not found')
+    if source.suffix not in ['.xlsx', '.csv']:
+        raise ValueError(f'Unknown file suffix {source.suffix}')
+
+    # Default is converting from xlsx to csv
+    convert_function = xlsx_to_csv
+    target = source.with_suffix('.csv')
+
+    if source.suffix == '.csv':
+        # Convert from csv to xlsx instead
+        target = source.with_suffix('.xlsx')
+        convert_function = csv_to_xlsx
+
+    if not allow_overwrite:
+        target = add_number_to_filename(target)
+
+    if convert_function(source, target):
+        print(f'Wrote {source} to {target}')
+    else:
+        print('Uh, something went wrong?', sys.stderr)
+
+
+def main():
+    load_dotenv(pathlib.Path('.env'))
+
+    if 'CONVERT_ANY_TO_OTHER' not in os.environ.keys():
+        logger.info(f'Using {DEFAULT_SOURCE}')
+        logger.info('Set CONVERT_ANY_TO_OTHER in .env or environment variable to convert a different file')
+    source_path = pathlib.Path(os.environ.get('CONVERT_ANY_TO_OTHER', DEFAULT_SOURCE))
+
+    any_to_other(source_path, allow_overwrite=source_path.parent.name == 'input')
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

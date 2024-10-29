@@ -1,6 +1,8 @@
 import typing
+from typing import re
 
 import pandas as pd
+from loguru import logger
 
 from ebm.model.building_category import BuildingCategory
 from ebm.model.data_classes import TEKParameters
@@ -107,11 +109,20 @@ class FilterTek:
 
         # Apply default aggregates if the parameter is empty
         aggregates = aggregates or {'tek': 'max', 'm2': 'first', 'kwh_m2': 'mean', 'energy_requirement': 'sum'}
+        tek_values = [tek for tek in old_tek_names if tek in df.index.get_level_values('tek')]
+
+        if not tek_values:
+            return df
+
+        level_values = df.index.get_level_values('building_category')
+        building_categories = [bc for bc in BuildingCategory if bc.is_residential() and bc in level_values]
+        if not building_categories:
+            return df
 
         residential = df.loc[
-            (['house', 'apartment_block'], slice(None), slice(None), slice(None), slice(None))].reset_index()
+                (building_categories, slice(None), slice(None), slice(None), slice(None))].reset_index()
 
-        tek_to_merge = residential[residential.tek.isin(old_tek_names)]
+        tek_to_merge = residential[residential.tek.isin(tek_values)]
         agg_tek = tek_to_merge.groupby(by=['building_category',
                                            'building_condition',
                                            'purpose',
@@ -119,8 +130,40 @@ class FilterTek:
         agg_tek = agg_tek.reset_index()
 
         agg_tek['tek'] = new_tek_name
-        rows_to_remove = df.loc[(slice(None), slice(None), slice(None), old_tek_names, slice(None))].index
+        rows_to_remove = df.loc[(slice(None), tek_values, slice(None), slice(None), slice(None))].index
         df = df.drop(rows_to_remove)
-        df = pd.concat([df, agg_tek.set_index(['building_category', 'building_condition', 'purpose', 'tek', 'year'])])
+        df = pd.concat([df, agg_tek.set_index(['building_category', 'tek', 'building_condition',  'year', 'purpose'])])
+        df = df.sort_index()
+
+        return df
+
+    @staticmethod
+    def _replace_strings(text):
+        # Define the pattern to match 'PRE_TEK<number>_RES_<year>' and 'TEK<number>_RES'
+        pattern = r'PRE_TEK\d+_RES_\d{4}|TEK\d+_RES'
+
+        # Define the replacement function
+        def replacement(match):
+            matched_text = match.group(0)
+            if matched_text.startswith('PRE_TEK') and '_RES_' in matched_text:
+                return matched_text.split('_RES_')[0]
+            elif matched_text.startswith('TEK') and matched_text.endswith('_RES'):
+                return matched_text.split('_RES')[0]
+            return matched_text
+
+        # Use re.sub with the replacement function
+        return re.sub(pattern, replacement, text)
+
+    @staticmethod
+    def remove_tek_suffix(df: pd.DataFrame, suffix) -> pd.DataFrame:
+        # Convert MultiIndex to DataFrame
+        index_df = df.index.to_frame(index=False)
+
+        key_name = 'tek' if 'tek' in index_df.keys() else 'TEK'
+        # Remove '_RES' from 'tek' values
+        index_df[key_name] = index_df[key_name].str.replace(suffix, '')
+
+        # Set the modified DataFrame back to MultiIndex
+        df.index = pd.MultiIndex.from_frame(index_df)
 
         return df

@@ -1,3 +1,4 @@
+import io
 import itertools
 
 import numpy as np
@@ -17,6 +18,7 @@ from ebm.validators import (tek_parameters,
                             energy_requirement_original_condition,
                             energy_requirement_reduction_per_condition,
                             energy_requirement_yearly_improvements,
+                            tekandeler,
                             energy_requirement_policy_improvements)
 
 
@@ -384,6 +386,14 @@ def test_heating_reduction_value_between_zero_and_one(heating_reduction_df):
 
     with pytest.raises(pa.errors.SchemaError):
         energy_requirement_reduction_per_condition.validate(heating_reduction_df)
+
+
+def test_tekandeler_ok():
+    tekandeler_csv = """building_category,tek,Oppvarmingstyper,tek_share,Ekstralast andel,Grunnlast andel,Spisslast andel,Grunnlast virkningsgrad,Spisslast virkningsgrad,Ekstralast virkningsgrad,Tappevann virkningsgrad,Spesifikt elforbruk,Kjoling virkningsgrad
+apartment_block,TEK07,Electricity,0.0,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4
+retail,TEK97,Electricity,0.08158166937579898,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4
+retail,PRE_TEK49,Electricity,0.07593898514970877,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4"""
+    tekandeler.validate(pd.read_csv(io.StringIO(tekandeler_csv)))
 
 
 #TODO: add more test for energy requirement input data 

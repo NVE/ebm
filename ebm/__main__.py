@@ -12,7 +12,7 @@ from loguru import logger
 
 from ebm.cmd.run_calculation import calculate_building_category_area_forecast, \
     area_forecast_result_to_horisontal_dataframe, area_forecast_result_to_dataframe, make_arguments, validate_years, \
-    calculate_building_category_energy_requirements
+    calculate_building_category_energy_requirements, calculate_tekandeler
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.database_manager import DatabaseManager
@@ -117,7 +117,7 @@ You can overwrite the {output_filename} by using --force: {program_name} {' '.jo
                 tek_in_index = [t for t in tek_filter if any(df.index.isin([t], level=1))]
                 df = df.loc[:, tek_in_index, :]
 
-        if 'energy-requirements' in arguments.step:
+        if 'energy-requirements' in arguments.step or 'tek-andeler' in arguments.step:
             energy_requirements_result = calculate_building_category_energy_requirements(
                 building_category=building_category,
                 area_forecast=df,
@@ -125,6 +125,9 @@ You can overwrite the {output_filename} by using --force: {program_name} {' '.jo
                 start_year=start_year,
                 end_year=end_year)
             df = energy_requirements_result
+            if 'tek-andeler' in arguments.step:
+                df = calculate_tekandeler(energy_requirements=energy_requirements_result,
+                                          database_manager=database_manager)
 
         if output is None:
             output = df

@@ -19,6 +19,7 @@ from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement
 from ebm.model.file_handler import FileHandler
+from ebm.tekandeler import TEKAndelerCalculator
 
 TEK = """PRE_TEK49_RES_1950
 PRE_TEK49_RES_1940
@@ -73,7 +74,7 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
     arg_parser.add_argument('--debug', action='store_true',
                             help='Run in debug mode. (Extra information written to stdout)')
     arg_parser.add_argument('step', type=str, nargs='?',
-                            choices=['area-forecast', 'energy-requirements'],
+                            choices=['area-forecast', 'energy-requirements', 'tek-andeler'],
                             default='energy-requirements')
     arg_parser.add_argument('output_file', nargs='?', type=str, default=default_path,
                             help=textwrap.dedent(
@@ -299,3 +300,12 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
     forecast = nested_dict_series_to_list(forecast)
 
     return forecast
+
+
+def calculate_tekandeler(energy_requirements, database_manager: DatabaseManager):
+    tekandeler_input = database_manager.get_tekandeler()
+
+    calculator = TEKAndelerCalculator(tekandeler_input)
+    df = calculator.calculate(energy_requirements)
+
+    return df

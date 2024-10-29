@@ -276,6 +276,26 @@ energy_requirement_policy_improvements = pa.DataFrameSchema(
                        error="period_end_year should be greater than period_start_year")]
 )
 
+
+tekandeler = pa.DataFrameSchema(
+    columns={
+        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
+        'tek': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
+        'Oppvarmingstyper': pa.Column(str),
+        'tek_share': pa.Column(float, coerce=True),
+        'Ekstralast andel': pa.Column(float, coerce=True),
+        'Ekstralast virkningsgrad': pa.Column(float, coerce=True),
+        'Grunnlast andel': pa.Column(float, coerce=True),
+        'Grunnlast virkningsgrad': pa.Column(float, coerce=True),
+        'Spisslast andel': pa.Column(float, coerce=True),
+        'Spisslast virkningsgrad': pa.Column(float, coerce=True),
+        'Tappevann virkningsgrad': pa.Column(float, coerce=True),
+        'Kjoling virkningsgrad': pa.Column(float, coerce=True),
+        'Spesifikt elforbruk': pa.Column(float, coerce=True)
+    }
+)
+
+
 __all__ = [area_parameters,
            tek_parameters,
            construction_building_category_yearly,

@@ -230,6 +230,18 @@ class DatabaseManager():
         """
         return self.file_handler.get_energy_req_policy_improvements()
 
+    def get_tekandeler(self) -> pd.DataFrame:
+        """
+        Load input dataframe for "TEK-andeler"
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        df = self.file_handler.get_file(self.file_handler.TEKANDELER)
+
+        return df
+
     def validate_database(self):
         missing_files = self.file_handler.check_for_missing_files()
         return True

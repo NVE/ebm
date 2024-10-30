@@ -1,11 +1,7 @@
-import argparse
 import os
 import pathlib
 import sys
-import textwrap
-from typing import List, Dict
 
-import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
@@ -47,6 +43,8 @@ def main() -> int:
     start_year, end_year = arguments.start_year, arguments.end_year
     output_filename = pathlib.Path(arguments.output_file)
     building_categories = [BuildingCategory.from_string(b_c) for b_c in arguments.categories]
+    if not building_categories:
+        building_categories = list(BuildingCategory)
     building_conditions = [BuildingCondition(condition) for condition in arguments.conditions]
     tek_filter = arguments.tek
     force_overwrite = arguments.force
@@ -96,11 +94,10 @@ You can overwrite the {output_filename} by using --force: {program_name} {' '.jo
     output = None
 
     for building_category in building_categories:
-        #logger.info(f'Using {building_category}')
         area_forecast_result = calculate_building_category_area_forecast(building_category=building_category,
-                                                           database_manager=database_manager,
-                                                           start_year=start_year,
-                                                           end_year=end_year)
+                                                                         database_manager=database_manager,
+                                                                         start_year=start_year,
+                                                                         end_year=end_year)
         result = area_forecast_result
         if horizontal_years:
             df = area_forecast_result_to_horisontal_dataframe(building_category, result, start_year, end_year)

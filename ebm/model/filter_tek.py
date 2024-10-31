@@ -1,5 +1,4 @@
 import typing
-from typing import re
 
 import pandas as pd
 from loguru import logger
@@ -52,7 +51,8 @@ class FilterTek:
     
     # This method is only needed if tek_params are initialized in the Buildings class
     @staticmethod
-    def get_filtered_params(tek_list: typing.List[str], tek_params: typing.Dict[str, TEKParameters]) -> typing.Dict[str, TEKParameters]:
+    def get_filtered_params(tek_list: typing.List[str],
+                            tek_params: typing.Dict[str, TEKParameters]) -> typing.Dict[str, TEKParameters]:
         """
         Filters the TEK parameters to include only those relevant to the provided TEK list.
 
@@ -136,23 +136,6 @@ class FilterTek:
         df = df.sort_index()
 
         return df
-
-    @staticmethod
-    def _replace_strings(text):
-        # Define the pattern to match 'PRE_TEK<number>_RES_<year>' and 'TEK<number>_RES'
-        pattern = r'PRE_TEK\d+_RES_\d{4}|TEK\d+_RES'
-
-        # Define the replacement function
-        def replacement(match):
-            matched_text = match.group(0)
-            if matched_text.startswith('PRE_TEK') and '_RES_' in matched_text:
-                return matched_text.split('_RES_')[0]
-            elif matched_text.startswith('TEK') and matched_text.endswith('_RES'):
-                return matched_text.split('_RES')[0]
-            return matched_text
-
-        # Use re.sub with the replacement function
-        return re.sub(pattern, replacement, text)
 
     @staticmethod
     def remove_tek_suffix(df: pd.DataFrame, suffix) -> pd.DataFrame:

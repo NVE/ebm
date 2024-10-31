@@ -74,4 +74,14 @@ class TEKAndelerCalculator:
         d2.loc[:, 'gwh'] = d2.loc[:, 'kwh'] / 10 ** 6
 
         d2 = d2.sort_index(level=['building_category', 'tek', 'year', 'building_condition', 'purpose'])
-        return d2
+        return d2[['Oppvarmingstyper',
+                   'tek_share',
+                   'eq_ts',
+                   'RV_GL',
+                   'RV_SL',
+                   'RV_EL',
+                   'DHW_TV',
+                   'CL_KV',
+                   'O_SV',
+                   'kwh',
+                   'gwh']]

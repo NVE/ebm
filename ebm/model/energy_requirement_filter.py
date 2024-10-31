@@ -10,8 +10,6 @@ from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.exceptions import AmbiguousDataError
 
-
-
 class EnergyRequirementFilter:
     """
     Filters and retrieves energy requirement data based on building category, TEK, and energy purpose.
@@ -35,7 +33,7 @@ class EnergyRequirementFilter:
     POLICY_IMPROVEMENT = 'improvement_at_period_end'
     YEARLY_IMPROVEMENT = 'yearly_efficiency_improvement'
 
-    # Exoected string for default
+    # Expected string for default
     DEFAULT = 'default'
 
     def __init__(self,
@@ -243,12 +241,12 @@ class EnergyRequirementFilter:
         """
         df = self.reduction_per_condition.copy()
 
-        #TODO: make dataframe more readable (like a dataframe)
-        false_return_value = pd.DataFrame(data={self.BUILDING_CONDITION: {0: BuildingCondition.ORIGINAL_CONDITION,
-                                                                          1: BuildingCondition.SMALL_MEASURE,
-                                                                          2: BuildingCondition.RENOVATION,
-                                                                          3: BuildingCondition.RENOVATION_AND_SMALL_MEASURE},
-                                                self.REDUCTION_SHARE: {0: 0.0, 1: 0, 2: 0, 3: 0}})
+        false_return_value = pd.DataFrame([
+            [BuildingCondition.ORIGINAL_CONDITION, 0.0],
+            [BuildingCondition.SMALL_MEASURE, 0.0],
+            [BuildingCondition.RENOVATION, 0.0],
+            [BuildingCondition.RENOVATION_AND_SMALL_MEASURE, 0.0]
+        ], columns=[self.BUILDING_CONDITION, self.REDUCTION_SHARE])
         
         # Filter for exact matches on all columns
         df = self._apply_filter(df, self.building_category, tek, purpose)
@@ -301,7 +299,6 @@ class EnergyRequirementFilter:
 
         df = df[[self.BUILDING_CONDITION, self.REDUCTION_SHARE]]
         df.reset_index(drop=True, inplace=True)
-
         return df
 
     def get_policy_improvement(self,
@@ -354,7 +351,6 @@ class EnergyRequirementFilter:
         start = df[self.START_YEAR].iloc[0]
         end = df[self.END_YEAR].iloc[0]
         improvement_value = df[self.POLICY_IMPROVEMENT].iloc[0]
-
         return YearRange(start, end), improvement_value
 
     def get_yearly_improvements(self, tek: str, purpose: EnergyPurpose) -> float:

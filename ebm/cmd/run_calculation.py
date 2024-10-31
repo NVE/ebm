@@ -19,6 +19,7 @@ from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement
 from ebm.model.file_handler import FileHandler
+from ebm.heating_systems import HeatingSystems
 
 TEK = """PRE_TEK49_RES_1950
 PRE_TEK49_RES_1940
@@ -73,8 +74,11 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
     arg_parser.add_argument('--debug', action='store_true',
                             help='Run in debug mode. (Extra information written to stdout)')
     arg_parser.add_argument('step', type=str, nargs='?',
-                            choices=['area-forecast', 'energy-requirements'],
-                            default='energy-requirements')
+                            choices=['area-forecast', 'energy-requirements', 'heating-systems'],
+                            default='energy-requirements',
+                            help="""
+The calculation step you want to run. The steps are sequential. Any prerequisite to the chosen step will run 
+    automatically.""")
     arg_parser.add_argument('output_file', nargs='?', type=str, default=default_path,
                             help=textwrap.dedent(
                                 f'''The location of the file you want to be written. default: {default_path}
@@ -84,7 +88,8 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
                             nargs='*', type=str, default=default_building_categories,
                             help=textwrap.dedent(f"""
                                    One or more of the following building categories: 
-                                       {", ".join(default_building_categories)}"""
+                                       {", ".join(default_building_categories)}. 
+                                       The default is to use all categories."""
                                                  ))
     arg_parser.add_argument('--input', '--input-directory', '-i',
                             nargs='?', type=str, default=os.environ.get('EBM_INPUT_DIRECTORY', 'input'),
@@ -111,7 +116,8 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
                             help='A single character to be used for separating columns when writing csv. ' +
                                  'Default: "," Special characters like ; should be quoted ";"')
     arg_parser.add_argument('--create-input', action='store_true',
-                            help='Create input directory with all required files in the current working directory')
+                            help='''
+Create input directory containing all required files in the current working directory''')
     arg_parser.add_argument('--start_year', nargs='?', type=int, default=2010, help=argparse.SUPPRESS)
     arg_parser.add_argument('--end_year', nargs='?', type=int, default=2050, help=argparse.SUPPRESS)
 
@@ -299,3 +305,12 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
     forecast = nested_dict_series_to_list(forecast)
 
     return forecast
+
+
+def calculate_tekandeler(energy_requirements, database_manager: DatabaseManager):
+    tekandeler_input = database_manager.get_tekandeler()
+
+    calculator = HeatingSystems(tekandeler_input)
+    df = calculator.calculate(energy_requirements)
+
+    return df

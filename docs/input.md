@@ -166,3 +166,37 @@ TEK21,2030,2025,2050
  - building_year The assumed building year for the tek
  - period_start_year The first year for the TEK
  - period_end_year The last year for the TEK
+
+
+## tekandeler.csv
+
+
+```csv
+
+building_category,TEK,Oppvarmingstyper,tek_share,Ekstralast andel,Grunnlast andel,Spisslast andel,Grunnlast virkningsgrad,Spisslast virkningsgrad,Ekstralast virkningsgrad,Tappevann virkningsgrad,Spesifikt elforbruk,Kjoling virkningsgrad
+apartment_block,TEK07,Electricity,0.0,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4
+retail,TEK97,Electricity,0.08158166937579898,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4
+retail,PRE_TEK49,Electricity,0.07593898514970877,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4
+sports,TEK07,Electricity,0.06106588557516737,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4
+
+
+```
+
+### Identifiers
+
+ - building_category 
+ - TEK
+ - Oppvarmingstyper
+
+### Values
+ - tek_share
+ - Ekstralast andel
+ - Grunnlast andel
+ - Spisslast andel
+ - Grunnlast virkningsgrad
+ - Spisslast virkningsgrad
+ - Ekstralast virkningsgrad
+ - Tappevann virkningsgrad
+ - Spesifikt elforbruk
+ - Kjoling virkningsgrad
+

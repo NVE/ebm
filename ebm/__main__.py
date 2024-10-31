@@ -122,7 +122,7 @@ You can overwrite the {output_filename} by using --force: {program_name} {' '.jo
                 start_year=start_year,
                 end_year=end_year)
             df = energy_requirements_result
-            if 'tek-andeler' in arguments.step:
+            if 'heating-systems' in arguments.step:
                 df = calculate_tekandeler(energy_requirements=energy_requirements_result,
                                           database_manager=database_manager)
 

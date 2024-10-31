@@ -28,7 +28,7 @@ class FileHandler:
     ENERGY_REQ_REDUCTION_CONDITION = 'energy_requirement_reduction_per_condition.csv'
     ENERGY_REQ_YEARLY_IMPROVEMENTS = 'energy_requirement_yearly_improvements.csv'
     ENERGY_REQ_POLICY_IMPROVEMENTS = 'energy_requirement_policy_improvements.csv'
-    TEKANDELER = 'tekandeler.csv'
+    TEKANDELER = 'heating_systems.csv'
 
     input_directory: pathlib.Path
 

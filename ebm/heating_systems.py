@@ -5,9 +5,9 @@ from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.filter_tek import FilterTek
 
 
-class TEKAndelerCalculator:
-    def __init__(self, tekandeler: pd.DataFrame = None):
-        self.tekandeler = tekandeler
+class HeatingSystems:
+    def __init__(self, heating_systems_parameters: pd.DataFrame = None):
+        self.heating_systems_parameters = heating_systems_parameters
 
     def calculate(self, energy_requirements: pd.DataFrame) -> pd.DataFrame:
         logger.warning('Merge TEK69s and PRE_TEK49s at an improper place')
@@ -24,7 +24,7 @@ class TEKAndelerCalculator:
             raise ValueError('Found _RES or _COM in energy_requirements')
 
         d2 = \
-        energy_requirements.reset_index().merge(self.tekandeler.reset_index(), left_on=['building_category', 'tek'],
+        energy_requirements.reset_index().merge(self.heating_systems_parameters.reset_index(), left_on=['building_category', 'tek'],
                                                 right_on=['building_category', 'tek'])[
             ['building_category', 'building_condition', 'purpose', 'tek', 'year', 'kwh_m2', 'm2', 'energy_requirement',
              'Oppvarmingstyper', 'tek_share', 'Grunnlast andel', 'Grunnlast virkningsgrad', 'Spisslast andel',

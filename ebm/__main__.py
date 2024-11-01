@@ -114,7 +114,7 @@ You can overwrite the {output_filename} by using --force: {program_name} {' '.jo
                 tek_in_index = [t for t in tek_filter if any(df.index.isin([t], level=1))]
                 df = df.loc[:, tek_in_index, :]
 
-        if 'energy-requirements' in arguments.step or 'tek-andeler' in arguments.step:
+        if 'energy-requirements' in arguments.step or 'heating-systems' in arguments.step:
             energy_requirements_result = calculate_building_category_energy_requirements(
                 building_category=building_category,
                 area_forecast=df,

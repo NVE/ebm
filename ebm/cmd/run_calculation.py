@@ -149,7 +149,7 @@ def area_forecast_result_to_dataframe(building_category: BuildingCategory,
     dataframe = None
     for tek, conditions in forecast.items():
         index_rows = [(str(building_category), tek, y,) for y in range(start_year, end_year + 1)]
-        index_names = ['building_category', 'tek', 'year']
+        index_names = ['building_category', 'TEK', 'year']
         df = pd.DataFrame(data=conditions,
                           index=pd.MultiIndex.from_tuples(index_rows, names=index_names))
         if dataframe is not None:
@@ -235,19 +235,18 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
     energy_requirement = EnergyRequirement.new_instance()
 
     series = []
-    for s in energy_requirement.calculate_for_building_category(building_category=building_category,
-                                                                database_manager=database_manager):
+    for s in energy_requirement.calculate_for_building_category(
+            building_category=building_category, database_manager=database_manager):
         series.append(s)
     df = pd.concat(series)
-    df = df.rename({'TEK': 'tek'}, axis='index')
-    df.index.names = ['building_category', 'tek', 'purpose', 'building_condition', 'year']
-    q = area_forecast.reset_index().melt(id_vars=['building_category', 'tek', 'year'],
+    df.index.names = ['building_category', 'TEK', 'purpose', 'building_condition', 'year']
+    q = area_forecast.reset_index().melt(id_vars=['building_category', 'TEK', 'year'],
                                          value_vars=['demolition', 'original_condition', 'renovation', 'small_measure',
                                                      'renovation_and_small_measure', 'renovation'],
                                          var_name='building_condition',
                                          value_name='m2')
 
-    q = q.set_index(['building_category', 'tek', 'building_condition', 'year'])
+    q = q.set_index(['building_category', 'TEK', 'building_condition', 'year'])
 
     merged = q.merge(df, left_index=True, right_index=True)
     merged['energy_requirement'] = merged.kwh_m2 * merged.m2

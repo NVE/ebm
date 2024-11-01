@@ -20,19 +20,19 @@ class HeatingSystems:
 
         # If _RES of _COM is in TEK this will not work
         # energy_requirements.index[energy_requirements.index.str.endswith('_RES')]
-        if energy_requirements.index.get_level_values('tek').str.endswith('_RES').any() or energy_requirements.index.get_level_values('tek').str.endswith('_COM').any():
+        if energy_requirements.index.get_level_values('TEK').str.endswith('_RES').any() or energy_requirements.index.get_level_values('TEK').str.endswith('_COM').any():
             raise ValueError('Found _RES or _COM in energy_requirements')
 
         d2 = \
-        energy_requirements.reset_index().merge(self.heating_systems_parameters.reset_index(), left_on=['building_category', 'tek'],
-                                                right_on=['building_category', 'tek'])[
-            ['building_category', 'building_condition', 'purpose', 'tek', 'year', 'kwh_m2', 'm2', 'energy_requirement',
+        energy_requirements.reset_index().merge(self.heating_systems_parameters.reset_index(), left_on=['building_category', 'TEK'],
+                                                right_on=['building_category', 'TEK'])[
+            ['building_category', 'building_condition', 'purpose', 'TEK', 'year', 'kwh_m2', 'm2', 'energy_requirement',
              'Oppvarmingstyper', 'tek_share', 'Grunnlast andel', 'Grunnlast virkningsgrad', 'Spisslast andel',
              'Spisslast virkningsgrad', 'Ekstralast andel', 'Ekstralast virkningsgrad', 'Tappevann virkningsgrad',
              'Spesifikt elforbruk',
              'Kjoling virkningsgrad']]  # ,'Innfyrt_energi_kWh','Innfyrt_energi_GWh','Energibehov_samlet_GWh']]
 
-        d2 = d2.set_index(['building_category', 'building_condition', 'purpose', 'tek', 'year']).sort_index()
+        d2 = d2.set_index(['building_category', 'building_condition', 'purpose', 'TEK', 'year']).sort_index()
 
         # Make column eq_ts for tek_share adjusted energy requirement
         d2['eq_ts'] = d2.energy_requirement * d2.tek_share
@@ -73,7 +73,7 @@ class HeatingSystems:
 
         d2.loc[:, 'gwh'] = d2.loc[:, 'kwh'] / 10 ** 6
 
-        d2 = d2.sort_index(level=['building_category', 'tek', 'year', 'building_condition', 'purpose'])
+        d2 = d2.sort_index(level=['building_category', 'TEK', 'year', 'building_condition', 'purpose'])
         return d2[['Oppvarmingstyper',
                    'tek_share',
                    'eq_ts',

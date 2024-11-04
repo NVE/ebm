@@ -61,7 +61,10 @@ class EnergyRequirement:
 
             requirement_by_condition = calculate_energy_requirement_reduction_by_condition(
                 energy_requirements=energy_requirement_original_condition,
-                condition_reduction=reduction_share)
+                condition_reduction=reduction_share,
+                building_category=building_category,
+                tek=tek,
+                purpose=purpose)
 
             heating_reduction = pd.merge(left=requirement_by_condition,
                                          right=pd.DataFrame({'year': self.period.year_range}),
@@ -128,8 +131,11 @@ class EnergyRequirement:
 
 
 def calculate_energy_requirement_reduction_by_condition(
-        energy_requirements: pd.DataFrame,
-        condition_reduction: pd.DataFrame
+        energy_requirements: float,
+        condition_reduction: pd.DataFrame,
+        building_category,
+        tek,
+        purpose
 ) -> pd.DataFrame:
     """
     Calculate the reduced energy requirements for building_category, TEK, purpose for every conditions.
@@ -149,7 +155,11 @@ def calculate_energy_requirement_reduction_by_condition(
         DataFrame with the reduced energy requirements.
         Includes columns: 'building_category', 'TEK', 'purpose', 'building_condition', ' kwh_m2'.
     """
-    df = pd.merge(energy_requirements, condition_reduction, how='cross')
+    df = condition_reduction
+    df['kwh_m2'] = energy_requirements
+    df['TEK'] = tek
+    df['purpose'] = purpose
+    df['building_category'] = building_category
 
     df.kwh_m2 = df.kwh_m2 * (1.0 - df['reduction_share'])
 

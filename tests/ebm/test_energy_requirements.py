@@ -14,18 +14,17 @@ from ebm.model.energy_requirement import (
 
 
 def test_calculate_energy_requirement_reduction_by_condition():
-    test_data = io.StringIO("""building_category,TEK,purpose, kwh_m2
-                               apartment_block,PRE_TEK49,HeatingRV, 100
-                               apartment_block,TEK07,HeatingRV,200
-                               house,TEK07,HeatingRV,400""")
-    energy_requirements = pd.read_csv(test_data, skipinitialspace=True)
     condition_reduction = pd.DataFrame(data=[[BuildingCondition.ORIGINAL_CONDITION, 0],
                                              [BuildingCondition.SMALL_MEASURE, 0.2],
                                              [BuildingCondition.RENOVATION, 0.4],
                                              [BuildingCondition.RENOVATION_AND_SMALL_MEASURE, 0.8]],
                                        columns=['building_condition', 'reduction_share'])
 
-    df = calculate_energy_requirement_reduction_by_condition(energy_requirements, condition_reduction)
+    df = calculate_energy_requirement_reduction_by_condition(100.0, condition_reduction,
+                                                             building_category='apartment_block',
+                                                             purpose='HeatingRV',
+                                                             tek='PRE_TEK49'
+                                                             )
 
     pre_tek49 = df[(df.building_category == 'apartment_block') &
                    (df.TEK == 'PRE_TEK49') &

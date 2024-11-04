@@ -319,7 +319,7 @@ energy_requirement_policy_improvements = pa.DataFrameSchema(
 heating_systems = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
-        'tek': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
+        'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
         'Oppvarmingstyper': pa.Column(str),
         'tek_share': pa.Column(float, coerce=True),
         'Ekstralast andel': pa.Column(float, coerce=True),

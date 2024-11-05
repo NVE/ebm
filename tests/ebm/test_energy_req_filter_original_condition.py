@@ -5,8 +5,7 @@ import pytest
 
 import pandas as pd
 
-from ebm.model import BuildingCategory
-from ebm.model.data_classes import YearRange
+from ebm.model.building_category import BuildingCategory
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.energy_requirement_filter import EnergyRequirementFilter
 from ebm.model.exceptions import AmbiguousDataError
@@ -38,24 +37,24 @@ def default_parameters(original_condition) \
             'yearly_improvements': pd.DataFrame(),
             'policy_improvement': pd.DataFrame()}
 
-
-def test_get_orginal_condition_return_value_for_best_match(default_parameters):
+@pytest.mark.parametrize('building_category,tek,purpose,expected_value',
+                         [(BuildingCategory.APARTMENT_BLOCK, 'PRE_TEK49_RES_1950', EnergyPurpose.COOLING, 1.1),
+                          (BuildingCategory.APARTMENT_BLOCK, 'TEK07', EnergyPurpose.COOLING, 2.1),
+                          (BuildingCategory.APARTMENT_BLOCK, 'TEK21', EnergyPurpose.COOLING, 3.1),
+                          (BuildingCategory.APARTMENT_BLOCK, 'TEK17', EnergyPurpose.COOLING, 3.2),
+                          ])
+def test_get_orginal_condition_return_value_for_best_match(default_parameters,
+                                                            building_category: BuildingCategory,
+                                                            tek: str,
+                                                            purpose: EnergyPurpose,
+                                                            expected_value: float):
     """
-    Return value for best match on filter variables (building_category, tek and purpose) 
+    Return value for best match on filter variables (building_category, tek and purpose). 
     """
     e_r_filter = EnergyRequirementFilter(**{**default_parameters,
-                                            'building_category': BuildingCategory.APARTMENT_BLOCK})
-    result1 = e_r_filter.get_original_condition(tek='PRE_TEK49_RES_1950', purpose=EnergyPurpose.COOLING)
-    assert result1 == 1.1
-
-    result2 = e_r_filter.get_original_condition(tek='TEK07', purpose=EnergyPurpose.COOLING)
-    assert result2 == 2.1
-
-    result3 = e_r_filter.get_original_condition(tek='TEK21', purpose=EnergyPurpose.COOLING)
-    assert result3 == 3.1
-
-    result4 = e_r_filter.get_original_condition(tek='TEK17', purpose=EnergyPurpose.COOLING)
-    assert result4 == 3.2
+                                            'building_category': building_category})
+    result = e_r_filter.get_original_condition(tek=tek, purpose=purpose)
+    assert result == expected_value
 
 
 def test_get_orginal_condition_return_default_value_when_not_found(default_parameters):
@@ -143,7 +142,7 @@ def test_get_original_condition_return_value_when_match_has_same_priority(defaul
 def test_get_original_condition_raise_error_for_duplicate_rows_with_different_values(default_parameters):
     """
     Raise an AmbiguousDataError when there are duplicate rows for 'building_category', 'tek' and 'purpose' 
-    and the corresponding value ('kwh_m2') is different. In this case, the function have no way of deciding
+    and the corresponding value ('kwh_m2') is different. In this case, the method have no way of deciding
     which value is correct and the program should crash. 
     """
     original_condition = pd.read_csv(io.StringIO("""

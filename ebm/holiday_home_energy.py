@@ -1,21 +1,90 @@
+import logging
+import typing
+
 import numpy as np
 import pandas as pd
 
+from ebm.model import DatabaseManager
 from ebm.model.data_classes import YearRange
 
 
 class HolidayHomeEnergy:
-    def __init__(self, population_by_year):
-        self.population = population_by_year
-        pass
+    def __init__(self,
+                 population: pd.Series,
+                 holiday_homes_by_category: pd.DataFrame,
+                 electricity_usage_stats: pd.Series,
+                 fuelwood_usage_stats: pd.Series,
+                 fossil_fuel_usage_stats: pd.Series):
+        self.population = population
+        self.fossil_fuel_usage_stats = fossil_fuel_usage_stats
+        self.fuelwood_usage_stats = fuelwood_usage_stats
+        self.electricity_usage_stats = electricity_usage_stats
+        self.holiday_homes_by_category = holiday_homes_by_category
 
-    def calculate(self, energy_consumption):
-        pass
+    def calculate_energy_usage(self) -> typing.Iterable[pd.Series]:
+        """
+        Calculate projected energy usage for holiday homes.
+
+        This method projects future energy usage for electricity, fuelwood, and fossil fuels
+        based on historical data and combines these projections with existing statistics.
+
+        Yields
+        ------
+        Iterable[pd.Series]
+            A series of projected energy usage values for electricity, fuelwood, and fossil fuels,
+            with NaN values filled from the existing statistics.
+        """
+        electricity_projection = project_electricity_usage(self.electricity_usage_stats,
+                                                           self.holiday_homes_by_category,
+                                                           self.population)
+        yield electricity_projection.combine_first(self.electricity_usage_stats)
+
+        fuelwood_projection = project_fuelwood_usage(self.fuelwood_usage_stats,
+                                                     self.holiday_homes_by_category,
+                                                     self.population)
+        yield fuelwood_projection.combine_first(self.fuelwood_usage_stats)
+
+        fossil_fuel_projection = project_fossil_fuel_usage(self.fossil_fuel_usage_stats,
+                                                           self.holiday_homes_by_category,
+                                                           self.population)
+        yield fossil_fuel_projection
+
+    @staticmethod
+    def new_instance(database_manager: DatabaseManager = None) -> 'HolidayHomeEnergy':
+        dm = database_manager or DatabaseManager()
+        logging.warning('Loading holiday_homes from hard coded data')
+        holiday_homes = holiday_homes_by_category = pd.DataFrame(data={
+            'chalet': {2001: 354060, 2002: 358997, 2003: 363889, 2004: 368933, 2005: 374470, 2006: 379169,
+                       2007: 383112, 2008: 388938, 2009: 394102, 2010: 398884, 2011: 405883, 2012: 410333,
+                       2013: 413318, 2014: 416621, 2015: 419449, 2016: 423041, 2017: 426932, 2018: 431028,
+                       2019: 434809, 2020: 437833, 2021: 440443, 2022: 445715, 2023: 449009}.values(),
+            'converted': {2001: 23267, 2002: 26514, 2003: 26758, 2004: 26998, 2005: 27376, 2006: 27604, 2007: 27927,
+                          2008: 28953, 2009: 29593, 2010: 30209, 2011: 32374, 2012: 32436, 2013: 32600, 2014: 32539,
+                          2015: 32559, 2016: 32727, 2017: 32808, 2018: 32891, 2019: 32869, 2020: 32906, 2021: 33099,
+                          2022: 33283, 2023: 32819}.values()}, index=YearRange(2001, 2023).to_index())
+        logging.warning('Loading electricity_usage_stats from hard coded data')
+        # 02 Elektrisitet i fritidsboliger statistikk (GWh) (input)
+        electricity_usage_stats = pd.Series(
+            data=[1128.0, 1173.0, 1183.0, 1161.0, 1235.0, 1317.0, 1407.0, 1522.0, 1635.0, 1931.0, 1818.0, 1929.0,
+                  2141.0, 2006.0, 2118.0, 2278.0, 2350.0, 2417.0, 2384.0, 2467.0, 2819.0, 2318.0, 2427.0],
+            index=YearRange(2001, 2023).to_index(), name='gwh')
+        logging.warning('Loading fuelwood_usage_stats from hard coded data')
+        # 04 Ved i fritidsboliger statistikk (GWh)
+        fuelwood_usage_stats = pd.Series(
+            data=[880.0, 1050.0, 1140.0, 1090.0, 1180.0, 990.0, 700.0, 1000.0, 900.0, 1180.0, 1100.0, 1070.0,
+                  1230.0, 1170.0, 1450.0, 1270.0, 1390.0, 1390.0], index=YearRange(2006, 2023).to_index())
+        logging.warning('Loading fossil_fuel_usage_stats from hard coded data')
+        fossil_fuel_usage_stats=pd.Series(data=[100], index=YearRange(2011, 2011).to_index(), name='kwh')
+        return HolidayHomeEnergy(dm.get_construction_population()['population'],
+                                 holiday_homes,
+                                 electricity_usage_stats,
+                                 fuelwood_usage_stats,
+                                 fossil_fuel_usage_stats)
 
 
-def calculate_projected_electricity_usage(electricity_usage_stats: pd.Series,
-                                          holiday_homes_by_category: pd.DataFrame,
-                                          population: pd.Series) -> pd.Series:
+def project_electricity_usage(electricity_usage_stats: pd.Series,
+                              holiday_homes_by_category: pd.DataFrame,
+                              population: pd.Series) -> pd.Series:
     """
     Calculate the projected electricity usage for holiday homes.
 
@@ -59,9 +128,9 @@ def calculate_projected_electricity_usage(electricity_usage_stats: pd.Series,
     return projected_electricity_usage_gwh
 
 
-def calculate_projected_fuelwood_usage(fuelwood_usage_stats: pd.Series,
-                                       holiday_homes_by_category: pd.DataFrame,
-                                       population: pd.Series) -> pd.Series:
+def project_fuelwood_usage(fuelwood_usage_stats: pd.Series,
+                           holiday_homes_by_category: pd.DataFrame,
+                           population: pd.Series) -> pd.Series:
     total_holiday_homes_by_year = sum_holiday_homes(holiday_homes_by_category.iloc[:, 0],
                                                     holiday_homes_by_category.iloc[:, 1])
 
@@ -78,9 +147,9 @@ def calculate_projected_fuelwood_usage(fuelwood_usage_stats: pd.Series,
     return projected_fuelwood_usage_gwh
 
 
-def calculate_projected_fossil_fuel_usage(fossil_fuel_usage_stats: pd.Series,
-                                       holiday_homes_by_category: pd.DataFrame,
-                                       population: pd.Series) -> pd.Series:
+def project_fossil_fuel_usage(fossil_fuel_usage_stats: pd.Series,
+                              holiday_homes_by_category: pd.DataFrame,
+                              population: pd.Series) -> pd.Series:
     projection = fossil_fuel_usage_stats.reindex(population.index, fill_value=np.nan)
 
     not_na = projection.loc[~projection.isna()].index
@@ -232,12 +301,13 @@ def projected_electricity_usage_holiday_homes(electricity_usage: pd.Series):
         If the length of the Series is less than or equal to 40.
     """
     if 2019 not in electricity_usage.index:
-        raise ValueError('2019 is not in the index of the provided Series')
+        msg = 'The required year 2019 is not in the index of electricity_usage for the electricity projection'
+        raise ValueError(msg)
     if not any(electricity_usage.isna()):
         raise ValueError('Expected empty energy_usage for projection')
     if len(electricity_usage.index) <= 40:
-        raise ValueError('Expected at least 41 years in electricity_usage index')
-    left_padding = len(electricity_usage) - electricity_usage.isna().sum()
+        raise ValueError('At least 41 years of electricity_usage is required to predict future electricity use')
+    left_pad_len = len(electricity_usage) - electricity_usage.isna().sum()
 
     initial_e_u = electricity_usage[2019]
     first_range = [initial_e_u + (i * 75) for i in range(1, 6)]
@@ -246,13 +316,20 @@ def projected_electricity_usage_holiday_homes(electricity_usage: pd.Series):
 
     third_range = [second_range[-1] + (i * 25) for i in range(1, 9)]
 
-    right_pad_len = len(electricity_usage) - left_padding - len(first_range) - len(second_range) - len(third_range)
+    right_pad_len = len(electricity_usage) - left_pad_len - len(first_range) - len(second_range) - len(third_range)
     right_padding = [third_range[-1]] * right_pad_len
 
-    return pd.Series(([np.nan] * left_padding) +
+    return pd.Series(([np.nan] * left_pad_len) +
                      first_range +
                      second_range +
                      third_range +
                      right_padding,
                      name='projected_electricity_usage_kwh',
                      index=electricity_usage.index)
+
+
+if __name__ == '__main__':
+    holiday_home_energy = HolidayHomeEnergy.new_instance()
+    for energy_usage, h in zip(holiday_home_energy.calculate_energy_usage(), ['electricity', 'fuelwood', 'fossil fuel']):
+        print('====', h, '====')
+        print(energy_usage)

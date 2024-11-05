@@ -1,11 +1,47 @@
+from collections import namedtuple
+
 import numpy as np
 import pandas as pd
 import pytest
 
-from ebm.holiday_home_energy import sum_holiday_homes, population_over_holiday_homes, projected_holiday_homes, \
-    projected_electricity_usage_holiday_homes, electricity_usage_by_holiday_home, \
-    projected_electricity_usage_holiday_homes, calculate_projected_electricity_usage
+from ebm.holiday_home_energy import (sum_holiday_homes,
+                                     population_over_holiday_homes,
+                                     projected_holiday_homes,
+                                     calculate_fuelwood_by_holiday_home,
+                                     projected_electricity_usage_holiday_homes,
+                                     calculate_projected_electricity_usage,
+                                     electricity_usage_by_holiday_home,
+                                     projected_fuelwood_usage_holiday_homes,
+                                     calculate_projected_fuelwood_usage, calculate_projected_fossil_fuel_usage)
 from ebm.model.data_classes import YearRange
+
+
+Spreadsheet = namedtuple('Spreadsheet', 'population holiday_homes')
+
+
+@pytest.fixture()
+def spreadsheet() -> Spreadsheet:
+    s = Spreadsheet(
+        # 16og32 Befolkning (input)
+        population=pd.Series(
+            data=[4503436, 4524066, 4552252, 4577457, 4606363, 4640219, 4681134, 4737171, 4799252, 4858199, 4920305,
+                  4985870, 5051275, 5109056, 5165802, 5213985, 5258317, 5295619, 5328212, 5367580, 5391369, 5425270,
+                  5488984, 5550203, 5600121, 5638838, 5666689, 5694657, 5722427, 5749712, 5776723, 5803284, 5829350,
+                  5855072, 5880318, 5905184, 5928866, 5951491, 5973100, 5993766, 6013501, 6032325, 6050194, 6067121,
+                  6083032, 6097893, 6111684, 6124356, 6135899, 6146321], name='population',
+            index=YearRange(2001, 2050).to_index()),
+        # 21 Hytter, sommerhus og lignende fritidsbygg (input)
+        # 22 Helårsboliger og våningshus benyttet som fritidsbolig (input)
+        holiday_homes=pd.DataFrame(data={
+            'chalet': {2001: 354060, 2002: 358997, 2003: 363889, 2004: 368933, 2005: 374470, 2006: 379169, 2007: 383112,
+                       2008: 388938, 2009: 394102, 2010: 398884, 2011: 405883, 2012: 410333, 2013: 413318, 2014: 416621,
+                       2015: 419449, 2016: 423041, 2017: 426932, 2018: 431028, 2019: 434809, 2020: 437833, 2021: 440443,
+                       2022: 445715, 2023: 449009}.values(),
+            'converted': {2001: 23267, 2002: 26514, 2003: 26758, 2004: 26998, 2005: 27376, 2006: 27604, 2007: 27927,
+                          2008: 28953, 2009: 29593, 2010: 30209, 2011: 32374, 2012: 32436, 2013: 32600, 2014: 32539,
+                          2015: 32559, 2016: 32727, 2017: 32808, 2018: 32891, 2019: 32869, 2020: 32906, 2021: 33099,
+                          2022: 33283, 2023: 32819}.values()}, index=YearRange(2001, 2023).to_index()))
+    return s
 
 
 def test_sum_holiday_homes():
@@ -125,19 +161,51 @@ def test_projected_electricity_usage_holiday_homes_using_spreadsheet_data():
     pd.testing.assert_series_equal(result, expected)
 
 
-def test_electricity_usage():
-    electricity_usage = None  # 09 Elektrisitet pr fritidsbolig framskrevet (kWh)
-    electricity_usage = pd.Series(
-        data=[1128.0, 1173.0, 1183.0, 1161.0, 1235.0, 1317.0, 1407.0, 1522.0, 1635.0, 1931.0, 1818.0, 1929.0, 2141.0,
-              2006.0, 2118.0, 2278.0, 2350.0, 2417.0, 2384.0, 2467.0, 2819.0, 2318.0, 2427.0],
-        index=YearRange(2001, 2023).to_index(), name='gwh')
-    population = pd.Series(
-        data=[4503436, 4524066, 4552252, 4577457, 4606363, 4640219, 4681134, 4737171, 4799252, 4858199, 4920305,
-              4985870, 5051275, 5109056, 5165802, 5213985, 5258317, 5295619, 5328212, 5367580, 5391369, 5425270,
-              5488984, 5550203, 5600121, 5638838, 5666689, 5694657, 5722427, 5749712, 5776723, 5803284, 5829350,
-              5855072, 5880318, 5905184, 5928866, 5951491, 5973100, 5993766, 6013501, 6032325, 6050194, 6067121,
-              6083032, 6097893, 6111684, 6124356, 6135899, 6146321], name='population',
-        index=YearRange(2001, 2050).to_index())
+def test_calculate_fuelwood_by_holiday_home():
+    """ Calculate fuel wood by holiday using spreadsheet data """
+    years = YearRange(2006, 2023).to_index()
+    holiday_homes = pd.Series(data=[406773, 411039, 417891, 423695, 429093, 438257, 442769, 445918, 449160, 452008, 455768,
+                                    459740, 463919, 467678, 470739, 473542, 478998, 481828],
+                              index=years)
+    fuelwood_usage = pd.Series(
+        data=[880.0, 1050.0, 1140.0, 1090.0, 1180.0, 990.0, 700.0, 1000.0, 900.0, 1180.0, 1100.0, 1070.0, 1230.0,
+              1170.0, 1450.0, 1270.0, 1390.0, 1390.0],
+        index=years)
+
+    result = calculate_fuelwood_by_holiday_home(fuelwood_usage, holiday_homes)
+
+    expected = pd.Series(
+        data=[2163.3688, 2554.5021, 2727.9841, 2572.6053, 2749.9866, 2258.9485, 1580.9598, 2242.5648, 2003.7403,
+              2610.5733, 2413.5086, 2327.4024, 2651.3249, 2501.7213, 3080.2632, 2681.9163, 2901.891, 2884.8469],
+        index=years, name='kwh')
+
+    assert isinstance(result, pd.Series)
+    pd.testing.assert_series_equal(result, expected)
+
+
+def test_projected_fuelwood_usage_holiday_homes():
+    years = YearRange(2001, 2050).to_index()
+    fuelwood_by_holiday_home = pd.Series(
+        data=[np.nan] * 5 +
+             [2163.3688, 2554.5021, 2727.9841, 2572.6053, 2749.9866, 2258.9485, 1580.9598, 2242.5648, 2003.7403,
+              2610.5733, 2413.5086, 2327.4024, 2651.3249, 2501.7213, 3080.2632, 2681.9163, 2901.891, 2884.8469] +
+             [np.nan] * 27,
+        index=years, name='kwh')
+
+    actual = projected_fuelwood_usage_holiday_homes(fuelwood_by_holiday_home)
+
+    expected = pd.Series([np.nan] * 23 + [2810.1277] * 27, index=years)
+
+    pd.testing.assert_series_equal(actual, expected)
+
+
+def test_calculate_projected_fuelwood_usage(spreadsheet):
+    """
+       Test calculate_projected_fuelwood_usage using spreadsheet values
+       """
+    years = YearRange(2006, 2023).to_index()
+    # 21 Hytter, sommerhus og lignende fritidsbygg (input)
+    # 22 Helårsboliger og våningshus benyttet som fritidsbolig (input)****
     holiday_homes = pd.DataFrame(data={
         'chalet': {2001: 354060, 2002: 358997, 2003: 363889, 2004: 368933, 2005: 374470, 2006: 379169,
                    2007: 383112, 2008: 388938, 2009: 394102, 2010: 398884, 2011: 405883, 2012: 410333,
@@ -147,11 +215,34 @@ def test_electricity_usage():
                       2008: 28953, 2009: 29593, 2010: 30209, 2011: 32374, 2012: 32436, 2013: 32600, 2014: 32539,
                       2015: 32559, 2016: 32727, 2017: 32808, 2018: 32891, 2019: 32869, 2020: 32906, 2021: 33099,
                       2022: 33283, 2023: 32819}.values()}, index=YearRange(2001, 2023).to_index())
-    # 02 Elektrisitet i fritidsboliger statistikk
-    # 16og32 Befolkning (input)
-    # 21 Hytter, sommerhus og lignende fritidsbygg (input)
 
-    result = calculate_projected_electricity_usage(electricity_usage, holiday_homes, population)
+    # 04 Ved i fritidsboliger statistikk (GWh)
+    fuelwood_usage = pd.Series(
+        data=[880.0, 1050.0, 1140.0, 1090.0, 1180.0, 990.0, 700.0, 1000.0, 900.0, 1180.0, 1100.0, 1070.0, 1230.0,
+              1170.0, 1450.0, 1270.0, 1390.0, 1390.0],
+        index=years)
+
+    actual = calculate_projected_fuelwood_usage(fuelwood_usage, spreadsheet.holiday_homes, spreadsheet.population)
+    expected = pd.Series(
+        data=[np.nan] * 23 + [1364.2943, 1376.5647, 1386.0817, 1392.9277, 1399.8025, 1406.6287, 1413.3356, 1419.9752,
+                              1426.5041, 1432.9114, 1439.2341, 1445.4398, 1451.5521, 1457.3734, 1462.9349, 1468.2466,
+                              1473.3265, 1478.1775, 1482.8047, 1487.197, 1491.3579, 1495.2689, 1498.9219, 1502.3119,
+                              1505.4268, 1508.2642, 1510.826], name='gwh', index=YearRange(2001, 2050).to_index())
+
+    pd.testing.assert_series_equal(actual, expected)
+
+
+def test_calculate_projected_electricity_usage():
+    """
+    Test calculate_projected_electricity_usage using spreadsheet values
+    """
+    # 09 Elektrisitet pr fritidsbolig framskrevet (kWh)
+    electricity_usage = pd.Series(
+        data=[1128.0, 1173.0, 1183.0, 1161.0, 1235.0, 1317.0, 1407.0, 1522.0, 1635.0, 1931.0, 1818.0, 1929.0, 2141.0,
+              2006.0, 2118.0, 2278.0, 2350.0, 2417.0, 2384.0, 2467.0, 2819.0, 2318.0, 2427.0],
+        index=YearRange(2001, 2023).to_index(), name='gwh')
+
+    result = calculate_projected_electricity_usage(electricity_usage, spreadsheet.holiday_homes, spreadsheet.population)
 
     expected = pd.Series(
         data=[np.nan] * 23 + [2511.2188, 2570.5439, 2625.309, 2675.4518, 2726.0161, 2764.3374, 2802.6652, 2841.0968,

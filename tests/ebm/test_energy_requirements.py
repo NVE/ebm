@@ -14,18 +14,17 @@ from ebm.model.energy_requirement import (
 
 
 def test_calculate_energy_requirement_reduction_by_condition():
-    test_data = io.StringIO("""building_category,TEK,purpose, kwh_m2
-                               apartment_block,PRE_TEK49,HeatingRV, 100
-                               apartment_block,TEK07,HeatingRV,200
-                               house,TEK07,HeatingRV,400""")
-    energy_requirements = pd.read_csv(test_data, skipinitialspace=True)
     condition_reduction = pd.DataFrame(data=[[BuildingCondition.ORIGINAL_CONDITION, 0],
                                              [BuildingCondition.SMALL_MEASURE, 0.2],
                                              [BuildingCondition.RENOVATION, 0.4],
                                              [BuildingCondition.RENOVATION_AND_SMALL_MEASURE, 0.8]],
                                        columns=['building_condition', 'reduction_share'])
 
-    df = calculate_energy_requirement_reduction_by_condition(energy_requirements, condition_reduction)
+    df = calculate_energy_requirement_reduction_by_condition(100.0, condition_reduction,
+                                                             building_category='apartment_block',
+                                                             purpose='HeatingRV',
+                                                             tek='PRE_TEK49'
+                                                             )
 
     pre_tek49 = df[(df.building_category == 'apartment_block') &
                    (df.TEK == 'PRE_TEK49') &
@@ -108,6 +107,26 @@ def test_calculate_energy_requirement_reduction():
                          index=YearRange(2010, 2017),
                          name='kwh_m2')
     pd.testing.assert_series_equal(result, expected)
+
+
+def test_calculate_energy_requirement_reduction_kindergarten_electrical():
+    kwh_m2 = pd.Series(data=[5.22] * 41, index=YearRange(2010, 2050), name='kwh_m2')
+
+    result = calculate_energy_requirement_reduction(
+        energy_requirements=kwh_m2,
+        yearly_reduction=0.01,
+        reduction_period=YearRange(2020, 2050)
+    )
+
+    assert result.loc[2010] == 5.22
+    assert result.loc[2018] == 5.22
+    assert result.loc[2019] == 5.22
+    assert result.loc[2020] == 5.1678
+    assert result.loc[2021] == 5.116122
+    assert round(result.loc[2030], 8) == 4.67366569
+    assert round(result.loc[2031], 8) == 4.62692903
+    assert result.loc[2049] == 3.86123594908682
+    assert result.loc[2050] == 3.82262358959595
 
 
 def test_calculate_energy_requirement_reduction_raise_value_error_when_period_is_missing_from_index():

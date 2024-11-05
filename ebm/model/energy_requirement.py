@@ -61,7 +61,10 @@ class EnergyRequirement:
 
             requirement_by_condition = calculate_energy_requirement_reduction_by_condition(
                 energy_requirements=energy_requirement_original_condition,
-                condition_reduction=reduction_share)
+                condition_reduction=reduction_share,
+                building_category=building_category,
+                tek=tek,
+                purpose=purpose)
 
             heating_reduction = pd.merge(left=requirement_by_condition,
                                          right=pd.DataFrame({'year': self.period.year_range}),
@@ -73,16 +76,13 @@ class EnergyRequirement:
                         heating_reduction['building_condition'] == building_condition].copy().set_index('year').kwh_m2
                     kwh_m2.name = 'kwh_m2'
                     energy_req_end = kwh_m2.iloc[0] * (1.0 - 0.6)
-                    kwh_m2_policy = calculate_proportional_energy_change_based_on_end_year(
-                        kwh_m2,
-                        energy_req_end,
-                        policy_improvement[0])
-                    improvement = calculate_energy_requirement_reduction(
-                        kwh_m2_policy,
-                        yearly_improvements,
-                        YearRange(policy_improvement[0].end + 1, self.period.end))
+                    lighting = calculate_lighting_reduction(kwh_m2,
+                                                            yearly_reduction=yearly_improvements,
+                                                            end_year_energy_requirement=energy_req_end,
+                                                            interpolated_reduction_period=policy_improvement[0],
+                                                            year_range=self.period)
                     heating_reduction.loc[
-                        heating_reduction['building_condition'] == building_condition, 'kwh_m2'] = improvement.values
+                        heating_reduction['building_condition'] == building_condition, 'kwh_m2'] = lighting.values
                 else:
                     kwh_m2 = heating_reduction[
                         heating_reduction['building_condition'] == building_condition].copy().set_index('year').kwh_m2
@@ -90,7 +90,7 @@ class EnergyRequirement:
                     improvement = calculate_energy_requirement_reduction(
                         kwh_m2,
                         yearly_improvements,
-                        YearRange(self.calibration_year - 1, self.period.end))
+                        YearRange(self.calibration_year + 1, self.period.end))
 
                     heating_reduction.loc[
                         heating_reduction['building_condition'] == building_condition, 'kwh_m2'] = improvement.values
@@ -131,8 +131,11 @@ class EnergyRequirement:
 
 
 def calculate_energy_requirement_reduction_by_condition(
-        energy_requirements: pd.DataFrame,
-        condition_reduction: pd.DataFrame
+        energy_requirements: float,
+        condition_reduction: pd.DataFrame,
+        building_category,
+        tek,
+        purpose
 ) -> pd.DataFrame:
     """
     Calculate the reduced energy requirements for building_category, TEK, purpose for every conditions.
@@ -152,7 +155,11 @@ def calculate_energy_requirement_reduction_by_condition(
         DataFrame with the reduced energy requirements.
         Includes columns: 'building_category', 'TEK', 'purpose', 'building_condition', ' kwh_m2'.
     """
-    df = pd.merge(energy_requirements, condition_reduction, how='cross')
+    df = condition_reduction
+    df['kwh_m2'] = energy_requirements
+    df['TEK'] = tek
+    df['purpose'] = purpose
+    df['building_category'] = building_category
 
     df.kwh_m2 = df.kwh_m2 * (1.0 - df['reduction_share'])
 
@@ -235,7 +242,7 @@ def calculate_energy_requirement_reduction(
 
     reduction_factors = pd.Series([reduction_factor] * len(reduction_period)).cumprod()
     reduction_factors.index = reduction_period
-    kwh_m2.loc[reduction_period] = (kwh_m2.loc[reduction_period] * reduction_factors)
+    kwh_m2.loc[reduction_period] = round((kwh_m2.loc[reduction_period] * reduction_factors), 14)
 
     return kwh_m2
 

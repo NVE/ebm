@@ -152,7 +152,7 @@ class YearRange:
         pd.Index
             Pandas Index object containing the years in the range.
         """
-        return pd.Index(self.year_range)
+        return pd.Index(self.year_range, name='year')
 
     def __getitem__(self, key: int | slice) -> pd.Index:
         """

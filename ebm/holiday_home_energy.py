@@ -78,6 +78,18 @@ def calculate_projected_fuelwood_usage(fuelwood_usage_stats: pd.Series,
     return projected_fuelwood_usage_gwh
 
 
+def calculate_projected_fossil_fuel_usage(fossil_fuel_usage_stats: pd.Series,
+                                       holiday_homes_by_category: pd.DataFrame,
+                                       population: pd.Series) -> pd.Series:
+    projection = fossil_fuel_usage_stats.reindex(population.index, fill_value=np.nan)
+
+    not_na = projection.loc[~projection.isna()].index
+    projection_filter = projection.index > max(not_na)
+    projection.loc[projection_filter] = projection.loc[not_na].mean()
+    projection.name = 'gwh'
+    return projection
+
+
 def sum_holiday_homes(*holiday_homes: pd.Series) -> pd.Series:
     return pd.DataFrame(holiday_homes).sum(axis=0)
 

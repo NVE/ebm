@@ -204,18 +204,6 @@ def test_calculate_projected_fuelwood_usage(spreadsheet):
        Test calculate_projected_fuelwood_usage using spreadsheet values
        """
     years = YearRange(2006, 2023).to_index()
-    # 21 Hytter, sommerhus og lignende fritidsbygg (input)
-    # 22 Helårsboliger og våningshus benyttet som fritidsbolig (input)****
-    holiday_homes = pd.DataFrame(data={
-        'chalet': {2001: 354060, 2002: 358997, 2003: 363889, 2004: 368933, 2005: 374470, 2006: 379169,
-                   2007: 383112, 2008: 388938, 2009: 394102, 2010: 398884, 2011: 405883, 2012: 410333,
-                   2013: 413318, 2014: 416621, 2015: 419449, 2016: 423041, 2017: 426932, 2018: 431028,
-                   2019: 434809, 2020: 437833, 2021: 440443, 2022: 445715, 2023: 449009}.values(),
-        'converted': {2001: 23267, 2002: 26514, 2003: 26758, 2004: 26998, 2005: 27376, 2006: 27604, 2007: 27927,
-                      2008: 28953, 2009: 29593, 2010: 30209, 2011: 32374, 2012: 32436, 2013: 32600, 2014: 32539,
-                      2015: 32559, 2016: 32727, 2017: 32808, 2018: 32891, 2019: 32869, 2020: 32906, 2021: 33099,
-                      2022: 33283, 2023: 32819}.values()}, index=YearRange(2001, 2023).to_index())
-
     # 04 Ved i fritidsboliger statistikk (GWh)
     fuelwood_usage = pd.Series(
         data=[880.0, 1050.0, 1140.0, 1090.0, 1180.0, 990.0, 700.0, 1000.0, 900.0, 1180.0, 1100.0, 1070.0, 1230.0,
@@ -232,7 +220,21 @@ def test_calculate_projected_fuelwood_usage(spreadsheet):
     pd.testing.assert_series_equal(actual, expected)
 
 
-def test_calculate_projected_electricity_usage():
+def test_calculate_projected_fossil_fuel_usage(spreadsheet):
+    """
+       Test calculate_projected_fuelwood_usage using spreadsheet values
+       """
+
+    fuelwood_usage = pd.Series(data=[100], index=YearRange(2006, 2006).to_index(), name='kwh')
+
+    actual = calculate_projected_fossil_fuel_usage(fuelwood_usage, spreadsheet.holiday_homes, spreadsheet.population)
+    expected = pd.Series(
+        data=[np.nan] * 5 + [100.0] * 45, name='gwh', index=YearRange(2001, 2050).to_index())
+
+    pd.testing.assert_series_equal(actual, expected)
+
+
+def test_calculate_projected_electricity_usage(spreadsheet):
     """
     Test calculate_projected_electricity_usage using spreadsheet values
     """

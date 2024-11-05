@@ -37,22 +37,20 @@ def default_parameters(original_condition) \
             'yearly_improvements': pd.DataFrame(),
             'policy_improvement': pd.DataFrame()}
 
-@pytest.mark.parametrize('building_category,tek,purpose,expected_value',
-                         [(BuildingCategory.APARTMENT_BLOCK, 'PRE_TEK49_RES_1950', EnergyPurpose.COOLING, 1.1),
-                          (BuildingCategory.APARTMENT_BLOCK, 'TEK07', EnergyPurpose.COOLING, 2.1),
-                          (BuildingCategory.APARTMENT_BLOCK, 'TEK21', EnergyPurpose.COOLING, 3.1),
-                          (BuildingCategory.APARTMENT_BLOCK, 'TEK17', EnergyPurpose.COOLING, 3.2),
+@pytest.mark.parametrize('tek,purpose,expected_value',
+                         [('PRE_TEK49_RES_1950', EnergyPurpose.COOLING, 1.1),
+                          ('TEK07', EnergyPurpose.COOLING, 2.1),
+                          ('TEK21', EnergyPurpose.COOLING, 3.1),
+                          ('TEK17', EnergyPurpose.COOLING, 3.2),
                           ])
 def test_get_orginal_condition_return_value_for_best_match(default_parameters,
-                                                            building_category: BuildingCategory,
-                                                            tek: str,
-                                                            purpose: EnergyPurpose,
-                                                            expected_value: float):
+                                                           tek: str,
+                                                           purpose: EnergyPurpose,
+                                                           expected_value: float):
     """
     Return value for best match on filter variables (building_category, tek and purpose). 
     """
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
-                                            'building_category': building_category})
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters})
     result = e_r_filter.get_original_condition(tek=tek, purpose=purpose)
     assert result == expected_value
 

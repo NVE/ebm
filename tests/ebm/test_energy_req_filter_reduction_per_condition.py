@@ -85,29 +85,26 @@ def expected_df(original_condition_val: float,
                           ('TEK21', EnergyPurpose.LIGHTING, expected_df(0.345, 0.345, 0.345, 0.345)),
                           ])
 def test_get_reduction_per_condition_return_df_for_best_match(default_parameters, 
-                                                              reduction_per_condition: pd.DataFrame,
                                                               tek: str,
                                                               purpose: EnergyPurpose,
                                                               expected_df: pd.DataFrame):
     """
     Return value for best match on filter variables (building_category, tek and purpose).
     """
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
-                                            'reduction_per_condition': reduction_per_condition})
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters})
     result = e_r_filter.get_reduction_per_condition(tek=tek, purpose=purpose)
     expected = expected_df
     pd.testing.assert_frame_equal(result, expected)
 
 
-def test_get_reduction_per_condition_return_default_df_when_not_found(default_parameters, reduction_per_condition):
+def test_get_reduction_per_condition_return_default_df_when_not_found(default_parameters):
     """
     When the specified filter variables (building_category, tek and/or purpose) aren't present in the
     original dataframe, and there is a 'default' option available for those variables, then return the
     df of those 'default' options.  
     """
     e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
-                                            'building_category': BuildingCategory.CULTURE,
-                                            'reduction_per_condition': reduction_per_condition})
+                                            'building_category': BuildingCategory.CULTURE})
     result = e_r_filter.get_reduction_per_condition(tek='TEK01', purpose=EnergyPurpose.LIGHTING)
     expected = expected_df(
         original_condition_val=0.456,

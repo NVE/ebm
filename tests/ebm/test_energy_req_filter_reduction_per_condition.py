@@ -254,18 +254,16 @@ def test_get_reduction_per_condition_return_df_with_default_values_when_building
                     renovation_small_measure_val=0.0)
     pd.testing.assert_frame_equal(result, expected)
 
-
 @pytest.mark.skip()
-def test_get_reduction_per_condition_failing_test_to_fix(default_parameters):
+def test_get_reduction_per_condition_require_expected_building_conditions(default_parameters):
     """
-    TODO: Solve this special case.
+    TODO: Solve this special case. 
     """
     reduction_per_condition = pd.read_csv(io.StringIO("""
     building_category,TEK,purpose,building_condition,reduction_share
-    house,default,heating_rv,original_condition,0.123
-    default,TEK17,heating_rv,original_condition,0.123
-    house,default,heating_rv,original_condition,0.123
-    house,TEK17,default,original_condition,0.123 
+    house,default,heating_rv,original_condition,0.1
+    default,TEK17,heating_rv,original_condition,0.2
+    house,TEK17,default,original_condition,0.3
     default,default,default,original_condition,0.123
     default,TEK21,heating_rv,original_condition,0.234
     default,TEK21,heating_rv,small_measure,0.234

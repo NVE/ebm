@@ -419,7 +419,7 @@ def test_energy_req_reduction_per_condition_require_valid_building_cat(reduction
 
 
 def test_energy_req_reduction_per_condition_allows_default_building_cat(reduction_per_condition_df):
-    reduction_per_condition_df.loc[0, 'building_category'] = 'default'
+    reduction_per_condition_df.iloc[0:4, reduction_per_condition_df.columns.get_loc('building_category')] = 'default'
     energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
 
 
@@ -430,7 +430,7 @@ def test_energy_req_reduction_per_condition_require_valid_tek(reduction_per_cond
 
 
 def test_energy_req_reduction_per_condition_allows_default_tek(reduction_per_condition_df):
-    reduction_per_condition_df.loc[0, 'TEK'] = 'default'
+    reduction_per_condition_df.iloc[0:4, reduction_per_condition_df.columns.get_loc('TEK')] = 'default'
     energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
 
 
@@ -441,7 +441,7 @@ def test_energy_req_reduction_per_condition_require_valid_purpose(reduction_per_
 
 
 def test_energy_req_reduction_per_condition_allows_default_purpose(reduction_per_condition_df):
-    reduction_per_condition_df.loc[0, 'purpose'] = 'default'
+    reduction_per_condition_df.iloc[0:4, reduction_per_condition_df.columns.get_loc('purpose')] = 'default'
     energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
 
 
@@ -475,6 +475,17 @@ def test_energy_req_reduction_per_condition_require_unique_rows():
                                       ])
     with pytest.raises(pa.errors.SchemaError):
         energy_requirement_reduction_per_condition.validate(duplicate_df)
+
+
+def test_energy_req_reduction_per_condition_require_all_existing_building_conditions(reduction_per_condition_df):
+    """
+    Controls if all 'existing' building conditions are present in the 'building_conditions' column for
+    an unique combination of 'building_category', 'TEK', and 'purpose'.
+    """
+    reduction_per_condition_df.drop(index=0, inplace=True)
+    with pytest.raises(pa.errors.SchemaError):
+        energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
+
 
 
 @pytest.fixture

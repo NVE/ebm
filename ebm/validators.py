@@ -78,6 +78,25 @@ def check_existing_building_conditions(value: pd.Series) -> pd.Series:
     return value.isin(iter(BuildingCondition.existing_conditions()))
 
 
+def check_all_existing_building_conditions_present(df: pd.DataFrame):
+    """
+    Ensures that all 'existing' building conditions are present in the 'building_conditions' column for
+    each unique combination of 'building_category', 'TEK', and 'purpose'.
+
+    Existing building conditions are all members (conditions) of BuildingCondition, except of DEMOLITION.
+
+    Parameters
+    ----------
+    df: pd.Dataframe
+    """
+    grouped = df.groupby(['building_category', 'TEK', 'purpose'])['building_condition']
+    existing_conditions = set(BuildingCondition.existing_conditions())
+    for _, conditions in grouped:
+        if set(conditions) != existing_conditions:
+            return False
+    return True
+
+
 def check_energy_purpose(value: pd.Series) -> pd.Series:
     """
     Makes sure that the value contain one of the values corresponding to purpose
@@ -290,6 +309,7 @@ energy_requirement_reduction_per_condition = pa.DataFrameSchema(
         'reduction_share': pa.Column(float, coerce=True, checks=[pa.Check.between(min_value=0.0, include_min=True,
                                                                                   max_value=1.0, include_max=True)])
     },
+    checks=[pa.Check(check_all_existing_building_conditions_present)],
     unique=['building_category', 'TEK', 'purpose', 'building_condition'],
     report_duplicates='all'
 )

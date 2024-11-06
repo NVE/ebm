@@ -477,15 +477,9 @@ def test_energy_req_reduction_per_condition_require_unique_rows():
         energy_requirement_reduction_per_condition.validate(duplicate_df)
 
 
-def test_energy_req_reduction_per_condition_require_all_existing_building_conditions(reduction_per_condition_df):
-    """
-    Controls if all 'existing' building conditions are present in the 'building_conditions' column for
-    an unique combination of 'building_category', 'TEK', and 'purpose'.
-    """
+def test_energy_req_reduction_per_condition_allow_missing_building_conditions(reduction_per_condition_df):
     reduction_per_condition_df.drop(index=0, inplace=True)
-    with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
-
+    energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
 
 
 @pytest.fixture

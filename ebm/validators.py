@@ -309,7 +309,6 @@ energy_requirement_reduction_per_condition = pa.DataFrameSchema(
         'reduction_share': pa.Column(float, coerce=True, checks=[pa.Check.between(min_value=0.0, include_min=True,
                                                                                   max_value=1.0, include_max=True)])
     },
-    checks=[pa.Check(check_all_existing_building_conditions_present)],
     unique=['building_category', 'TEK', 'purpose', 'building_condition'],
     report_duplicates='all'
 )

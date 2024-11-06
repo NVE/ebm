@@ -254,28 +254,27 @@ def test_get_reduction_per_condition_return_df_with_default_values_when_building
                     renovation_small_measure_val=0.0)
     pd.testing.assert_frame_equal(result, expected)
 
-@pytest.mark.skip()
+
 def test_get_reduction_per_condition_require_expected_building_conditions(default_parameters):
     """
-    TODO: Solve this special case. 
+    Case where there is duplicates for building_conditions after all the rows have been sorted by 
+    priority according to the helper methods. Ensure that there are no duplicates on building conditions,
+    the highest priority is used and that missing conditions are added. 
     """
     reduction_per_condition = pd.read_csv(io.StringIO("""
     building_category,TEK,purpose,building_condition,reduction_share
     house,default,heating_rv,original_condition,0.1
-    default,TEK17,heating_rv,original_condition,0.2
-    house,TEK17,default,original_condition,0.3
-    default,default,default,original_condition,0.123
+    house,default,heating_rv,renovation,0.2
     default,TEK21,heating_rv,original_condition,0.234
     default,TEK21,heating_rv,small_measure,0.234
-    default,TEK21,heating_rv,renovation,0.234
-    default,TEK21,heating_rv,renovation_and_small_measure,0.234                                     
+    default,TEK21,heating_rv,renovation,0.234                                     
     """.strip()), skipinitialspace=True)
     e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
                                             'building_category': BuildingCategory.HOUSE,
                                             'reduction_per_condition': reduction_per_condition})
     result = e_r_filter.get_reduction_per_condition(tek='TEK21', purpose=EnergyPurpose.HEATING_RV)
-    expected = expected_df(original_condition_val=0.123,
+    expected = expected_df(original_condition_val=0.1,
                            small_measure_val=0.234,
-                           renovation_val=0.234,
-                           renovation_small_measure_val=0.234)
+                           renovation_val=0.2,
+                           renovation_small_measure_val=0.0)
     pd.testing.assert_frame_equal(result, expected)

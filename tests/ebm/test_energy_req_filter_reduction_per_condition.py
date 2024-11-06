@@ -278,3 +278,4 @@ def test_get_reduction_per_condition_require_expected_building_conditions(defaul
                            renovation_val=0.2,
                            renovation_small_measure_val=0.0)
     pd.testing.assert_frame_equal(result, expected)
+    

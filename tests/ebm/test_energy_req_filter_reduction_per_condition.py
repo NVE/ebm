@@ -79,6 +79,14 @@ def expected_df(original_condition_val: float,
         ], columns=['building_condition', 'reduction_share'])
 
 
+def sort_result_df_by_building_condition(df: pd.DataFrame)-> pd.DataFrame:
+    condition_order = {condition: index for index, condition in enumerate(BuildingCondition.existing_conditions())}
+    df['condition_rank'] = df['building_condition'].map(condition_order)
+    df = df.sort_values(by='condition_rank').drop(columns=['condition_rank'])
+    df.reset_index(drop=True, inplace=True)
+    return df
+
+
 @pytest.mark.parametrize('tek,purpose,expected_df',
                          [('TEK17', EnergyPurpose.HEATING_RV, expected_df(0.0, 0.07, 0.2, 0.25)),
                           ('TEK21', EnergyPurpose.HEATING_RV, expected_df(0.234, 0.234, 0.234, 0.234)),
@@ -93,6 +101,7 @@ def test_get_reduction_per_condition_return_df_for_best_match(default_parameters
     """
     e_r_filter = EnergyRequirementFilter(**{**default_parameters})
     result = e_r_filter.get_reduction_per_condition(tek=tek, purpose=purpose)
+    result = sort_result_df_by_building_condition(result)
     expected = expected_df
     pd.testing.assert_frame_equal(result, expected)
 
@@ -106,6 +115,7 @@ def test_get_reduction_per_condition_return_default_df_when_not_found(default_pa
     e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
                                             'building_category': BuildingCategory.CULTURE})
     result = e_r_filter.get_reduction_per_condition(tek='TEK01', purpose=EnergyPurpose.LIGHTING)
+    result = sort_result_df_by_building_condition(result)
     expected = expected_df(
         original_condition_val=0.456,
         small_measure_val=0.456,
@@ -186,6 +196,7 @@ def test_get_reduction_per_condition_return_correct_df_when_matches_has_equal_pr
                                             'building_category':BuildingCategory.HOUSE,
                                             'reduction_per_condition': reduction_per_condition})
     result = e_r_filter.get_reduction_per_condition(tek='TEK21', purpose=EnergyPurpose.HEATING_RV)
+    result = sort_result_df_by_building_condition(result)
     expected = expected_df(original_condition_val=0.31,
                         small_measure_val=0.32,
                         renovation_val=0.33,
@@ -248,6 +259,7 @@ def test_get_reduction_per_condition_return_df_with_default_values_when_building
                                             'reduction_per_condition': reduction_per_condition})
 
     result = e_r_filter.get_reduction_per_condition(tek='TEK21', purpose=EnergyPurpose.HEATING_RV)
+    result = sort_result_df_by_building_condition(result)
     expected = expected_df(original_condition_val=0.11,
                     small_measure_val=0.12,
                     renovation_val=0.0,
@@ -273,6 +285,7 @@ def test_get_reduction_per_condition_require_expected_building_conditions(defaul
                                             'building_category': BuildingCategory.HOUSE,
                                             'reduction_per_condition': reduction_per_condition})
     result = e_r_filter.get_reduction_per_condition(tek='TEK21', purpose=EnergyPurpose.HEATING_RV)
+    result = sort_result_df_by_building_condition(result)
     expected = expected_df(original_condition_val=0.1,
                            small_measure_val=0.234,
                            renovation_val=0.2,

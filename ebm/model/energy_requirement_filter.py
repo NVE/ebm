@@ -297,10 +297,6 @@ class EnergyRequirementFilter:
                     pd.DataFrame({self.BUILDING_CONDITION: [cond], self.REDUCTION_SHARE: [0.0]})
                 ])
 
-        # Format the final df 
-        condition_order = {condition: index for index, condition in enumerate(BuildingCondition.existing_conditions())}
-        df['condition_rank'] = df[self.BUILDING_CONDITION].map(condition_order)
-        df = df.sort_values(by='condition_rank')
         df = df[[self.BUILDING_CONDITION, self.REDUCTION_SHARE]]
         df.reset_index(drop=True, inplace=True)
         return df

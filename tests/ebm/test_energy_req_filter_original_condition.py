@@ -37,6 +37,7 @@ def default_parameters(original_condition) \
             'yearly_improvements': pd.DataFrame(),
             'policy_improvement': pd.DataFrame()}
 
+
 @pytest.mark.parametrize('tek,purpose,expected_value',
                          [('PRE_TEK49_RES_1950', EnergyPurpose.COOLING, 1.1),
                           ('TEK07', EnergyPurpose.COOLING, 2.1),

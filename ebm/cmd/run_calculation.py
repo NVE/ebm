@@ -235,7 +235,9 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
                                               database_manager: DatabaseManager,
                                               start_year: int,
                                               end_year: int):
-    energy_requirement = EnergyRequirement.new_instance()
+    energy_requirement = EnergyRequirement.new_instance(period=YearRange(start_year, end_year),
+                                                        calibration_year=start_year+9,
+                                                        database_manager=database_manager)
 
     series = []
     for s in energy_requirement.calculate_for_building_category(

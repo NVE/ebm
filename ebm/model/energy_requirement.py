@@ -123,11 +123,13 @@ class EnergyRequirement:
         for building_category in building_categories:
             yield from self.calculate_for_building_category(building_category)
 
-
     @staticmethod
-    def new_instance(database_manager=None):
+    def new_instance(period, calibration_year, database_manager=None):
+        # Warn about non-standard calibration year
+        if period.start != 2010 and calibration_year != calibration_year:
+            logger.warning(f'EnergyRequirements {period.start=} {calibration_year=}')
         dm = database_manager if isinstance(database_manager, DatabaseManager) else DatabaseManager()
-        return EnergyRequirement(tek_list=dm.get_tek_list(), period=YearRange(2010, 2050), calibration_year=2019)
+        return EnergyRequirement(tek_list=dm.get_tek_list(), period=period, calibration_year=calibration_year)
 
 
 def calculate_energy_requirement_reduction_by_condition(

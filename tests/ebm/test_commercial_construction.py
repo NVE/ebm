@@ -105,33 +105,32 @@ def test_calculate_floor_area_over_building_growth_kindergarten():
               0.0035114845279617946, 0.0033421050242241623, 0.0031766233305012825, 0.0030111720747318937,
               0.002846866995466657, 0.002686160663372572, 0.0025245549248480437, 0.002360641918193185,
               0.002200080909776636, 0.0020412601991794954, 0.0018872707716841575, 0.0017373379956102664],
-        index=[y for y in range(2010, 2051)])
+        index=YearRange(2010, 2050).to_index())
     building_growth = pd.Series(
         data=[np.nan,
               0.07035928643459943, 0.04756747511027215, 0.042732522797172434, 0.05303365530129667] + [0.0] * 36,
-        index=[y for y in range(2010, 2051)])
+        index=YearRange(2010, 2050).to_index())
 
     years = YearRange(start=2010, end=2050)
 
     # Start years (2011 - 2014) use building growth over population growth
     calculated_building_growth_over_population_growth = pd.Series(
         data=[np.nan, 5.503806636996176, 3.56968635129183, 3.2575308223948776, 4.636257198422607],
-        index=[2010, 2011, 2012, 2013, 2014])
+        index=YearRange(2010, 2014).to_index())
 
     # The next six years (2015-2020) use the mean of the start years
     calculated_mean_build_over_pop = pd.Series(
         data=[4.24182025227637] * 6,
-        index=[y for y in range(2015, 2021)])
+        index=YearRange(2015, 2020).to_index())
 
     # The next 10 years use the mean of the starting years multiplied by a cut-off calculated from number of years
     #   since the start of the period (2020)
     calculated_years = pd.Series(data=[3.91763822705, 3.59345620182, 3.26927417659, 2.94509215137,
                                        2.62091012614, 2.29672810091, 1.97254607568, 1.64836405046, 1.32418202523],
-                                 index=[y for y in range(2021, 2030)]
-                                 )
+                                 index=YearRange(2021, 2029).to_index())
     fixed_rate_from_2030 = pd.Series(
         data=[1.0] * 21,
-        index=[y for y in range(2030, 2051)]
+        index=YearRange(2030, 2050).to_index()
     )
 
     expected = pd.concat([calculated_building_growth_over_population_growth,
@@ -158,7 +157,7 @@ def test_calculate_floor_area_over_building_growth():
         [np.nan, 1.083333, 1.076923, 1.071429, 1.066667, 1.074588, 1.074588, 1.074588, 1.074588, 1.074588, 1.074588] +
         [1.067129, 1.05967, 1.05221, 1.044752, 1.037293, 1.029835, 1.022376, 1.014918, 1.007459]
         + [1.000000] * 21,
-        index=range(2010, 2051)
+        index=YearRange(2010, 2050).to_index()
     )
 
     # Calculate result
@@ -271,12 +270,13 @@ def test_calculate_commercial_construction_kindergarten(default_input, kindergar
               2040: 1159207.4045239142, 2041: 1171661.5536149389, 2042: 1184611.9024341286, 2043: 1197209.5264268273,
               2044: 1211951.8874602036, 2045: 1226341.5236670894, 2046: 1240370.3397235975, 2047: 1254043.3470207064,
               2048: 1267362.0875248697, 2049: 1280335.4275432017, 2050: 1292970.6914163616})
+    expected_acc_constructed.index = expected_acc_constructed.index.set_names('year')
 
     pd.testing.assert_series_equal(result.accumulated_constructed_floor_area, expected_acc_constructed)
 
     expected_total_floor_area = pd.Series(
         name='total_floor_area',
-        data=kindergarten.get('total_floor_area'))
+        data=kindergarten.get('total_floor_area'), index=YearRange(2010, 2050).to_index())
 
     pd.testing.assert_series_equal(result.total_floor_area, expected_total_floor_area)
 
@@ -299,10 +299,10 @@ def test_calculate_commercial_construction_storage_repairs(default_input):
                                                       population=population, period=year_range)
 
     expected_constructed = pd.Series(name='constructed_floor_area', data=[33755.0]*41, index=year_range.to_index())
-    pd.testing.assert_series_equal(result.constructed_floor_area, expected_constructed)
+    pd.testing.assert_series_equal(result.constructed_floor_area, expected_constructed, check_names=False)
 
     expected_accumulated = pd.Series(expected_constructed.cumsum(), name='accumulated_constructed_floor_area')
-    pd.testing.assert_series_equal(result.accumulated_constructed_floor_area, expected_accumulated)
+    pd.testing.assert_series_equal(result.accumulated_constructed_floor_area, expected_accumulated, check_names=False)
 
 
 def test_calculate_commercial_construction_kindergarten_to_2030(default_input, kindergarten):
@@ -329,13 +329,14 @@ def test_calculate_commercial_construction_kindergarten_to_2030(default_input, k
               2020: 761822.4178627238, 2021: 797372.8973082381, 2022: 831966.4053729149, 2023: 866075.9623344268,
               2024: 896321.9001179065, 2025: 923447.0849048046, 2026: 947622.1337777856, 2027: 968409.0957146371,
               2028: 987638.3261736577, 2029: 1003523.902076069, 2030: 1018640.2562509673})
+    expected_acc_constructed.index = expected_acc_constructed.index.set_names('year')
 
     pd.testing.assert_series_equal(result.accumulated_constructed_floor_area, expected_acc_constructed)
 
     expected_total_floor_area = pd.Series(name='total_floor_area', data=kindergarten.get('total_floor_area')).loc[
                                 2010:2030]
 
-    pd.testing.assert_series_equal(result.total_floor_area, expected_total_floor_area)
+    pd.testing.assert_series_equal(result.total_floor_area, expected_total_floor_area, check_names=False)
 
 
 def test_calculate_commercial_construction_kindergarten_to_2060(default_input, kindergarten):
@@ -366,7 +367,8 @@ def test_calculate_commercial_construction_kindergarten_to_2060(default_input, k
          2059: 1378512.098771437, 2060: 1387138.6353575739})])
     expected_acc_constructed.name = 'accumulated_constructed_floor_area'
 
-    pd.testing.assert_series_equal(result.accumulated_constructed_floor_area, expected_acc_constructed)
+    pd.testing.assert_series_equal(result.accumulated_constructed_floor_area, expected_acc_constructed,
+                                   check_names=False)
 
 
 def test_calculate_commercial_construction_kindergarten_from_2011(default_input, kindergarten):
@@ -439,8 +441,8 @@ def test_calculate_constructed_floor_area_culture(default_input):
                                                       demolition_floor_area=demolition_floor_area,
                                                       population=population, period=period)
 
-    pd.testing.assert_series_equal(result.constructed_floor_area,
-                                   expected_constructed_floor_area)
+    pd.testing.assert_series_equal(result.constructed_floor_area, expected_constructed_floor_area,
+                                   check_names=False)
 
 
 if __name__ == "__main__":

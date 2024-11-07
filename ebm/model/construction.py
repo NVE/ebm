@@ -398,7 +398,7 @@ class ConstructionCalculator:
             'constructed_floor_area': constructed_floor_area,
             'accumulated_constructed_floor_area': accumulated_constructed_floor_area,
             'floor_area_over_population_growth': floor_area_over_population_growth
-        }, index=[year for year in range(period.start, period.end + 1)])
+        }, index=period.to_index())
 
         return construction
 

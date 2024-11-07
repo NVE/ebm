@@ -52,30 +52,21 @@ class HolidayHomeEnergy:
     @staticmethod
     def new_instance(database_manager: DatabaseManager = None) -> 'HolidayHomeEnergy':
         dm = database_manager or DatabaseManager()
-        logging.warning('Loading holiday_homes from hard coded data')
-        holiday_homes = holiday_homes_by_category = pd.DataFrame(data={
-            'chalet': {2001: 354060, 2002: 358997, 2003: 363889, 2004: 368933, 2005: 374470, 2006: 379169,
-                       2007: 383112, 2008: 388938, 2009: 394102, 2010: 398884, 2011: 405883, 2012: 410333,
-                       2013: 413318, 2014: 416621, 2015: 419449, 2016: 423041, 2017: 426932, 2018: 431028,
-                       2019: 434809, 2020: 437833, 2021: 440443, 2022: 445715, 2023: 449009}.values(),
-            'converted': {2001: 23267, 2002: 26514, 2003: 26758, 2004: 26998, 2005: 27376, 2006: 27604, 2007: 27927,
-                          2008: 28953, 2009: 29593, 2010: 30209, 2011: 32374, 2012: 32436, 2013: 32600, 2014: 32539,
-                          2015: 32559, 2016: 32727, 2017: 32808, 2018: 32891, 2019: 32869, 2020: 32906, 2021: 33099,
-                          2022: 33283, 2023: 32819}.values()}, index=YearRange(2001, 2023).to_index())
-        logging.warning('Loading electricity_usage_stats from hard coded data')
+        holiday_homes = dm.get_holiday_home_by_year()
+
         # 02 Elektrisitet i fritidsboliger statistikk (GWh) (input)
-        electricity_usage_stats = pd.Series(
-            data=[1128.0, 1173.0, 1183.0, 1161.0, 1235.0, 1317.0, 1407.0, 1522.0, 1635.0, 1931.0, 1818.0, 1929.0,
-                  2141.0, 2006.0, 2118.0, 2278.0, 2350.0, 2417.0, 2384.0, 2467.0, 2819.0, 2318.0, 2427.0],
-            index=YearRange(2001, 2023).to_index(), name='gwh')
-        logging.warning('Loading fuelwood_usage_stats from hard coded data')
+        electricity_usage_stats = dm.get_holiday_home_electricity_consumption()
+
         # 04 Ved i fritidsboliger statistikk (GWh)
-        fuelwood_usage_stats = pd.Series(
-            data=[880.0, 1050.0, 1140.0, 1090.0, 1180.0, 990.0, 700.0, 1000.0, 900.0, 1180.0, 1100.0, 1070.0,
-                  1230.0, 1170.0, 1450.0, 1270.0, 1390.0, 1390.0], index=YearRange(2006, 2023).to_index())
+        fuelwood_usage_stats = dm.get_holiday_home_fuelwood_consumption()
+
         logging.warning('Loading fossil_fuel_usage_stats from hard coded data')
-        fossil_fuel_usage_stats=pd.Series(data=[100], index=YearRange(2011, 2011).to_index(), name='kwh')
-        return HolidayHomeEnergy(dm.get_construction_population()['population'],
+        fossil_fuel_usage_stats = pd.Series(data=[100], index=YearRange(2006, 2006).to_index(), name='kwh')
+
+        logging.warning('Loading population from holiday_home_population_by_year.csv')
+        population = dm.file_handler.get_file('holiday_home_population_by_year.csv').set_index('year').population
+
+        return HolidayHomeEnergy(population,
                                  holiday_homes,
                                  electricity_usage_stats,
                                  fuelwood_usage_stats,

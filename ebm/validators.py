@@ -295,6 +295,21 @@ heating_systems = pa.DataFrameSchema(
     }
 )
 
+holiday_home_by_year = pa.DataFrameSchema(
+    columns={
+        'year': pa.Column(int),
+        'Existing buildings Chalet, summerhouses and other holiday houses': pa.Column(int),
+        'Existing buildings Detached houses and farmhouses used as holiday houses': pa.Column(int)
+    }
+)
+holiday_home_energy_consumption = pa.DataFrameSchema(
+    columns={
+        'year': pa.Column(int),
+        'Electricity in holiday cottages (GWh)': pa.Column(int),
+        'Fuelwood in holiday cottages (GWh)': pa.Column(float, nullable=True)
+    }
+)
+
 
 __all__ = [area_parameters,
            tek_parameters,

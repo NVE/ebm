@@ -28,7 +28,10 @@ class FileHandler:
     ENERGY_REQ_REDUCTION_CONDITION = 'energy_requirement_reduction_per_condition.csv'
     ENERGY_REQ_YEARLY_IMPROVEMENTS = 'energy_requirement_yearly_improvements.csv'
     ENERGY_REQ_POLICY_IMPROVEMENTS = 'energy_requirement_policy_improvements.csv'
+    HOLIDAY_HOME_BY_YEAR = 'holiday_home_by_year.csv'
+    HOLIDAY_HOME_ENERGY_CONSUMPTION = 'holiday_home_energy_consumption.csv'
     TEKANDELER = 'heating_systems.csv'
+
 
     input_directory: pathlib.Path
 
@@ -50,7 +53,8 @@ class FileHandler:
         self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
                                self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
                                self.AREA_PARAMETERS, self.ENERGY_REQ_ORIGINAL_CONDITION, self.ENERGY_REQ_REDUCTION_CONDITION, 
-                               self.ENERGY_REQ_YEARLY_IMPROVEMENTS, self.ENERGY_REQ_POLICY_IMPROVEMENTS, self.TEKANDELER]
+                               self.ENERGY_REQ_YEARLY_IMPROVEMENTS, self.ENERGY_REQ_POLICY_IMPROVEMENTS, self.TEKANDELER,
+                               self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_BY_YEAR]
 
     def get_file(self, file_name: str) -> pd.DataFrame:
         """
@@ -228,6 +232,12 @@ class FileHandler:
             per building category, tek and purpose.
         """
         return self.get_file(self.ENERGY_REQ_POLICY_IMPROVEMENTS)
+
+    def get_holiday_home_energy_consumption(self) -> pd.DataFrame:
+        return self.get_file(self.HOLIDAY_HOME_ENERGY_CONSUMPTION)
+
+    def get_holiday_home_by_year(self) -> pd.DataFrame:
+        return self.get_file(self.HOLIDAY_HOME_BY_YEAR)
 
     def _check_is_file(self, filename: str) -> bool:
         """

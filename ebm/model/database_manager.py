@@ -242,10 +242,22 @@ class DatabaseManager():
 
         return df
 
+    def get_holiday_home_fuelwood_consumption(self) -> pd.Series:
+        df = self.file_handler.get_holiday_home_energy_consumption().set_index('year')["fuelwood"]
+        return df
+
+    def get_holiday_home_electricity_consumption(self) -> pd.Series:
+        df = self.file_handler.get_holiday_home_energy_consumption().set_index('year')["electricity"]
+        return df
+
+    def get_holiday_home_by_year(self) -> pd.DataFrame:
+        return self.file_handler.get_holiday_home_by_year().set_index('year')
+
     def validate_database(self):
         missing_files = self.file_handler.check_for_missing_files()
         return True
-    
+
+
 if __name__ == '__main__':
     db = DatabaseManager()
     building_category = BuildingCategory.HOUSE

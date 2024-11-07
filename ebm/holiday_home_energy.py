@@ -109,7 +109,7 @@ def project_electricity_usage(electricity_usage_stats: pd.Series,
     people_per_holiday_home = population_over_holiday_homes(population, total_holiday_homes_by_year)
     projected_holiday_homes_by_year = projected_holiday_homes(population, people_per_holiday_home)
 
-    usage_by_homes = electricity_usage_by_holiday_home(electricity_usage_stats, total_holiday_homes_by_year)
+    usage_by_homes = energy_usage_by_holiday_homes(electricity_usage_stats, total_holiday_homes_by_year)
     nan_padded_usage_by_homes = usage_by_homes.reindex(population.index, fill_value=np.nan)
     projected_electricity_usage = projected_electricity_usage_holiday_homes(nan_padded_usage_by_homes)
 
@@ -128,7 +128,7 @@ def project_fuelwood_usage(fuelwood_usage_stats: pd.Series,
     people_per_holiday_home = population_over_holiday_homes(population, total_holiday_homes_by_year)
     projected_holiday_homes_by_year = projected_holiday_homes(population, people_per_holiday_home)
 
-    usage_by_homes = calculate_fuelwood_by_holiday_home(fuelwood_usage_stats, total_holiday_homes_by_year)
+    usage_by_homes = energy_usage_by_holiday_homes(fuelwood_usage_stats, total_holiday_homes_by_year)
     nan_padded_usage_by_homes = usage_by_homes.reindex(population.index, fill_value=np.nan)
     projected_fuelwood_usage = projected_fuelwood_usage_holiday_homes(nan_padded_usage_by_homes)
 
@@ -191,17 +191,18 @@ def projected_holiday_homes(population: pd.Series,
     return population / holiday_homes.mean()
 
 
-def electricity_usage_by_holiday_home(
-    electricity_usage: pd.Series,
+def energy_usage_by_holiday_homes(
+    energy_usage: pd.Series,
     holiday_homes: pd.Series
 ) -> pd.Series:
     """
 
     (08) 14 Elektrisitet pr fritidsbolig staitsikk (kWh) in Energibruk fritidsboliger.xlsx
+    (10) 16 Ved pr fritidsbolig statistikk (kWh) 2019 - 2023
 
     Parameters
     ----------
-    electricity_usage : pd.Series
+    energy_usage : pd.Series
         Electricity usage by year from SSB https://www.ssb.no/statbank/sq/10103348 2001 - 2023
     holiday_homes : pd.Series
         Total number of holiday homes of any category from SSB https://www.ssb.no/statbank/sq/10103336
@@ -209,31 +210,7 @@ def electricity_usage_by_holiday_home(
     -------
 
     """
-    s = electricity_usage * 1_000_000 / holiday_homes
-    s.name = 'kwh'
-    return s
-
-
-def calculate_fuelwood_by_holiday_home(
-    fuelwood_usage: pd.Series,
-    holiday_homes: pd.Series
-) -> pd.Series:
-    """
-
-    (10) 16 Ved pr fritidsbolig statistikk (kWh) 2019 - 2023
-
-    Parameters
-    ----------
-    fuelwood_usage : pd.Series
-        Electricity usage by year from SSB https://www.ssb.no/statbank/sq/10103505 2006 - 2023
-    holiday_homes : pd.Series
-        Total number of holiday homes of any category from SSB https://www.ssb.no/statbank/sq/10103336
-    Returns
-    -------
-    pd.Series
-        Named kwh like fuelwood_usage * 1_000_000 / holiday_homes
-    """
-    s = fuelwood_usage * 1_000_000 / holiday_homes
+    s = energy_usage * 1_000_000 / holiday_homes
     s.name = 'kwh'
     return s
 

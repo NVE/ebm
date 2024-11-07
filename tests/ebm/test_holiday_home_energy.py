@@ -7,10 +7,9 @@ import pytest
 from ebm.holiday_home_energy import (sum_holiday_homes,
                                      population_over_holiday_homes,
                                      projected_holiday_homes,
-                                     calculate_fuelwood_by_holiday_home,
                                      projected_electricity_usage_holiday_homes,
                                      project_electricity_usage,
-                                     electricity_usage_by_holiday_home,
+                                     energy_usage_by_holiday_homes,
                                      projected_fuelwood_usage_holiday_homes,
                                      project_fuelwood_usage, project_fossil_fuel_usage, HolidayHomeEnergy)
 from ebm.model.data_classes import YearRange
@@ -131,7 +130,7 @@ def test_electricity_usage_by_holiday_home():
     electricity_usage = pd.Series({2001: 1128, 2002: 1173, 2003: 1183})
     homes = pd.Series(data={2001: 377_327, 2002: 385_511, 2003: 390_647})
 
-    result = electricity_usage_by_holiday_home(electricity_usage, homes)
+    result = energy_usage_by_holiday_homes(electricity_usage, homes)
     expected = pd.Series(data={2001: 2989.449,
                                2002: 3042.715,
                                2003: 3028.309}, name='kwh')
@@ -228,7 +227,7 @@ def test_calculate_fuelwood_by_holiday_home():
               1170.0, 1450.0, 1270.0, 1390.0, 1390.0],
         index=years)
 
-    result = calculate_fuelwood_by_holiday_home(fuelwood_usage, holiday_homes)
+    result = energy_usage_by_holiday_homes(fuelwood_usage, holiday_homes)
 
     expected = pd.Series(
         data=[2163.3688, 2554.5021, 2727.9841, 2572.6053, 2749.9866, 2258.9485, 1580.9598, 2242.5648, 2003.7403,

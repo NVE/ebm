@@ -288,9 +288,10 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
     This function builds the buildings for the specified category, calculates the area forecast, and accounts for
         demolition and construction over the specified period.
     """
-    buildings = Buildings.build_buildings(building_category=building_category,
-                                          database_manager=database_manager)
     years = YearRange(start_year, end_year)
+    buildings = Buildings.build_buildings(building_category=building_category,
+                                          database_manager=database_manager,
+                                          period=years)
 
     area_forecast = buildings.build_area_forecast(database_manager, years.start, years.end)
     demolition_floor_area = area_forecast.calc_total_demolition_area_per_year()

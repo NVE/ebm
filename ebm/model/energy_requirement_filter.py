@@ -272,7 +272,7 @@ class EnergyRequirementFilter:
                                      error_msg)
 
         # Get the 4 building conditions with top priority (best match)
-        df = df[:4]
+        df = df.drop_duplicates(subset=[self.BUILDING_CONDITION], keep='first')
 
         # Iterable object with expected conditions
         expected_conditions = BuildingCondition.existing_conditions()

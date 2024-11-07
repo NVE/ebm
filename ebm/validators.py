@@ -58,6 +58,7 @@ def check_building_condition(value: pd.Series) -> pd.Series:
     """
     return value.isin(iter(BuildingCondition))
 
+
 def check_existing_building_conditions(value: pd.Series) -> pd.Series:
     """
     Makes sure that the series contains values that are corresponding to 'existing' building conditions.
@@ -77,6 +78,25 @@ def check_existing_building_conditions(value: pd.Series) -> pd.Series:
     return value.isin(iter(BuildingCondition.existing_conditions()))
 
 
+def check_all_existing_building_conditions_present(df: pd.DataFrame):
+    """
+    Ensures that all 'existing' building conditions are present in the 'building_conditions' column for
+    each unique combination of 'building_category', 'TEK', and 'purpose'.
+
+    Existing building conditions are all members (conditions) of BuildingCondition, except of DEMOLITION.
+
+    Parameters
+    ----------
+    df: pd.Dataframe
+    """
+    grouped = df.groupby(['building_category', 'TEK', 'purpose'])['building_condition']
+    existing_conditions = set(BuildingCondition.existing_conditions())
+    for _, conditions in grouped:
+        if set(conditions) != existing_conditions:
+            return False
+    return True
+
+
 def check_energy_purpose(value: pd.Series) -> pd.Series:
     """
     Makes sure that the value contain one of the values corresponding to purpose
@@ -93,6 +113,7 @@ def check_energy_purpose(value: pd.Series) -> pd.Series:
 
     """
     return value.isin(iter(EnergyPurpose))
+
 
 def check_default_energy_purpose(value: pd.Series) -> pd.Series:
     """
@@ -250,6 +271,7 @@ new_buildings_population = pa.DataFrameSchema(
         'household_size': pa.Column(float, coerce=True, checks=[pa.Check.greater_than_or_equal_to(0)])},
     name='new_buildings_population')
 
+
 #TODO: evaluete if restrictions on rush and never share make sense (if the program crashes unless they are there)
 scurve_parameters = pa.DataFrameSchema(
     columns={
@@ -272,7 +294,9 @@ energy_requirement_original_condition = pa.DataFrameSchema(
         'TEK': pa.Column(str, checks=[pa.Check(check_default_tek, element_wise=True)]),
         'purpose': pa.Column(str, checks=[pa.Check(check_default_energy_purpose)]),
         'kwh_m2': pa.Column(float, coerce=True, checks=[pa.Check.greater_than_or_equal_to(0)])
-    }
+    }, 
+    unique=['building_category', 'TEK', 'purpose'],
+    report_duplicates='all'
 )
 
 
@@ -284,7 +308,9 @@ energy_requirement_reduction_per_condition = pa.DataFrameSchema(
         'building_condition': pa.Column(str, checks=[pa.Check(check_existing_building_conditions)]),
         'reduction_share': pa.Column(float, coerce=True, checks=[pa.Check.between(min_value=0.0, include_min=True,
                                                                                   max_value=1.0, include_max=True)])
-    }
+    },
+    unique=['building_category', 'TEK', 'purpose', 'building_condition'],
+    report_duplicates='all'
 )
 
 
@@ -296,23 +322,28 @@ energy_requirement_yearly_improvements = pa.DataFrameSchema(
         'yearly_efficiency_improvement': pa.Column(float, coerce=True, 
                                                    checks=[pa.Check.between(min_value=0.0, include_min=True,
                                                                             max_value=1.0, include_max=True)])
-    }
+    },
+    unique=['building_category', 'TEK', 'purpose'],
+    report_duplicates='all'
 )
 
 
-# TODO: add checks for period start and end year that can handle blank value on period_start_year (nullable=True)? 
+# TODO: allow blank value on period_start_year (nullable=True) and implement solution for default value = model_start_year? 
 energy_requirement_policy_improvements = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
         'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
         'purpose': pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
         'period_start_year': pa.Column(int, coerce=True, checks=[pa.Check.greater_than_or_equal_to(0)]),
-        'period_end_year': pa.Column(int, coerce=True),
+        'period_end_year': pa.Column(int, coerce=True,  checks=[pa.Check.greater_than_or_equal_to(0)]),
         'improvement_at_period_end': pa.Column(float, coerce=True, 
                                                checks=[pa.Check.between(min_value=0.0, include_min=True,
                                                                         max_value=1.0, include_max=True)])
-    },checks=[pa.Check(lambda df: df["period_end_year"] > df["period_start_year"],
-                       error="period_end_year should be greater than period_start_year")]
+    },
+    checks=[pa.Check(lambda df: df["period_end_year"] > df["period_start_year"],
+                     error="period_end_year should be greater than period_start_year")],
+    unique=['building_category', 'TEK', 'purpose'],
+    report_duplicates='all'
 )
 
 

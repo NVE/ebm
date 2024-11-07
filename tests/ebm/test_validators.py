@@ -1,5 +1,6 @@
 import io
 import itertools
+import io
 
 import numpy as np
 import pandas as pd
@@ -387,9 +388,34 @@ def test_heating_reduction_value_between_zero_and_one(heating_reduction_df):
     with pytest.raises(pa.errors.SchemaError):
         energy_requirement_reduction_per_condition.validate(heating_reduction_df)
 
+def test_energy_req_reduction_per_condition() -> pd.DataFrame:
+    reduction_per_condition = pd.read_csv(io.StringIO("""
+            building_category,TEK,purpose,building_condition,reduction_share
+            default,default,heating_rv,original_condition,0.0
+            default,default,heating_rv,small_measure,0.07
+            default,default,heating_rv,renovation,0.2
+            default,default,heating_rv,renovation_and_small_measure,0.25
+            default,TEK17,heating_rv,original_condition,0.0
+            default,TEK17,heating_rv,small_measure,0.02
+            default,TEK17,heating_rv,renovation,0.05
+            default,TEK17,heating_rv,renovation_and_small_measure,0.07
+            default,TEK21,heating_rv,original_condition,0.0
+            default,TEK21,heating_rv,small_measure,0.02
+            default,TEK21,heating_rv,renovation,0.05
+            default,TEK21,default,renovation_and_small_measure,0.07
+            """.strip()), skipinitialspace=True)
+    energy_requirement_reduction_per_condition.validate(reduction_per_condition)
+
+def test_energy_req_reduction_per_condition_demolition_purpose() -> pd.DataFrame:
+    reduction_per_condition = pd.read_csv(io.StringIO("""
+            building_category,TEK,purpose,building_condition,reduction_share
+            default,default,heating_rv,demolition,0.0
+            """.strip()), skipinitialspace=True)
+    with pytest.raises(pa.errors.SchemaError):
+        energy_requirement_reduction_per_condition.validate(reduction_per_condition)
 
 def test_heating_systems_ok():
-    heating_systems_csv = """building_category,tek,Oppvarmingstyper,tek_share,Ekstralast andel,Grunnlast andel,Spisslast andel,Grunnlast virkningsgrad,Spisslast virkningsgrad,Ekstralast virkningsgrad,Tappevann virkningsgrad,Spesifikt elforbruk,Kjoling virkningsgrad
+    heating_systems_csv = """building_category,TEK,Oppvarmingstyper,tek_share,Ekstralast andel,Grunnlast andel,Spisslast andel,Grunnlast virkningsgrad,Spisslast virkningsgrad,Ekstralast virkningsgrad,Tappevann virkningsgrad,Spesifikt elforbruk,Kjoling virkningsgrad
 apartment_block,TEK07,Electricity,0.0,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4
 retail,TEK97,Electricity,0.08158166937579898,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4
 retail,PRE_TEK49,Electricity,0.07593898514970877,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4"""

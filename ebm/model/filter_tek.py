@@ -108,8 +108,8 @@ class FilterTek:
             raise ValueError("`old_tek_names` should be a list of strings.")
 
         # Apply default aggregates if the parameter is empty
-        aggregates = aggregates or {'tek': 'max', 'm2': 'first', 'kwh_m2': 'mean', 'energy_requirement': 'sum'}
-        tek_values = [tek for tek in old_tek_names if tek in df.index.get_level_values('tek')]
+        aggregates = aggregates or {'TEK': 'max', 'm2': 'first', 'kwh_m2': 'mean', 'energy_requirement': 'sum'}
+        tek_values = [tek for tek in old_tek_names if tek in df.index.get_level_values('TEK')]
 
         if not tek_values:
             return df
@@ -122,17 +122,17 @@ class FilterTek:
         residential = df.loc[
                 (building_categories, slice(None), slice(None), slice(None), slice(None))].reset_index()
 
-        tek_to_merge = residential[residential.tek.isin(tek_values)]
+        tek_to_merge = residential[residential.TEK.isin(tek_values)]
         agg_tek = tek_to_merge.groupby(by=['building_category',
                                            'building_condition',
                                            'purpose',
                                            'year']).agg(aggregates)
         agg_tek = agg_tek.reset_index()
 
-        agg_tek['tek'] = new_tek_name
+        agg_tek['TEK'] = new_tek_name
         rows_to_remove = df.loc[(slice(None), tek_values, slice(None), slice(None), slice(None))].index
         df = df.drop(rows_to_remove)
-        df = pd.concat([df, agg_tek.set_index(['building_category', 'tek', 'building_condition',  'year', 'purpose'])])
+        df = pd.concat([df, agg_tek.set_index(['building_category', 'TEK', 'building_condition',  'year', 'purpose'])])
         df = df.sort_index()
 
         return df

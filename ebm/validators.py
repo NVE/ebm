@@ -344,8 +344,8 @@ holiday_home_by_year = pa.DataFrameSchema(
 holiday_home_energy_consumption = pa.DataFrameSchema(
     columns={
         'year': pa.Column(int),
-        'Electricity in holiday cottages (GWh)': pa.Column(int),
-        'Fuelwood in holiday cottages (GWh)': pa.Column(float, nullable=True)
+        'electricity': pa.Column(int),
+        'fuelwood': pa.Column(float, nullable=True)
     }
 )
 

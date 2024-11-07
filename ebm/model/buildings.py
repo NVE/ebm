@@ -24,13 +24,9 @@ class Buildings():
     Holds all the attributes of a building, with it's associated data and operations.
     """
 
-    def __init__(self, 
-                 building_category: str,
-                 tek_list: typing.List[str],
-                 tek_params: typing.Dict[str, TEKParameters],
-                 scurve_condition_list: typing.List[str],
-                 scurve_params: pd.DataFrame,
-                 area_start_year: pd.Series):
+    def __init__(self, building_category: str, tek_list: typing.List[str], tek_params: typing.Dict[str, TEKParameters],
+                 scurve_condition_list: typing.List[str], scurve_params: pd.DataFrame, area_start_year: pd.Series,
+                 period):
         
         self.building_category = building_category
         self.scurve_condition_list = scurve_condition_list
@@ -39,7 +35,7 @@ class Buildings():
         self.scurve_params = FilterScurveParams.filter(self.building_category, self.scurve_condition_list, scurve_params) 
         self.scurves = ScurveProcessor(self.scurve_condition_list, self.scurve_params).get_scurves()
         self.never_shares = ScurveProcessor(self.scurve_condition_list, self.scurve_params).get_never_shares()
-        self.shares_per_condition = self.get_shares()
+        self.shares_per_condition = self.get_shares(period)
         self.area_params = area_start_year
 
     def get_shares(self, years: YearRange = YearRange(2010, 2050)) -> typing.Dict:
@@ -118,14 +114,13 @@ class Buildings():
         dm = database_manager if database_manager else DatabaseManager()
         area_start_year = dm.get_area_start_year()[self.building_category]
         tek_params = dm.get_tek_params(self.tek_list)
-        shares = self.get_shares()
 
         area_forecast = AreaForecast(
             building_category=self.building_category,
             area_start_year=area_start_year, 
             tek_list=self.tek_list,
             tek_params=tek_params,
-            shares_per_condtion=shares,
+            shares_per_condtion=self.shares_per_condition,
             period=YearRange(model_start_year, model_end_year))
 
         return area_forecast

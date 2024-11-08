@@ -8,8 +8,8 @@ from .data_classes import ScurveParameters
 from .building_condition import BuildingCondition
 
 # TODO:
+# - add FilterScurveParams functionality here? 
 # - add methods for retrieving yearly measure rates, which could be useful to print to output
-# - consider integrating the FilterScurveParams method in this class
 # - add control method that controls that the building conditions are those specified in the StrEnum for scurve_condition_list?
 
 class ScurveProcessor:
@@ -20,7 +20,7 @@ class ScurveProcessor:
     It retrieves the necessary parameters, calculates the S-curves for specified building conditions, 
     and provides access to the calculated S-curves and other related parameters.
     """
-
+    
     def __init__(self, 
                  scurve_condition_list: typing.List[str],
                  scurve_params: typing.Dict[str, ScurveParameters]):

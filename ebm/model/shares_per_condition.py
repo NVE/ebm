@@ -13,8 +13,6 @@ class SharesPerCondition():
     """
     # TODO: 
     # - update all docstrings to numpy format
-    # - add checks to control calculations:
-    #       - no shares should exceed 100%
     # - make code less repetative (overall):
     #       - ideally, there could be a calc_shares_tek() method, that takes building_condition as input
     #       - then, there could be an own calc_shares() method, that loops trough the tek_list for a given building_condition

@@ -57,7 +57,7 @@ def main() -> int:
     csv_delimiter = arguments.csv_delimiter if arguments.csv_delimiter else ';'
 
     # Make sure everything is working as expected
-    validate_years(end_year, start_year)
+    validate_years(end_year=end_year, start_year=start_year)
 
     database_manager = DatabaseManager(file_handler=FileHandler(directory=input_directory))
 

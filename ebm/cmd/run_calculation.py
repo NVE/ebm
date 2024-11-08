@@ -219,11 +219,8 @@ def validate_years(end_year, start_year):
     if start_year >= end_year:
         msg = f'Unexpected input start year ({start_year} is greater than end year ({end_year})'
         raise ValueError(msg)
-    if start_year + 40 != end_year:
-        msg = f'Unexpected input end_year ({end_year}) is not 40 years after start_year ({start_year + 40})'
-        raise ValueError(msg)
     if start_year < 2010:
-            msg = f'Unexpected start_year={start_year} currently only 2010 is supported '
+            msg = f'Unexpected start_year={start_year}. The minimum start year is 2010'
             raise ValueError(msg)
     if end_year > 2070:
         msg = f'Unexpected end_year={end_year}. Max end_year year is 2070'

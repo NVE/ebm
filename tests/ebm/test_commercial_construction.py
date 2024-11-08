@@ -179,7 +179,7 @@ def test_calculate_floor_area_growth():
 
 
 def test_calculate_constructed_floor_area_kindergarten(kindergarten):
-    constructed_floor_area = pd.Series({2010: 97574, 2011: 90644, 2012: 65847, 2013: 62022, 2014: 79992, 2015: np.nan})
+    constructed_floor_area = pd.Series({2010: 97574, 2011: 90644, 2012: 65847, 2013: 62022, 2014: 79992})
     demolition_floor_area = pd.Series(
         {2010: 0.0, 2011: 919.1642857142858, 2012: 919.1642857142851, 2013: 919.1642857142858, 2014: 919.1642857142856,
          2015: 919.164285714287, 2016: 919.1642857142851, 2017: 919.164285714286, 2018: 919.164285714286,
@@ -402,8 +402,7 @@ def test_calculate_commercial_construction_kindergarten_from_2011(default_input,
 
 def test_calculate_constructed_floor_area_culture(default_input):
     period = YearRange(2010, 2050)
-    constructed_floor_area = pd.Series({2010: 43646.0, 2011: 72625.0, 2012: 73971.0, 2013: 50951.0, 2014: 47282.0,
-                                        2015: np.nan})
+    constructed_floor_area = pd.Series({2010: 43646.0, 2011: 72625.0, 2012: 73971.0, 2013: 50951.0, 2014: 47282.0})
     total_floor_area = 2_899_338
 
     demolition_floor_area = pd.Series(
@@ -443,6 +442,110 @@ def test_calculate_constructed_floor_area_culture(default_input):
 
     pd.testing.assert_series_equal(result.constructed_floor_area, expected_constructed_floor_area,
                                    check_names=False)
+
+
+def test_calculate_commercial_construction_kindergarten_to_2020(default_input, kindergarten):
+    period = YearRange(2010, 2020)
+    total_floor_area = np.int64(1275238)
+    constructed_floor_area = pd.Series(
+        name='constructed_floor_area',
+        data={2010: 97574.0, 2011: 90644.0, 2012: 65847.0, 2013: 62022.0, 2014: 79992.0})
+    demolition_floor_area = pd.Series(
+        name='demolition_floor_area',
+        data=kindergarten.get('demolition_floor_area'))
+
+    population = pd.Series(name='population', data=default_input.get('population')).loc[period]
+
+    result = ConCal.calculate_commercial_construction(building_category=BuildingCategory.KINDERGARTEN,
+                                                      total_floor_area=total_floor_area,
+                                                      constructed_floor_area=constructed_floor_area,
+                                                      demolition_floor_area=demolition_floor_area.loc[2010:2020],
+                                                      population=population, period=period)
+
+    expected_acc_constructed = pd.Series(
+        name='accumulated_constructed_floor_area',
+        data={2010: 97574.0, 2011: 188218.0, 2012: 254065.0, 2013: 316087.0, 2014: 396079.0, 2015: 470969.73759432696,
+              2016: 536934.8384640573, 2017: 599494.080727143, 2018: 653696.220783381, 2019: 707496.2548855399,
+              2020: 761822.4178627238})
+    expected_acc_constructed.index = expected_acc_constructed.index.set_names('year')
+
+    pd.testing.assert_series_equal(result.accumulated_constructed_floor_area, expected_acc_constructed)
+
+    expected_total_floor_area = pd.Series(
+        name='total_floor_area',
+        data=dict(filter(lambda x: x[0] <= 2020, kindergarten.get('total_floor_area').items())), index=YearRange(2010, 2020).to_index())
+
+    pd.testing.assert_series_equal(result.total_floor_area, expected_total_floor_area)
+
+
+def test_calculate_commercial_construction_kindergarten_from_2011(default_input, kindergarten):
+    period = YearRange(2011, 2020)
+    total_floor_area = np.int64(1364963)
+    constructed_floor_area = pd.Series(
+        name='constructed_floor_area',
+        data={2010: 97574.0, 2011: 90644.0, 2012: 65847.0, 2013: 62022.0, 2014: 79992.0})
+    demolition_floor_area = pd.Series(
+        name='demolition_floor_area',
+        data=kindergarten.get('demolition_floor_area'))
+
+    population = pd.Series(name='population', data=default_input.get('population')).loc[period]
+    demolition_floor_area.loc[2011] = 0
+    result = ConCal.calculate_commercial_construction(building_category=BuildingCategory.KINDERGARTEN,
+                                                      total_floor_area=total_floor_area,
+                                                      constructed_floor_area=constructed_floor_area,
+                                                      demolition_floor_area=demolition_floor_area.loc[period],
+                                                      population=population, period=period)
+    expected_acc_constructed = pd.Series(
+        name='accumulated_constructed_floor_area',
+        data=[90644.0, 156491.0, 218513.0, 298505.0,
+              366059.96180732665, 425312.9887184028, 481302.9645244456, 529662.1539001607,
+              577526.936748859, 625726.3209422368], index=period.to_index())
+
+    expected_acc_constructed.index = expected_acc_constructed.index.set_names('year')
+
+    pd.testing.assert_series_equal(result.accumulated_constructed_floor_area, expected_acc_constructed)
+
+    kindergarten_tfa = dict(
+        filter(
+            lambda x: period.start <= x[0] <= period.end,
+            kindergarten.get('total_floor_area').items()))
+
+    expected_total_floor_area = pd.Series(
+        name='total_floor_area',
+        data=[1364963.0, 1429890.8357142857, 1490993.6714285715, 1570066.5071428572,
+              1636702.3046644696, 1695036.1672898314, 1750106.97881016, 1797547.0039001608,
+              1844492.6224631448, 1891772.8423708084], index=period.to_index())
+
+    pd.testing.assert_series_equal(result.total_floor_area, expected_total_floor_area)
+
+
+def test_construction_works_when_total_floor_area_has_fewer_than_4_rows():
+    years = YearRange(2011, 2018)
+    building_category = BuildingCategory.KINDERGARTEN
+    demolition = pd.Series(index=years.to_index(),
+                           data=[0.0, 919.164285706933, 2688.485714264203, 2688.4857142642068,
+                                 5282.077619025484, 5282.077619025484, 5282.077619025484, 8622.68166663713])
+    total_floor_area = np.int64(1_275_238)
+    population = {'population': {2011: 4_920_305, 2012: 4985870, 2013: 5051275, 2014: 5109056,
+                                 2015: 5165802, 2016: 5213985, 2017: 5258317, 2018: 5295619},
+                  'household_size': {2011: 2.22, 2012: 2.22, 2013: 2.2, 2014: 2.2,
+                                     2015: 2.2, 2016: 2.19, 2017: 2.19, 2018: 2.17}}
+    yearly_construction_floor_area = [97574.0, 90644.0, 65847.0, 62022.0,
+                                      79992.0]
+
+    result = ConCal.calculate_commercial_construction(
+        building_category=building_category,
+        total_floor_area=total_floor_area,
+        constructed_floor_area=pd.Series(yearly_construction_floor_area, index=YearRange(2010, 2014)).loc[2011:2014],
+        demolition_floor_area=demolition,
+        population=pd.Series(population['population'], index=years.to_index()), period=years)
+
+    expected_constructed_floor_area = pd.Series(data=[90644.0, 65847.0, 62022.0, 79992.0,
+                                                      71028.00886455, 62951.653328721, 59817.48524542, 55673.859496936],
+                                                index=years.to_index(),
+                                                name='constructed_floor_area')
+
+    pd.testing.assert_series_equal(result.constructed_floor_area, expected_constructed_floor_area)
 
 
 if __name__ == "__main__":

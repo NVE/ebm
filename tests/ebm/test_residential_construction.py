@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -202,6 +203,60 @@ def test_calculate_residential_construction_2052(default_input):
                          name='accumulated_constructed_floor_area')
 
     assert accumulated_constructed_floor_area.index.to_list() == expected.index.to_list()
+
+
+def test_calculate_residential_construction_from_2020(default_input):
+    """
+    Test that accumulated_constructed_floor_area has a correct index from 2011 to 2052
+    """
+    period = YearRange(2011, 2051)
+    population = pd.Series(default_input.get('population'), name='period').loc[period]
+    household_size = pd.Series(default_input.get('household_size'), name='household_size').loc[period]
+    building_category_share = pd.Series({y: 0.5 for y in period})
+    build_area_sum = pd.Series([10_000, 20_000], index=[2011, 2012])
+    yearly_demolished_floor_area = pd.Series([500 + y for y in period], index=period.range())
+    average_floor_area = 175
+
+    result = ConstructionCalculator().calculate_residential_construction(population, household_size,
+                                                                         building_category_share, build_area_sum,
+                                                                         yearly_demolished_floor_area,
+                                                                         average_floor_area,
+                                                                         period=period)
+    accumulated_constructed_floor_area = result.accumulated_constructed_floor_area
+    expected = pd.Series(data=[1_000_000.0 + y for y in period],
+                         index=period.range(),
+                         name='accumulated_constructed_floor_area')
+
+    assert accumulated_constructed_floor_area.index.to_list() == expected.index.to_list()
+
+
+def test_calculate_residential_construction_raise_value_error_on_missing_build_area_sum(default_input):
+    """
+    Test that accumulated_constructed_floor_area has a correct index from 2011 to 2052
+    """
+    period = YearRange(2011, 2051)
+    population = pd.Series(default_input.get('population'), name='period').loc[period]
+    household_size = pd.Series(default_input.get('household_size'), name='household_size').loc[period]
+    building_category_share = pd.Series({y: 0.5 for y in period})
+    yearly_demolished_floor_area = pd.Series([500 + y for y in period], index=period.range())
+    average_floor_area = 175
+
+    with pytest.raises(ValueError, match='missing constructed floor area for 2012'):
+        ConstructionCalculator().calculate_residential_construction(
+            population, household_size, building_category_share,
+            pd.Series([10_000, np.nan], index=YearRange(2011, 2012).to_index()),
+            yearly_demolished_floor_area,
+            average_floor_area,
+            period=period)
+
+    with pytest.raises(ValueError, match='missing constructed floor area for 2012'):
+        ConstructionCalculator().calculate_residential_construction(
+            population, household_size, building_category_share,
+            pd.Series([10_000, 11_000], index=YearRange(2010, 2011).to_index()),
+            yearly_demolished_floor_area,
+            average_floor_area,
+            period=period)
+
 
 
 #@pytest.mark.skipif(platform.system() != 'Windows', reason='Prevent test from failing on Azure')

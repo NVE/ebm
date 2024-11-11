@@ -14,10 +14,9 @@ class SharesPerCondition():
     # TODO: 
     # - update all docstrings to numpy format
     # - code improvements and less repetative:
+    #   - add expection to control that share values are between 0 - 1
     #   - add more arguments to method and split up functionality into smaller helper methods
     #   - don't call other calculations methods inside calculation methods, but add the result from them as params
-    #   - create own helper method for calculating max measure limit
-    #   - create own helper method for setting share to 0 in years before and including the year the building was constructed
     #   - allow 'building_condition' to be 'str' and methods to accept upper case and space?
 
 
@@ -162,7 +161,7 @@ class SharesPerCondition():
         self._control_series_values(shares)
         return shares
     
-    def _calc_max_measure_share(self, demolition_shares: pd.Series, never_share: float):
+    def _calc_max_measure_share(self, demolition_shares: pd.Series, never_share: float) -> pd.Series:
         """
         Calculates the maximum share of a buildings area that is available for a renovation or 
         small measure each year.
@@ -183,8 +182,13 @@ class SharesPerCondition():
         -------
         pd.Series
             Series with max measure shares per year. 
+
+        Raises:
+        - ValueError: If the shares calculation results in negative values or contains missing (NA) values. 
         """
-        return 1 - demolition_shares - never_share
+        max_share = 1 - demolition_shares - never_share
+        self._control_series_values(max_share)
+        return max_share 
 
     def _calc_small_measure_or_renovation(self, tek: str, building_condition: BuildingCondition) -> pd.Series:
         """

@@ -93,11 +93,6 @@ class ConstructionCalculator:
         self._check_index(period, yearly_demolished_floor_area)
         self._check_index(period, household_size)
 
-        bas_missing = [str(y) for y in period.subset(0, 2) if y not in build_area_sum.index or np.isnan(build_area_sum.loc[y])]
-        if bas_missing:
-            msg = f'missing constructed floor area for {", ".join(bas_missing)}'
-            raise ValueError(msg)
-
         # It might be sensible to calculate total floor area and work from there (like commercial) rather than going
         # through average_floor_area <-> building_growth <-> households_change <-> population_growth
         population_growth = self.calculate_population_growth(population)
@@ -188,6 +183,13 @@ class ConstructionCalculator:
         The function calculates the yearly new building floor area by adding the yearly floor area change
         to the yearly demolished floor area. It then updates the values based on the build_area_sum index.
         """
+        bas_missing_year = [str(y) for y in yearly_demolished_floor_area.iloc[0:2].index if
+                            y not in build_area_sum.index or
+                            np.isnan(build_area_sum.loc[y])]
+
+        if bas_missing_year:
+            msg = f'missing constructed floor area for {", ".join(bas_missing_year)}'
+            raise ValueError(msg)
 
         yearly_new_building_floor_area_house = yearly_floor_area_change + yearly_demolished_floor_area
         yearly_new_building_floor_area_house.loc[build_area_sum.index.values] = build_area_sum.loc[

@@ -13,12 +13,11 @@ class SharesPerCondition():
     """
     # TODO: 
     # - update all docstrings to numpy format
-    # - make code less repetative (overall):
-    #       - ideally, there could be a calc_shares_tek() method, that takes building_condition as input
-    #       - then, there could be an own calc_shares() method, that loops trough the tek_list for a given building_condition
-    # - code improvements:
-    #       - create own helper method for calculating max measure limit
-    #       - create own helper method for setting share to 0 in years before and including the year the building was constructed
+    # - code improvements and less repetative:
+    #   - add more arguments to method and split up functionality into smaller helper methods
+    #   - create own helper method for calculating max measure limit
+    #   - create own helper method for setting share to 0 in years before and including the year the building was constructed
+    #   - allow 'building_condition' to be 'str' and methods to accept upper case and space?
 
 
     def __init__(self, 
@@ -162,6 +161,11 @@ class SharesPerCondition():
         self._control_series_values(shares)
         return shares
     
+    def _calc_measure_limit(self, demolition_shares: pd.Series, never_share: float):
+        """
+        """
+        return 1 - demolition_shares - never_share
+
     def _calc_small_measure_or_renovation(self, tek: str, building_condition: BuildingCondition) -> pd.Series:
         """
         Calculate the accumulated share of floor area that has undergone either small measures or renovation over the

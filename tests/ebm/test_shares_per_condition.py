@@ -166,7 +166,7 @@ def test_calc_demolition(default_params, tek, period):
     pd.testing.assert_series_equal(result,expected)
 
 
-def test_calc_demolition_tek_construction_year_in_period(default_params, period, scurves):
+def test_calc_demolition_with_tek_construction_year_in_period(default_params, period, scurves):
     """
     Test that the method adjusts the calculation method when the construction year of the given
     TEK is within the given 'period'. 
@@ -175,6 +175,10 @@ def test_calc_demolition_tek_construction_year_in_period(default_params, period,
     - the share should be set to 0 in model years before and during the construciton year of the TEK.
     - the share should be set to the S-curve rate of the given model year if that year corresponds to 
       the year after the building was constructed.
+
+    When changing the construction_year of the given TEK, the ages included in the scurves used in 
+    the method must also be adjusted to match with the specified construction_year and model period. 
+    If not, the ValueError in _scurve_per_year will be raised. 
     """
     tek = 'TEK07'
     tek_list = [tek]
@@ -193,9 +197,25 @@ def test_calc_demolition_tek_construction_year_in_period(default_params, period,
     pd.testing.assert_series_equal(result,expected)
 
 
-def test_calc_small_measure_or_renovation(default_params, tek, period):
+#TODO: implement solution for setting negative values to 0 and add test
+def test_calc_measure_limit(default_params):
+    s = SharesPerCondition(**default_params)
+    demolition_shares = pd.Series([0.0,0.1,0.2])
+    never_share = 0.2
+    result = s._calc_measure_limit(demolition_shares, never_share)
+    expected = pd.Series([0.8,0.7,0.6])
+    pd.testing.assert_series_equal(result,expected)
+
+
+def test_calc_small_measure_or_renovation_with_renovation(default_params, tek, period):
     """
-    Test that the method returns the expected result when valid input (default_params) is given.
+    Test that the method runs for the building_condition 'renovation' and returns the 
+    expected result when valid input (default_params) is given.
+
+    The method should return the scurve_per_model year for the given building condition, 
+    or the scurve rate should be replaced by the 'measure_limit' if the scurve rate exceeds
+    the measure_limit for a given year. In this test, the measure_limit is 0,55 in 2014, 
+    while the given scurve_rate is 0,6. Thus this is the only value that should be changed.
     """
     s = SharesPerCondition(**default_params)
     result = s._calc_small_measure_or_renovation(tek, BuildingCondition.RENOVATION)
@@ -204,5 +224,127 @@ def test_calc_small_measure_or_renovation(default_params, tek, period):
     pd.testing.assert_series_equal(result,expected)
 
 
+def test_calc_small_measure_or_renovation_with_small_measure(default_params, 
+                                                             tek, 
+                                                             small_measure_scurve, 
+                                                             period):
+    """
+    Test that the method runs for the building_condition 'small_measure' and returns the 
+    expected result when valid input (default_params) is given.
+
+    The method should return the scurve_per_model year for the given building condition, 
+    or the scurve rate should be replaced by the 'measure_limit' if the scurve rate exceeds
+    the measure_limit for a given year. In this test, the scurve rates should not exceed the
+    measure_limit for any years, and no values should be changed.
+    """
+    s = SharesPerCondition(**default_params)
+    result = s._calc_small_measure_or_renovation(tek, BuildingCondition.SMALL_MEASURE)
+    expected = pd.Series(small_measure_scurve.values, index= period.year_range)
+    expected.index.name = 'year'
+    pd.testing.assert_series_equal(result,expected)
 
 
+def test_calc_small_measure_or_renovation_invalid_building_condition(default_params, tek):
+    """
+    Test that the method raises a ValueError if the given building_condition isn't
+    'small_measure' or 'renovation'.
+    """
+    s = SharesPerCondition(**default_params)
+
+    with pytest.raises(ValueError, match=re.escape('Invalid building_condition')):
+        s._calc_small_measure_or_renovation(tek, 'not a building_condition')
+
+
+def test_calc_small_measure_or_renovation_with_tek_construction_year_in_period(default_params,
+                                                                               scurves,
+                                                                               period):
+    """
+    Test that the share is 0 in years before and including the year the building was constructed, 
+    when ran with a TEK that has construction year within in the model period.
+
+    When changing the construction_year of the given TEK, the ages included in the scurves used in 
+    the method must also be adjusted to match with the specified construction_year and model period. 
+    If not, the ValueError in _scurve_per_year will be raised. 
+    """
+    tek = 'TEK07'
+    tek_list = [tek]
+    tek_params = {tek: TEKParameters(tek, 2012, 2011, 2013)}
+    small_measure_scurve = generate_scurve_series([0.1,0.2,0.3,0.4,0.5],
+                                                  [1,2,3,4,5])
+    demolition_scurve = generate_scurve_series([0.6,0.8,0.9,0.9,0.9],
+                                               [1,2,3,4,5])
+    scurves['small_measure'] = small_measure_scurve
+    scurves['demolition'] = demolition_scurve
+    s = SharesPerCondition(**{**default_params,
+                              'tek_list': tek_list,
+                              'tek_params': tek_params,
+                              'scurves': scurves
+                              })
+    result = s._calc_small_measure_or_renovation(tek, BuildingCondition.SMALL_MEASURE)
+    expected = pd.Series([0,0,0,0.1,0.2], index= period.year_range)
+    expected.index.name = 'year'
+    pd.testing.assert_series_equal(result,expected)
+
+
+def test_calc_renovation(default_params, tek, period):
+    """
+    Test that the method returns the expected result when valid input (default_params) is given.
+    """
+    s = SharesPerCondition(**default_params)
+    result = s.calc_renovation(tek)
+    expected = pd.Series([0.2,0.3,0.4,0.25,0.05], index= period.year_range)
+    expected.index.name = 'year'
+    pd.testing.assert_series_equal(result,expected)
+
+
+def test_calc_renovation_set_shares_to_zero(default_params, tek, never_shares, period):
+    """
+    Test that the share value is set to 0 in years where the total share for doing 
+    a small measure exceeds the measure limit. In other words, when the calculated
+    share for doing a renovation is a negative value. 
+
+    To produce this scenario the measure_limit is reduced below the calculated total 
+    share for small measures. This can is done by increasing the never_share, which is
+    used in the measure_limit calculation. In this test, this results in a negative share
+    value for 2014, which then is set to 0. 
+    """
+    never_shares['renovation'] = 0.2
+    s = SharesPerCondition(**{**default_params,
+                              'never_shares':never_shares})
+    result = s.calc_renovation(tek)
+    expected = pd.Series([0.2,0.3,0.3,0.1,0.0], index= period.year_range)
+    expected.index.name = 'year'
+    pd.testing.assert_series_equal(result,expected)
+
+
+def test_calc_renovation_with_tek_construction_year_in_period(default_params,
+                                                              scurves,
+                                                              period):
+    """
+    Test that the share is 0 in years before and including the year the building was constructed, 
+    when ran with a TEK that has construction year within in the model period.
+    
+    When changing the construction_year of the given TEK, the ages included in the scurves used in 
+    the method must also be adjusted to match with the specified construction_year and model period. 
+    If not, the ValueError in _scurve_per_year will be raised. 
+    """
+    tek = 'TEK07'
+    tek_list = [tek]
+    tek_params = {tek: TEKParameters(tek, 2012, 2011, 2013)}
+    scurves = {
+        'small_measure': generate_scurve_series(values = [0.1,0.2,0.3,0.4,0.5], 
+                                                ages = [1, 2, 3, 4, 5]),
+        'renovation': generate_scurve_series(values = [0.2,0.3,0.4,0.5,0.6],
+                                             ages = [1, 2, 3, 4, 5]),
+        'demolition': generate_scurve_series(values = [0.3,0.4,0.5,0.6,0.7],
+                                             ages = [1, 2, 3, 4, 5])
+    }
+    s = SharesPerCondition(**{**default_params,
+                              'tek_list': tek_list,
+                              'tek_params': tek_params,
+                              'scurves': scurves
+                              })
+    result = s.calc_renovation(tek)
+    expected = pd.Series([0,0,0,0.2,0.3], index= period.year_range)
+    expected.index.name = 'year'
+    pd.testing.assert_series_equal(result,expected)

@@ -197,12 +197,12 @@ def test_calc_demolition_with_tek_construction_year_in_period(default_params, pe
     pd.testing.assert_series_equal(result,expected)
 
 
-#TODO: implement solution for setting negative values to 0 and add test
-def test_calc_measure_limit(default_params):
+#TODO: can this value be negative or above 1? 
+def test_calc_max_measure_share(default_params):
     s = SharesPerCondition(**default_params)
     demolition_shares = pd.Series([0.0,0.1,0.2])
     never_share = 0.2
-    result = s._calc_measure_limit(demolition_shares, never_share)
+    result = s._calc_max_measure_share(demolition_shares, never_share)
     expected = pd.Series([0.8,0.7,0.6])
     pd.testing.assert_series_equal(result,expected)
 

@@ -13,14 +13,13 @@ class SharesPerCondition():
     """
     # TODO: 
     # - update all docstrings to numpy format
-    # - add checks to control calculations:
-    #       - no shares should exceed 100%
-    # - make code less repetative (overall):
-    #       - ideally, there could be a calc_shares_tek() method, that takes building_condition as input
-    #       - then, there could be an own calc_shares() method, that loops trough the tek_list for a given building_condition
-    # - code improvements:
-    #       - create own helper method for calculating max measure limit
-    #       - create own helper method for setting share to 0 in years before and including the year the building was constructed
+    # - code improvements, less repetative and reduce runtime:
+    #   - the checks in _control_shares should be ran, should be implemented in a more efficient way during/after refactoring. 
+    #   - add expection to control that share values are between 0 - 1 for each calculation method and scurves? This 
+    #     might be covered by _control_shares in a way
+    #   - add more arguments to method and split up functionality into smaller helper methods
+    #   - don't call other calculations methods inside calculation methods, but add the result from them as params
+    #   - allow 'building_condition' to be 'str' and methods to accept upper case and space?
 
 
     def __init__(self, 
@@ -164,6 +163,35 @@ class SharesPerCondition():
         self._control_series_values(shares)
         return shares
     
+    def _calc_max_measure_share(self, demolition_shares: pd.Series, never_share: float) -> pd.Series:
+        """
+        Calculates the maximum share of a buildings area that is available for a renovation or 
+        small measure each year.
+
+        The available area is found by substracting 1 with the share of area that has been demolished by that 
+        year and the share of area that never will be subjected to a measure during the buildings lifetime. If
+        the value is 1, then 100% of the area can undergo a measure, and there is no available area if the value
+        is 0. 
+
+        Parameters
+        ----------  
+        demolition_shares: pd.Series
+            Accumulated share of area that is demoilshed per year for a given TEK.
+        never_share: float
+            The share of area that never will undergo 'renovation' or 'small_measure'.
+
+        Returns
+        -------
+        pd.Series
+            Series with max measure shares per year. 
+
+        Raises:
+        - ValueError: If the shares calculation results in negative values or contains missing (NA) values. 
+        """
+        max_share = 1 - demolition_shares - never_share
+        self._control_series_values(max_share)
+        return max_share 
+
     def _calc_small_measure_or_renovation(self, tek: str, building_condition: BuildingCondition) -> pd.Series:
         """
         Calculate the accumulated share of floor area that has undergone either small measures or renovation over the
@@ -198,11 +226,8 @@ class SharesPerCondition():
         # Retrieve S-curve rates per model year
         scurve_per_year = self._scurve_per_year(tek, self.scurves[building_condition])
 
-        # Retrieve demolition shares per model year
-        shares_demolition = self.calc_demolition(tek)
-
         # Calculate max limit for doing a renovation measure (small measure or renovation)
-        measure_limit = 1 - shares_demolition - self.never_shares[building_condition]
+        max_share = self._calc_max_measure_share(self.calc_demolition(tek), self.never_shares[building_condition])
 
         # Define an empty shares series with model years as index
         shares = pd.Series(0.0, index=self.period_index)
@@ -211,7 +236,7 @@ class SharesPerCondition():
         shares[scurve_per_year.index] = scurve_per_year
         
         # Set share to the measure limit value if the S-curve rate exceeds the measure limit
-        shares[shares > measure_limit] = measure_limit
+        shares[shares > max_share] = max_share
 
         # Set share to 0 in years before and including the year the building was constructed
         construction_year = self.tek_params[tek].building_year
@@ -238,25 +263,23 @@ class SharesPerCondition():
         Raises:
         - ValueError: If the shares calculation results in negative values or contains missing (NA) values.
         """
-        # Retrieve demolition shares per model year
-        shares_demolition = self.calc_demolition(tek)
-        
         # Retrieve total shares for renovation and small measure
         shares_small_measure_total = self._calc_small_measure_or_renovation(tek, BuildingCondition.SMALL_MEASURE)
         shares_renovation_total = self._calc_small_measure_or_renovation(tek, BuildingCondition.RENOVATION)
 
         # Calculate max limit for doing a renovation measure (denoting the available area)
-        measure_limit = 1 - shares_demolition - self.never_shares[BuildingCondition.RENOVATION] 
+        max_share = self._calc_max_measure_share(self.calc_demolition(tek), 
+                                                 self.never_shares[BuildingCondition.RENOVATION])
 
         # Set share to be the difference between the max measure limit and total shares for small measure
-        shares = measure_limit - shares_small_measure_total 
+        shares = max_share - shares_small_measure_total 
 
         # Set share to 0 in years where the total shares for small measure exceeds the measure limit
         shares[shares < 0] = 0 
 
         # Find years where the total shares for building measures is lower than the measure limit  
         shares_total = shares_small_measure_total + shares_renovation_total
-        years_to_filter = shares_total[shares_total < measure_limit].index
+        years_to_filter = shares_total[shares_total < max_share].index
 
         # Use the total shares for renovation in years where the total shares for building measures is lower than the measure limit   
         shares[years_to_filter] = shares_renovation_total[years_to_filter]
@@ -515,33 +538,3 @@ class SharesPerCondition():
                     invalid_shares = shares[shares != 1.0]
                     msg = f"Total shares doesn't match criteria for {tek}. Values should be 1.0 in all model years. Invalid shares: {invalid_shares}"
                     raise ValueError(msg)
-
-if __name__ == '__main__':
-
-    from ebm.model.database_manager import DatabaseManager
-    from ebm.model.building_category import BuildingCategory
-    from ebm.model.database_manager import DatabaseManager
-    from ebm.model.building_category import BuildingCategory
-    from ebm.model.filter_scurve_params import FilterScurveParams
-    from ebm.model.scurve_processor import ScurveProcessor
-    from ebm.model.filter_tek import FilterTek
-
-    database_manager = DatabaseManager()
-    building_category = BuildingCategory.HOUSE
-    
-    # Retrieve scurve data
-    scurve_condition_list = BuildingCondition.get_scruve_condition_list()
-    scurve_data_params = database_manager.get_scurve_params()
-    scurve_params = FilterScurveParams.filter(building_category, scurve_condition_list, scurve_data_params)
-    scurve_processor = ScurveProcessor(scurve_condition_list, scurve_params)
-    scurves = scurve_processor.get_scurves()
-    never_shares = scurve_processor.get_never_shares()
-
-    # Initiate SharesPerCondition object
-    tek_list = FilterTek.get_filtered_list(building_category, database_manager.get_tek_list())
-    tek_params = database_manager.get_tek_params(tek_list)
-    shares = SharesPerCondition(tek_list, tek_params, scurves, never_shares)
-    
-    tek = tek_list[6]
-    s = shares.calc_shares(BuildingCondition.ORIGINAL_CONDITION, tek)
-    print(s)

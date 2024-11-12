@@ -13,8 +13,10 @@ class SharesPerCondition():
     """
     # TODO: 
     # - update all docstrings to numpy format
-    # - code improvements and less repetative:
-    #   - add expection to control that share values are between 0 - 1
+    # - code improvements, less repetative and reduce runtime:
+    #   - the checks in _control_shares should be ran, should be implemented in a more efficient way during/after refactoring. 
+    #   - add expection to control that share values are between 0 - 1 for each calculation method and scurves? This 
+    #     might be covered by _control_shares in a way
     #   - add more arguments to method and split up functionality into smaller helper methods
     #   - don't call other calculations methods inside calculation methods, but add the result from them as params
     #   - allow 'building_condition' to be 'str' and methods to accept upper case and space?
@@ -536,33 +538,3 @@ class SharesPerCondition():
                     invalid_shares = shares[shares != 1.0]
                     msg = f"Total shares doesn't match criteria for {tek}. Values should be 1.0 in all model years. Invalid shares: {invalid_shares}"
                     raise ValueError(msg)
-
-if __name__ == '__main__':
-
-    from ebm.model.database_manager import DatabaseManager
-    from ebm.model.building_category import BuildingCategory
-    from ebm.model.database_manager import DatabaseManager
-    from ebm.model.building_category import BuildingCategory
-    from ebm.model.filter_scurve_params import FilterScurveParams
-    from ebm.model.scurve_processor import ScurveProcessor
-    from ebm.model.filter_tek import FilterTek
-
-    database_manager = DatabaseManager()
-    building_category = BuildingCategory.HOUSE
-    
-    # Retrieve scurve data
-    scurve_condition_list = BuildingCondition.get_scruve_condition_list()
-    scurve_data_params = database_manager.get_scurve_params()
-    scurve_params = FilterScurveParams.filter(building_category, scurve_condition_list, scurve_data_params)
-    scurve_processor = ScurveProcessor(scurve_condition_list, scurve_params)
-    scurves = scurve_processor.get_scurves()
-    never_shares = scurve_processor.get_never_shares()
-
-    # Initiate SharesPerCondition object
-    tek_list = FilterTek.get_filtered_list(building_category, database_manager.get_tek_list())
-    tek_params = database_manager.get_tek_params(tek_list)
-    shares = SharesPerCondition(tek_list, tek_params, scurves, never_shares)
-    
-    tek = tek_list[6]
-    s = shares.calc_shares(BuildingCondition.ORIGINAL_CONDITION, tek)
-    print(s)

@@ -5,9 +5,9 @@ import pandas as pd
 
 from ebm.model.data_classes import TEKParameters
 from ebm.model.shares_per_condition import SharesPerCondition
-from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
+from unittest.mock import MagicMock
 
 
 @pytest.fixture
@@ -480,12 +480,70 @@ def test_calc_small_measure_with_tek_start_year_in_period(default_params,scurves
     pd.testing.assert_series_equal(result,expected)
 
 
+@pytest.mark.parametrize('building_condition, expected',
+                        [(BuildingCondition.SMALL_MEASURE, 
+                          pd.Series([0.1,0.2,0.3,0.15,0.0], index= [2010,2011,2012,2013,2014])),
+                         (BuildingCondition.RENOVATION, 
+                          pd.Series([0.2,0.3,0.4,0.25,0.05], index= [2010,2011,2012,2013,2014])),
+                         (BuildingCondition.RENOVATION_AND_SMALL_MEASURE, 
+                          pd.Series([0.0,0.0,0.0,0.25,0.5], index= [2010,2011,2012,2013,2014])),
+                         (BuildingCondition.DEMOLITION, 
+                          pd.Series([0.0,0.1,0.2,0.3,0.4], index= [2010,2011,2012,2013,2014])),
+                         (BuildingCondition.ORIGINAL_CONDITION, 
+                          pd.Series([0.7,0.4,0.1,0.05,0.05], index= [2010,2011,2012,2013,2014]))                                                                            
+                          ])
+def test_calc_shares(default_params, tek, building_condition, expected):
+    """
+    Test that the method returns the expected result when ran with valid input (default_params).
+    """
+    s = SharesPerCondition(**default_params)
+    result = s.calc_shares(building_condition, tek)
+    pd.testing.assert_series_equal(result,expected, check_names=False)
+
+
+def test_calc_shares_require_valid_building_condition(default_params):
+    """
+    Raise ValueError when an invalid BuildingCondition is given.
+    """
+    s = SharesPerCondition(**default_params)
+    with pytest.raises(ValueError, match=re.escape('Invalid building condition')):
+        s.calc_shares('not a condition', 'TEK01')
+
+
+def test_calc_shares_all_teks(default_params):
+    """
+    Test that the method calls the correct methods according to the given params.
+    """
+    shares = SharesPerCondition(**default_params)
+    shares.calc_shares = MagicMock(side_effect=[1, 2])
+    shares_all_teks = shares.calc_shares_all_teks(BuildingCondition.DEMOLITION, ['TEK01', 'TEK02'])
+
+    shares.calc_shares.assert_any_call(BuildingCondition.DEMOLITION, 'TEK01')
+    shares.calc_shares.assert_any_call(BuildingCondition.DEMOLITION, 'TEK02')
+
+    assert shares_all_teks == {'TEK01':1, 'TEK02':2}
+
+
+def test_calc_shares_all_conditions_teks(default_params):
+    """
+    Test that the method calls the correct methods according to the given params.
+    """
+    shares = SharesPerCondition(**default_params)
+    shares.calc_shares_all_teks = MagicMock(side_effect=lambda x,y: x + ','.join(y))
+    shares_condition = shares.calc_shares_all_conditions_teks(['TEK01', 'TEK02'])
+
+    shares.calc_shares_all_teks.assert_called_with(BuildingCondition.DEMOLITION, ['TEK01', 'TEK02'])
+
+    assert shares_condition == {BuildingCondition.ORIGINAL_CONDITION:'original_conditionTEK01,TEK02',
+                                BuildingCondition.SMALL_MEASURE:'small_measureTEK01,TEK02',
+                                BuildingCondition.RENOVATION:'renovationTEK01,TEK02',
+                                BuildingCondition.RENOVATION_AND_SMALL_MEASURE:'renovation_and_small_measureTEK01,TEK02',
+                                BuildingCondition.DEMOLITION:'demolitionTEK01,TEK02'} 
+
+
 def test_control_shares(default_params):
     """
-    Test that all shares meet the defined criterias in _control_shares, when ran with valid input data 
-    (default_params).
+    Test that the defined criterias in _control_shares are passed, when ran with valid input data (default_params).
     """
     s = SharesPerCondition(**default_params)
     s._control_shares()
-
-    

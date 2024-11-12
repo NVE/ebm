@@ -38,9 +38,14 @@ def main():
     for file in files:
         output_file = output_path / file.name
         df = pd.read_csv(file)
-        transformed = transform_dataframe(df, years_to_add=years_to_add, title=file.name)
 
-        if len(df.compare(transformed)) > 0 or not output_file.exists():
+        if 'holiday' in file:
+            # Do not transform holiday. Requires special data.
+            transformed = df
+        else:
+            transformed = transform_dataframe(df, years_to_add=years_to_add, title=file.name)
+
+        if len(transformed.compare(df)) > 0 or not output_file.exists():
             logger.info(f'Writing {output_file}')
             transformed.to_csv(output_file, index=False)
         else:

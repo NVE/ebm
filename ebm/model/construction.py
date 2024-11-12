@@ -88,9 +88,13 @@ class ConstructionCalculator:
         The function calculates several metrics including population growth, household changes, building growth,
         yearly constructed floor area, and accumulated constructed floor area.
         """
+        # A subset of population should be equal to period
         self._check_index(period, population)
+        # building_category_share or a subset should be equal to population
         self._check_index(period, building_category_share)
+        # yearly_demolished_floor_area to or replace period as the guiding factor
         self._check_index(period, yearly_demolished_floor_area)
+        # household_size or a subset should be equal to population
         self._check_index(period, household_size)
 
         # It might be sensible to calculate total floor area and work from there (like commercial) rather than going

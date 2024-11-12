@@ -118,8 +118,12 @@ The calculation step you want to run. The steps are sequential. Any prerequisite
     arg_parser.add_argument('--create-input', action='store_true',
                             help='''
 Create input directory containing all required files in the current working directory''')
-    arg_parser.add_argument('--start_year', nargs='?', type=int, default=2010, help=argparse.SUPPRESS)
-    arg_parser.add_argument('--end_year', nargs='?', type=int, default=2050, help=argparse.SUPPRESS)
+    arg_parser.add_argument('--start-year', nargs='?', type=int,
+                            default=os.environ.get('EBM_START_YEAR', 2010),
+                            help=argparse.SUPPRESS)
+    arg_parser.add_argument('--end-year', nargs='?', type=int,
+                            default=os.environ.get('EBM_END_YEAR', 2050),
+                            help=argparse.SUPPRESS)
 
     arg_parser.add_argument('--horizontal', '--horisontal', action='store_true',
                             help='Show years horizontal (left to right)')
@@ -215,15 +219,11 @@ def validate_years(end_year, start_year):
     if start_year >= end_year:
         msg = f'Unexpected input start year ({start_year} is greater than end year ({end_year})'
         raise ValueError(msg)
-    if start_year + 40 != end_year:
-        msg = f'Unexpected input end_year ({end_year}) is not 40 years after start_year ({start_year + 40})'
-        raise ValueError(msg)
-    if start_year != 2010 or end_year != 2050:
-        msg = 'Unexpected input '
-        if start_year != 2010:
-            msg = f'{msg} start_year={start_year} currently only 2010 is supported '
-        if end_year != 2050:
-            msg = f'{msg} end_year={end_year}, currently only 2050 is supported '
+    if start_year < 2010:
+            msg = f'Unexpected start_year={start_year}. The minimum start year is 2010'
+            raise ValueError(msg)
+    if end_year > 2070:
+        msg = f'Unexpected end_year={end_year}. Max end_year year is 2070'
         raise ValueError(msg)
 
 
@@ -232,7 +232,9 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
                                               database_manager: DatabaseManager,
                                               start_year: int,
                                               end_year: int):
-    energy_requirement = EnergyRequirement.new_instance()
+    energy_requirement = EnergyRequirement.new_instance(period=YearRange(start_year, end_year),
+                                                        calibration_year=start_year+9,
+                                                        database_manager=database_manager)
 
     series = []
     for s in energy_requirement.calculate_for_building_category(
@@ -283,9 +285,10 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
     This function builds the buildings for the specified category, calculates the area forecast, and accounts for
         demolition and construction over the specified period.
     """
-    buildings = Buildings.build_buildings(building_category=building_category,
-                                          database_manager=database_manager)
     years = YearRange(start_year, end_year)
+    buildings = Buildings.build_buildings(building_category=building_category,
+                                          database_manager=database_manager,
+                                          period=years)
 
     area_forecast = buildings.build_area_forecast(database_manager, years.start, years.end)
     demolition_floor_area = area_forecast.calc_total_demolition_area_per_year()

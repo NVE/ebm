@@ -88,9 +88,13 @@ class ConstructionCalculator:
         The function calculates several metrics including population growth, household changes, building growth,
         yearly constructed floor area, and accumulated constructed floor area.
         """
+        # A subset of population should be equal to period
         self._check_index(period, population)
+        # building_category_share or a subset should be equal to population
         self._check_index(period, building_category_share)
+        # yearly_demolished_floor_area to or replace period as the guiding factor
         self._check_index(period, yearly_demolished_floor_area)
+        # household_size or a subset should be equal to population
         self._check_index(period, household_size)
 
         # It might be sensible to calculate total floor area and work from there (like commercial) rather than going
@@ -183,6 +187,13 @@ class ConstructionCalculator:
         The function calculates the yearly new building floor area by adding the yearly floor area change
         to the yearly demolished floor area. It then updates the values based on the build_area_sum index.
         """
+        bas_missing_year = [str(y) for y in yearly_demolished_floor_area.iloc[0:2].index if
+                            y not in build_area_sum.index or
+                            np.isnan(build_area_sum.loc[y])]
+
+        if bas_missing_year:
+            msg = f'missing constructed floor area for {", ".join(bas_missing_year)}'
+            raise ValueError(msg)
 
         yearly_new_building_floor_area_house = yearly_floor_area_change + yearly_demolished_floor_area
         yearly_new_building_floor_area_house.loc[build_area_sum.index.values] = build_area_sum.loc[
@@ -356,10 +367,16 @@ class ConstructionCalculator:
         ConstructionCalculator()._check_index(period, demolition_floor_area)
         ConstructionCalculator()._check_index(period, population)
 
+        # Filter out constructed_floor_area outside period
+        constructed_floor_area = constructed_floor_area.loc[[y for y in constructed_floor_area.index if y in period]]
+
         if not isinstance(total_floor_area, pd.Series):
             total_floor_area = pd.Series(data=[total_floor_area], index=[period.start])
 
-        for year in period.subset(1, 4):
+        for year in constructed_floor_area.index:
+            if year not in period.subset(1, 4):
+                logger.warning(f'Construction floor area for {building_category} {year} is missing from input')
+                continue
             total_floor_area.loc[year] = total_floor_area.loc[year - 1] - \
                                          demolition_floor_area.loc[year] + \
                                          constructed_floor_area.loc[year]
@@ -433,14 +450,17 @@ class ConstructionCalculator:
 
             total_floor_area[year] = ((change_ratio * pop_growth) + 1) * previous_floor_area
         """
+        calculated_total_floor_area = total_floor_area.copy()
 
-        for year in period.subset(offset=5, length=-1):
+        # Dette er grusomt.
+        years_to_update = period.subset(offset=list(period).index(max(total_floor_area.index) + 1), length=-1)
+        for year in years_to_update:
             change_ratio = floor_area_over_population_growth.loc[year]
             growth = population_growth.loc[year]
-            previous_floor_area = total_floor_area.loc[year - 1]
-            total_floor_area.loc[year] = ((change_ratio * growth) + 1) * previous_floor_area
-        total_floor_area.name = 'total_floor_area'
-        return total_floor_area
+            previous_floor_area = calculated_total_floor_area.loc[year - 1]
+            calculated_total_floor_area.loc[year] = ((change_ratio * growth) + 1) * previous_floor_area
+        calculated_total_floor_area.name = 'total_floor_area'
+        return calculated_total_floor_area
 
     @staticmethod
     def calculate_constructed_floor_area(constructed_floor_area: pd.Series,
@@ -491,7 +511,7 @@ class ConstructionCalculator:
         # and adding last year's demolition.
         # Calculate constructed floor area from year 6 by substracting last years floor area with current floor area
         #  and adding last years demolition.
-        for year in period.subset(5):
+        for year in [y for y in period if y not in constructed_floor_area.index and y > period.start]:
             floor_area = total_floor_area.loc[year]
             previous_year_floor_area = total_floor_area.loc[year - 1]
             demolished = demolition_floor_area.loc[year]
@@ -538,7 +558,8 @@ class ConstructionCalculator:
         floor_area_growth.loc[period.start] = np.nan
         # The next 4 years of building growth is calculated from change in total_floor_area
         for year in range(period.start + 1, period.start + 5):
-            floor_area_growth.loc[year] = (total_floor_area.loc[year] / total_floor_area.loc[year - 1]) - 1
+            if year in total_floor_area.index:
+                floor_area_growth.loc[year] = (total_floor_area.loc[year] / total_floor_area.loc[year - 1]) - 1
         return floor_area_growth
 
     @staticmethod
@@ -597,26 +618,33 @@ class ConstructionCalculator:
         floor_area_over_population_growth.loc[years.start] = np.nan
 
         # Calculate for the next 4 years
-        for year in years.subset(1, 4):
+        for year in building_growth[(building_growth > 0) & (building_growth.index > years.start)].index:
             floor_area_over_population_growth[year] = building_growth.loc[year] / population_growth.loc[year]
 
+        mean_idx = building_growth[building_growth > 0].index
+
+        # If there is no growth, return 0
+        if not any(mean_idx):
+            return floor_area_over_population_growth
+
         # Calculate for the next 6 years using the mean
-        mean_floor_area_population = floor_area_over_population_growth.loc[years.subset(1, 4)].mean()
-        for year in years.subset(5, 6):
+        mean_floor_area_population = floor_area_over_population_growth.loc[mean_idx].mean()
+        for year in years.subset(list(years).index(max(mean_idx) + 1), 6):
             floor_area_over_population_growth.loc[year] = mean_floor_area_population
 
         # Set to 1 from the 11th year onwards
-        for year in years.subset(11):
-            floor_area_over_population_growth.loc[year] = 1
+        if len(years) > 11:
+            for year in years.subset(11):
+                floor_area_over_population_growth.loc[year] = 1
 
-        # Interpolate linearly between the 11th and 21st years
-        for year in years.subset(11, 10):
-            floor_area_over_population_growth.loc[year] = \
-                (floor_area_over_population_growth.loc[years.start + 10] - (year - (years.start + 10)) * (
-                        (floor_area_over_population_growth.loc[
-                             years.start + 10] -
-                         floor_area_over_population_growth.loc[
-                             years.start + 20]) / 10))
+            # Interpolate linearly between the 11th and 21st years
+            for year in years.subset(11, 10):
+                floor_area_over_population_growth.loc[year] = \
+                    (floor_area_over_population_growth.loc[years.start + 10] - (year - (years.start + 10)) * (
+                            (floor_area_over_population_growth.loc[
+                                 years.start + 10] -
+                             floor_area_over_population_growth.loc[
+                                 years.start + 20]) / 10))
         return floor_area_over_population_growth
 
     @staticmethod

@@ -99,6 +99,12 @@ class ConstructionCalculator:
 
         # It might be sensible to calculate total floor area and work from there (like commercial) rather than going
         # through average_floor_area <-> building_growth <-> households_change <-> population_growth
+        population = population[yearly_demolished_floor_area.index]
+        building_category_share = building_category_share[yearly_demolished_floor_area.index]
+        household_size = household_size[yearly_demolished_floor_area.index]
+        if isinstance(average_floor_area, pd.Series):
+            average_floor_area = average_floor_area[yearly_demolished_floor_area.index]
+
         population_growth = self.calculate_population_growth(population)
         households = self.calculate_households_by_year(household_size, population)
 

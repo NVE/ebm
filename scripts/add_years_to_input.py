@@ -15,7 +15,7 @@ def transform_dataframe(dataframe, columns=None, years_to_add=10, title='DataFra
         if column not in df.columns:
             continue
         logger.debug(f'Adding {years_to_add} to {title}.{column}')
-        df[column] = df[column].apply(lambda x: x + 10 if x != 0 else x)
+        df[column] = df[column].apply(lambda x: x + years_to_add if x != 0 else x)
     return df
 
 
@@ -32,18 +32,17 @@ def main():
     fh = FileHandler(directory=input_path)
     fh.create_missing_input_files()
 
-    files = [file for file in input_path.glob('*.csv') if file.name in fh.files_to_check and 'holiday' not in file.name]
+    files = [file for file in input_path.glob('*.csv') if file.name in fh.files_to_check]
     files = filter(lambda f: f.name in fh.files_to_check, files)
-    files = filter(lambda f: 'holiday' not in f.name, files)
     for file in files:
         output_file = output_path / file.name
         df = pd.read_csv(file)
 
-        if 'holiday' in file:
+        if 'holiday' in file.name:
             # Do not transform holiday. Requires special data.
             transformed = df
         else:
-            logger.info(f'Transforming {file}')
+            logger.info(f'Transforming {file.name}')
             transformed = transform_dataframe(df, years_to_add=years_to_add, title=file.name)
 
         if len(transformed.compare(df)) > 0 or not output_file.exists():

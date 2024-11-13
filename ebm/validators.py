@@ -264,11 +264,11 @@ new_buildings_house_share = pa.DataFrameSchema(
 )
 
 
-new_buildings_population = pa.DataFrameSchema(
+population = pa.DataFrameSchema(
     columns={
-        'year': pa.Column(int, coerce=True, checks=[pa.Check.between(2010, 2070)]),
+        'year': pa.Column(int, coerce=True, checks=[pa.Check.between(1900, 2070)]),
         'population': pa.Column(int, coerce=True, checks=[pa.Check.greater_than_or_equal_to(0)]),
-        'household_size': pa.Column(float, coerce=True, checks=[pa.Check.greater_than_or_equal_to(0)])},
+        'household_size': pa.Column(float, coerce=True, nullable=True, checks=[pa.Check.greater_than_or_equal_to(0)])},
     name='new_buildings_population')
 
 
@@ -385,7 +385,7 @@ __all__ = [area_parameters,
            tek_parameters,
            construction_building_category_yearly,
            new_buildings_house_share,
-           new_buildings_population,
+           population,
            scurve_parameters,
            new_buildings_house_share,
            energy_requirement_reduction_per_condition]

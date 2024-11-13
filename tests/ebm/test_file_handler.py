@@ -31,7 +31,7 @@ def test_check_for_missing_files_return_list(tmp_path):
     assert 'TEK_ID.csv' in missing_files
     assert 'TEK_parameters.csv' in missing_files
     assert 'scurve_parameters.csv' in missing_files
-    assert 'new_buildings_population.csv' in missing_files
+    assert 'population.csv' in missing_files
     assert 'new_buildings_house_share.csv' in missing_files
     assert 'construction_building_category_yearly.csv' in missing_files
     assert 'area_parameters.csv' in missing_files
@@ -90,7 +90,7 @@ def test_filehandler_init_support_input_directory_from_environment_variable(tmp_
 def test_filehandler_create_missing_input_files(tmp_path):
     """
     FileHAndler.create_missing_input must create required files in <input_directory> when called:
-    TEK_ID.csv, TEK_parameters.csv, scurve_parameters.csv, new_buildings_population.csv,
+    TEK_ID.csv, TEK_parameters.csv, scurve_parameters.csv, population.csv,
         new_buildings_house_share.csv, construction_building_category_yearly.csv, area_parameters.csv
     """
     os.chdir(tmp_path)
@@ -104,7 +104,7 @@ def test_filehandler_create_missing_input_files(tmp_path):
     assert (input_directory / 'TEK_ID.csv').is_file()
     assert (input_directory / 'TEK_parameters.csv').is_file()
     assert (input_directory / 'scurve_parameters.csv').is_file()
-    assert (input_directory / 'new_buildings_population.csv').is_file()
+    assert (input_directory / 'population.csv').is_file()
     assert (input_directory / 'new_buildings_house_share.csv').is_file()
     assert (input_directory / 'construction_building_category_yearly.csv').is_file()
     assert (input_directory / 'area_parameters.csv').is_file()

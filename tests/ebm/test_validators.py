@@ -1,6 +1,5 @@
 import io
 import itertools
-import io
 
 import numpy as np
 import pandas as pd
@@ -14,7 +13,7 @@ from ebm.validators import (tek_parameters,
                             area_parameters,
                             construction_building_category_yearly,
                             new_buildings_house_share,
-                            new_buildings_population,
+                            population,
                             scurve_parameters,
                             energy_requirement_original_condition,
                             energy_requirement_reduction_per_condition,
@@ -229,28 +228,30 @@ def test_new_buildings_house_share_sum_of_share_should_be_1(new_buildings_house_
         new_buildings_house_share.validate(new_buildings_house_share_df)
 
 
-def test_new_buildings_population_ok(new_buildings_house_share_df):
-    df = pd.DataFrame(data=[(y, 4858199, 2.22) for y in YearRange(2010, 2070)],
+def test_population_ok(new_buildings_house_share_df):
+    standard_years = [(y, 4858199, 2.22) for y in YearRange(2001, 2070)]
+
+    df = pd.DataFrame(data=[(2000, 4000000, np.nan, )] + standard_years,
                       columns=['year', 'population', 'household_size'])
 
-    new_buildings_population.validate(df)
+    population.validate(df)
 
     household_df = df.copy()
     household_df.loc[0, 'household_size'] = -1.0
     with pytest.raises(pa.errors.SchemaError):
-        new_buildings_population.validate(household_df)
+        population.validate(household_df)
 
     population_df = df.copy()
     population_df.loc[0, 'population'] = -1.0
     with pytest.raises(pa.errors.SchemaError):
-        new_buildings_population.validate(population_df)
+        population.validate(population_df)
 
 
-def test_new_buildings_population_coerce_values(new_buildings_house_share_df):
+def test_population_coerce_values(new_buildings_house_share_df):
     df = pd.DataFrame(data=[(float(y), 4858199.0, 2) for y in YearRange(2010, 2070)],
                       columns=['year', 'population', 'household_size'])
 
-    new_buildings_population.validate(df)
+    population.validate(df)
 
 
 @pytest.fixture
@@ -394,11 +395,11 @@ def test_energy_req_original_condition_require_unique_rows():
         energy_requirement_original_condition.validate(duplicate_df)
 
 
-#TODO: add test for special case with conditions
+# TODO: add test for special case with conditions
 @pytest.fixture
 def reduction_per_condition_df():
-    return pd.DataFrame(columns=['building_category','TEK', 'purpose', 'building_condition', 'reduction_share'],
-                        data=[['house','default', 'heating_rv','original_condition', 0.1],
+    return pd.DataFrame(columns=['building_category', 'TEK', 'purpose', 'building_condition', 'reduction_share'],
+                        data=[['house', 'default', 'heating_rv', 'original_condition', 0.1],
                               ['house', 'default', 'heating_rv', 'small_measure', 0.2],
                               ['house', 'default', 'heating_rv', 'renovation', 0.3],
                               ['house', 'default', 'heating_rv', 'renovation_and_small_measure', 0.4],
@@ -468,8 +469,9 @@ def test_energy_req_reduction_per_condition_value_between_zero_and_one(reduction
 
 
 def test_energy_req_reduction_per_condition_require_unique_rows():
-    duplicate_df = pd.DataFrame(columns=['building_category','TEK', 'purpose', 'building_condition', 'reduction_share'],
-                                data=[['house','default', 'heating_rv','original_condition', 0.1],
+    duplicate_df = pd.DataFrame(columns=['building_category', 'TEK', 'purpose', 'building_condition',
+                                         'reduction_share'],
+                                data=[['house', 'default', 'heating_rv', 'original_condition', 0.1],
                                       ['house', 'default', 'heating_rv', 'original_condition', 0.2],
                                       ['house', 'default', 'heating_rv', 'original_condition', 0.2]
                                       ])
@@ -529,11 +531,9 @@ def test_energy_req_yearly_improvements_value_between_zero_and_one(yearly_improv
 
 def test_energy_req_yearly_improvements_require_unique_rows():
     duplicate_df = pd.DataFrame(columns=['building_category', 'TEK', 'purpose', 'yearly_efficiency_improvement'],
-                        data=[
-                            ['default', 'default', 'cooling', 0.0],
-                            ['default', 'default', 'cooling', 0.1],
-                            ['default', 'default', 'cooling', 0.0],
-                        ])
+                                data=[['default', 'default', 'cooling', 0.0],
+                                      ['default', 'default', 'cooling', 0.1],
+                                      ['default', 'default', 'cooling', 0.0]])
     with pytest.raises(pa.errors.SchemaError):
         energy_requirement_yearly_improvements(duplicate_df)
 
@@ -541,10 +541,10 @@ def test_energy_req_yearly_improvements_require_unique_rows():
 @pytest.fixture
 def policy_improvements_df():
     df = pd.DataFrame(
-        columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year', 'improvement_at_period_end'],
+        columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year',
+                 'improvement_at_period_end'],
         data=[['default', 'default', 'lighting', 2018, 2030, 0.6],
-              ['house', 'TEK01', 'default', 2020, 2040, 0.9]
-            ])
+              ['house', 'TEK01', 'default', 2020, 2040, 0.9]])
     return df
 
 
@@ -602,11 +602,11 @@ def test_energy_req_policy_improvements_value_between_zero_and_one(policy_improv
 
 def test_energy_req_policy_improvements_require_unique_rows():
     duplicate_df = pd.DataFrame(
-        columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year', 'improvement_at_period_end'],
+        columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year',
+                 'improvement_at_period_end'],
         data=[['default', 'default', 'lighting', 2018, 2030, 0.6],
               ['default', 'default', 'lighting', 2018, 2030, 0.6],
-              ['default', 'default', 'lighting', 2018, 2030, 0.1],
-            ])
+              ['default', 'default', 'lighting', 2018, 2030, 0.1]])
     with pytest.raises(pa.errors.SchemaError):
         energy_requirement_policy_improvements(duplicate_df)
 

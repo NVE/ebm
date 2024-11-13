@@ -20,7 +20,7 @@ class FileHandler:
     TEK_ID = 'TEK_ID.csv'
     TEK_PARAMS = 'TEK_parameters.csv'
     SCURVE_PARAMETERS = 'scurve_parameters.csv'
-    CONSTRUCTION_POPULATION = 'new_buildings_population.csv'
+    CONSTRUCTION_POPULATION = 'population.csv'
     CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'new_buildings_house_share.csv'
     CONSTRUCTION_BUILDING_CATEGORY_AREA = 'construction_building_category_yearly.csv'
     AREA_PARAMETERS = 'area_parameters.csv'
@@ -136,7 +136,7 @@ class FileHandler:
 
     def get_population(self) -> pd.DataFrame:
         """
-        Loads population data from new_buildings_population.csv as float64
+        Loads population data from population.csv as float64
 
         Should probably be merged with get_construction_population
 

@@ -140,7 +140,7 @@ class ConstructionCalculator:
     def _check_index(self, period, values: pd.Series) -> bool:
         name = values.name
         if len(values.index) != len(period.year_range) or not all(values.index == period.year_range):
-            logger.warning(
+            logger.debug(
                 f'{name}.index({values.index[0]}, {values.index[-1]}) is not equal to period(start={period.start}, {period.end})')
             return False
         return True

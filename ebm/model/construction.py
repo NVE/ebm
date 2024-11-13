@@ -234,7 +234,7 @@ class ConstructionCalculator:
             area.
         The floor area change for the years 2010 and 2011 is set to 0.
         """
-
+        average_floor_area = average_floor_area[period] if isinstance(average_floor_area, pd.Series) else average_floor_area
         yearly_floor_area_change = average_floor_area * building_change
         yearly_floor_area_change.loc[[period.start, period.start + 1]] = 0
         return pd.Series(yearly_floor_area_change, name='house_floor_area_change')

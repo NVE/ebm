@@ -10,6 +10,7 @@ class SCurve:
     ------
     ValueError
         When any of the arguments are less than zero
+        
     Notes
     -----
     To make calculations return better rounded more and accurate results, _rush_share and _never_share area

@@ -457,7 +457,7 @@ class SharesPerCondition():
         Raises:
         - ValueError: If an invalid building condition is provided or if the calculated shares do not match the criteria for any TEK.              
         """
-        if tek_list == None:
+        if tek_list is None:
             tek_list = self.tek_list
 
         shares_tek = {}
@@ -483,7 +483,7 @@ class SharesPerCondition():
         Raises:
         - ValueError: If the calculated shares do not meet the criteria for any building condition or TEK.
         """
-        if tek_list == None:
+        if tek_list is None:
             tek_list = self.tek_list
 
         shares_condition = {}

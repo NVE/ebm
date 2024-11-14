@@ -21,18 +21,12 @@ from ebm.model.energy_requirement import EnergyRequirement
 from ebm.model.file_handler import FileHandler
 from ebm.heating_systems import HeatingSystems
 
-TEK = """PRE_TEK49_RES_1950
-PRE_TEK49_RES_1940
-PRE_TEK49_COM
-TEK49_RES
-TEK49_COM
-TEK69_RES_1976
-TEK69_RES_1986
-TEK69_COM
-TEK87_RES
-TEK87_COM
-TEK97_RES
-TEK97_COM
+TEK = """PRE_TEK49
+PRE_TEK49
+TEK49
+TEK69
+TEK87
+TEK97
 TEK07
 TEK10
 TEK17

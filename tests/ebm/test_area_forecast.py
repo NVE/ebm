@@ -3,7 +3,6 @@ import pathlib
 import pandas as pd
 import pytest
 
-import ebm
 from ebm.model import FileHandler, DatabaseManager, Buildings, BuildingCategory
 from ebm.model.area_forecast import AreaForecast
 from ebm.model.building_condition import BuildingCondition
@@ -12,7 +11,7 @@ from ebm.model.data_classes import YearRange, TEKParameters
 
 @pytest.fixture
 def area_forecast() -> AreaForecast:
-    input_location = pathlib.Path(ebm.__file__).parent / 'data'
+    input_location = pathlib.Path(__file__).parent / 'data' / 'bema'
     file_handler = FileHandler(directory=input_location)
     dm = DatabaseManager(file_handler=file_handler)
     building_category =BuildingCategory.KINDERGARTEN

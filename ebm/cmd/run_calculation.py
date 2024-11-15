@@ -1,14 +1,11 @@
 import argparse
 import os
 import pathlib
-import sys
 import textwrap
 from typing import List, Dict
 
 import numpy as np
 import pandas as pd
-from dotenv import load_dotenv
-from loguru import logger
 
 from ebm.__version__ import version
 from ebm.model.building_category import BuildingCategory
@@ -18,7 +15,6 @@ from ebm.model.construction import ConstructionCalculator
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement
-from ebm.model.file_handler import FileHandler
 from ebm.heating_systems import HeatingSystems
 
 TEK = """PRE_TEK49
@@ -68,7 +64,10 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
     arg_parser.add_argument('--debug', action='store_true',
                             help='Run in debug mode. (Extra information written to stdout)')
     arg_parser.add_argument('step', type=str, nargs='?',
-                            choices=['area-forecast', 'energy-requirements', 'heating-systems'],
+                            choices=['area-forecast',
+                                     'energy-requirements',
+                                     'heating-systems',
+                                     'energy-use'],
                             default='energy-requirements',
                             help="""
 The calculation step you want to run. The steps are sequential. Any prerequisite to the chosen step will run 
@@ -289,8 +288,8 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
     constructed_floor_area = ConstructionCalculator.calculate_construction(building_category,
                                                                            demolition_floor_area,
                                                                            database_manager,
-                                                                           period=years).accumulated_constructed_floor_area
-    forecast: Dict = area_forecast.calc_area(constructed_floor_area)
+                                                                           period=years)
+    forecast: Dict = area_forecast.calc_area(constructed_floor_area['accumulated_constructed_floor_area'])
 
     # Temporary method to convert series to list
     def nested_dict_series_to_list(nested_dict):

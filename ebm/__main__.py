@@ -96,20 +96,7 @@ You can overwrite the {output_filename} by using --force: {program_name} {' '.jo
 
     for building_category in building_categories:
         if arguments.step == 'energy-use':
-            holiday_home_energy = HolidayHomeEnergy.new_instance()
-            el, wood, fossil = [e_u for e_u in holiday_home_energy.calculate_energy_usage()]
-
-            df = pd.DataFrame(data=[el, wood, fossil])
-            #df['building_category'] = 'holiday_home'
-            #df['electricity'] = el
-            #df['wooddfuel'] = wood
-            #df['fossil'] = fossil
-            df.insert(0, 'building_category', 'holiday_home')
-            df.insert(1, 'energy_type', 'n/a')
-            df['building_category'] = 'holiday_home'
-            df['energy_type'] = ('electricity', 'fuelwood', 'fossil')
-            output = df.reset_index().rename(columns={'index': 'unit'})
-            output = output.set_index(['building_category', 'energy_type', 'unit'])
+            output = calculate_energy_use()
             break
         else:
             area_forecast_result = calculate_building_category_area_forecast(building_category=building_category,
@@ -128,10 +115,10 @@ You can overwrite the {output_filename} by using --force: {program_name} {' '.jo
             else:
                 df = area_forecast_result_to_dataframe(building_category, result, start_year, end_year)
                 if building_conditions:
-                    df = df[[str(s) for s in building_conditions]]
+                    df = df[df.building_condition.isin([str(s) for s in building_conditions])]
                 if tek_filter:
-                    tek_in_index = [t for t in tek_filter if any(df.index.isin([t], level=1))]
-                    df = df.loc[:, tek_in_index, :]
+                    df = df.loc[df.TEK.isin(tek_filter)]
+                df = df.set_index(['building_category', 'TEK', 'building_condition', 'year'])
 
         if 'energy-requirements' in arguments.step or 'heating-systems' in arguments.step:
             energy_requirements_result = calculate_building_category_energy_requirements(
@@ -169,6 +156,19 @@ You can overwrite the {output_filename} by using --force: {program_name} {' '.jo
     if open_after_writing:
         os.startfile(output_filename, 'open')
     sys.exit(0)
+
+
+def calculate_energy_use():
+    holiday_home_energy = HolidayHomeEnergy.new_instance()
+    el, wood, fossil = [e_u for e_u in holiday_home_energy.calculate_energy_usage()]
+    df = pd.DataFrame(data=[el, wood, fossil])
+    df.insert(0, 'building_category', 'holiday_home')
+    df.insert(1, 'energy_type', 'n/a')
+    df['building_category'] = 'holiday_home'
+    df['energy_type'] = ('electricity', 'fuelwood', 'fossil')
+    output = df.reset_index().rename(columns={'index': 'unit'})
+    output = output.set_index(['building_category', 'energy_type', 'unit'])
+    return output
 
 
 if __name__ == '__main__':

@@ -143,17 +143,7 @@ def area_forecast_result_to_dataframe(building_category: BuildingCategory,
     -------
 
     """
-    dataframe = None
-    for tek, conditions in forecast.items():
-        index_rows = [(str(building_category), tek, y,) for y in range(start_year, end_year + 1)]
-        index_names = ['building_category', 'TEK', 'year']
-        df = pd.DataFrame(data=conditions,
-                          index=pd.MultiIndex.from_tuples(index_rows, names=index_names))
-        if dataframe is not None:
-            dataframe = pd.concat([dataframe, df])
-        else:
-            dataframe = df
-    return dataframe
+    return forecast
 
 
 # noinspection PyTypeChecker
@@ -252,7 +242,7 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
 def calculate_building_category_area_forecast(building_category: BuildingCategory,
                                               database_manager: DatabaseManager,
                                               start_year: int,
-                                              end_year: int) -> Dict[str, list[float]]:
+                                              end_year: int) -> pd.DataFrame:
     """
     Calculates the area forecast for a given building category from start to end year (including).
 
@@ -292,14 +282,20 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
     forecast: Dict = area_forecast.calc_area(constructed_floor_area['accumulated_constructed_floor_area'])
 
     # Temporary method to convert series to list
-    def nested_dict_series_to_list(nested_dict):
-        return {
-            key: {inner_key: value.tolist() for inner_key, value in inner_dict.items()}
-            for key, inner_dict in nested_dict.items()
-        }
-    forecast = nested_dict_series_to_list(forecast)
+    def forecast_to_dataframe():
+        def flatten_forecast():
+            for tek, conditions in forecast.items():
+                for condition, floor_area in conditions.items():
+                    for year, value in floor_area.items():
+                        yield building_category, tek, condition, year, value,
 
-    return forecast
+        df = pd.DataFrame(flatten_forecast(), columns=['building_category', 'TEK', 'building_condition', 'year', 'area'])
+        #df = df.set_index(['building_condition', 'TEK', 'building_condition', 'year'])
+        return df
+
+    df = forecast_to_dataframe()
+
+    return df
 
 
 def calculate_tekandeler(energy_requirements, database_manager: DatabaseManager):

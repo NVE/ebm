@@ -166,19 +166,7 @@ def area_forecast_result_to_horisontal_dataframe(building_category: BuildingCate
     -------
 
     """
-    rows = []
-    for tek in forecast.keys():
-        condition: str
-        for condition, numbers in forecast.get(tek).items():
-            row = [str(building_category), tek, condition]
-            for number, year in zip(numbers, range(start_year, end_year + 1)):
-                row.append(number)
-            rows.append(row)
-
-    df = pd.DataFrame(data=rows)
-    df.columns = ['building_category', 'TEK', 'building_condition'] + [y for y in range(start_year, end_year + 1)]
-
-    return df.set_index(['building_category', 'TEK', 'building_condition'])
+    return forecast.pivot_table(values='area', columns='year', index=['building_category', 'TEK', 'building_condition'])
 
 
 def validate_years(end_year, start_year):

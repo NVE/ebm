@@ -1,5 +1,6 @@
 import io
 
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -160,4 +161,28 @@ def test_calculate_lighting_reduction():
     assert round(lighting.loc[2031], 5) == 3.62481
     assert round(lighting.loc[2036], 5) == 3.53509
     assert round(lighting.loc[2050], 5) == 3.29552
+
+
+def test_calculate_lighting_reduction_like_policy_improvement():
+    policy_improvement = (YearRange(start=np.int64(2020),
+                                    end=np.int64(2030)),
+                          np.float64(0.54))
+    period = YearRange(2020, 2050)
+    kwh_m2 = pd.Series([20.88] * 31, index=period.to_index())
+    yearly_improvements = np.float64(0.05)
+    energy_req_end = kwh_m2.iloc[0] * (1.0 - 0.6)
+    result = calculate_lighting_reduction(
+        energy_requirement=kwh_m2,
+        yearly_reduction=yearly_improvements,
+        end_year_energy_requirement=energy_req_end,
+        interpolated_reduction_period=policy_improvement[0],
+        year_range=period)
+
+    expected = pd.Series([
+        20.88, 19.6272, 18.3744, 17.1216, 15.8688, 14.616, 13.3632, 12.1104, 10.8576, 9.6048,
+        8.352, 7.9344, 7.53768, 7.160796, 6.8027562, 6.46261839, 6.1394874705, 5.832513, 5.54088, 5.263843,
+        5.00065, 4.75061, 4.513087, 4.28743, 4.07306, 3.8694, 3.67593, 3.492141, 3.31753, 3.151657,
+        2.99407442395614],
+                         index=period.to_index())
+    pd.testing.assert_series_equal(result, expected)
 

@@ -200,12 +200,14 @@ def validate_years(end_year, start_year):
 
 def calculate_building_category_energy_requirements(building_category: BuildingCategory,
                                                     area_forecast,
-                                              database_manager: DatabaseManager,
-                                              start_year: int,
-                                              end_year: int):
-    energy_requirement = EnergyRequirement.new_instance(period=YearRange(start_year, end_year),
-                                                        calibration_year=start_year+9,
-                                                        database_manager=database_manager)
+                                                    database_manager: DatabaseManager,
+                                                    start_year: int,
+                                                    end_year: int,
+                                                    calibration_year: int = 2019):
+    energy_requirement = EnergyRequirement.new_instance(
+        period=YearRange(start_year, end_year),
+        calibration_year=calibration_year if calibration_year > start_year else start_year,
+        database_manager=database_manager)
 
     series = []
     for s in energy_requirement.calculate_for_building_category(

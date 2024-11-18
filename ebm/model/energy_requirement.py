@@ -75,7 +75,7 @@ class EnergyRequirement:
                     kwh_m2 = heating_reduction[
                         heating_reduction['building_condition'] == building_condition].copy().set_index('year').kwh_m2
                     kwh_m2.name = 'kwh_m2'
-                    energy_req_end = kwh_m2.iloc[0] * (1.0 - 0.6)
+                    energy_req_end = kwh_m2.iloc[0] * (1.0 - policy_improvement[1])
                     lighting = calculate_lighting_reduction(kwh_m2,
                                                             yearly_reduction=yearly_improvements,
                                                             end_year_energy_requirement=energy_req_end,
@@ -98,7 +98,6 @@ class EnergyRequirement:
                 result = heating_reduction.loc[heating_reduction['building_condition'] == building_condition]
                 result = result.set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year'])
                 yield result.kwh_m2
-
 
     def calculate_energy_requirements(
             self,
@@ -150,6 +149,12 @@ def calculate_energy_requirement_reduction_by_condition(
     condition_reduction : pd.DataFrame
         DataFrame containing the reduction conditions.
         Must include columns: 'building_condition', 'reduction'.
+    building_category, : BuildingCategory | str
+        the requirements building category
+    tek : str
+        name of requirement tek
+    purpose : str
+        The purpose of the requirement
 
     Returns
     -------
@@ -282,13 +287,13 @@ def calculate_lighting_reduction(energy_requirement: pd.Series,
         and then applies a yearly reduction rate to determine the final energy requirements.
 """
 
-    based_on_end_year = calculate_proportional_energy_change_based_on_end_year(
-        energy_requirement,
-        end_year_energy_requirement,
-        interpolated_reduction_period)
+    proportional_reduced_energy_requirement = calculate_proportional_energy_change_based_on_end_year(
+        energy_requirements=energy_requirement,
+        requirement_at_period_end=end_year_energy_requirement,
+        period=interpolated_reduction_period)
 
     lighting = calculate_energy_requirement_reduction(
-        based_on_end_year,
+        energy_requirements=proportional_reduced_energy_requirement,
         yearly_reduction=yearly_reduction,
         reduction_period=YearRange(interpolated_reduction_period.end + 1, year_range.end))
 
@@ -296,7 +301,7 @@ def calculate_lighting_reduction(energy_requirement: pd.Series,
 
 
 if __name__ == '__main__':
-    er = EnergyRequirement.new_instance()
+    er = EnergyRequirement.new_instance(YearRange(2020, 2050), calibration_year=2020)
     df = pd.concat([s for s in er.calculate_energy_requirements()])
     print(df)
     

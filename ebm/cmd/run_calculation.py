@@ -166,7 +166,7 @@ def area_forecast_result_to_horisontal_dataframe(building_category: BuildingCate
     -------
 
     """
-    return forecast.pivot_table(values='area', columns='year', index=['building_category', 'TEK', 'building_condition'])
+    return forecast.pivot_table(values='m2', columns='year', index=['building_category', 'TEK', 'building_condition'])
 
 
 def validate_years(end_year, start_year):
@@ -213,13 +213,15 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
     for s in energy_requirement.calculate_for_building_category(
             building_category=building_category, database_manager=database_manager):
         series.append(s)
-    df = pd.concat(series)
+    df = pd.concat(series).to_frame()
     df.index.names = ['building_category', 'TEK', 'purpose', 'building_condition', 'year']
-    q = area_forecast.reset_index().melt(id_vars=['building_category', 'TEK', 'year'],
-                                         value_vars=['demolition', 'original_condition', 'renovation', 'small_measure',
-                                                     'renovation_and_small_measure', 'renovation'],
-                                         var_name='building_condition',
-                                         value_name='m2')
+
+    #q = area_forecast.reset_index().melt(id_vars=['building_category', 'TEK', 'year'],
+    #                                     value_vars=['demolition', 'original_condition', 'renovation', 'small_measure',
+    #                                                 'renovation_and_small_measure', 'renovation'],
+    #                                     var_name='building_condition',
+    #                                     value_name='m2')
+    q = area_forecast.reset_index()
 
     q = q.set_index(['building_category', 'TEK', 'building_condition', 'year'])
 
@@ -279,7 +281,7 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
                     for year, value in floor_area.items():
                         yield building_category, tek, condition, year, value,
 
-        df = pd.DataFrame(flatten_forecast(), columns=['building_category', 'TEK', 'building_condition', 'year', 'area'])
+        df = pd.DataFrame(flatten_forecast(), columns=['building_category', 'TEK', 'building_condition', 'year', 'm2'])
         #df = df.set_index(['building_condition', 'TEK', 'building_condition', 'year'])
         return df
 

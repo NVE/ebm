@@ -418,10 +418,14 @@ class SharesPerCondition():
         - ValueError: If an invalid building condition is provided or if the calculated shares do not match the criterias 
                       defined in the calculation method for that building condition. 
         """
-        if condition not in BuildingCondition:
-            msg = f"Invalid building condition"
+        try:
+            msg = f'Invalid building condition {condition}'
+            if condition not in BuildingCondition:
+                raise ValueError(msg)
+        except TypeError:
+            # When using in operator and the value is not found in StrEnum  Python before 3.12 will raise TypeError
             raise ValueError(msg)
-        
+
         if condition == BuildingCondition.SMALL_MEASURE:
             shares = self.calc_small_measure(tek)
         

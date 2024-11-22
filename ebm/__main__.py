@@ -7,9 +7,8 @@ from dotenv import load_dotenv
 from loguru import logger
 
 from ebm.cmd.run_calculation import calculate_building_category_area_forecast, \
-    area_forecast_result_to_horisontal_dataframe, area_forecast_result_to_dataframe, make_arguments, validate_years, \
-    calculate_building_category_energy_requirements, calculate_tekandeler
-from ebm.holiday_home_energy import HolidayHomeEnergy
+    result_to_horizontal_dataframe, make_arguments, validate_years, \
+    calculate_building_category_energy_requirements, calculate_tekandeler, calculate_energy_use
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.database_manager import DatabaseManager
@@ -29,41 +28,33 @@ def main() -> int:
         zero when the program exits gracefully
     """
     load_dotenv(pathlib.Path('.env'))
-    if '--debug' not in sys.argv and os.environ.get('DEBUG', '') != 'True':
-        logger.remove()
-        logger.add(sys.stderr, level="INFO")
 
-    default_path = pathlib.Path('output/ebm_output.xlsx')
+    configure_loglevel()
 
     logger.debug(f'Starting {sys.executable} {__file__}')
 
     program_name = 'calc-area-forecast'
+    default_path = pathlib.Path('output/ebm_output.xlsx')
+
     arguments = make_arguments(program_name, default_path)
 
     # Make local variable from arguments for clarity
-    start_year, end_year = arguments.start_year, arguments.end_year
-    output_filename = pathlib.Path(arguments.output_file)
     building_categories = [BuildingCategory.from_string(b_c) for b_c in arguments.categories]
     if not building_categories:
         building_categories = list(BuildingCategory)
     building_conditions = [BuildingCondition(condition) for condition in arguments.conditions]
-    tek_filter = arguments.tek
-    force_overwrite = arguments.force
-    open_after_writing = arguments.open
-    horizontal_years = arguments.horizontal
-    input_directory = arguments.input
-    create_input = arguments.create_input
+
     # `;` Will normally be interpreted as line end when typed in a shell. If the
     # delimiter is empty make the assumption that the user used ;. An empty delimiter is not valid anyway.
     csv_delimiter = arguments.csv_delimiter if arguments.csv_delimiter else ';'
 
     # Make sure everything is working as expected
-    validate_years(end_year=end_year, start_year=start_year)
+    validate_years(end_year=arguments.end_year, start_year=arguments.start_year)
 
-    database_manager = DatabaseManager(file_handler=FileHandler(directory=input_directory))
+    database_manager = DatabaseManager(file_handler=FileHandler(directory=arguments.input))
 
     # Create input directory if requested
-    if create_input:
+    if arguments.create_input:
         database_manager.file_handler.create_missing_input_files()
         logger.info(f'Finished creating input files in {database_manager.file_handler.input_directory}')
         # Exit with 0 for success. The assumption is that the user would like to review the input before proceeding.
@@ -79,13 +70,13 @@ def main() -> int:
         return 2
 
     database_manager.file_handler.validate_input_files()
-    database_manager.file_handler.make_output_directory(output_filename.parent)
+    database_manager.file_handler.make_output_directory(arguments.output_file.parent)
 
-    if output_filename.is_file() and output_filename != default_path and not force_overwrite:
+    if arguments.output_file.is_file() and arguments.output_file != default_path and not arguments.force:
         # If the file already exists and is not the default, display error and exit unless --force was used.
-        logger.error(f'{output_filename} already exists.')
+        logger.error(f'{arguments.output_file}. already exists.')
         print(f"""
-You can overwrite the {output_filename} by using --force: {program_name} {' '.join(sys.argv[1:])} --force
+You can overwrite the {arguments.output_file}. by using --force: {program_name} {' '.join(sys.argv[1:])} --force
 """.strip(),
               file=sys.stderr)
         return 1
@@ -99,34 +90,28 @@ You can overwrite the {output_filename} by using --force: {program_name} {' '.jo
             output = calculate_energy_use()
             break
         else:
-            area_forecast_result = calculate_building_category_area_forecast(building_category=building_category,
-                                                                         database_manager=database_manager,
-                                                                         start_year=start_year,
-                                                                         end_year=end_year)
-            result = area_forecast_result
+            area_forecast_result = calculate_building_category_area_forecast(
+                building_category=building_category,
+                database_manager=database_manager,
+                start_year=arguments.start_year,
+                end_year=arguments.end_year)
 
-            if horizontal_years:
-                df = area_forecast_result_to_horisontal_dataframe(building_category, result, start_year, end_year)
-                if building_conditions:
-                    df = df.loc[:, :, [str(s) for s in building_conditions]]
-                if tek_filter:
-                    tek_in_index = [t for t in tek_filter if any(df.index.isin([t], level=1))]
-                    df = df.loc[:, tek_in_index, :]
-            else:
-                df = area_forecast_result_to_dataframe(building_category, result, start_year, end_year)
-                if building_conditions:
-                    df = df[df.building_condition.isin([str(s) for s in building_conditions])]
-                if tek_filter:
-                    df = df.loc[df.TEK.isin(tek_filter)]
-                df = df.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+            df = area_forecast_result
+            df = df.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+
+            if building_conditions:
+                df = df.loc[:, :, [str(s) for s in building_conditions]]
+            if arguments.tek:
+                tek_in_index = [t for t in arguments.tek if any(df.index.isin([t], level=1))]
+                df = df.loc[:, tek_in_index, :]
 
         if 'energy-requirements' in arguments.step or 'heating-systems' in arguments.step:
             energy_requirements_result = calculate_building_category_energy_requirements(
                 building_category=building_category,
                 area_forecast=df,
                 database_manager=database_manager,
-                start_year=start_year,
-                end_year=end_year)
+                start_year=arguments.start_year,
+                end_year=arguments.end_year)
             df = energy_requirements_result
             if 'heating-systems' in arguments.step:
                 df = calculate_tekandeler(energy_requirements=energy_requirements_result,
@@ -136,39 +121,42 @@ You can overwrite the {output_filename} by using --force: {program_name} {' '.jo
             output = df
         else:
             output = pd.concat([output, df])
+    if arguments.horizontal_years:
+        output = result_to_horizontal_dataframe(output)
 
-    logger.debug(f'Writing to {output_filename}')
-    if str(output_filename) == '-':
+    logger.debug(f'Writing to {arguments.output_file}')
+    if str(arguments.output_file) == '-':
         try:
             print(output.to_markdown())
 
         except ImportError:
             print(output.to_string())
-    elif output_filename.suffix == '.csv':
-        output.to_csv(output_filename, sep=csv_delimiter)
-        logger.info(f'Wrote {output_filename}')
+    elif arguments.output_file.suffix == '.csv':
+        output.to_csv(arguments.output_file, sep=csv_delimiter)
+        logger.info(f'Wrote {arguments.output_file}')
     else:
-        excel_writer = pd.ExcelWriter(output_filename, engine='openpyxl')
+        excel_writer = pd.ExcelWriter(arguments.output_file, engine='openpyxl')
         output.to_excel(excel_writer, sheet_name='area forecast', merge_cells=False, freeze_panes=(1, 3))
         excel_writer.close()
-        logger.info(f'Wrote {output_filename}')
+        logger.info(f'Wrote {arguments.output_file}')
 
-    if open_after_writing:
-        os.startfile(output_filename, 'open')
+    if arguments.open:
+        os.startfile(arguments.output_file, 'open')
     sys.exit(0)
 
 
-def calculate_energy_use():
-    holiday_home_energy = HolidayHomeEnergy.new_instance()
-    el, wood, fossil = [e_u for e_u in holiday_home_energy.calculate_energy_usage()]
-    df = pd.DataFrame(data=[el, wood, fossil])
-    df.insert(0, 'building_category', 'holiday_home')
-    df.insert(1, 'energy_type', 'n/a')
-    df['building_category'] = 'holiday_home'
-    df['energy_type'] = ('electricity', 'fuelwood', 'fossil')
-    output = df.reset_index().rename(columns={'index': 'unit'})
-    output = output.set_index(['building_category', 'energy_type', 'unit'])
-    return output
+def configure_loglevel():
+    """
+    Sets loguru loglevel to INFO unless ebm is called with parameter --debug and the environment variable DEBUG is not
+    equal to True
+    """
+    logger.remove()
+    if '--debug' not in sys.argv and os.environ.get('DEBUG', '').upper() != 'TRUE':
+        logger.add(sys.stderr, level="INFO")
+    else:
+        logger.add(sys.stderr,
+                   filter=lambda f: not (f['name'] == 'ebm.model.file_handler' and f['level'].name == 'DEBUG'),
+                   level="DEBUG")
 
 
 if __name__ == '__main__':

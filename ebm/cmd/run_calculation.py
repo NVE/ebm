@@ -2,12 +2,14 @@ import argparse
 import os
 import pathlib
 import textwrap
+import typing
+from dataclasses import dataclass
 from typing import List, Dict
 
-import numpy as np
 import pandas as pd
 
 from ebm.__version__ import version
+from ebm.holiday_home_energy import HolidayHomeEnergy
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.buildings import Buildings
@@ -27,6 +29,21 @@ TEK07
 TEK10
 TEK17
 TEK21""".strip().split('\n')
+
+
+@dataclass
+class EbmArguments:
+    model_years: YearRange
+    output_filename: pathlib.Path
+    building_categories: typing.List[BuildingCategory]
+    building_conditions = typing.List[BuildingCondition]
+    tek_filter: typing.List[str]
+    force_overwrite: bool
+    open_after_writing: bool
+    horizontal_years: bool
+    input_directory: pathlib.Path
+    create_input: bool
+    csv_delimiter: str
 
 
 def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespace:
@@ -72,7 +89,7 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
                             help="""
 The calculation step you want to run. The steps are sequential. Any prerequisite to the chosen step will run 
     automatically.""")
-    arg_parser.add_argument('output_file', nargs='?', type=str, default=default_path,
+    arg_parser.add_argument('output_file', nargs='?', type=pathlib.Path, default=default_path,
                             help=textwrap.dedent(
                                 f'''The location of the file you want to be written. default: {default_path}
     If the file already exists the program will terminate without overwriting. 
@@ -85,22 +102,16 @@ The calculation step you want to run. The steps are sequential. Any prerequisite
                                        The default is to use all categories."""
                                                  ))
     arg_parser.add_argument('--input', '--input-directory', '-i',
-                            nargs='?', type=str, default=os.environ.get('EBM_INPUT_DIRECTORY', 'input'),
+                            nargs='?',
+                            type=pathlib.Path,
+                            default=pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input')),
                             help='path to the directory with input files')
     arg_parser.add_argument('--conditions', '--building-conditions', '-n',
                             nargs='*', type=str, default=default_building_conditions,
                             help=argparse.SUPPRESS)
-                            #help=textwrap.dedent(f"""
-                            #       One or more of the following building conditions:
-                            #           {", ".join(default_building_conditions)}"""
-                            #                     ))
     arg_parser.add_argument('--tek', '-t',
                             nargs='*', type=str, default=default_tek,
                             help=argparse.SUPPRESS)
-                            #help=textwrap.dedent(f"""
-                            #           One or more of the following TEK:
-                            #               {", ".join(default_tek)}"""
-                            #                     ))
     arg_parser.add_argument('--force', '-f', action='store_true',
                             help='Write to <filename> even if it already exists')
     arg_parser.add_argument('--open', '-o', action='store_true',
@@ -118,25 +129,19 @@ Create input directory containing all required files in the current working dire
                             default=os.environ.get('EBM_END_YEAR', 2050),
                             help=argparse.SUPPRESS)
 
-    arg_parser.add_argument('--horizontal', '--horisontal', action='store_true',
+    arg_parser.add_argument('--horizontal-years', '--horizontal', '--horisontal', action='store_true',
                             help='Show years horizontal (left to right)')
     arguments = arg_parser.parse_args()
     return arguments
 
 
-def area_forecast_result_to_dataframe(building_category: BuildingCategory,
-                                      forecast: Dict[str, list],
-                                      start_year: int,
-                                      end_year: int) -> pd.DataFrame:
+def area_forecast_result_to_dataframe(forecast: pd.DataFrame) -> pd.DataFrame:
     """
     Create a dataframe from a forecast
 
     Parameters
     ----------
-    building_category : BuildingCategory
     forecast : Dict[str, list[float]]
-    start_year : int (2010)
-    end_year : int (2050)
 
     Returns dataframe : pd.Dataframe
         A dataframe of all area values in forecast indexed by building_category, tek and year
@@ -147,26 +152,31 @@ def area_forecast_result_to_dataframe(building_category: BuildingCategory,
 
 
 # noinspection PyTypeChecker
-def area_forecast_result_to_horisontal_dataframe(building_category: BuildingCategory,
-                                                 forecast: Dict[str, Dict[str, List[np.float64]]],
-                                                 start_year: int,
-                                                 end_year: int) -> pd.DataFrame:
+def result_to_horizontal_dataframe(result: pd.DataFrame) -> pd.DataFrame:
     """
-    Create a dataframe from a forecast with years listed horizontally from 2010-2050
+    Create a dataframe from a forecast with years listed horizontally start to end year
 
     Parameters
     ----------
-    building_category : BuildingCategory
-    forecast : Dict[str, list[float]]
-    start_year : int (2010)
-    end_year : int (2050)
+    result : pd.DataFrame:
 
-    Returns dataframe : pd.Dataframe
-        A dataframe of all area values in forecast indexed by building_category, tek and year
+    Returns
     -------
+    dataframe : pd.Dataframe
+        A dataframe of all area values in forecast indexed by building_category, tek and year
+
 
     """
-    return forecast.pivot_table(values='m2', columns='year', index=['building_category', 'TEK', 'building_condition'])
+    stacked = result.stack().to_frame().reset_index()
+
+    columns = 'year'
+    index = list(filter(lambda x: x != columns and x != 'index' and x not in [0], stacked.columns))
+    values = stacked.columns[-1]
+
+    df = stacked.pivot(columns=columns, index=index, values=values)
+
+    df.index.names = df.index.names[:-1] + ['unit']
+    return df
 
 
 def validate_years(end_year, start_year):
@@ -191,8 +201,8 @@ def validate_years(end_year, start_year):
         msg = f'Unexpected input start year ({start_year} is greater than end year ({end_year})'
         raise ValueError(msg)
     if start_year < 2010:
-            msg = f'Unexpected start_year={start_year}. The minimum start year is 2010'
-            raise ValueError(msg)
+        msg = f'Unexpected start_year={start_year}. The minimum start year is 2010'
+        raise ValueError(msg)
     if end_year > 2070:
         msg = f'Unexpected end_year={end_year}. Max end_year year is 2070'
         raise ValueError(msg)
@@ -216,11 +226,6 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
     df = pd.concat(series).to_frame()
     df.index.names = ['building_category', 'TEK', 'purpose', 'building_condition', 'year']
 
-    #q = area_forecast.reset_index().melt(id_vars=['building_category', 'TEK', 'year'],
-    #                                     value_vars=['demolition', 'original_condition', 'renovation', 'small_measure',
-    #                                                 'renovation_and_small_measure', 'renovation'],
-    #                                     var_name='building_condition',
-    #                                     value_name='m2')
     q = area_forecast.reset_index()
 
     q = q.set_index(['building_category', 'TEK', 'building_condition', 'year'])
@@ -251,7 +256,7 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
 
     Returns
     -------
-    dict
+    pd.DataFrame
         A dictionary where keys are strings representing different area categories and values are lists of floats
             representing the forecasted areas for each year in the specified period.
 
@@ -271,7 +276,8 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
                                                                            demolition_floor_area,
                                                                            database_manager,
                                                                            period=years)
-    forecast: Dict = area_forecast.calc_area(constructed_floor_area['accumulated_constructed_floor_area'])
+    forecast: Dict[str, pd.Series] = area_forecast.calc_area(
+        constructed_floor_area['accumulated_constructed_floor_area'])
 
     # Temporary method to convert series to list
     def forecast_to_dataframe():
@@ -281,9 +287,9 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
                     for year, value in floor_area.items():
                         yield building_category, tek, condition, year, value,
 
-        df = pd.DataFrame(flatten_forecast(), columns=['building_category', 'TEK', 'building_condition', 'year', 'm2'])
-        #df = df.set_index(['building_condition', 'TEK', 'building_condition', 'year'])
-        return df
+        flat = pd.DataFrame(flatten_forecast(),
+                            columns=['building_category', 'TEK', 'building_condition', 'year', 'm2'])
+        return flat
 
     df = forecast_to_dataframe()
 
@@ -294,6 +300,20 @@ def calculate_tekandeler(energy_requirements, database_manager: DatabaseManager)
     tekandeler_input = database_manager.get_tekandeler()
 
     calculator = HeatingSystems(tekandeler_input)
+    calculator.heating_systems_parameters = calculator.grouped_heating_systems()
     df = calculator.calculate(energy_requirements)
 
     return df
+
+
+def calculate_energy_use():
+    holiday_home_energy = HolidayHomeEnergy.new_instance()
+    el, wood, fossil = [e_u for e_u in holiday_home_energy.calculate_energy_usage()]
+    df = pd.DataFrame(data=[el, wood, fossil])
+    df.insert(0, 'building_category', 'holiday_home')
+    df.insert(1, 'energy_type', 'n/a')
+    df['building_category'] = 'holiday_home'
+    df['energy_type'] = ('electricity', 'fuelwood', 'fossil')
+    output = df.reset_index().rename(columns={'index': 'unit'})
+    output = output.set_index(['building_category', 'energy_type', 'unit'])
+    return output

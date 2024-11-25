@@ -32,10 +32,10 @@ def test_calculate_construction_calls_commercial_construction():
         index=YearRange(2020, 2027).to_index()
     ))
     period = YearRange(2020, 2027)
-    database_manager.get_area_by_person = Mock(return_value=pd.Series([1.0, 1.2, 1.3, 1.4,
-                                                                       1.3, 1.2, 1.1, 1.0],
-                                                                      index=period.to_index(),
-                                                                      name='area_by_person'))
+    database_manager.get_area_per_person = Mock(return_value=pd.Series([1.0, 1.2, 1.3, 1.4,
+                                                                        1.3, 1.2, 1.1, 1.0],
+                                                                       index=period.to_index(),
+                                                                       name='area_by_person'))
 
     # Store the original calculate_commercial_construction
     org_calculate_commercial_construction = ConCal.calculate_commercial_construction

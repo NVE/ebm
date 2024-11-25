@@ -30,6 +30,7 @@ class FileHandler:
     ENERGY_REQ_POLICY_IMPROVEMENTS = 'energy_requirement_policy_improvements.csv'
     HOLIDAY_HOME_BY_YEAR = 'holiday_home_by_year.csv'
     HOLIDAY_HOME_ENERGY_CONSUMPTION = 'holiday_home_energy_consumption.csv'
+    AREA_PER_PERSON = 'area_per_person.csv'
     TEKANDELER = 'heating_systems.csv'
 
 
@@ -54,7 +55,8 @@ class FileHandler:
                                self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
                                self.AREA_PARAMETERS, self.ENERGY_REQ_ORIGINAL_CONDITION, self.ENERGY_REQ_REDUCTION_CONDITION, 
                                self.ENERGY_REQ_YEARLY_IMPROVEMENTS, self.ENERGY_REQ_POLICY_IMPROVEMENTS, self.TEKANDELER,
-                               self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_BY_YEAR]
+                               self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_BY_YEAR,
+                               self.AREA_PER_PERSON]
 
     def get_file(self, file_name: str) -> pd.DataFrame:
         """
@@ -238,6 +240,9 @@ class FileHandler:
 
     def get_holiday_home_by_year(self) -> pd.DataFrame:
         return self.get_file(self.HOLIDAY_HOME_BY_YEAR)
+
+    def get_area_per_person(self):
+        return self.get_file(self.AREA_PER_PERSON)
 
     def _check_is_file(self, filename: str) -> bool:
         """

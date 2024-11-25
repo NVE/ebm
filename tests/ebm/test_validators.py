@@ -19,7 +19,7 @@ from ebm.validators import (tek_parameters,
                             energy_requirement_reduction_per_condition,
                             energy_requirement_yearly_improvements,
                             heating_systems,
-                            energy_requirement_policy_improvements)
+                            energy_requirement_policy_improvements, area_per_person)
 
 
 @pytest.fixture
@@ -617,3 +617,26 @@ apartment_block,TEK07,Electricity,0.0,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4
 retail,TEK97,Electricity,0.08158166937579898,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4
 retail,PRE_TEK49,Electricity,0.07593898514970877,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4"""
     heating_systems.validate(pd.read_csv(io.StringIO(heating_systems_csv)))
+
+
+def test_area_per_person_ok():
+    area_per_person_csv = """building_category,area_per_person
+kindergarten,0.6
+retail,6.0
+hotel,1.6
+sports,1.3
+office,5.5
+culture,1.3
+school,2.8
+nursing_home,1.3
+hospital,0.6
+university,0.6"""
+    area_per_person.validate(pd.read_csv(io.StringIO(area_per_person_csv)))
+
+
+def test_area_per_person_raises_schema_error():
+    area_per_person_csv = """building_category,area_per_person
+invalid_category,0.6
+"""
+    with pytest.raises(pa.errors.SchemaError):
+        area_per_person.validate(pd.read_csv(io.StringIO(area_per_person_csv)))

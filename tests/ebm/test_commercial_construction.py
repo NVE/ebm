@@ -76,4 +76,3 @@ def test_calculate_commercial_construction_return_series():
         demolition)
 
     assert isinstance(result, pd.Series), 'Expected calculate_commercial_construction to return pd.Series'
-

@@ -234,16 +234,6 @@ construction_building_category_yearly = pa.DataFrameSchema(
         'year': pa.Column(int),
         'house': pa.Column(pa.Float64, nullable=True, checks=create_residential_area_checks()),
         'apartment_block': pa.Column(pa.Float64, nullable=True, checks=create_residential_area_checks()),
-        'kindergarten': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'school': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'university': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'office': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'retail': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'hotel': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'hospital': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'nursing_home': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'culture': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'sports': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
         'storage_repairs': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)])
     },
     name='construction_building_category_yearly'

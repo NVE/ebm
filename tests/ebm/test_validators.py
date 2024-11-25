@@ -144,7 +144,8 @@ def test_construction_building_category_yearly(ok_construction_building_category
 
 
 @pytest.mark.parametrize('building_category,row', itertools.product(
-    [b for b in BuildingCategory], [0, 1, 2, 3]))
+    [b for b in [BuildingCategory.HOUSE, BuildingCategory.APARTMENT_BLOCK, BuildingCategory.STORAGE_REPAIRS]], 
+    [0, 1, 2, 3]))
 def test_construction_building_category_yearly_commercial_area(ok_construction_building_category_yearly,
                                                                building_category: BuildingCategory,
                                                                row: int):

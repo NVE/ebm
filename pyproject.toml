@@ -18,7 +18,8 @@ dependencies = [
     "openpyxl", 
     "pandas", 
     "python-dotenv", 
-    "rich"
+    "rich",
+    "pandera"
 ]
 [project.urls]
 Homepage = "https://www.nve.no/"

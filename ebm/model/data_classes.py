@@ -79,6 +79,12 @@ class YearRange:
             raise ValueError(f'Start year {self.start} cannot be greater than end year {self.end}')
         object.__setattr__(self, 'year_range', self.range())
 
+    def __str__(self):
+        return f'YearRange(start={self.start}, end={self.end})'
+
+    def __repr__(self):
+        return str(self)
+
     def __len__(self):
         return len(self.year_range)
 

@@ -251,7 +251,8 @@ class DatabaseManager:
     def get_holiday_home_by_year(self) -> pd.DataFrame:
         return self.file_handler.get_holiday_home_by_year().set_index('year')
 
-    def get_area_per_person(self) -> pd.Series:
+    def get_area_per_person(self,
+                            building_category: BuildingCategory = None) -> pd.Series:
         """
         Return area_per_person as a pd.Series
 
@@ -263,6 +264,8 @@ class DatabaseManager:
         df = self.file_handler.get_area_per_person()
         df = df.set_index('building_category')
 
+        if building_category:
+            return df.area_per_person.loc[building_category]
         return df.area_per_person
 
     def validate_database(self):

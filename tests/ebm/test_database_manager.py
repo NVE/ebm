@@ -1,8 +1,9 @@
 from unittest.mock import Mock
 
+import numpy as np
 import pandas as pd
 
-from ebm.model import DatabaseManager, FileHandler
+from ebm.model import DatabaseManager, FileHandler, BuildingCategory
 
 
 def test_get_area_per_person():
@@ -20,3 +21,8 @@ def test_get_area_per_person():
                          index=pd.Index(['kindergarten', 'retail'], name='building_category'))
 
     pd.testing.assert_series_equal(result, expected)
+
+    expected = np.float64(6.0)
+
+    retail = dm.get_area_per_person(building_category=BuildingCategory.RETAIL)
+    assert retail == expected

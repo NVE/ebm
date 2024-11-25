@@ -47,6 +47,7 @@ def test_calculate_construction_calls_commercial_construction():
         database_manager=database_manager,
         period=period)
 
+    database_manager.get_area_per_person.assert_called_with(BuildingCategory.KINDERGARTEN)
     ConCal.calculate_commercial_construction.assert_called_once()
 
     # Unset mock on ConstructionCalculator so that any following test using

@@ -751,7 +751,7 @@ class ConstructionCalculator:
             return ConstructionCalculator.calculate_commercial_construction(
                 building_category=building_category,
                 population=new_buildings_population['population'],
-                area_by_person=database_manager.get_area_per_person(),
+                area_by_person=database_manager.get_area_per_person(building_category),
                 demolition=demolition_floor_area
             )
         yearly_construction_floor_area = database_manager.get_building_category_floor_area(building_category)

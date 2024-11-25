@@ -712,13 +712,14 @@ class ConstructionCalculator:
         if not demolition.index.isin(population.index).all(): 
             raise ValueError('years in demolition series not present in popolutation series')
         
-        total_area =  area_by_person * population
+        total_area = area_by_person * population.loc[demolition.index]
         demolition_prev_year = demolition.shift(periods=1, fill_value=0)
         yearly_constructed = total_area.diff().fillna(0) + demolition_prev_year
+
         accumulated_constructed = yearly_constructed.cumsum()
         commercial_construction = pd.DataFrame({
             "constructed_floor_area": yearly_constructed,
-            "accumulated_constructed_floor_area" : accumulated_constructed
+            "accumulated_constructed_floor_area": accumulated_constructed
         })
         return commercial_construction
 

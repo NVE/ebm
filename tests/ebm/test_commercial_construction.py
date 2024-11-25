@@ -20,7 +20,7 @@ def test_calculate_construction_calls_commercial_construction():
         index=YearRange(2020, 2024).to_index()),
         name='area')
     database_manager.get_construction_population = Mock(return_value=pd.DataFrame(
-        [{'household_size': 1, 'population': 100_000},{'household_size': 1, 'population': 100_000},
+        [{'household_size': 1, 'population': 100_000}, {'household_size': 1, 'population': 100_000},
          {'household_size': 1, 'population': 100_000}, {'household_size': 1, 'population': 100_000},
          {'household_size': 1, 'population': 100_000}, {'household_size': 1, 'population': 100_000},
          {'household_size': 1, 'population': 100_000}, {'household_size': 1, 'population': 100_000}],
@@ -126,7 +126,7 @@ def test_calculate_commercial_construction_with_area_per_person_as_float():
                                              index=period.to_index())
     expected = pd.DataFrame({
             "constructed_floor_area": expected_yearly_construction,
-            "accumulated_constructed_floor_area" : expected_accumulated_construction
+            "accumulated_constructed_floor_area": expected_accumulated_construction
         })
 
     result = ConCal.calculate_commercial_construction(
@@ -137,15 +137,32 @@ def test_calculate_commercial_construction_with_area_per_person_as_float():
     
     pd.testing.assert_frame_equal(result, expected)
 
+
+def test_calculate_commercial_construction_strip_values_outside_demolition_index():
+    """
+    When population has a longer index than demolition, filter out excess population
+    """
+    building_category = BuildingCategory.KINDERGARTEN
+    population = pd.Series([900_000, 1_000_000, 1_500_000, 2_000_000, 2_300_000],
+                           index=YearRange(2019, 2023).to_index())
+    demolition = pd.Series([10_000, 12_000, 14_000],
+                           index=YearRange(2020, 2022).to_index())
+    area_by_person = 0.6
+
+    result = ConCal.calculate_commercial_construction(building_category, population, area_by_person, demolition)
+    expected = pd.Series([0.0, 310_000.0, 312_000.0], index=YearRange(2020, 2022).to_index())
+
+    pd.testing.assert_series_equal(result.constructed_floor_area, expected, check_names=False)
+
+
 def test_calculate_commercial_construction_require_demolition_years_in_population():
     period = YearRange(2020, 2022)
-    cc = ConCal()
     building_category = BuildingCategory.KINDERGARTEN
     population = pd.Series([1_000_000, 1_500_000, 2_000_000],
                            index=[period.to_index()])
     area_by_person = 0.6
     demolition = pd.Series([10_000, 12_000, 14_000, 16_000],
-                           index=[2020,2021,2022,2023])
+                           index=[2020, 2021, 2022, 2023])
     
     with pytest.raises(ValueError, match='years in demolition series not present in popolutation series'):
         ConCal.calculate_commercial_construction(

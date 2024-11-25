@@ -256,6 +256,10 @@ class DatabaseManager:
         """
         Return area_per_person as a pd.Series
 
+        Parameters
+        ----------
+        building_category: BuildingCategory, optional
+            filter for building category
         Returns
         -------
         pd.Series

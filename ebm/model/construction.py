@@ -686,11 +686,11 @@ class ConstructionCalculator:
     @staticmethod
     def calculate_commercial_construction(building_category: BuildingCategory,
                                           population: pd.Series,
-                                          area_by_person: pd.Series,
-                                          demolition: pd.Series) -> pd.Series:
+                                          area_by_person: typing.Union[float, pd.Series],
+                                          demolition: pd.Series) -> pd.DataFrame:
         """
-        Calculate a projection of floor area built by building_category. The calculation makes the assumption that every
-            all demolished floor area will be replaced with construction.
+        Calculate a projection of contructed floor area by building_category. The calculation makes the assumption that
+        all demolished floor area will be replaced with construction.
 
         Parameters
         ----------
@@ -699,17 +699,28 @@ class ConstructionCalculator:
         population : pd.Series
             population by year
         area_by_person : pd.Series
-            float or pd.Series containing the floor area for the building_category
+            float or pd.Series containing the floor area per person for the building_category
         demolition : pd.Series
-            yearly demolition to be added to the floor area constructed.
+            yearly demolition to be added to the floor area.
 
         Returns
         -------
-        pd.Series
+        pd.Dataframe
             floor area constructed by year
+            accumalated contructed floor area 
         """
-
-        return demolition
+        if not demolition.index.isin(population.index).all(): 
+            raise ValueError('years in demolition series not present in popolutation series')
+        
+        total_area =  area_by_person * population
+        demolition_prev_year = demolition.shift(periods=1, fill_value=0)
+        yearly_constructed = total_area.diff().fillna(0) + demolition_prev_year
+        accumulated_constructed = yearly_constructed.cumsum()
+        commercial_construction = pd.DataFrame({
+            "constructed_floor_area": yearly_constructed,
+            "accumulated_constructed_floor_area" : accumulated_constructed
+        })
+        return commercial_construction
 
     @staticmethod
     def calculate_construction(building_category: BuildingCategory, demolition_floor_area: Union[pd.Series, list],

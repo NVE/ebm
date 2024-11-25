@@ -753,3 +753,10 @@ class ConstructionCalculator:
                                                                         population=new_buildings_population[
                                                                             'population'],
                                                                         period=period)
+
+    @staticmethod
+    def calculate_commercial_construction(building_category: BuildingCategory,
+                                          population: pd.Series,
+                                          area_by_person: pd.Series,
+                                          demolition: pd.Series):
+        return demolition

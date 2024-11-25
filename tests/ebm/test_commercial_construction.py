@@ -98,7 +98,7 @@ def test_calculate_commercial_construction_with_area_per_person_as_series():
                                              index=period.to_index())
     expected = pd.DataFrame({
             "constructed_floor_area": expected_yearly_construction,
-            "accumulated_constructed_floor_area" : expected_accumulated_construction
+            "accumulated_constructed_floor_area": expected_accumulated_construction
         })
 
     result = ConCal.calculate_commercial_construction(

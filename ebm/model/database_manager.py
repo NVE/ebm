@@ -257,6 +257,9 @@ class DatabaseManager():
         missing_files = self.file_handler.check_for_missing_files()
         return True
 
+    def get_area_by_person(self):
+        pass
+
 
 if __name__ == '__main__':
     db = DatabaseManager()

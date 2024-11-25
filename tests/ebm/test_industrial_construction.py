@@ -240,7 +240,7 @@ def test_calculate_total_floor_area_as_kindergarten(kindergarten):
     pd.testing.assert_series_equal(result, expected)
 
 
-def test_calculate_commercial_construction_kindergarten(default_input, kindergarten):
+def test_calculate_industrial_construction_kindergarten(default_input, kindergarten):
     period = YearRange(2010, 2050)
     total_floor_area = np.int64(1275238)
     constructed_floor_area = pd.Series(
@@ -305,7 +305,7 @@ def test_calculate_industrial_construction_storage_repairs(default_input):
     pd.testing.assert_series_equal(result.accumulated_constructed_floor_area, expected_accumulated, check_names=False)
 
 
-def test_calculate_commercial_construction_kindergarten_to_2030(default_input, kindergarten):
+def test_calculate_industrial_construction_kindergarten_to_2030(default_input, kindergarten):
     """
             Test calculate_industrial_construction from 2010 to 2030
         """
@@ -339,7 +339,7 @@ def test_calculate_commercial_construction_kindergarten_to_2030(default_input, k
     pd.testing.assert_series_equal(result.total_floor_area, expected_total_floor_area, check_names=False)
 
 
-def test_calculate_commercial_construction_kindergarten_to_2060(default_input, kindergarten):
+def test_calculate_industrial_construction_kindergarten_to_2060(default_input, kindergarten):
     """
         Test calculate_industrial_construction from 2010 to 2060
     """
@@ -371,7 +371,7 @@ def test_calculate_commercial_construction_kindergarten_to_2060(default_input, k
                                    check_names=False)
 
 
-def test_calculate_commercial_construction_kindergarten_from_2011(default_input, kindergarten):
+def test_calculate_industrial_construction_kindergarten_from_2011(default_input, kindergarten):
     total_floor_area = np.int64(1275238)
     constructed_floor_area = pd.Series(
         name='constructed_floor_area', data={2021: 97574.0, 2022: 90644.0, 2023: 65847.0, 2024: 62022.0, 2025: 79992.0})
@@ -444,7 +444,7 @@ def test_calculate_constructed_floor_area_culture(default_input):
                                    check_names=False)
 
 
-def test_calculate_commercial_construction_kindergarten_to_2020(default_input, kindergarten):
+def test_calculate_industrial_construction_kindergarten_to_2020(default_input, kindergarten):
     period = YearRange(2010, 2020)
     total_floor_area = np.int64(1275238)
     constructed_floor_area = pd.Series(
@@ -478,7 +478,7 @@ def test_calculate_commercial_construction_kindergarten_to_2020(default_input, k
     pd.testing.assert_series_equal(result.total_floor_area, expected_total_floor_area)
 
 
-def test_calculate_commercial_construction_kindergarten_from_2011(default_input, kindergarten):
+def test_calculate_industrial_construction_kindergarten_from_2011(default_input, kindergarten):
     period = YearRange(2011, 2020)
     total_floor_area = np.int64(1364963)
     constructed_floor_area = pd.Series(

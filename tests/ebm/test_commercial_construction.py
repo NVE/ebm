@@ -252,7 +252,7 @@ def test_calculate_commercial_construction_kindergarten(default_input, kindergar
 
     population = pd.Series(name='population', data=default_input.get('population')).loc[period]
 
-    result = ConCal.calculate_commercial_construction(building_category=BuildingCategory.KINDERGARTEN,
+    result = ConCal.calculate_industrial_construction(building_category=BuildingCategory.KINDERGARTEN,
                                                       total_floor_area=total_floor_area,
                                                       constructed_floor_area=constructed_floor_area,
                                                       demolition_floor_area=demolition_floor_area,
@@ -281,7 +281,7 @@ def test_calculate_commercial_construction_kindergarten(default_input, kindergar
     pd.testing.assert_series_equal(result.total_floor_area, expected_total_floor_area)
 
 
-def test_calculate_commercial_construction_storage_repairs(default_input):
+def test_calculate_industrial_construction_storage_repairs(default_input):
     year_range = YearRange(2010, 2050)
     total_floor_area = np.int64(1275238)
     constructed_floor_area = pd.Series(
@@ -292,7 +292,7 @@ def test_calculate_commercial_construction_storage_repairs(default_input):
         data={y: 33755.0 for y in year_range})
     population = pd.Series(name='population', data=default_input.get('population')).loc[year_range]
 
-    result = ConCal.calculate_commercial_construction(building_category=BuildingCategory.STORAGE_REPAIRS,
+    result = ConCal.calculate_industrial_construction(building_category=BuildingCategory.STORAGE_REPAIRS,
                                                       total_floor_area=total_floor_area,
                                                       constructed_floor_area=constructed_floor_area,
                                                       demolition_floor_area=demolition_floor_area,
@@ -307,7 +307,7 @@ def test_calculate_commercial_construction_storage_repairs(default_input):
 
 def test_calculate_commercial_construction_kindergarten_to_2030(default_input, kindergarten):
     """
-            Test calculate_commercial_construction from 2010 to 2030
+            Test calculate_industrial_construction from 2010 to 2030
         """
     period = YearRange(2010, 2030)
     constructed_floor_area = pd.Series(name='constructed_floor_area',
@@ -317,7 +317,7 @@ def test_calculate_commercial_construction_kindergarten_to_2030(default_input, k
 
     population = pd.Series(name='population', data=default_input.get('population')).loc[period]
 
-    result = ConCal.calculate_commercial_construction(building_category=BuildingCategory.KINDERGARTEN,
+    result = ConCal.calculate_industrial_construction(building_category=BuildingCategory.KINDERGARTEN,
                                                       total_floor_area=np.int64(1275238),
                                                       constructed_floor_area=constructed_floor_area,
                                                       demolition_floor_area=demolition_floor_area,
@@ -341,7 +341,7 @@ def test_calculate_commercial_construction_kindergarten_to_2030(default_input, k
 
 def test_calculate_commercial_construction_kindergarten_to_2060(default_input, kindergarten):
     """
-        Test calculate_commercial_construction from 2010 to 2060
+        Test calculate_industrial_construction from 2010 to 2060
     """
     period = YearRange(2010, 2060)
     constructed_floor_area = pd.Series(name='constructed_floor_area',
@@ -353,7 +353,7 @@ def test_calculate_commercial_construction_kindergarten_to_2060(default_input, k
     population = pd.Series(name='population', data=default_input.get('population')).loc[2010:2050]
     population = pd.concat([population, pd.Series({y: 6001759 + (10 * y) for y in period.subset(41, 10)})])
 
-    result = ConCal.calculate_commercial_construction(building_category=BuildingCategory.KINDERGARTEN,
+    result = ConCal.calculate_industrial_construction(building_category=BuildingCategory.KINDERGARTEN,
                                                       total_floor_area=np.int64(1275238),
                                                       constructed_floor_area=constructed_floor_area,
                                                       demolition_floor_area=demolition_floor_area,
@@ -382,7 +382,7 @@ def test_calculate_commercial_construction_kindergarten_from_2011(default_input,
     population.index = population.index + 11
 
     period = YearRange(2021, 2061)
-    result = ConCal.calculate_commercial_construction(building_category=BuildingCategory.KINDERGARTEN,
+    result = ConCal.calculate_industrial_construction(building_category=BuildingCategory.KINDERGARTEN,
                                                       total_floor_area=total_floor_area,
                                                       constructed_floor_area=constructed_floor_area,
                                                       demolition_floor_area=demolition_floor_area,
@@ -434,7 +434,7 @@ def test_calculate_constructed_floor_area_culture(default_input):
     population = pd.Series(name='population', data=default_input.get('population')).loc[period]
     expected_constructed_floor_area = pd.Series(name='constructed_floor_area', data=expect_constructed)
 
-    result = ConCal.calculate_commercial_construction(building_category=BuildingCategory.CULTURE,
+    result = ConCal.calculate_industrial_construction(building_category=BuildingCategory.CULTURE,
                                                       total_floor_area=total_floor_area,
                                                       constructed_floor_area=constructed_floor_area,
                                                       demolition_floor_area=demolition_floor_area,
@@ -456,7 +456,7 @@ def test_calculate_commercial_construction_kindergarten_to_2020(default_input, k
 
     population = pd.Series(name='population', data=default_input.get('population')).loc[period]
 
-    result = ConCal.calculate_commercial_construction(building_category=BuildingCategory.KINDERGARTEN,
+    result = ConCal.calculate_industrial_construction(building_category=BuildingCategory.KINDERGARTEN,
                                                       total_floor_area=total_floor_area,
                                                       constructed_floor_area=constructed_floor_area,
                                                       demolition_floor_area=demolition_floor_area.loc[2010:2020],
@@ -490,7 +490,7 @@ def test_calculate_commercial_construction_kindergarten_from_2011(default_input,
 
     population = pd.Series(name='population', data=default_input.get('population')).loc[period]
     demolition_floor_area.loc[2011] = 0
-    result = ConCal.calculate_commercial_construction(building_category=BuildingCategory.KINDERGARTEN,
+    result = ConCal.calculate_industrial_construction(building_category=BuildingCategory.KINDERGARTEN,
                                                       total_floor_area=total_floor_area,
                                                       constructed_floor_area=constructed_floor_area,
                                                       demolition_floor_area=demolition_floor_area.loc[period],
@@ -533,7 +533,7 @@ def test_construction_works_when_total_floor_area_has_fewer_than_4_rows():
     yearly_construction_floor_area = [97574.0, 90644.0, 65847.0, 62022.0,
                                       79992.0]
 
-    result = ConCal.calculate_commercial_construction(
+    result = ConCal.calculate_industrial_construction(
         building_category=building_category,
         total_floor_area=total_floor_area,
         constructed_floor_area=pd.Series(yearly_construction_floor_area, index=YearRange(2010, 2014)).loc[2011:2014],

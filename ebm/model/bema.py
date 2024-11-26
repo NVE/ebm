@@ -6,7 +6,14 @@ import pandas as pd
 from loguru import logger
 from openpyxl.worksheet.worksheet import Worksheet
 
-from ebm.model import BuildingCategory
+from ebm.__main__ import calculate_building_category_area_forecast
+from ebm.model import BuildingCategory, DatabaseManager
+from ebm.model.building_condition import BuildingCondition
+from ebm.model.data_classes import YearRange
+from ebm.model.data_classes import YearRange
+from ebm.model.energy_requirement import (calculate_energy_requirement_reduction_by_condition,
+                                          calculate_energy_requirement_reduction,
+                                          calculate_lighting_reduction)
 from ebm.services.spreadsheet import iter_cells
 
 START_ROWS_CONSTRUCTION_BUILDING_CATEGORY = {
@@ -141,3 +148,294 @@ def load_construction_building_category(building_category: BuildingCategory,
     df_transposed = df_transposed.set_index('year')
 
     return df_transposed
+
+
+def filter_existing_area(area_forecast: pd.DataFrame) -> pd.DataFrame:
+    """
+
+    Filter area_forecast to only include TEK and year defined as existing. The cut-off value is TEK10 for 2020 and later
+        in addition to any TEK beyond TEK10.
+
+    Parameters
+    ----------
+    area_forecast : pd.DataFrame
+        DataFrame with columns year, building_category, TEK, building_condition, area
+
+    Returns
+    -------
+    pd.Series
+        pct percentage of total floor area by year, building_category, TEK and building_condition
+
+    """
+    area_forecast = area_forecast.reset_index()
+    area_existing = area_forecast.loc[~area_forecast.TEK.isin(['TEK10', 'TEK17', 'TEK21'])][
+        ['year', 'building_category', 'building_condition', 'TEK', 'area']]
+    #tek10_before_2020 = area_forecast.loc[area_forecast.TEK.isin(['TEK10'])][
+    #    ['year', 'building_category', 'building_condition', 'TEK', 'area']]
+
+    return area_existing.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+
+    area_2019 = tek10_before_2020.loc[(tek10_before_2020['year'] == 2019) & (
+                tek10_before_2020['building_condition'] == 'original_condition'), 'area'].values
+
+    # Update the area for all rows in tek10_before_2020 to the area from 2019
+    tek10_before_2020.loc[(tek10_before_2020['year'] > 2019) & (
+            tek10_before_2020['building_condition'] == 'original_condition'), 'area'] = area_2019[0]
+    tek10_before_2020.loc[(tek10_before_2020['year'] > 2019) & (
+            tek10_before_2020['building_condition'] != 'original_condition'), 'area'] = 0.0
+    existing_area = pd.concat([area_existing, tek10_before_2020])
+
+    return existing_area.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+
+
+def filter_transition_area2(area_forecast: pd.DataFrame, tek_name='TEK10') -> pd.DataFrame:
+    df = area_forecast.query(f'TEK == "{tek_name}"')
+    df = df.reset_index()
+
+    # Lag filter for byggningskategori og tilstand
+    logger.warning('Assuming building_category kindergarten')
+    filter_building_category = df.building_category == 'kindergarten'
+    filter_original_condition = df.building_condition == 'original_condition'
+
+    # Finn areal TEK10 i 2019 som skal trekkes fra original_condition i TEK10n
+    # 391409.25
+
+    #Dataframe for area after 2019 (TEK10n)
+    tr = df.copy()
+
+    area_2019 = df.loc[filter_building_category & filter_original_condition & (tr.year == 2019), 'area'].iloc[0]
+    values = df.loc[filter_building_category &  (tr.year == 2019), 'area'].values
+
+    tr = tr.set_index(['building_category', 'TEK', 'year'])
+    s = tr.groupby(by=['building_category', 'TEK', 'year']).sum()['area'] - area_2019
+
+    tr.loc[:, 'area_n'] = s
+    tr.loc[tr['building_condition'] != 'original_condition', 'area_n'] = 0
+    tr.loc[tr.index.get_level_values('year') < 2020, 'area_n'] = 0.0
+
+    tr = tr.reset_index().set_index(['building_category', 'TEK', 'building_condition', 'year'])
+    after_2019 = tr.index.get_level_values('year') > 2019
+    tr.loc[after_2019, 'area'] = tr.loc[after_2019, 'area'] - tr.loc[after_2019, 'area_n']
+
+    #df = df.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+
+    return tr
+
+
+def filter_transition_area(area_forecast: pd.DataFrame, tek_name='TEK10') -> pd.DataFrame:
+    df = area_forecast.query(f'TEK == "{tek_name}"')
+    df = df.reset_index()
+
+    df = df.reset_index()
+
+    # Lag filter for byggningskategori og tilstand
+    logger.warning('Assuming building_category kindergarten')
+    filter_building_category = df.building_category == 'kindergarten'
+    filter_original_condition = df.building_condition == 'original_condition'
+
+    tr = df.copy()
+
+    tr = tr.reset_index()
+    tr['area_n'] = tr['area']
+
+    # Find are for 2019
+    area_2019 = df.loc[filter_building_category & filter_original_condition & (tr.year == 2019), 'area'].iloc[0]
+
+    # Remove any area before 0 for tek10n
+    tr.loc[tr.year < 2020, 'area_n'] = 0
+    # Set original_condition to area in 2019 for all years after 2020 for TEK10
+    tr.loc[(tr.year > 2019) & (tr.building_condition == 'original_condition'), 'area'] = area_2019
+
+    # area_n remove existing TEK10 area from area_n original_condition
+    after_2020 = (tr.year > 2019) & (tr.building_condition == 'original_condition')
+    tr.loc[after_2020, 'area_n'] = tr.loc[after_2020, 'area_n'] - tr.loc[after_2020, 'area']
+
+    # Remove building_condition area after 2019 for existing TEK10
+    tr.loc[(tr.year > 2019) & (tr.building_condition != 'original_condition'), 'area'] = 0
+    tr = tr.set_index(['building_category', 'TEK', 'building_condition', 'year'])[['area', 'area_n']]
+
+    return tr
+
+
+def filter_future_area(area_forecast: pd.DataFrame, tek_name) -> pd.DataFrame:
+    future_tek = area_forecast.query(f'TEK == "{tek_name}"').copy().reset_index()
+
+    if 'index' in future_tek.columns.names:
+        future_tek = future_tek.drop(columns=['index'])
+
+    future_tek = future_tek.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+    return future_tek
+
+
+def calculate_area_distribution(area_requirements: pd.DataFrame, existing_area: pd.DataFrame) -> pd.Series:
+    """
+    Calculate the distribution of building_conditions (pct) and recalculate area_requirements.kwh_m2 based
+        on area distribution (adjusted).
+
+    Parameters
+    ----------
+    area_requirements : pd.DataFrame
+        Pandas Dataframe with building_category, year and kwh_m2
+    existing_area : pd.DataFrame
+        Pandas Dataframe with building_category, year, area
+
+    Returns
+    -------
+    pd.DataFrame
+        building_category, year indexed dataframe with the sum of all kwh_m2 adjusted by relative area
+
+    """
+    total_area = existing_area.groupby(level=['building_category', 'year']).sum()[['area']]
+    existing_area['pct'] = existing_area.area / total_area.area
+    area_requirements['adjusted'] = existing_area.pct * area_requirements.kwh_m2
+    existing_heating_rv_by_year = area_requirements.groupby(level=['building_category', 'year'])['adjusted'].sum()
+    existing_heating_rv_by_year.name = 'kwh_m2'
+    return existing_heating_rv_by_year
+
+
+def load_heating_reduction(purpose='heating_rv'):
+    def make_zero_reduction():
+        r = [{'building_condition': condition, 'reduction_share': 0} for condition in BuildingCondition if condition != BuildingCondition.DEMOLITION]
+        return r
+    heating_reduction = pd.read_csv('input/energy_requirement_reduction_per_condition.csv')
+    if purpose != 'heating_rv':
+        return pd.DataFrame(data=make_zero_reduction())
+
+    heating_reduction = heating_reduction[heating_reduction.TEK == 'default'][['building_condition', 'reduction_share']]
+    return heating_reduction
+
+
+def load_energy_by_floor_area(building_category, purpose='heating_rv'):
+    energy_by_floor_area = pd.read_csv('input/energy_requirement_original_condition.csv')
+    df = energy_by_floor_area[(energy_by_floor_area.building_category == building_category) &
+                              (energy_by_floor_area.purpose == purpose)]
+    return df
+
+
+def load_area_forecast(building_category: BuildingCategory = BuildingCategory.KINDERGARTEN) -> pd.DataFrame:
+    dm = DatabaseManager()
+    area = calculate_building_category_area_forecast(building_category=building_category,
+                                                     database_manager=dm,
+                                                     start_year=2010,
+                                                     end_year=2050)
+
+    data = {'building_category': [], 'TEK': [], 'building_condition': [], 'year': [], 'area': []}
+    for tek, item in area.items():
+        for condition, years in item.items():
+            if condition == BuildingCondition.DEMOLITION:
+                continue
+            for year, area in enumerate(years, start=2010):
+                data.get('building_category').append(building_category)
+                data.get('TEK').append(tek)
+                data.get('building_condition').append(condition)
+                data.get('year').append(year)
+                data.get('area').append(area)
+
+    area_forecast = pd.DataFrame(data=data)
+    return area_forecast
+
+
+def distribute_energy_requirement_over_area(area_forecast, requirement_by_condition):
+    area_requirements = pd.merge(left=area_forecast,
+                                 right=requirement_by_condition,
+                                 on=['building_category', 'TEK', 'building_condition', 'year']).copy()
+    area_requirements = area_requirements.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+    existing_area = filter_existing_area(area_forecast)
+    existing_heating_rv_by_year = calculate_area_distribution(area_requirements, existing_area)
+    return existing_heating_rv_by_year
+
+
+def calculate_heating_reduction(building_category=BuildingCategory.KINDERGARTEN, purpose='heating_rv'):
+    heating_reduction = load_heating_reduction(purpose)
+
+    heating_rv_requirements = load_energy_by_floor_area(building_category, purpose=purpose)
+
+    requirement_by_condition = calculate_energy_requirement_reduction_by_condition(
+        energy_requirements=heating_rv_requirements,
+        condition_reduction=heating_reduction)
+   # return requirement_by_condition
+    heating_reduction = pd.merge(left=requirement_by_condition,
+                                 right=pd.DataFrame({'year': YearRange(2010, 2050).year_range}),
+                                 how='cross')
+    return heating_reduction
+
+
+def calculate_electrical_equipment(building_category, heating_reduction, purpose):
+    # By default there is no heating_reduction defined for fans n pumps
+
+    # heating_reduction.reduction = 0
+    lighting = load_energy_by_floor_area(building_category, purpose=purpose)
+    requirement_by_condition = pd.merge(lighting, heating_reduction, how='cross')
+
+    idx = YearRange(2010, 2050).to_index()
+    idx.name = 'year'
+    energy_requirement = pd.Series([requirement_by_condition['kwh_m2'].iloc[0]] * 41, index=idx,
+                                   name='kwh_m2')
+    light_requirements = calculate_energy_requirement_reduction(energy_requirements=energy_requirement,
+                                                                yearly_reduction=0.01,
+                                                                reduction_period=YearRange(2020, 2050))
+    merged = pd.merge(
+        requirement_by_condition[['building_category', 'TEK', 'building_condition']],
+        pd.DataFrame({'kwh_m2': light_requirements, 'year': light_requirements.index.values}),
+        how='cross')
+
+    return merged
+
+
+def calculate_lighting(building_category, purpose):
+    heating_reduction = load_heating_reduction(purpose)
+
+    # heating_reduction.reduction = 0
+    lighting = load_energy_by_floor_area(building_category=building_category, purpose=purpose)
+    requirement_by_condition = pd.merge(lighting, heating_reduction, how='cross')
+
+    idx = YearRange(2010, 2050).to_index()
+    idx.name = 'year'
+    energy_requirement = pd.Series([requirement_by_condition['kwh_m2'].iloc[0]] * 41, index=idx,
+                                   name='kwh_m2')
+    end_year_requirement = requirement_by_condition['kwh_m2'].iloc[0] * (1-0.6)
+    light_requirements = calculate_lighting_reduction(
+            energy_requirement=energy_requirement,
+            yearly_reduction=0.005,
+            end_year_energy_requirement=end_year_requirement,
+            interpolated_reduction_period=YearRange(2018, 2030),
+            year_range=YearRange(2010, 2050))
+    merged = pd.merge(
+        requirement_by_condition[['building_category', 'TEK', 'building_condition']],
+        pd.DataFrame({'kwh_m2': light_requirements, 'year': light_requirements.index.values}),
+        how='cross')
+    return merged
+
+
+def beregne_energibehov(building_category = BuildingCategory.KINDERGARTEN):
+    area_forecast = load_area_forecast(building_category=building_category)
+
+    return pd.DataFrame({
+        'heating_rv': distribute_energy_requirement_over_area(
+            area_forecast=area_forecast,
+            requirement_by_condition=calculate_heating_reduction(
+                building_category=building_category)),
+        'fans_and_pumps': distribute_energy_requirement_over_area(
+            area_forecast=area_forecast,
+            requirement_by_condition=calculate_heating_reduction(
+                building_category=building_category, purpose='fans_and_pumps')),
+        'heating_dhw': distribute_energy_requirement_over_area(
+            area_forecast=area_forecast,
+            requirement_by_condition=calculate_heating_reduction(
+                building_category=building_category,
+                purpose='heating_dhw')),
+        'lighting': distribute_energy_requirement_over_area(
+            area_forecast=area_forecast,
+            requirement_by_condition=calculate_lighting(building_category, 'lighting')),
+        'electrical_equipment': distribute_energy_requirement_over_area(
+            area_forecast=area_forecast,
+            requirement_by_condition=calculate_electrical_equipment(
+                building_category=building_category,
+                heating_reduction=load_heating_reduction('electrical_equipment'),
+                purpose='electrical_equipment')),
+        'cooling': distribute_energy_requirement_over_area(
+            area_forecast=area_forecast,
+            requirement_by_condition=calculate_heating_reduction(
+                building_category=building_category,
+                purpose='cooling'))
+        })

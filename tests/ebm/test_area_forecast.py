@@ -1,16 +1,17 @@
 import pathlib
+
 import pandas as pd
 import pytest
 
-import ebm
 from ebm.model import FileHandler, DatabaseManager, Buildings, BuildingCategory
 from ebm.model.area_forecast import AreaForecast
 from ebm.model.building_condition import BuildingCondition
-from ebm.model.data_classes import YearRange
+from ebm.model.data_classes import YearRange, TEKParameters
+
 
 @pytest.fixture
 def area_forecast() -> AreaForecast:
-    input_location = pathlib.Path(ebm.__file__).parent / 'data'
+    input_location = pathlib.Path(__file__).parent / 'data' / 'bema'
     file_handler = FileHandler(directory=input_location)
     dm = DatabaseManager(file_handler=file_handler)
     building_category =BuildingCategory.KINDERGARTEN
@@ -33,7 +34,7 @@ def area_forecast() -> AreaForecast:
 @pytest.fixture
 def accumulated_constructed_floor_area():
     acc_construction =  [97574.0, 188218.0, 254065.0, 316087.0, 396079.0, 470969.737594328, 536934.8384640587, 599494.0807271443,
-            653696.2207833815, 707496.2548855395, 761822.4178627231, 797372.8973082342, 831966.4053729081,
+            653696.220_783_381_5, 707496.2548855395, 761822.4178627231, 797372.8973082342, 831966.4053729081,
             866075.9623344169, 896321.9001178928, 923447.084904787, 947622.1337777632, 968409.0957146097,
             987638.3261736097, 1003523.9020760005, 1018640.256250877, 1033603.1847635206, 1048353.7073970429,
             1062932.6862624898, 1077370.9606889542, 1091661.9773190045, 1105822.3122920264, 1119722.0549342209,
@@ -51,8 +52,7 @@ def test_area_forecast_calc_area_with_construction_tek_for_kindergarten_tek07(ar
         Parameters
         ----------
         area_forecast : fixture[AreaForecast]
-            give access to a premade AreaForecast Object
-        accumulated_constructed_floor_area: fixture[List[float]]
+            give access to a premade AreaForecast Object        accumulated_constructed_floor_area: fixture[List[float]]
             constructed_floor_area common with TEK10 test
     """
     result = area_forecast.calc_area_with_construction("TEK07", BuildingCondition.ORIGINAL_CONDITION,accumulated_constructed_floor_area)
@@ -86,6 +86,33 @@ def test_area_forecast_calc_area_with_construction_tek_for_kindergarten_tek10(ar
     expected_tek10.index.name = 'year'
 
     pd.testing.assert_series_equal(result, expected_tek10)
+
+
+def test_area_forecast_calc_area_with_construction_tek21_for_2011_2049(area_forecast,
+                                                                       accumulated_constructed_floor_area):
+    """
+    given TEK end year is after model end year calc_area_pre_construction_per_tek_condition return expected result.
+
+    """
+    area_forecast.period = YearRange(2011, 2049)
+    area_forecast.shares_per_condition[BuildingCondition.ORIGINAL_CONDITION]['TEK21'] = pd.Series(
+        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
+         0.99, 0.98, 0.98, 0.96, 0.96, 0.96, 0.94, 0.93, 0.92, 0.9, 0.89, 0.87, 0.83, 0.78, 0.73, 0.69, 0.64],
+        index=area_forecast.period.to_index())
+
+    area_forecast.tek_params['TEK21'] = TEKParameters(tek='TEK21', start_year=2030, end_year=2050, building_year=2025)
+    result = area_forecast.calc_area_with_construction("TEK21", BuildingCondition.ORIGINAL_CONDITION,
+                                                       accumulated_constructed_floor_area.loc[area_forecast.period])
+
+    expected_tek21 = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                      15116.35, 30079.28, 44829.8, 58814.7, 72370.12, 86375.31, 98206.47, 111550.23, 124535.75,
+                      134308.02, 144785.66, 154686.64, 162979.2, 172380.21, 181332.35, 184938.63, 184740.22, 182879.19,
+                      182048.35, 177159.38]
+
+    expected_tek21 = pd.Series(expected_tek21, index=YearRange(2011, 2049).to_index(), name='area')
+    expected_tek21.index.name = 'year'
+
+    pd.testing.assert_series_equal(result, expected_tek21)
 
 
 if __name__ == "__main__":

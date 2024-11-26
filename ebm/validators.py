@@ -6,6 +6,7 @@ import pandera as pa
 
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
+from ebm.model.energy_purpose import EnergyPurpose
 
 
 def check_building_category(value: pd.Series) -> pd.Series:
@@ -22,8 +23,23 @@ def check_building_category(value: pd.Series) -> pd.Series:
     pd.Series of bool values
 
     """
-
     return value.isin(iter(BuildingCategory))
+
+def check_default_building_category(value: pd.Series) -> pd.Series:
+    """
+    Makes sure that the series value contains values that are corresponding to a BuildingCategory or default
+
+    Parameters
+    ----------
+    value: pd.Series
+        A series of str that will be checked against BuildingCategory and 'default' 
+
+    Returns
+    -------
+    pd.Series of bool values
+
+    """
+    return value.isin(list(BuildingCategory) + ['default'])
 
 
 def check_building_condition(value: pd.Series) -> pd.Series:
@@ -43,6 +59,44 @@ def check_building_condition(value: pd.Series) -> pd.Series:
     return value.isin(iter(BuildingCondition))
 
 
+def check_existing_building_conditions(value: pd.Series) -> pd.Series:
+    """
+    Makes sure that the series contains values that are corresponding to 'existing' building conditions.
+
+    Existing building conditions are all members (conditions) of BuildingCondition, except of DEMOLITION.
+
+    Parameters
+    ----------
+    value: pd.Series
+        A series of str that will be checked against 'existing' BuildingCondition members
+
+    Returns
+    -------
+    pd.Series of bool values
+
+    """
+    return value.isin(iter(BuildingCondition.existing_conditions()))
+
+
+def check_all_existing_building_conditions_present(df: pd.DataFrame):
+    """
+    Ensures that all 'existing' building conditions are present in the 'building_conditions' column for
+    each unique combination of 'building_category', 'TEK', and 'purpose'.
+
+    Existing building conditions are all members (conditions) of BuildingCondition, except of DEMOLITION.
+
+    Parameters
+    ----------
+    df: pd.Dataframe
+    """
+    grouped = df.groupby(['building_category', 'TEK', 'purpose'])['building_condition']
+    existing_conditions = set(BuildingCondition.existing_conditions())
+    for _, conditions in grouped:
+        if set(conditions) != existing_conditions:
+            return False
+    return True
+
+
 def check_energy_purpose(value: pd.Series) -> pd.Series:
     """
     Makes sure that the value contain one of the values corresponding to purpose
@@ -58,7 +112,25 @@ def check_energy_purpose(value: pd.Series) -> pd.Series:
      pd.Series of bool values
 
     """
-    return value.isin(('Cooling', 'Electrical equipment', 'Fans and pumps', 'HeatingDHW', 'HeatingRV', 'Lighting'))
+    return value.isin(iter(EnergyPurpose))
+
+
+def check_default_energy_purpose(value: pd.Series) -> pd.Series:
+    """
+    Makes sure that the value contain one of the values corresponding to 'default' or purpose 
+     - 'Cooling'
+     - 'Electrical equipment'
+     - 'Fans and pumps'
+     - 'HeatingDHW'
+     - 'HeatingRV'
+     - 'Lighting'
+
+     Returns
+     -------
+     pd.Series of bool values
+
+    """
+    return value.isin(list(EnergyPurpose) + ['default'])
 
 
 def check_tek(value: str) -> bool:
@@ -177,16 +249,6 @@ construction_building_category_yearly = pa.DataFrameSchema(
         'year': pa.Column(int),
         'house': pa.Column(pa.Float64, nullable=True, checks=create_residential_area_checks()),
         'apartment_block': pa.Column(pa.Float64, nullable=True, checks=create_residential_area_checks()),
-        'kindergarten': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'school': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'university': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'office': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'retail': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'hotel': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'hospital': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'nursing_home': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'culture': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
-        'sports': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)]),
         'storage_repairs': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)])
     },
     name='construction_building_category_yearly'
@@ -207,14 +269,15 @@ new_buildings_house_share = pa.DataFrameSchema(
 )
 
 
-new_buildings_population = pa.DataFrameSchema(
+population = pa.DataFrameSchema(
     columns={
-        'year': pa.Column(int, coerce=True, checks=[pa.Check.between(2010, 2070)]),
+        'year': pa.Column(int, coerce=True, checks=[pa.Check.between(1900, 2070)]),
         'population': pa.Column(int, coerce=True, checks=[pa.Check.greater_than_or_equal_to(0)]),
-        'household_size': pa.Column(float, coerce=True, checks=[pa.Check.greater_than_or_equal_to(0)])},
+        'household_size': pa.Column(float, coerce=True, nullable=True, checks=[pa.Check.greater_than_or_equal_to(0)])},
     name='new_buildings_population')
 
 
+#TODO: evaluete if restrictions on rush and never share make sense (if the program crashes unless they are there)
 scurve_parameters = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=[pa.Check(check_building_category)]),
@@ -228,21 +291,104 @@ scurve_parameters = pa.DataFrameSchema(
     },
     name='scurve_parameters')
 
-energy_by_floor_area = pa.DataFrameSchema(
+
+### TODO: remove strong restrictions on float values and add warnings (should be able to be neg values)
+energy_requirement_original_condition = pa.DataFrameSchema(
     columns={
-        'building_category': pa.Column(str, checks=[pa.Check(check_building_category)]),
-        'TEK': pa.Column(str, checks=[pa.Check(check_tek, element_wise=True)]),
-        'purpose': pa.Column(str, checks=[pa.Check(check_energy_purpose)]),
-        'kw_h_m': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0)])
+        'building_category': pa.Column(str, checks=[pa.Check(check_default_building_category)]),
+        'TEK': pa.Column(str, checks=[pa.Check(check_default_tek, element_wise=True)]),
+        'purpose': pa.Column(str, checks=[pa.Check(check_default_energy_purpose)]),
+        'kwh_m2': pa.Column(float, coerce=True, checks=[pa.Check.greater_than_or_equal_to(0)])
+    }, 
+    unique=['building_category', 'TEK', 'purpose'],
+    report_duplicates='all'
+)
+
+
+energy_requirement_reduction_per_condition = pa.DataFrameSchema(
+    columns={
+        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
+        'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
+        'purpose': pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
+        'building_condition': pa.Column(str, checks=[pa.Check(check_existing_building_conditions)]),
+        'reduction_share': pa.Column(float, coerce=True, checks=[pa.Check.between(min_value=0.0, include_min=True,
+                                                                                  max_value=1.0, include_max=True)])
+    },
+    unique=['building_category', 'TEK', 'purpose', 'building_condition'],
+    report_duplicates='all'
+)
+
+
+energy_requirement_yearly_improvements = pa.DataFrameSchema(
+    columns={
+        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
+        'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
+        'purpose':pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
+        'yearly_efficiency_improvement': pa.Column(float, coerce=True, 
+                                                   checks=[pa.Check.between(min_value=0.0, include_min=True,
+                                                                            max_value=1.0, include_max=True)])
+    },
+    unique=['building_category', 'TEK', 'purpose'],
+    report_duplicates='all'
+)
+
+
+# TODO: allow blank value on period_start_year (nullable=True) and implement solution for default value = model_start_year? 
+energy_requirement_policy_improvements = pa.DataFrameSchema(
+    columns={
+        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
+        'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
+        'purpose': pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
+        'period_start_year': pa.Column(int, coerce=True, checks=[pa.Check.greater_than_or_equal_to(0)]),
+        'period_end_year': pa.Column(int, coerce=True,  checks=[pa.Check.greater_than_or_equal_to(0)]),
+        'improvement_at_period_end': pa.Column(float, coerce=True, 
+                                               checks=[pa.Check.between(min_value=0.0, include_min=True,
+                                                                        max_value=1.0, include_max=True)])
+    },
+    checks=[pa.Check(lambda df: df["period_end_year"] > df["period_start_year"],
+                     error="period_end_year should be greater than period_start_year")],
+    unique=['building_category', 'TEK', 'purpose'],
+    report_duplicates='all'
+)
+
+
+heating_systems = pa.DataFrameSchema(
+    columns={
+        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
+        'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
+        'Oppvarmingstyper': pa.Column(str),
+        'tek_share': pa.Column(float, coerce=True),
+        'Ekstralast andel': pa.Column(float, coerce=True),
+        'Ekstralast virkningsgrad': pa.Column(float, coerce=True),
+        'Grunnlast andel': pa.Column(float, coerce=True),
+        'Grunnlast virkningsgrad': pa.Column(float, coerce=True),
+        'Spisslast andel': pa.Column(float, coerce=True),
+        'Spisslast virkningsgrad': pa.Column(float, coerce=True),
+        'Tappevann virkningsgrad': pa.Column(float, coerce=True),
+        'Kjoling virkningsgrad': pa.Column(float, coerce=True),
+        'Spesifikt elforbruk': pa.Column(float, coerce=True)
     }
 )
 
-heating_reduction = pa.DataFrameSchema(
+holiday_home_by_year = pa.DataFrameSchema(
     columns={
-        'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
-        'building_condition': pa.Column(str, checks=[pa.Check(check_building_condition)]),
-        'heating_reduction': pa.Column(float, checks=[pa.Check.between(min_value=0.0, include_min=True,
-                                                                       max_value=1.0, include_max=True)])
+        'year': pa.Column(int),
+        'Existing buildings Chalet, summerhouses and other holiday houses': pa.Column(int),
+        'Existing buildings Detached houses and farmhouses used as holiday houses': pa.Column(int)
+    }
+)
+holiday_home_energy_consumption = pa.DataFrameSchema(
+    columns={
+        'year': pa.Column(int),
+        'electricity': pa.Column(int),
+        'fuelwood': pa.Column(float, nullable=True)
+    }
+)
+
+area_per_person = pa.DataFrameSchema(
+    columns={
+        'building_category': pa.Column(str, checks=pa.Check(check_building_category)),
+        'area_per_person': pa.Column(float, nullable=True)
     }
 )
 
@@ -250,7 +396,7 @@ __all__ = [area_parameters,
            tek_parameters,
            construction_building_category_yearly,
            new_buildings_house_share,
-           new_buildings_population,
+           population,
            scurve_parameters,
            new_buildings_house_share,
-           heating_reduction]
+           energy_requirement_reduction_per_condition]

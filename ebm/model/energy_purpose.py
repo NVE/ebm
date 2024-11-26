@@ -5,12 +5,12 @@ from enum import StrEnum, unique, auto
 
 @unique
 class EnergyPurpose(StrEnum):
-    COOLING = auto()
-    ELECTRICAL_EQUIPMENT = auto()
-    FANS_AND_PUMPS = auto()
-    HEATING_DHW = auto()
     HEATING_RV = auto()
+    HEATING_DHW = auto()
+    FANS_AND_PUMPS = auto()
     LIGHTING = auto()
+    ELECTRICAL_EQUIPMENT = auto()
+    COOLING = auto()
 
     @classmethod
     def _missing_(cls, value: str):

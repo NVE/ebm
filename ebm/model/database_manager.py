@@ -2,16 +2,16 @@ import typing
 
 import pandas as pd
 
-from .building_category import BuildingCategory
-from .data_classes import TEKParameters
-from .file_handler import FileHandler
+from ebm.model.file_handler import FileHandler
+from ebm.model.building_category import BuildingCategory
+from ebm.model.data_classes import TEKParameters
 
 
 # TODO:
 # - add method to change all strings to lower case and underscore instead of space
 # - change column strings used in methods to constants 
 
-class DatabaseManager():
+class DatabaseManager:
     """
     Manages database operations.
     """
@@ -22,9 +22,14 @@ class DatabaseManager():
     COL_TEK_START_YEAR = 'period_start_year'
     COL_TEK_END_YEAR = 'period_end_year'
     COL_BUILDING_CATEGORY = 'building_category'
-    COL_BUILDING_CONDITION = 'condition'
+    COL_BUILDING_CONDITION = 'building_condition'
     COL_AREA = 'area'
-    
+    COL_ENERGY_REQUIREMENT_PURPOSE = 'purpose'
+    COL_ENERGY_REQUIREMENT_VALUE = 'kwh_m2'
+    COL_HEATING_REDUCTION = 'reduction_share'
+
+    DEFAULT_VALUE = 'default'
+
     def __init__(self, file_handler: FileHandler = None):
         # Create default FileHandler if file_hander is None
         self.file_handler = file_handler if file_handler is not None else FileHandler()
@@ -175,6 +180,106 @@ class DatabaseManager():
 
         return area_dict
 
+    def get_energy_req_original_condition(self) -> pd.DataFrame: 
+        """
+        Get dataframe with energy requirement (kWh/m^2) for floor area in original condition.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
+            per building category and purpose.
+        """
+        return self.file_handler.get_energy_req_original_condition()
+
+    def get_energy_req_reduction_per_condition(self) -> pd.DataFrame:
+        """
+        Get dataframe with shares for reducing the energy requirement of the different building conditions.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing energy requirement reduction shares for the different building conditions, 
+            per building category, TEK and purpose.        
+        """
+        return self.file_handler.get_energy_req_reduction_per_condition()
+    
+    def get_energy_req_yearly_improvements(self) -> pd.DataFrame:
+        """
+        Get dataframe with yearly efficiency rates for energy requirement improvements.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing yearly efficiency rates (%) for energy requirement improvements,
+            per building category, tek and purpose.        
+        """
+        return self.file_handler.get_energy_req_yearly_improvements()
+    
+    def get_energy_req_policy_improvements(self) -> pd.DataFrame:
+        """
+        Get dataframe with total energy requirement improvement in a period related to a policy.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing total energy requirement improvement (%) in a policy period,
+            per building category, tek and purpose.        
+        """
+        return self.file_handler.get_energy_req_policy_improvements()
+
+    def get_tekandeler(self) -> pd.DataFrame:
+        """
+        Load input dataframe for "TEK-andeler"
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        df = self.file_handler.get_file(self.file_handler.TEKANDELER)
+
+        return df
+
+    def get_holiday_home_fuelwood_consumption(self) -> pd.Series:
+        df = self.file_handler.get_holiday_home_energy_consumption().set_index('year')["fuelwood"]
+        return df
+
+    def get_holiday_home_electricity_consumption(self) -> pd.Series:
+        df = self.file_handler.get_holiday_home_energy_consumption().set_index('year')["electricity"]
+        return df
+
+    def get_holiday_home_by_year(self) -> pd.DataFrame:
+        return self.file_handler.get_holiday_home_by_year().set_index('year')
+
+    def get_area_per_person(self,
+                            building_category: BuildingCategory = None) -> pd.Series:
+        """
+        Return area_per_person as a pd.Series
+
+        Parameters
+        ----------
+        building_category: BuildingCategory, optional
+            filter for building category
+        Returns
+        -------
+        pd.Series
+            float values indexed by building_category, (year)
+        """
+        df = self.file_handler.get_area_per_person()
+        df = df.set_index('building_category')
+
+        if building_category:
+            return df.area_per_person.loc[building_category]
+        return df.area_per_person
+
     def validate_database(self):
         missing_files = self.file_handler.check_for_missing_files()
         return True
+
+
+if __name__ == '__main__':
+    db = DatabaseManager()
+    building_category = BuildingCategory.HOUSE
+
+    a = db.get_energy_req_policy_improvements(building_category)
+    print(a)

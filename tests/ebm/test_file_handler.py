@@ -1,7 +1,7 @@
 import os
 import pathlib
+from unittest.mock import Mock
 
-import pytest
 import pandas as pd
 import pandera as pa
 import pytest
@@ -32,13 +32,19 @@ def test_check_for_missing_files_return_list(tmp_path):
     assert 'TEK_ID.csv' in missing_files
     assert 'TEK_parameters.csv' in missing_files
     assert 'scurve_parameters.csv' in missing_files
-    assert 'new_buildings_population.csv' in missing_files
+    assert 'population.csv' in missing_files
     assert 'new_buildings_house_share.csv' in missing_files
     assert 'construction_building_category_yearly.csv' in missing_files
     assert 'area_parameters.csv' in missing_files
-    assert 'energy_by_floor_area.csv' in missing_files
-    assert 'heating_reduction.csv' in missing_files
-    assert len(missing_files) == 9, 'Unexpected list length returned from check_for_missing_files'
+    assert 'energy_requirement_original_condition.csv' in missing_files
+    assert 'energy_requirement_reduction_per_condition.csv' in missing_files
+    assert 'energy_requirement_yearly_improvements.csv' in missing_files
+    assert 'energy_requirement_policy_improvements.csv' in missing_files
+    assert 'heating_systems.csv' in missing_files
+    assert 'holiday_home_energy_consumption.csv' in missing_files
+    assert 'holiday_home_by_year.csv' in missing_files
+    assert 'area_per_person.csv' in missing_files
+    assert len(missing_files) == 15, 'Unexpected list length returned from check_for_missing_files'
 
 
 def test_filehandler_init_supports_alternative_path(tmp_path):
@@ -86,7 +92,7 @@ def test_filehandler_init_support_input_directory_from_environment_variable(tmp_
 def test_filehandler_create_missing_input_files(tmp_path):
     """
     FileHAndler.create_missing_input must create required files in <input_directory> when called:
-    TEK_ID.csv, TEK_parameters.csv, scurve_parameters.csv, new_buildings_population.csv,
+    TEK_ID.csv, TEK_parameters.csv, scurve_parameters.csv, population.csv,
         new_buildings_house_share.csv, construction_building_category_yearly.csv, area_parameters.csv
     """
     os.chdir(tmp_path)
@@ -100,11 +106,15 @@ def test_filehandler_create_missing_input_files(tmp_path):
     assert (input_directory / 'TEK_ID.csv').is_file()
     assert (input_directory / 'TEK_parameters.csv').is_file()
     assert (input_directory / 'scurve_parameters.csv').is_file()
-    assert (input_directory / 'new_buildings_population.csv').is_file()
+    assert (input_directory / 'population.csv').is_file()
     assert (input_directory / 'new_buildings_house_share.csv').is_file()
     assert (input_directory / 'construction_building_category_yearly.csv').is_file()
     assert (input_directory / 'area_parameters.csv').is_file()
-    assert (input_directory / 'energy_by_floor_area.csv').is_file()
+    assert (input_directory / 'energy_requirement_original_condition.csv').is_file()
+    assert (input_directory / 'energy_requirement_reduction_per_condition.csv').is_file()
+    assert (input_directory / 'energy_requirement_yearly_improvements.csv').is_file()
+    assert (input_directory / 'energy_requirement_policy_improvements.csv').is_file()
+    assert (input_directory / 'holiday_home_energy_consumption.csv').is_file()
 
 
 def test_filehandler_validate_created_input_file(tmp_file_handler):
@@ -147,6 +157,14 @@ def test_filehandler_validate_created_input_file_raises_schemaerrors_on_fail(tmp
 
     with pytest.raises(pa.errors.SchemaErrors):
         tmp_file_handler.validate_input_files()
+
+
+def test_filehandler_get_area_per_person_calls_get_file(tmp_path):
+    fh = FileHandler(directory=tmp_path)
+    fh.get_file = Mock(return_value='FROM_FILE')
+
+    assert fh.get_area_per_person() == 'FROM_FILE'
+    fh.get_file.assert_called_with('area_per_person.csv')
 
 
 if __name__ == "__main__":

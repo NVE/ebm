@@ -14,17 +14,25 @@ class FileHandler:
     """
     Handles file operations.
     """
+
     # Filenames
     BUILDING_CONDITIONS = 'building_conditions.csv'
     TEK_ID = 'TEK_ID.csv'
     TEK_PARAMS = 'TEK_parameters.csv'
     SCURVE_PARAMETERS = 'scurve_parameters.csv'
-    CONSTRUCTION_POPULATION = 'new_buildings_population.csv'
+    CONSTRUCTION_POPULATION = 'population.csv'
     CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'new_buildings_house_share.csv'
     CONSTRUCTION_BUILDING_CATEGORY_AREA = 'construction_building_category_yearly.csv'
     AREA_PARAMETERS = 'area_parameters.csv'
-    ENERGY_BY_FLOOR_AREA = 'energy_by_floor_area.csv'
-    HEATING_REDUCTION = 'heating_reduction.csv'
+    ENERGY_REQ_ORIGINAL_CONDITION = 'energy_requirement_original_condition.csv'
+    ENERGY_REQ_REDUCTION_CONDITION = 'energy_requirement_reduction_per_condition.csv'
+    ENERGY_REQ_YEARLY_IMPROVEMENTS = 'energy_requirement_yearly_improvements.csv'
+    ENERGY_REQ_POLICY_IMPROVEMENTS = 'energy_requirement_policy_improvements.csv'
+    HOLIDAY_HOME_BY_YEAR = 'holiday_home_by_year.csv'
+    HOLIDAY_HOME_ENERGY_CONSUMPTION = 'holiday_home_energy_consumption.csv'
+    AREA_PER_PERSON = 'area_per_person.csv'
+    TEKANDELER = 'heating_systems.csv'
+
 
     input_directory: pathlib.Path
 
@@ -45,7 +53,10 @@ class FileHandler:
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
         self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
                                self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
-                               self.AREA_PARAMETERS, self.ENERGY_BY_FLOOR_AREA, self.HEATING_REDUCTION]
+                               self.AREA_PARAMETERS, self.ENERGY_REQ_ORIGINAL_CONDITION, self.ENERGY_REQ_REDUCTION_CONDITION, 
+                               self.ENERGY_REQ_YEARLY_IMPROVEMENTS, self.ENERGY_REQ_POLICY_IMPROVEMENTS, self.TEKANDELER,
+                               self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_BY_YEAR,
+                               self.AREA_PER_PERSON]
 
     def get_file(self, file_name: str) -> pd.DataFrame:
         """
@@ -127,7 +138,7 @@ class FileHandler:
 
     def get_population(self) -> pd.DataFrame:
         """
-        Loads population data from new_buildings_population.csv as float64
+        Loads population data from population.csv as float64
 
         Should probably be merged with get_construction_population
 
@@ -175,6 +186,63 @@ class FileHandler:
                                           building category and TEK.
         """
         return self.get_file(self.AREA_PARAMETERS)
+    
+    def get_energy_req_original_condition(self) -> pd.DataFrame:
+        """
+        Get dataframe with energy requirement (kWh/m^2) for floor area in original condition.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
+            per building category and purpose.
+        """
+        return self.get_file(self.ENERGY_REQ_ORIGINAL_CONDITION)
+    
+    def get_energy_req_reduction_per_condition(self) -> pd.DataFrame:
+        """
+        Get dataframe with shares for reducing the energy requirement of the different building conditions.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing energy requirement reduction shares for the different building conditions, 
+            per building category, TEK and purpose.
+        """
+        return self.get_file(self.ENERGY_REQ_REDUCTION_CONDITION)
+    
+    def get_energy_req_yearly_improvements(self) -> pd.DataFrame:
+        """
+        Get dataframe with yearly efficiency rates for energy requirement improvements.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing yearly efficiency rates (%) for energy requirement improvements,
+            per building category, tek and purpose.
+        """
+        return self.get_file(self.ENERGY_REQ_YEARLY_IMPROVEMENTS)
+    
+    def get_energy_req_policy_improvements(self) -> pd.DataFrame:
+        """
+        Get dataframe with total energy requirement improvement in a period related to a policy.
+
+        Returns
+        -------
+        pd.DataFrame
+            Dataframe containing total energy requirement improvement (%) in a policy period,
+            per building category, tek and purpose.
+        """
+        return self.get_file(self.ENERGY_REQ_POLICY_IMPROVEMENTS)
+
+    def get_holiday_home_energy_consumption(self) -> pd.DataFrame:
+        return self.get_file(self.HOLIDAY_HOME_ENERGY_CONSUMPTION)
+
+    def get_holiday_home_by_year(self) -> pd.DataFrame:
+        return self.get_file(self.HOLIDAY_HOME_BY_YEAR)
+
+    def get_area_per_person(self):
+        return self.get_file(self.AREA_PER_PERSON)
 
     def _check_is_file(self, filename: str) -> bool:
         """
@@ -256,3 +324,25 @@ class FileHandler:
             except (SchemaErrors, SchemaError):
                 logger.error(f'Got error while validating {file_to_validate}')
                 raise
+
+    def make_output_directory(self, output_directory: pathlib.Path) -> None:
+        """
+        Creates the output directory if it does not exist.
+
+        Parameters
+        ----------
+        output_directory : pathlib.Path
+            The path to the output directory.
+        Raises
+        -------
+        IOError
+            The output_directory exists, but it is a file.
+        Returns
+        -------
+        None
+        """
+        if output_directory.is_file():
+            raise IOError(f'{output_directory} is a file')
+        if not output_directory.is_dir():
+            logger.debug(f'Creating output directory {output_directory}')
+            output_directory.mkdir()

@@ -79,6 +79,12 @@ class YearRange:
             raise ValueError(f'Start year {self.start} cannot be greater than end year {self.end}')
         object.__setattr__(self, 'year_range', self.range())
 
+    def __str__(self):
+        return f'YearRange(start={self.start}, end={self.end})'
+
+    def __repr__(self):
+        return str(self)
+
     def __len__(self):
         return len(self.year_range)
 
@@ -143,16 +149,19 @@ class YearRange:
         last_year = start_year + length - 1 if length > 0 and start_year + length < self.end else self.end
         return YearRange(start_year, last_year)
 
-    def to_index(self) -> pd.Index:
+    def to_index(self, name='year') -> pd.Index:
         """
         Converts the year_range to a pandas Index.
-
+        Parameters
+        ----------
+        name : str, optional
+            name of the index. Default: 'name'
         Returns
         -------
         pd.Index
             Pandas Index object containing the years in the range.
         """
-        return pd.Index(self.year_range)
+        return pd.Index(self.year_range, name=name)
 
     def __getitem__(self, key: int | slice) -> pd.Index:
         """
@@ -169,8 +178,8 @@ class YearRange:
             A pandas Index object containing the specified years.
         """
         if isinstance(key, int):
-            return pd.Index([self.year_range[key]])
+            return pd.Index([self.year_range[key]], name='year')
         elif isinstance(key, slice):
-            return pd.Index(self.year_range[key])
+            return pd.Index(self.year_range[key], name='year')
         else:
             raise TypeError(f"Invalid key type: {type(key)}")

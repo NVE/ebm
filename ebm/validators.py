@@ -164,7 +164,7 @@ def check_default_tek(value: str) -> bool:
     """
     return check_tek(value) or value == 'default'
 
-#TODO: must add logic to filter TEK for residential and commercial, and edge cases
+#TODO: edge cases?
 def check_overlapping_tek_periods(df: pd.DataFrame) -> pd.Series:
     """
     """
@@ -175,8 +175,8 @@ def check_overlapping_tek_periods(df: pd.DataFrame) -> pd.Series:
     end_years = end_years.iloc[:-1]
     start_years = start_years.iloc[:-1]
     check = end_years == start_years
-    
-    return pd.Series(check.to_list() +[True]) 
+    checked_series = pd.Series(check.to_list() +[True])  
+    return checked_series
 
 def check_building_category_share(values: pd.DataFrame) -> pd.Series:
     """

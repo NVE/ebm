@@ -19,7 +19,9 @@ from ebm.validators import (tek_parameters,
                             energy_requirement_reduction_per_condition,
                             energy_requirement_yearly_improvements,
                             heating_systems,
-                            energy_requirement_policy_improvements, area_per_person)
+                            energy_requirement_policy_improvements, 
+                            area_per_person,
+                            check_overlapping_tek_periods)
 
 
 @pytest.fixture
@@ -52,7 +54,6 @@ def test_tek_overlapping_periods_when_tek_parameters_are_unsorted():
         check_overlapping_tek_periods(df),
         pd.Series([True, True]), check_index=False)
     
-
 
 def test_tek_parameters_when_all_are_correct(ok_tek_parameters: pd.DataFrame):
     tek_parameters.validate(ok_tek_parameters)

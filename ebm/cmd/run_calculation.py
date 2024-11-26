@@ -296,7 +296,7 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
     return df
 
 
-def calculate_tekandeler(energy_requirements, database_manager: DatabaseManager):
+def calculate_heating_systems(energy_requirements, database_manager: DatabaseManager):
     tekandeler_input = database_manager.get_tekandeler()
 
     calculator = HeatingSystems(tekandeler_input)

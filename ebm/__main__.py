@@ -8,7 +8,7 @@ from loguru import logger
 
 from ebm.cmd.run_calculation import calculate_building_category_area_forecast, \
     result_to_horizontal_dataframe, make_arguments, validate_years, \
-    calculate_building_category_energy_requirements, calculate_tekandeler, calculate_energy_use
+    calculate_building_category_energy_requirements, calculate_heating_systems, calculate_energy_use
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.database_manager import DatabaseManager
@@ -114,8 +114,8 @@ You can overwrite the {arguments.output_file}. by using --force: {program_name} 
                 end_year=arguments.end_year)
             df = energy_requirements_result
             if 'heating-systems' in arguments.step:
-                df = calculate_tekandeler(energy_requirements=energy_requirements_result,
-                                          database_manager=database_manager)
+                df = calculate_heating_systems(energy_requirements=energy_requirements_result,
+                                               database_manager=database_manager)
 
         if output is None:
             output = df

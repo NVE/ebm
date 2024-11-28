@@ -102,7 +102,7 @@ def transform_heating_systems(heating_systems, calibration_year) -> pd.DataFrame
 
     # Filter energy_use
 
-    energy_use = heating_systems_2023[heating_systems_2023['energy_source'].isin([ELECTRICITY, 'Bio', FOSSIL,
+    energy_use = heating_systems_2023[heating_systems_2023['energy_source'].isin([ELECTRICITY, BIO, FOSSIL,
                                                                                   DISTRICT_HEATING])].groupby(by=['is_residential', 'energy_source']).sum()[['gwh']].copy()
 
     # Group and sum energy_usage by energy_source
@@ -121,6 +121,17 @@ def transform_heating_systems(heating_systems, calibration_year) -> pd.DataFrame
     return df
 
 
+def sort_heating_systems_by_energy_source(transformed):
+    custom_order = [ELECTRICITY, BIO, FOSSIL, DISTRICT_HEATING]
+
+    unsorted = transformed.reset_index()
+    unsorted['energy_source'] = pd.Categorical(unsorted['energy_source'], categories=custom_order, ordered=True)
+    df_sorted = unsorted.sort_values(by=['energy_source'])
+    df_sorted = df_sorted.set_index([('energy_source', '')])
+
+    return df_sorted
+
+
 def main():
     database_manager = DatabaseManager()
     area_forecast = extract_area_forecast(database_manager)
@@ -128,8 +139,10 @@ def main():
     heating_systems = extract_heating_systems(energy_requirements, database_manager)
     
     transformed = transform_heating_systems(heating_systems, CALIBRATION_YEAR)
+    sorted_df = sort_heating_systems_by_energy_source(transformed)
 
     print(transformed.to_markdown())
+    print(sorted_df.transpose().to_markdown())
 
 
 if __name__ == '__main__':

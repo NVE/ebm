@@ -4,6 +4,18 @@ from loguru import logger
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.filter_tek import FilterTek
 
+TEK_SHARE_ADJUSTED_ENERGY_REQUIREMENT = 'eq_ts'
+HEATING_RV_GRUNNLAST = 'RV_GL'
+HEATING_RV_SPISSLAST = 'RV_SL'
+HEATIG_RV_EKSTRALAST = 'RV_EL'
+COOLING_KV = 'CL_KV'
+DHW_TV = 'DHW_TV'
+OTHER_SV = 'O_SV'
+HEATING_RV = 'heating_rv'
+HEATING_DHW = 'heating_dhw'
+COOLING = 'cooling'
+DHW_EFFICIENCY = 'Tappevann virkningsgrad'
+
 
 class HeatingSystems:
     def __init__(self, heating_systems_parameters: pd.DataFrame = None):
@@ -30,6 +42,7 @@ class HeatingSystems:
 
     def calculate(self, energy_requirements: pd.DataFrame) -> pd.DataFrame:
         """
+        calculate energy usage by from energy_requirements and heating_systems_parameters
 
         Parameters
         ----------
@@ -37,11 +50,9 @@ class HeatingSystems:
 
         Returns
         -------
+        pd.DataFrame
 
         """
-        # TODO: Remove warning
-        logger.warning('Merge TEK69s and PRE_TEK49s at an improper place')
-
         energy_requirements = self._remove_tek_suffix(energy_requirements)
         energy_requirements = self._group_and_sum_same_tek(energy_requirements)
 
@@ -54,51 +65,53 @@ class HeatingSystems:
         df = self._merge_energy_requirement_and_heating_systems(energy_requirements)
 
         # Make column eq_ts for tek_share adjusted energy requirement
-        df['eq_ts'] = df.energy_requirement * df.tek_share
+        df[TEK_SHARE_ADJUSTED_ENERGY_REQUIREMENT] = df.energy_requirement * df.tek_share
 
         # Zero fill columns before calculating to prevent NaN from messing up sums
-        df.loc[:, ['RV_GL', 'RV_SL', 'RV_EL', 'DHW_TV', 'CL_KV', 'O_SV']] = 0.0
+        df.loc[:, [HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HEATIG_RV_EKSTRALAST, DHW_TV, COOLING_KV, OTHER_SV]] = 0.0
 
         # Adjust energy requirements by efficiency
         # heating rv
-        heating_rv_slice = (slice(None), slice(None), 'heating_rv', slice(None), slice(None))
-        df.loc[heating_rv_slice, 'RV_GL'] = (
-                df.loc[heating_rv_slice, 'eq_ts'] * df.loc[heating_rv_slice, 'Grunnlast andel'] / df.loc[
+
+        heating_rv_slice = (slice(None), slice(None), HEATING_RV, slice(None), slice(None))
+        df.loc[heating_rv_slice, HEATING_RV_GRUNNLAST] = (
+                df.loc[heating_rv_slice, TEK_SHARE_ADJUSTED_ENERGY_REQUIREMENT] * df.loc[heating_rv_slice, 'Grunnlast andel'] / df.loc[
             heating_rv_slice, 'Grunnlast virkningsgrad'])
-        df.loc[heating_rv_slice, 'RV_SL'] = (
-                df.loc[heating_rv_slice, 'eq_ts'] * df.loc[heating_rv_slice, 'Spisslast andel'] / df.loc[
+        df.loc[heating_rv_slice, HEATING_RV_SPISSLAST] = (
+                df.loc[heating_rv_slice, TEK_SHARE_ADJUSTED_ENERGY_REQUIREMENT] * df.loc[heating_rv_slice, 'Spisslast andel'] / df.loc[
             heating_rv_slice, 'Spisslast virkningsgrad'])
-        df.loc[heating_rv_slice, 'RV_EL'] = (
-                df.loc[heating_rv_slice, 'eq_ts'] * df.loc[heating_rv_slice, 'Ekstralast andel'] / df.loc[
+        df.loc[heating_rv_slice, HEATIG_RV_EKSTRALAST] = (
+                df.loc[heating_rv_slice, TEK_SHARE_ADJUSTED_ENERGY_REQUIREMENT] * df.loc[heating_rv_slice, 'Ekstralast andel'] / df.loc[
             heating_rv_slice, 'Ekstralast virkningsgrad'])
 
         # heating dhw energy use is calculated by dividing heating_dhw with 'Tappevann virkningsgrad'
-        heating_dhw_slice = (slice(None), slice(None), 'heating_dhw', slice(None), slice(None))
-        df.loc[heating_dhw_slice, 'DHW_TV'] = df.loc[heating_dhw_slice, 'eq_ts'] / df.loc[
-            heating_dhw_slice, 'Tappevann virkningsgrad']
+        heating_dhw_slice = (slice(None), slice(None), HEATING_DHW, slice(None), slice(None))
+        df.loc[heating_dhw_slice, DHW_TV] = df.loc[heating_dhw_slice, TEK_SHARE_ADJUSTED_ENERGY_REQUIREMENT] / df.loc[
+            heating_dhw_slice, DHW_EFFICIENCY]
 
         # cooling energy use is calculated by dividing cooling with 'Kjoling virkningsgrad'
-        cooling_slice = (slice(None), slice(None), 'cooling', slice(None), slice(None))
-        df.loc[cooling_slice, 'CL_KV'] = df.loc[cooling_slice, 'eq_ts'] / df.loc[cooling_slice, 'Kjoling virkningsgrad']
+        cooling_slice = (slice(None), slice(None), COOLING, slice(None), slice(None))
+        df.loc[cooling_slice, COOLING_KV] = df.loc[cooling_slice, TEK_SHARE_ADJUSTED_ENERGY_REQUIREMENT] / df.loc[cooling_slice, 'Kjoling virkningsgrad']
 
         # lighting, electrical equipment, fans and pumps energy use is calculated by dividing with spesific electricity
         # useage
         other_slice = (slice(None), slice(None), EnergyPurpose.other(), slice(None), slice(None))
-        df.loc[other_slice, 'O_SV'] = df.loc[other_slice, 'eq_ts'] / df.loc[other_slice, 'Spesifikt elforbruk']
+        df.loc[other_slice, OTHER_SV] = df.loc[other_slice, TEK_SHARE_ADJUSTED_ENERGY_REQUIREMENT] / df.loc[other_slice, 'Spesifikt elforbruk']
 
-        df.loc[:, 'kwh'] = df.loc[:, ['RV_GL', 'RV_SL', 'RV_EL', 'DHW_TV', 'CL_KV', 'O_SV']].sum(axis=1)
+        df.loc[:, 'kwh'] = df.loc[:, [HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HEATIG_RV_EKSTRALAST, DHW_TV, COOLING_KV,
+                                      ('%s' % OTHER_SV)]].sum(axis=1)
 
         df.loc[:, 'gwh'] = df.loc[:, 'kwh'] / 10 ** 6
 
         df = df.sort_index(level=['building_category', 'TEK', 'year', 'building_condition', 'purpose', 'Oppvarmingstyper'])
         return df[['tek_share',
-                   'eq_ts',
-                   'RV_GL',
-                   'RV_SL',
-                   'RV_EL',
-                   'DHW_TV',
-                   'CL_KV',
-                   'O_SV',
+                   TEK_SHARE_ADJUSTED_ENERGY_REQUIREMENT,
+                   HEATING_RV_GRUNNLAST,
+                   HEATING_RV_SPISSLAST,
+                   HEATIG_RV_EKSTRALAST,
+                   DHW_TV,
+                   COOLING_KV,
+                   OTHER_SV,
                    'kwh',
                    'gwh']]
 

@@ -5,6 +5,7 @@ from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.filter_tek import FilterTek
 
 TEK_SHARE_ADJUSTED_ENERGY_REQUIREMENT = 'eq_ts'
+# there are 3 time-of-use zones: peak, shoulder and offpeak.
 HEATING_RV_GRUNNLAST = 'RV_GL'
 HEATING_RV_SPISSLAST = 'RV_SL'
 HEATIG_RV_EKSTRALAST = 'RV_EL'
@@ -53,6 +54,7 @@ class HeatingSystems:
         pd.DataFrame
 
         """
+        logger.debug('Calculate heating systems')
         energy_requirements = self._remove_tek_suffix(energy_requirements)
         energy_requirements = self._group_and_sum_same_tek(energy_requirements)
 

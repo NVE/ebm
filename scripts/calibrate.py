@@ -1,4 +1,7 @@
 import pandas as pd
+import tkinter as tk
+
+import pyperclip
 
 from ebm.cmd.run_calculation import calculate_building_category_area_forecast
 from ebm.cmd.run_calculation import calculate_building_category_energy_requirements, calculate_heating_systems
@@ -63,7 +66,7 @@ def extract_heating_systems(energy_requirements, database_manager) -> pd.DataFra
 def transform_heating_systems(heating_systems, calibration_year) -> pd.DataFrame:
     # Filter heating_rv
     heating_systems = heating_systems.loc[
-        (slice(None), slice(None), 'heating_rv', slice(None), slice(None), slice(None))]
+        (slice(None), slice(None), 'heating_rv', slice(None), slice(None), slice(None))].copy()
 
     # Group building_categories
     heating_systems['is_residential'] = 'commercial'
@@ -98,8 +101,6 @@ def transform_heating_systems(heating_systems, calibration_year) -> pd.DataFrame
     heating_systems_2023.loc['HP Central heating - Bio', 'energy_source'] = HEATPUMP_WATER_SOUCE
     heating_systems_2023.loc['HP Central heating', 'energy_source'] = HEATPUMP_WATER_SOUCE
 
-    heating_systems_2023[heating_systems_2023['energy_source'].isnull()][['energy_source', 'gwh']]
-
     # Filter energy_use
 
     energy_use = heating_systems_2023[heating_systems_2023['energy_source'].isin([ELECTRICITY, BIO, FOSSIL,
@@ -132,6 +133,15 @@ def sort_heating_systems_by_energy_source(transformed):
     return df_sorted
 
 
+def copy_to_clipboard(text):
+    r = tk.Tk()
+    r.withdraw()  # Hide the main window
+    r.clipboard_clear()  # Clear the clipboard
+    r.clipboard_append(text)  # Append the text to the clipboard
+    r.update()  # Update the clipboard
+    #r.destroy()  # Destroy the main window
+
+
 def main():
     database_manager = DatabaseManager()
     area_forecast = extract_area_forecast(database_manager)
@@ -142,7 +152,12 @@ def main():
     sorted_df = sort_heating_systems_by_energy_source(transformed)
 
     print(transformed.to_markdown())
-    print(sorted_df.transpose().to_markdown())
+    transposed = sorted_df[[('gwh', 'residential'), ('gwh', 'commercial'), ('total', '')]].transpose()
+    print(transposed.to_markdown())
+    transposed = transposed.set_index(pd.Index(['Boliger', 'Yrkesbygg', 'Total'], name='gwh'))
+    tabbed = transposed.round(1).to_csv(sep='\t', header=False, index_label=None).replace('.', ',')
+    print(tabbed)
+    pyperclip.copy(tabbed)
 
 
 if __name__ == '__main__':

@@ -44,3 +44,15 @@ class EnergyPurpose(StrEnum):
 
     def __repr__(self):
         return f'{self.__class__.__name__}.{self.name}'
+
+    @classmethod
+    def other(cls) -> typing.Iterable['EnergyPurpose']:
+        return [cls.LIGHTING, cls.ELECTRICAL_EQUIPMENT, cls.FANS_AND_PUMPS]
+
+    @classmethod
+    def heating(cls) -> typing.Iterable['EnergyPurpose']:
+        return [cls.HEATING_RV, cls.HEATING_DHW]
+
+    @classmethod
+    def cooling(cls) -> typing.Iterable['EnergyPurpose']:
+        return [cls.COOLING]

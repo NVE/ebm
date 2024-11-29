@@ -1,5 +1,6 @@
 from enum import unique, StrEnum
 
+import pandas as pd
 from loguru import logger
 
 
@@ -78,3 +79,26 @@ def from_norsk(norsk: str) -> BuildingCategory:
         return BuildingCategory.CULTURE
     return BuildingCategory.from_string(norsk)
 
+
+def expand_building_category(row):
+    if row['building_category'] == 'commercial':
+        commercial = [b for b in BuildingCategory if b.is_commercial()]
+        values = {k: [v] * len(commercial) for k, v in row.to_dict().items() if k != 'building_category'}
+        return pd.DataFrame({
+            'building_category': commercial,
+            **values
+        })
+    elif row['building_category'] == 'residential':
+        residential = [b for b in BuildingCategory if b.is_residential()]
+        values = {k: [v] * len(residential) for k, v in row.to_dict().items() if k != 'building_category'}
+        return pd.DataFrame({
+            'building_category': residential,
+            **values
+        })
+    else:
+        return row
+
+
+# Apply the function to each row and concatenate the results
+def expand_building_categories(df):
+    return pd.concat([expand_building_category(row) for _, row in df.iterrows()], ignore_index=True)

@@ -2,8 +2,9 @@ import typing
 
 import pandas as pd
 
+from ebm.model.calibrate_heating_rv import default_calibrate_heating_rv
 from ebm.model.file_handler import FileHandler
-from ebm.model.building_category import BuildingCategory
+from ebm.model.building_category import BuildingCategory, expand_building_categories
 from ebm.model.data_classes import TEKParameters
 
 
@@ -250,6 +251,15 @@ class DatabaseManager:
 
     def get_holiday_home_by_year(self) -> pd.DataFrame:
         return self.file_handler.get_holiday_home_by_year().set_index('year')
+
+    def get_calibrate_heating_rv(self) -> pd.Series:
+        try:
+            df = self.file_handler.get_file('calibrate_heating_rv.csv')
+        except FileNotFoundError:
+            df = default_calibrate_heating_rv()
+        df = expand_building_categories(df)
+        return df.set_index('building_category')['heating_rv_factor']
+
 
     def get_area_per_person(self,
                             building_category: BuildingCategory = None) -> pd.Series:

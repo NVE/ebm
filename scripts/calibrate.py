@@ -1,19 +1,28 @@
+import os
+import pathlib
+
+from loguru import logger
 import pandas as pd
 import tkinter as tk
 
-import pyperclip
 
+
+import pyperclip
+from dotenv import load_dotenv
+
+from ebm.__main__ import configure_loglevel
 from ebm.cmd.run_calculation import calculate_building_category_area_forecast
 from ebm.cmd.run_calculation import calculate_building_category_energy_requirements, calculate_heating_systems
 from ebm.model.data_classes import YearRange
 from ebm.model.building_category import BuildingCategory
-from ebm.model import DatabaseManager
-
+from ebm.model import DatabaseManager, FileHandler
 
 ELECTRICITY = 'Elektrisitet'
 DISTRICT_HEATING = 'Fjernvarme'
 BIO = 'Bio'
 FOSSIL = 'Fossil'
+
+DOMESTIC_HOT_WATER = 'Tappevann'
 
 HEATPUMP_AIR_SOURCE = 'luftluft'
 HEATPUMP_WATER_SOUCE = 'vannbåren'
@@ -90,8 +99,8 @@ def transform_heating_systems(heating_systems, calibration_year) -> pd.DataFrame
 
     heating_systems_2023.loc['Electricity', 'energy_source'] = ELECTRICITY
 
-    heating_systems_2023.loc['Electric boiler', 'energy_source'] = 'Tappevann'
-    heating_systems_2023.loc['Electric boiler - Solar', 'energy_source'] = 'Tappevann'
+    heating_systems_2023.loc['Electric boiler', 'energy_source'] = DOMESTIC_HOT_WATER
+    heating_systems_2023.loc['Electric boiler - Solar', 'energy_source'] = DOMESTIC_HOT_WATER
 
     heating_systems_2023.loc['Electricity - Bio', 'energy_source'] = BIO
 
@@ -143,7 +152,14 @@ def copy_to_clipboard(text):
 
 
 def main():
-    database_manager = DatabaseManager()
+    load_dotenv(pathlib.Path('.env'))
+
+    configure_loglevel()
+
+    calibration_directory = pathlib.Path('kalibrering')
+    input = os.environ.get('INPUT', 'input') if not calibration_directory.is_dir() else calibration_directory
+    logger.info(f'Using {input}')
+    database_manager = DatabaseManager(FileHandler(directory=input))
     area_forecast = extract_area_forecast(database_manager)
     energy_requirements = extract_energy_requirements(area_forecast, database_manager)
     heating_systems = extract_heating_systems(energy_requirements, database_manager)

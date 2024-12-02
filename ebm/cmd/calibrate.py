@@ -158,7 +158,17 @@ def create_heating_rv(database_manager):
         df.to_excel(heating_rv)
 
 
-def run_calibration(database_manager):
+def run_calibration(database_manager, calibration_year):
+    """
+
+    Parameters
+    ----------
+    database_manager : ebm.model.database_manager.DatabaseManager
+
+    Returns
+    -------
+    pandas.core.frame.DataFrame
+    """
     load_dotenv(pathlib.Path('.env'))
 
     calibration_directory = pathlib.Path('kalibrering')
@@ -169,7 +179,7 @@ def run_calibration(database_manager):
     energy_requirements = extract_energy_requirements(area_forecast, database_manager)
     heating_systems = extract_heating_systems(energy_requirements, database_manager)
     
-    transformed = transform_heating_systems(heating_systems, CALIBRATION_YEAR)
+    transformed = transform_heating_systems(heating_systems, calibration_year)
     sorted_df = sort_heating_systems_by_energy_source(transformed)
 
     transposed = sorted_df[[('gwh', 'residential'), ('gwh', 'commercial')]].transpose()
@@ -181,4 +191,4 @@ def run_calibration(database_manager):
 
 
 if __name__ == '__main__':
-    run_calibration(DatabaseManager(FileHandler(input_directory='kalibrering')))
+    run_calibration(DatabaseManager(FileHandler(input_directory='kalibrering', calibration_year=CALIBRATION_YEAR)))

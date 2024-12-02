@@ -86,7 +86,7 @@ You can overwrite the {arguments.output_file}. by using --force: {program_name} 
 
     output = None
     if arguments.calibration_year:
-        output = run_calibration(database_manager)
+        output = run_calibration(database_manager, arguments.calibration_year)
         calibration_directory = pathlib.Path('kalibrering')
         if not calibration_directory.is_dir():
             calibration_directory.mkdir()

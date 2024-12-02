@@ -149,7 +149,16 @@ def copy_to_clipboard(text):
     #r.destroy()  # Destroy the main window
 
 
-def main():
+def create_heating_rv(database_manager):
+    file_handler: FileHandler = database_manager.file_handler
+    heating_rv = file_handler.input_directory / 'calibrate_heating_rv.xlsx'
+    if not heating_rv.is_file():
+        logger.info(f'Creating {heating_rv}')
+        df = default_calibrate_heating_rv()
+        df.to_excel(heating_rv)
+
+
+def run_calibration(database_manager):
     load_dotenv(pathlib.Path('.env'))
 
     calibration_directory = pathlib.Path('kalibrering')

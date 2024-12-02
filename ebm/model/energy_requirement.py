@@ -27,10 +27,11 @@ class EnergyRequirement:
         self.tek_list = tek_list
         self.period = period
         self.calibration_year = calibration_year
-        if calibration_year not in period.subset(1):
-            logger.warning(f'Calibration year {calibration_year} is outside period {period.start}-{period.end}')
-        elif calibration_year == period.start:
-            logger.warning(f'Calibration year {calibration_year} is same as start year {period.start}')
+        if calibration_year == period.start:
+            logger.debug(f'Calibration year {calibration_year} is same as start year {period.start}')
+        elif calibration_year not in period.subset(1):
+            logger.debug(f'Calibration year {calibration_year} is outside period {period.start}-{period.end}')
+
 
     def calculate_for_building_category(self,
                                         building_category: BuildingCategory,

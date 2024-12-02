@@ -253,10 +253,9 @@ class DatabaseManager:
         return self.file_handler.get_holiday_home_by_year().set_index('year')
 
     def get_calibrate_heating_rv(self) -> pd.Series:
-        try:
-            df = self.file_handler.get_file('calibrate_heating_rv.csv')
-        except FileNotFoundError:
-            df = default_calibrate_heating_rv()
+        df = default_calibrate_heating_rv()
+        if (self.file_handler.input_directory / 'calibrate_heating_rv.xlsx').is_file():
+            df = self.file_handler.get_file('calibrate_heating_rv.xlsx')
         df = expand_building_categories(df)
         return df.set_index('building_category')['heating_rv_factor']
 

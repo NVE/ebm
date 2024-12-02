@@ -5,17 +5,15 @@ from loguru import logger
 import pandas as pd
 import tkinter as tk
 
-
-
 import pyperclip
 from dotenv import load_dotenv
 
-from ebm.__main__ import configure_loglevel
 from ebm.cmd.run_calculation import calculate_building_category_area_forecast
 from ebm.cmd.run_calculation import calculate_building_category_energy_requirements, calculate_heating_systems
+from ebm.model import DatabaseManager, FileHandler
+from ebm.model.calibrate_heating_rv import default_calibrate_heating_rv
 from ebm.model.data_classes import YearRange
 from ebm.model.building_category import BuildingCategory
-from ebm.model import DatabaseManager, FileHandler
 
 ELECTRICITY = 'Elektrisitet'
 DISTRICT_HEATING = 'Fjernvarme'
@@ -154,12 +152,10 @@ def copy_to_clipboard(text):
 def main():
     load_dotenv(pathlib.Path('.env'))
 
-    configure_loglevel()
-
     calibration_directory = pathlib.Path('kalibrering')
-    input = os.environ.get('INPUT', 'input') if not calibration_directory.is_dir() else calibration_directory
-    logger.info(f'Using {input}')
-    database_manager = DatabaseManager(FileHandler(directory=input))
+    input_directory = database_manager.file_handler.input_directory
+
+    logger.info(f'Using {input_directory}')
     area_forecast = extract_area_forecast(database_manager)
     energy_requirements = extract_energy_requirements(area_forecast, database_manager)
     heating_systems = extract_heating_systems(energy_requirements, database_manager)
@@ -167,14 +163,13 @@ def main():
     transformed = transform_heating_systems(heating_systems, CALIBRATION_YEAR)
     sorted_df = sort_heating_systems_by_energy_source(transformed)
 
-    print(transformed.to_markdown())
-    transposed = sorted_df[[('gwh', 'residential'), ('gwh', 'commercial'), ('total', '')]].transpose()
-    print(transposed.to_markdown())
-    transposed = transposed.set_index(pd.Index(['Boliger', 'Yrkesbygg', 'Total'], name='gwh'))
+    transposed = sorted_df[[('gwh', 'residential'), ('gwh', 'commercial')]].transpose()
+    transposed = transposed.set_index(pd.Index(['Boliger', 'Yrkesbygg'], name='gwh'))
     tabbed = transposed.round(1).to_csv(sep='\t', header=False, index_label=None).replace('.', ',')
     print(tabbed)
     pyperclip.copy(tabbed)
+    return transposed
 
 
 if __name__ == '__main__':
-    main()
+    run_calibration(DatabaseManager(FileHandler(input_directory='kalibrering')))

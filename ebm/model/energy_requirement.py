@@ -101,9 +101,7 @@ class EnergyRequirement:
                 result = heating_reduction.loc[heating_reduction['building_condition'] == building_condition]
                 result = result.set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year'])
 
-                yield transform(result.kwh_m2, heating_rv_factor)
-
-                #yield result.kwh_m2
+                yield result.kwh_m2
 
     def calculate_energy_requirements(
             self,

@@ -143,10 +143,10 @@ class HeatingSystems:
             left_on=['building_category', 'TEK'],
             right_on=['building_category', 'TEK'])[
             ['building_category', 'building_condition', 'purpose', 'TEK', 'year', 'kwh_m2', 'm2', 'energy_requirement',
-             'Oppvarmingstyper', 'tek_share', GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD, SPISSLAST_ANDEL,
-             SPISSLAST_VIRKNINGSGRAD, EKSTRALAST_VIRKNINGSGRAD, EKSTRALAST_VIRKNINGSGRAD, DHW_EFFICIENCY,
-             SPESIFIKT_ELFORBRUK,
-             KJOLING_VIRKNINGSGRAD]]
+             'Oppvarmingstyper', 'tek_share', GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD,
+             SPISSLAST_ANDEL, SPISSLAST_VIRKNINGSGRAD,
+             EKSTRALAST_VIRKNINGSGRAD, EKSTRALAST_ANDEL,
+             DHW_EFFICIENCY, SPESIFIKT_ELFORBRUK, KJOLING_VIRKNINGSGRAD]]
         # Unused columns
         # ,'Innfyrt_energi_kWh','Innfyrt_energi_GWh','Energibehov_samlet_GWh']]
         df = df.set_index(

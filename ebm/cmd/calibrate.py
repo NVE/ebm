@@ -79,53 +79,53 @@ def transform_heating_systems(heating_systems, calibration_year) -> pd.DataFrame
     heating_systems.loc[['house', 'apartment_block'], 'is_residential'] = 'residential'
     grouper = ['Oppvarmingstyper', 'is_residential', 'year']
     year_slice = (slice(None), slice(None), calibration_year)
-    heating_systems_2023: pd.DataFrame = heating_systems.groupby(by=grouper).sum('gwh').loc[year_slice]
+    df: pd.DataFrame = heating_systems.groupby(by=grouper).sum('gwh').loc[year_slice]
 
     # Classify energy_source
-    if 'energy_source' in heating_systems_2023.columns:
-        heating_systems_2023.drop(columns=['energy_source'], inplace=True)
-    heating_systems_2023.insert(0, 'energy_source', value=None)
+    if 'energy_source' in df.columns:
+        df.drop(columns=['energy_source'], inplace=True)
+    df.insert(0, 'energy_source', value=None)
 
-    heating_systems_2023.loc['DH', 'energy_source'] = DISTRICT_HEATING
-    heating_systems_2023.loc['HP Central heating - DH', 'energy_source'] = DISTRICT_HEATING
-    heating_systems_2023.loc['DH - Bio', 'energy_source'] = DISTRICT_HEATING
+    df.loc['DH', 'energy_source'] = DISTRICT_HEATING
+    df.loc['HP Central heating - DH', 'energy_source'] = DISTRICT_HEATING
+    df.loc['DH - Bio', 'energy_source'] = DISTRICT_HEATING
 
-    heating_systems_2023.loc['Gas', 'energy_source'] = FOSSIL
+    df.loc['Gas', 'energy_source'] = FOSSIL
 
-    heating_systems_2023.loc['HP Central heating - Gas', 'energy_source'] = HEATPUMP_AIR_SOURCE
+    df.loc['HP Central heating - Gas', 'energy_source'] = HEATPUMP_AIR_SOURCE
 
-    heating_systems_2023.loc['Electricity', 'energy_source'] = ELECTRICITY
+    df.loc['Electricity', 'energy_source'] = ELECTRICITY
 
-    heating_systems_2023.loc['Electric boiler', 'energy_source'] = DOMESTIC_HOT_WATER
-    heating_systems_2023.loc['Electric boiler - Solar', 'energy_source'] = DOMESTIC_HOT_WATER
+    df.loc['Electric boiler', 'energy_source'] = DOMESTIC_HOT_WATER
+    df.loc['Electric boiler - Solar', 'energy_source'] = DOMESTIC_HOT_WATER
 
-    heating_systems_2023.loc['Electricity - Bio', 'energy_source'] = BIO
+    df.loc['Electricity - Bio', 'energy_source'] = BIO
 
-    heating_systems_2023.loc['HP - Bio', 'energy_source'] = HEATPUMP_WATER_SOUCE
-    heating_systems_2023.loc['HP - Electricity', 'energy_source'] = HEATPUMP_AIR_SOURCE
+    df.loc['HP - Bio', 'energy_source'] = HEATPUMP_WATER_SOUCE
+    df.loc['HP - Electricity', 'energy_source'] = HEATPUMP_AIR_SOURCE
 
-    heating_systems_2023.loc['HP Central heating - Bio', 'energy_source'] = HEATPUMP_WATER_SOUCE
-    heating_systems_2023.loc['HP Central heating', 'energy_source'] = HEATPUMP_WATER_SOUCE
+    df.loc['HP Central heating - Bio', 'energy_source'] = HEATPUMP_WATER_SOUCE
+    df.loc['HP Central heating', 'energy_source'] = HEATPUMP_WATER_SOUCE
 
     # Filter energy_use
 
-    energy_use = heating_systems_2023[heating_systems_2023['energy_source'].isin([ELECTRICITY, BIO, FOSSIL,
-                                                                                  DISTRICT_HEATING])].groupby(by=['is_residential', 'energy_source']).sum()[['gwh']].copy()
+    energy_use = df[df['energy_source'].isin([ELECTRICITY, BIO, FOSSIL, DISTRICT_HEATING])].groupby(
+        by=['is_residential', 'energy_source']).sum()[['gwh']].copy()
 
     # Group and sum energy_usage by energy_source
-    df = energy_use.groupby(by=['is_residential', 'energy_source']).sum()[['gwh']].copy()
+    grouped = energy_use.groupby(by=['is_residential', 'energy_source']).sum()[['gwh']].copy()
 
-    df = df.reset_index().copy()[['is_residential', 'energy_source', 'gwh']]
-    df = df.pivot(columns=['is_residential'], index=['energy_source'], values=['gwh'])
-    df['comOres'] = df.loc[:, ('gwh', 'commercial')] / df.loc[:, ('gwh', 'residential')]
+    grouped = grouped.reset_index().copy()[['is_residential', 'energy_source', 'gwh']]
+    grouped = grouped.pivot(columns=['is_residential'], index=['energy_source'], values=['gwh'])
+    grouped['comOres'] = grouped.loc[:, ('gwh', 'commercial')] / grouped.loc[:, ('gwh', 'residential')]
 
-    df.insert(1, ('pct', 'commercial'), df.loc[:, ('gwh', 'commercial')] / df.loc[:, ('gwh', 'commercial')].sum())
-    df.insert(2, ('pct', 'residential'), df.loc[:, ('gwh', 'residential')] / df.loc[:, ('gwh', 'residential')].sum())
+    grouped.insert(1, ('pct', 'commercial'), grouped.loc[:, ('gwh', 'commercial')] / grouped.loc[:, ('gwh', 'commercial')].sum())
+    grouped.insert(2, ('pct', 'residential'), grouped.loc[:, ('gwh', 'residential')] / grouped.loc[:, ('gwh', 'residential')].sum())
 
     # Add total
 
-    df['total'] = df[('gwh', 'commercial')] + df[('gwh', 'residential')]
-    return df
+    grouped['total'] = grouped[('gwh', 'commercial')] + grouped[('gwh', 'residential')]
+    return grouped
 
 
 def sort_heating_systems_by_energy_source(transformed):

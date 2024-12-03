@@ -29,6 +29,9 @@ class BuildingCategory(StrEnum):
     def is_residential(self) -> bool:
         return self == BuildingCategory.HOUSE or self == BuildingCategory.APARTMENT_BLOCK
 
+    def is_commercial(self) -> bool:
+        return not self.is_residential()
+
     @staticmethod
     def from_string(category_name: str) -> 'BuildingCategory':
         """Create an enum object from category name

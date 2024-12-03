@@ -4,8 +4,6 @@ import pandas as pd
 
 from ebm.model.file_handler import FileHandler
 from ebm.model.building_category import BuildingCategory
-from ebm.model.building_condition import BuildingCondition
-from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.data_classes import TEKParameters
 
 
@@ -13,7 +11,7 @@ from ebm.model.data_classes import TEKParameters
 # - add method to change all strings to lower case and underscore instead of space
 # - change column strings used in methods to constants 
 
-class DatabaseManager():
+class DatabaseManager:
     """
     Manages database operations.
     """
@@ -252,6 +250,27 @@ class DatabaseManager():
 
     def get_holiday_home_by_year(self) -> pd.DataFrame:
         return self.file_handler.get_holiday_home_by_year().set_index('year')
+
+    def get_area_per_person(self,
+                            building_category: BuildingCategory = None) -> pd.Series:
+        """
+        Return area_per_person as a pd.Series
+
+        Parameters
+        ----------
+        building_category: BuildingCategory, optional
+            filter for building category
+        Returns
+        -------
+        pd.Series
+            float values indexed by building_category, (year)
+        """
+        df = self.file_handler.get_area_per_person()
+        df = df.set_index('building_category')
+
+        if building_category:
+            return df.area_per_person.loc[building_category]
+        return df.area_per_person
 
     def validate_database(self):
         missing_files = self.file_handler.check_for_missing_files()

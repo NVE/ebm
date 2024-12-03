@@ -25,7 +25,7 @@ class ConstructionCalculator:
          calculate_construction_as_list(building_category, demolition_floor_area, database_manager=None)
             Calculate constructed floor area for buildings using provided demolition floor area and input data
                 from database manager.
-        calculate_commercial_construction(building_category, total_floor_area, constructed_floor_area=None, demolition_floor_area=None, population=None)
+        calculate_industrial_construction(building_category, total_floor_area, constructed_floor_area=None, demolition_floor_area=None, population=None)
             Calculate the commercial construction metrics over a given period.
         calculate_residential_construction(population, household_size, building_category_share, build_area_sum, yearly_demolished_floor_area, average_floor_area=175)
             Calculate various residential construction metrics based on population, household size, and building data.
@@ -326,14 +326,14 @@ class ConstructionCalculator:
         return households
 
     @staticmethod
-    def calculate_commercial_construction(building_category: BuildingCategory,
+    def calculate_industrial_construction(building_category: BuildingCategory,
                                           total_floor_area: typing.Union[pd.Series, int],
                                           constructed_floor_area: pd.Series = None,
                                           demolition_floor_area: pd.Series = None,
                                           population: pd.Series = None,
                                           period=YearRange(2010, 2050)) -> pd.DataFrame:
         """
-        Calculate the commercial construction metrics over a given period.
+        Calculate the industrial construction metrics over a given period.
 
         Parameters
         ----------
@@ -368,7 +368,7 @@ class ConstructionCalculator:
         - The function assumes that the input Series and DataFrame have appropriate indices corresponding to the years.
         """
 
-        logger.debug(f'calculate_commercial_construction {building_category}')
+        logger.debug(f'calculate_industrial_construction {building_category}')
 
         ConstructionCalculator()._check_index(period, demolition_floor_area)
         ConstructionCalculator()._check_index(period, population)
@@ -429,7 +429,7 @@ class ConstructionCalculator:
     def calculate_total_floor_area(floor_area_over_population_growth: pd.Series,
                                    population_growth: pd.Series,
                                    total_floor_area: pd.Series,
-                                   period: YearRange):
+                                    period: YearRange):
         """
         Calculate the total floor area over a given period based on population growth.
 
@@ -684,6 +684,46 @@ class ConstructionCalculator:
         return accumulated_constructed_floor_area
 
     @staticmethod
+    def calculate_commercial_construction(building_category: BuildingCategory,
+                                          population: pd.Series,
+                                          area_by_person: typing.Union[float, pd.Series],
+                                          demolition: pd.Series) -> pd.DataFrame:
+        """
+        Calculate a projection of contructed floor area by building_category. The calculation makes the assumption that
+        all demolished floor area will be replaced with construction.
+
+        Parameters
+        ----------
+        building_category : BuildingCategory
+            possibly redundant building_category for the construction projection
+        population : pd.Series
+            population by year
+        area_by_person : pd.Series
+            float or pd.Series containing the floor area per person for the building_category
+        demolition : pd.Series
+            yearly demolition to be added to the floor area.
+
+        Returns
+        -------
+        pd.Dataframe
+            floor area constructed by year
+            accumalated contructed floor area 
+        """
+        if not demolition.index.isin(population.index).all(): 
+            raise ValueError('years in demolition series not present in popolutation series')
+        
+        total_area = area_by_person * population.loc[demolition.index]
+        demolition_prev_year = demolition.shift(periods=1, fill_value=0)
+        yearly_constructed = total_area.diff().fillna(0) + demolition_prev_year
+
+        accumulated_constructed = yearly_constructed.cumsum()
+        commercial_construction = pd.DataFrame({
+            "constructed_floor_area": yearly_constructed,
+            "accumulated_constructed_floor_area": accumulated_constructed
+        })
+        return commercial_construction
+
+    @staticmethod
     def calculate_construction(building_category: BuildingCategory, demolition_floor_area: Union[pd.Series, list],
                                database_manager: DatabaseManager, period: YearRange) -> pd.DataFrame:
         """
@@ -718,10 +758,17 @@ class ConstructionCalculator:
         if isinstance(demolition_floor_area, list):
             demolition_floor_area = pd.Series(demolition_floor_area, index=period.range())
 
+        new_buildings_population = database_manager.get_construction_population()[['population', 'household_size']]
+        if building_category.is_commercial() and building_category != BuildingCategory.STORAGE_REPAIRS:
+            return ConstructionCalculator.calculate_commercial_construction(
+                building_category=building_category,
+                population=new_buildings_population['population'],
+                area_by_person=database_manager.get_area_per_person(building_category),
+                demolition=demolition_floor_area
+            )
         yearly_construction_floor_area = database_manager.get_building_category_floor_area(building_category)
         area_parameters = database_manager.get_area_parameters()
         total_floor_area = area_parameters[area_parameters.building_category == building_category].area.sum()
-        new_buildings_population = database_manager.get_construction_population()[['population', 'household_size']]
 
         if building_category.is_residential():
             household_size = new_buildings_population['household_size']
@@ -746,7 +793,7 @@ class ConstructionCalculator:
                                                                                average_floor_area=average_floor_area,
                                                                                period=period)
 
-        return ConstructionCalculator.calculate_commercial_construction(building_category=building_category,
+        return ConstructionCalculator.calculate_industrial_construction(building_category=building_category,
                                                                         total_floor_area=total_floor_area,
                                                                         constructed_floor_area=yearly_construction_floor_area,
                                                                         demolition_floor_area=demolition_floor_area,

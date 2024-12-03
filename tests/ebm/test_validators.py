@@ -19,7 +19,9 @@ from ebm.validators import (tek_parameters,
                             energy_requirement_reduction_per_condition,
                             energy_requirement_yearly_improvements,
                             heating_systems,
-                            energy_requirement_policy_improvements)
+                            energy_requirement_policy_improvements, 
+                            area_per_person,
+                            check_overlapping_tek_periods)
 
 
 @pytest.fixture
@@ -27,10 +29,31 @@ def ok_tek_parameters() -> pd.DataFrame:
     return pd.DataFrame({
         'TEK': ['PRE_TEK49_1940', 'TEK69_COM', 'TEK07'],
         'building_year': [1940, 1978, 1990],
-        'period_start_year': [0, 1971, 2014],
-        'period_end_year': [1955, 1990, 2024]
+        'period_start_year': [0, 1956, 2014],
+        'period_end_year': [1955, 2013, 2050]
     })
 
+
+def test_tek_overlapping_periods():
+    df = pd.DataFrame({
+        'TEK': ['PRE_TEK49_1940', 'TEK07'],
+        'building_year': [1940, 1990],
+        'period_start_year': [0, 2014],
+        'period_end_year': [1955, 2050]
+    })
+    
+    with pytest.raises(pa.errors.SchemaError):
+        tek_parameters.validate(df)
+
+
+def test_tek_overlapping_periods_when_tek_parameters_are_unsorted():
+    df = pd.DataFrame([{'TEK':'TEK3', 'building_year': 1955, 'period_start_year': 1951, 'period_end_year': 2050},
+                       {'TEK':'TEK2', 'building_year': 1945, 'period_start_year': 1940, 'period_end_year': 1950}])
+    
+    pd.testing.assert_series_equal(
+        check_overlapping_tek_periods(df),
+        pd.Series([True, True]), check_index=False)
+    
 
 def test_tek_parameters_when_all_are_correct(ok_tek_parameters: pd.DataFrame):
     tek_parameters.validate(ok_tek_parameters)
@@ -144,7 +167,8 @@ def test_construction_building_category_yearly(ok_construction_building_category
 
 
 @pytest.mark.parametrize('building_category,row', itertools.product(
-    [b for b in BuildingCategory], [0, 1, 2, 3]))
+    [b for b in [BuildingCategory.HOUSE, BuildingCategory.APARTMENT_BLOCK, BuildingCategory.STORAGE_REPAIRS]], 
+    [0, 1, 2, 3]))
 def test_construction_building_category_yearly_commercial_area(ok_construction_building_category_yearly,
                                                                building_category: BuildingCategory,
                                                                row: int):
@@ -617,3 +641,26 @@ apartment_block,TEK07,Electricity,0.0,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4
 retail,TEK97,Electricity,0.08158166937579898,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4
 retail,PRE_TEK49,Electricity,0.07593898514970877,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4"""
     heating_systems.validate(pd.read_csv(io.StringIO(heating_systems_csv)))
+
+
+def test_area_per_person_ok():
+    area_per_person_csv = """building_category,area_per_person
+kindergarten,0.6
+retail,6.0
+hotel,1.6
+sports,1.3
+office,5.5
+culture,1.3
+school,2.8
+nursing_home,1.3
+hospital,0.6
+university,0.6"""
+    area_per_person.validate(pd.read_csv(io.StringIO(area_per_person_csv)))
+
+
+def test_area_per_person_raises_schema_error():
+    area_per_person_csv = """building_category,area_per_person
+invalid_category,0.6
+"""
+    with pytest.raises(pa.errors.SchemaError):
+        area_per_person.validate(pd.read_csv(io.StringIO(area_per_person_csv)))

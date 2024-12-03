@@ -9,6 +9,16 @@ class HeatingSystems:
     def __init__(self, heating_systems_parameters: pd.DataFrame = None):
         self.heating_systems_parameters = heating_systems_parameters
 
+    def grouped_heating_systems(self) -> pd.DataFrame:
+        df = self.heating_systems_parameters
+
+        aggregates = {'tek_share': 'sum', 'Ekstralast andel': 'sum', 'Grunnlast andel': 'sum', 'Spisslast andel': 'sum',
+        'Grunnlast virkningsgrad': 'sum', 'Spisslast virkningsgrad': 'sum',
+        'Ekstralast virkningsgrad': 'sum', 'Tappevann virkningsgrad': 'sum',
+        'Spesifikt elforbruk': 'sum', 'Kjoling virkningsgrad': 'sum'}
+        grouped = df.groupby(by=['building_category', 'TEK', 'Oppvarmingstyper']).agg(aggregates)
+        return grouped.reset_index()
+
     def calculate(self, energy_requirements: pd.DataFrame) -> pd.DataFrame:
         logger.warning('Merge TEK69s and PRE_TEK49s at an improper place')
         energy_requirements = FilterTek.remove_tek_suffix(energy_requirements, suffix='_RES')
@@ -32,7 +42,7 @@ class HeatingSystems:
              'Spesifikt elforbruk',
              'Kjoling virkningsgrad']]  # ,'Innfyrt_energi_kWh','Innfyrt_energi_GWh','Energibehov_samlet_GWh']]
 
-        d2 = d2.set_index(['building_category', 'building_condition', 'purpose', 'TEK', 'year']).sort_index()
+        d2 = d2.set_index(['building_category', 'building_condition', 'purpose', 'TEK', 'year', 'Oppvarmingstyper']).sort_index()
 
         # Make column eq_ts for tek_share adjusted energy requirement
         d2['eq_ts'] = d2.energy_requirement * d2.tek_share
@@ -73,9 +83,8 @@ class HeatingSystems:
 
         d2.loc[:, 'gwh'] = d2.loc[:, 'kwh'] / 10 ** 6
 
-        d2 = d2.sort_index(level=['building_category', 'TEK', 'year', 'building_condition', 'purpose'])
-        return d2[['Oppvarmingstyper',
-                   'tek_share',
+        d2 = d2.sort_index(level=['building_category', 'TEK', 'year', 'building_condition', 'purpose', 'Oppvarmingstyper'])
+        return d2[['tek_share',
                    'eq_ts',
                    'RV_GL',
                    'RV_SL',

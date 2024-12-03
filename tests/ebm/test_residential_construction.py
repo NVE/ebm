@@ -4,7 +4,7 @@ import pytest
 
 from ebm.model.construction import ConstructionCalculator
 from ebm.model.data_classes import YearRange
-from .test_commercial_construction import default_input
+from .test_industrial_construction import default_input
 
 
 def test_calculate_yearly_floor_area_change_accept_int_and_list():

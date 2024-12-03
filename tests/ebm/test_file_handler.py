@@ -1,5 +1,6 @@
 import os
 import pathlib
+from unittest.mock import Mock
 
 import pandas as pd
 import pandera as pa
@@ -42,7 +43,8 @@ def test_check_for_missing_files_return_list(tmp_path):
     assert 'heating_systems.csv' in missing_files
     assert 'holiday_home_energy_consumption.csv' in missing_files
     assert 'holiday_home_by_year.csv' in missing_files
-    assert len(missing_files) == 14, 'Unexpected list length returned from check_for_missing_files'
+    assert 'area_per_person.csv' in missing_files
+    assert len(missing_files) == 15, 'Unexpected list length returned from check_for_missing_files'
 
 
 def test_filehandler_init_supports_alternative_path(tmp_path):
@@ -155,6 +157,14 @@ def test_filehandler_validate_created_input_file_raises_schemaerrors_on_fail(tmp
 
     with pytest.raises(pa.errors.SchemaErrors):
         tmp_file_handler.validate_input_files()
+
+
+def test_filehandler_get_area_per_person_calls_get_file(tmp_path):
+    fh = FileHandler(directory=tmp_path)
+    fh.get_file = Mock(return_value='FROM_FILE')
+
+    assert fh.get_area_per_person() == 'FROM_FILE'
+    fh.get_file.assert_called_with('area_per_person.csv')
 
 
 if __name__ == "__main__":

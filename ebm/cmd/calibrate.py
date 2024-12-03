@@ -1,4 +1,3 @@
-import os
 import pathlib
 
 from loguru import logger
@@ -190,5 +189,9 @@ def run_calibration(database_manager, calibration_year):
     return transposed
 
 
-if __name__ == '__main__':
+def main():
     run_calibration(DatabaseManager(FileHandler(input_directory='kalibrering', calibration_year=CALIBRATION_YEAR)))
+
+
+if __name__ == '__main__':
+    main()

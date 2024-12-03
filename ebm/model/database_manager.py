@@ -261,11 +261,10 @@ class DatabaseManager:
         return self.file_handler.get_holiday_home_by_year().set_index('year')
 
     def get_calibrate_heating_rv(self) -> pd.Series:
-        df = default_calibrate_heating_rv()
-        if (self.file_handler.input_directory / 'calibrate_heating_rv.xlsx').is_file():
-            df = self.file_handler.get_file('calibrate_heating_rv.xlsx')
+        df = self.file_handler.get_calibrate_heating_rv()
         df = expand_building_categories(df)
-        return df.set_index('building_category')['heating_rv_factor']
+        df['purpose'] = 'heating_rv'
+        return df.set_index(['building_category', 'purpose'])['heating_rv_factor']
 
     def get_area_per_person(self,
                             building_category: BuildingCategory = None) -> pd.Series:

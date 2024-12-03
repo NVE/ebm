@@ -71,5 +71,27 @@ culture,PRE_TEK49,heating_rv,400"""))
     assert not result['kwh_m2'].isna().any()
 
 
+def test_get_calibrate_heating_rv():
+    mock_fh = Mock()
+    dm = DatabaseManager(mock_fh)
+
+    calibrated_heating_rv = pd.DataFrame({'building_category': ['commercial', 'residential'],
+                                          'heating_rv_factor': [1.2, 3.4]})
+    mock_fh.get_calibrate_heating_rv = Mock()
+    mock_fh.get_calibrate_heating_rv.return_value = calibrated_heating_rv
+
+    result = dm.get_calibrate_heating_rv()
+
+    residential = [BuildingCategory.HOUSE, BuildingCategory.APARTMENT_BLOCK]
+    non_residential = [bc for bc in BuildingCategory if not bc.is_residential()]
+    expected = pd.DataFrame({
+        'purpose': ['heating_rv']*13,
+        'building_category': non_residential + residential,
+        'heating_rv_factor': [1.2]*11 + [3.4] * 2,
+
+    }).set_index(['building_category', 'purpose']).heating_rv_factor
+
+    pd.testing.assert_series_equal(result, expected)
+
 
 

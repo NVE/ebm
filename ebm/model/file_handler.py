@@ -8,6 +8,7 @@ from loguru import logger
 from pandera.errors import SchemaErrors, SchemaError
 
 import ebm.validators as validators
+from ebm.model.calibrate_heating_rv import default_calibrate_heating_rv
 
 
 class FileHandler:
@@ -243,6 +244,12 @@ class FileHandler:
 
     def get_area_per_person(self):
         return self.get_file(self.AREA_PER_PERSON)
+
+    def get_calibrate_heating_rv(self) -> pd.DataFrame:
+        calibrate_heating_rv = self.input_directory / 'calibrate_heating_rv.xlsx'
+        if calibrate_heating_rv.is_file():
+            return self.get_file(calibrate_heating_rv.name)
+        return default_calibrate_heating_rv()
 
     def _check_is_file(self, filename: str) -> bool:
         """

@@ -3,6 +3,8 @@ from enum import unique, StrEnum
 import pandas as pd
 from loguru import logger
 
+RESIDENTIAL = 'residential'
+NON_RESIDENTIAL = 'non_residential'
 
 @unique
 class BuildingCategory(StrEnum):
@@ -30,7 +32,7 @@ class BuildingCategory(StrEnum):
     def is_residential(self) -> bool:
         return self == BuildingCategory.HOUSE or self == BuildingCategory.APARTMENT_BLOCK
 
-    def is_commercial(self) -> bool:
+    def is_non_residential(self) -> bool:
         return not self.is_residential()
 
     @staticmethod
@@ -81,14 +83,14 @@ def from_norsk(norsk: str) -> BuildingCategory:
 
 
 def expand_building_category(row):
-    if row['building_category'] == 'commercial':
-        commercial = [b for b in BuildingCategory if b.is_commercial()]
+    if row['building_category'] == NON_RESIDENTIAL:
+        commercial = [b for b in BuildingCategory if b.is_non_residential()]
         values = {k: [v] * len(commercial) for k, v in row.to_dict().items() if k != 'building_category'}
         return pd.DataFrame({
             'building_category': commercial,
             **values
         })
-    elif row['building_category'] == 'residential':
+    elif row['building_category'] == RESIDENTIAL:
         residential = [b for b in BuildingCategory if b.is_residential()]
         values = {k: [v] * len(residential) for k, v in row.to_dict().items() if k != 'building_category'}
         return pd.DataFrame({

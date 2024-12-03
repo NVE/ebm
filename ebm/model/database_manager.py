@@ -181,9 +181,10 @@ class DatabaseManager:
 
         return area_dict
 
-    def get_energy_req_original_condition(self) -> pd.DataFrame: 
+    def get_energy_req_original_condition(self) -> pd.DataFrame:
         """
-        Get dataframe with energy requirement (kWh/m^2) for floor area in original condition.
+        Get dataframe with energy requirement (kWh/m^2) for floor area in original condition. The result will be
+            calibrated using the dataframe from DatabaseManger.get_calibrate_heating_rv
 
         Returns
         -------
@@ -191,7 +192,14 @@ class DatabaseManager:
             Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
             per building category and purpose.
         """
-        return self.file_handler.get_energy_req_original_condition()
+        df = self.file_handler.get_energy_req_original_condition().set_index(['building_category', 'purpose', 'TEK'])
+        heating_rv_factor = self.get_calibrate_heating_rv()
+
+        calibrated = heating_rv_factor * df.kwh_m2
+        calibrated.name = 'kwh_m2'
+        calibrated.loc[calibrated.isna()] = df.loc[calibrated.isna(), 'kwh_m2']
+        q = calibrated.to_frame().reset_index()
+        return q.loc[~q.kwh_m2.isna()]
 
     def get_energy_req_reduction_per_condition(self) -> pd.DataFrame:
         """
@@ -258,7 +266,6 @@ class DatabaseManager:
             df = self.file_handler.get_file('calibrate_heating_rv.xlsx')
         df = expand_building_categories(df)
         return df.set_index('building_category')['heating_rv_factor']
-
 
     def get_area_per_person(self,
                             building_category: BuildingCategory = None) -> pd.Series:

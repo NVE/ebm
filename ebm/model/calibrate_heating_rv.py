@@ -11,7 +11,7 @@ def transform(heating_rv: pd.Series, heating_rv_factor=None) -> pd.Series:
 
 def default_calibrate_heating_rv():
     df = pd.DataFrame({
-        'building_category': ['commercial', 'residential'],
+        'building_category': ['non_residential', 'residential'],
         'heating_rv_factor': [1.0, 1.0]})
     return df
 

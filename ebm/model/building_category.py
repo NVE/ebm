@@ -102,5 +102,28 @@ def expand_building_category(row):
 
 
 # Apply the function to each row and concatenate the results
-def expand_building_categories(df):
-    return pd.concat([expand_building_category(row) for _, row in df.iterrows()], ignore_index=True)
+def expand_building_categories(df: pd.DataFrame):
+    """
+    Transform dataframe so that building_categories within groups (residential/non-esidential) are unpacked
+    into all containing categories. Duplicates categories are removed. Specific categories with values area
+    preferred over category groups when there is a conflict.
+
+    Parameters
+    ----------
+    df : pandas.core.frame.DataFrame
+
+    Returns
+    -------
+    pandas.core.frame.DataFrame
+    """
+    df = df.drop_duplicates(subset=['building_category'], ignore_index=True, keep='last')
+    rows = [row for _, row in df.iterrows()]
+    expanded_groups = list(filter(lambda bc: bc.building_category in (RESIDENTIAL, NON_RESIDENTIAL), rows))
+
+    specific = df[~df.building_category.isin([RESIDENTIAL, NON_RESIDENTIAL])]
+    specific_building_categories = specific.building_category.unique()
+
+    expanded = [expand_building_category(row) for row in expanded_groups]
+    filtered = list(filter(lambda bc: not bc.building_category.isin(specific_building_categories).any(), expanded))
+
+    return pd.concat(filtered + [specific])

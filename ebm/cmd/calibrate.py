@@ -139,15 +139,6 @@ def sort_heating_systems_by_energy_source(transformed):
     return df_sorted
 
 
-def copy_to_clipboard(text):
-    r = tk.Tk()
-    r.withdraw()  # Hide the main window
-    r.clipboard_clear()  # Clear the clipboard
-    r.clipboard_append(text)  # Append the text to the clipboard
-    r.update()  # Update the clipboard
-    #r.destroy()  # Destroy the main window
-
-
 def create_heating_rv(database_manager):
     file_handler: FileHandler = database_manager.file_handler
     heating_rv = file_handler.input_directory / 'calibrate_heating_rv.xlsx'
@@ -190,7 +181,7 @@ def run_calibration(database_manager, calibration_year):
 
 
 def main():
-    run_calibration(DatabaseManager(FileHandler(input_directory='kalibrering', calibration_year=CALIBRATION_YEAR)))
+    run_calibration(DatabaseManager(FileHandler(directory='kalibrering')))
 
 
 if __name__ == '__main__':

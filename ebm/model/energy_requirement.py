@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 
 from ebm.model import DatabaseManager
-from ebm.model.calibrate_heating_rv import transform
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange

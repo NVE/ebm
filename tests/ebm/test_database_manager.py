@@ -75,8 +75,8 @@ def test_get_calibrate_heating_rv():
     mock_fh = Mock()
     dm = DatabaseManager(mock_fh)
 
-    calibrated_heating_rv = pd.DataFrame({'building_category': ['non_residential', 'residential'],
-                                          'heating_rv_factor': [1.2, 3.4]})
+    calibrated_heating_rv = pd.DataFrame({'building_category': ['kindergarten', 'non_residential', 'residential'],
+                                          'heating_rv_factor': [1.2, 1.2, 3.4]})
     mock_fh.get_calibrate_heating_rv = Mock()
     mock_fh.get_calibrate_heating_rv.return_value = calibrated_heating_rv
 
@@ -91,7 +91,7 @@ def test_get_calibrate_heating_rv():
 
     }).set_index(['building_category', 'purpose']).heating_rv_factor
 
-    pd.testing.assert_series_equal(result, expected)
+    pd.testing.assert_series_equal(result, expected, check_like=True)
 
 
 

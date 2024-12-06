@@ -138,7 +138,6 @@ def expand_building_categories(df: pd.DataFrame, unique_columns: typing.List[str
 
     expanded_groups = [expand_building_category(row) for _, row in groups.iterrows()]
 
-    specific_building_categories = specific.building_category.unique()
-    filtered = list(filter(lambda bc: not bc.building_category.isin(specific_building_categories).any(), expanded_groups))
+    filtered = [d[~d.building_category.isin(specific.building_category)] for d in expanded_groups]
 
     return pd.concat(filtered + [specific]).reindex()

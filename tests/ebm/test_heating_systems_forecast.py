@@ -71,39 +71,42 @@ kindergarten+Office,TEK87+TEK97,Electricity,DH,0.05000000000000001,0.05501630044
 """.strip()),
 names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022] ,skipinitialspace=True)
 
-@pytest.mark.skip()
-def test_add_missing_heating_systems_ok(efficiencies):
+
+def test_add_missing_heating_systems_ok():
     """
+    Test that missing heating systems are added with default value = 0. 
     """
     shares = pd.read_csv(io.StringIO("""
-Bygningskategori,TEK,Oppvarmingstyper,Year,TEK_andeler
-Kindergarten,TEK97,DH,2020,0.1832382347789622
-Kindergarten,TEK97,Gas,2020,0.07299731601863742                                                                                               
-""".strip()), skipinitialspace=True)
+kindergarten,TEK97,DH,2020,0.5                                                                                                                                     
+""".strip()),
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES], skipinitialspace=True)
     
+    result = add_missing_heating_systems(shares)
+
     expected = pd.read_csv(io.StringIO("""
-Bygningskategori,TEK,Oppvarmingstyper,Year,TEK_andeler
-Kindergarten,TEK97,DH,2020,0.1832382347789622
-Kindergarten,TEK97,Gas,2020,0.07299731601863742
-Kindergarten,TEK97,Electric boiler,2020,0.0
-Kindergarten,TEK97,Electricity,2020,0.0
-Kindergarten,TEK97,Electricity - Bio,2020,0.0
-Kindergarten,TEK97,DH - Bio,2020,0.0
-Kindergarten,TEK97,HP - Bio,2020,0.0
-Kindergarten,TEK97,HP - Electricity,2020,0.0
-Kindergarten,TEK97,HP Central heating - DH,2020,0.0
-Kindergarten,TEK97,HP Central heating,2020,0.0
-Kindergarten,TEK97,HP Central heating - Gas,2020,0.0
-Kindergarten,TEK97,Electric boiler - Solar,2020,0.0
-Kindergarten,TEK97,HP Central heating - Bio,2020,0.0                                                                                                    
-""".strip()), skipinitialspace=True)
+kindergarten,TEK97,DH,2020,0.5
+kindergarten,TEK97,Electric boiler,2020,0.0
+kindergarten,TEK97,Electricity,2020,0.0
+kindergarten,TEK97,Gas,2020,0.0                                       
+kindergarten,TEK97,Electricity - Bio,2020,0.0
+kindergarten,TEK97,DH - Bio,2020,0.0
+kindergarten,TEK97,HP - Bio,2020,0.0
+kindergarten,TEK97,HP - Electricity,2020,0.0
+kindergarten,TEK97,HP Central heating - DH,2020,0.0
+kindergarten,TEK97,HP Central heating,2020,0.0
+kindergarten,TEK97,HP Central heating - Gas,2020,0.0
+kindergarten,TEK97,Electric boiler - Solar,2020,0.0
+kindergarten,TEK97,HP Central heating - Bio,2020,0.0                                                                                                    
+""".strip()), 
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES], skipinitialspace=True)
     
-    result = add_missing_heating_systems(shares, efficiencies)
+    expected = expected.sort_values(by=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS])
+    result = result.sort_values(by=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS])
+    expected.reset_index(drop=True, inplace=True)
     result.reset_index(drop=True, inplace=True)
     pd.testing.assert_frame_equal(result, expected)
 
 
-# TODO: add tests to check if the different building categories are set properly. TEK??
 def test_expand_building_categoy_tek_all_categories():
     """
     Checks if all categories are added if building_category value == default.

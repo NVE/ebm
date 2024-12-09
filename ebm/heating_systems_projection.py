@@ -1,5 +1,6 @@
 import pandas as pd
 
+from ebm.model.heating_systems import HeatingSystems
 from ebm.model.building_category import BuildingCategory, RESIDENTIAL, NON_RESIDENTIAL
 
 BUILDING_CATEGORY = 'building_category'
@@ -11,9 +12,14 @@ TEK_SHARES = 'TEK_shares'
 
 
 def add_missing_heating_systems(heating_systems_shares: pd.DataFrame, 
-                                heating_systems_efficiencies: pd.DataFrame) -> pd.DataFrame:
+                                heating_systems: HeatingSystems = None) -> pd.DataFrame:
     df_aggregert_0 = heating_systems_shares.copy()
-    oppvarmingstyper = heating_systems_efficiencies[[HEATING_SYSTEMS]].copy()
+
+    if not heating_systems:
+        heating_systems = HeatingSystems
+    oppvarmingstyper = pd.DataFrame(
+        {HEATING_SYSTEMS: [hs for hs in heating_systems]}
+    )
 
     df_aggregert_0_kombinasjoner = df_aggregert_0[[BUILDING_CATEGORY, TEK]].drop_duplicates()
     df_aggregert_0_alle_oppvarmingstyper = df_aggregert_0_kombinasjoner.merge((oppvarmingstyper), how = 'cross')
@@ -21,7 +27,9 @@ def add_missing_heating_systems(heating_systems_shares: pd.DataFrame,
     df_aggregert_merged = df_aggregert_0_alle_oppvarmingstyper.merge(df_aggregert_0, 
                                                                     on = [BUILDING_CATEGORY, TEK, HEATING_SYSTEMS],
                                                                     how = 'left')
+    #TODO: Kan droppe kopi av df og heller ta fillna() for de to kolonnene 
     manglende_rader = df_aggregert_merged[df_aggregert_merged[TEK_SHARES].isna()].copy()
+    # TODO: change to access year in dataframe
     manglende_rader[YEAR] = 2020
     manglende_rader[TEK_SHARES] = 0
     manglende_rader = manglende_rader[[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, YEAR, TEK_SHARES]]
@@ -155,8 +163,7 @@ def main(heating_systems_shares: pd.DataFrame,
          heating_systems_forecast: pd.DataFrame) -> pd.DataFrame:
     
     # Legger til 0 på oppvarmingstyper som ikke eksisterer enda.
-    df_aggregert_alle_kombinasjoner = add_missing_heating_systems(heating_systems_shares, 
-                                                                      heating_systems_efficiencies)
+    df_aggregert_alle_kombinasjoner = add_missing_heating_systems(heating_systems_shares)
 
     # Gjør klar inputfilen for oppvarmingsandelene som skal framskrives.
     inputfil_oppvarming = expand_building_category_tek(heating_systems_forecast)

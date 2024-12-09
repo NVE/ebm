@@ -10,8 +10,8 @@ YEAR = 'year'
 TEK_SHARES = 'TEK_shares'
 
 
-def legge_til_alle_oppvarmingstyper(heating_systems_shares: pd.DataFrame, 
-                                    heating_systems_efficiencies: pd.DataFrame) -> pd.DataFrame:
+def add_missing_heating_systems(heating_systems_shares: pd.DataFrame, 
+                                heating_systems_efficiencies: pd.DataFrame) -> pd.DataFrame:
     df_aggregert_0 = heating_systems_shares.copy()
     oppvarmingstyper = heating_systems_efficiencies[[HEATING_SYSTEMS]].copy()
 
@@ -155,7 +155,7 @@ def main(heating_systems_shares: pd.DataFrame,
          heating_systems_forecast: pd.DataFrame) -> pd.DataFrame:
     
     # Legger til 0 på oppvarmingstyper som ikke eksisterer enda.
-    df_aggregert_alle_kombinasjoner = legge_til_alle_oppvarmingstyper(heating_systems_shares, 
+    df_aggregert_alle_kombinasjoner = add_missing_heating_systems(heating_systems_shares, 
                                                                       heating_systems_efficiencies)
 
     # Gjør klar inputfilen for oppvarmingsandelene som skal framskrives.

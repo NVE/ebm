@@ -5,7 +5,7 @@ import pytest
 
 from ebm.model.building_category import BuildingCategory
 from ebm.model.heating_systems import HeatingSystems
-from ebm.heating_systems_projection import (legge_til_alle_oppvarmingstyper,
+from ebm.heating_systems_projection import (add_missing_heating_systems,
                                           legge_til_ulike_oppvarmingslaster,
                                           aggregere_lik_oppvarming_fjern_0,
                                           expand_building_category_tek,
@@ -72,7 +72,7 @@ kindergarten+Office,TEK87+TEK97,Electricity,DH,0.05000000000000001,0.05501630044
 names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022] ,skipinitialspace=True)
 
 @pytest.mark.skip()
-def test_legg_til_alle_oppvarmingstyper_ok(efficiencies):
+def test_add_missing_heating_systems_ok(efficiencies):
     """
     """
     shares = pd.read_csv(io.StringIO("""
@@ -98,7 +98,7 @@ Kindergarten,TEK97,Electric boiler - Solar,2020,0.0
 Kindergarten,TEK97,HP Central heating - Bio,2020,0.0                                                                                                    
 """.strip()), skipinitialspace=True)
     
-    result = legge_til_alle_oppvarmingstyper(shares, efficiencies)
+    result = add_missing_heating_systems(shares, efficiencies)
     result.reset_index(drop=True, inplace=True)
     pd.testing.assert_frame_equal(result, expected)
 

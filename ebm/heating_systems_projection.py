@@ -1,19 +1,26 @@
 import pandas as pd
 
+BUILDING_CATEGORY = 'building_category'
+TEK = 'TEK'
+HEATING_SYSTEMS = 'Oppvarmingstyper'
+NEW_HEATING_SYSTEMS = 'Nye_oppvarmingstyper'
+YEAR = 'Year'
+TEK_SHARES = 'TEK_andeler'
+
 def legge_til_alle_oppvarmingstyper(heating_systems_shares, heating_systems_efficiencies):
     df_aggregert_0 = heating_systems_shares.copy()
-    oppvarmingstyper = heating_systems_efficiencies[["Oppvarmingstyper"]].copy()
+    oppvarmingstyper = heating_systems_efficiencies[[HEATING_SYSTEMS]].copy()
 
-    df_aggregert_0_kombinasjoner = df_aggregert_0[['Bygningskategori', 'TEK']].drop_duplicates()
+    df_aggregert_0_kombinasjoner = df_aggregert_0[[BUILDING_CATEGORY, TEK]].drop_duplicates()
     df_aggregert_0_alle_oppvarmingstyper = df_aggregert_0_kombinasjoner.merge((oppvarmingstyper), how = 'cross')
 
     df_aggregert_merged = df_aggregert_0_alle_oppvarmingstyper.merge(df_aggregert_0, 
-                                                                    on = ['Bygningskategori', 'TEK', 'Oppvarmingstyper'],
+                                                                    on = [BUILDING_CATEGORY, TEK, HEATING_SYSTEMS],
                                                                     how = 'left')
-    manglende_rader = df_aggregert_merged[df_aggregert_merged['TEK_andeler'].isna()].copy()
-    manglende_rader['Year'] = 2020
-    manglende_rader['TEK_andeler'] = 0
-    manglende_rader = manglende_rader[['Bygningskategori', 'TEK', 'Oppvarmingstyper', 'Year', 'TEK_andeler']]
+    manglende_rader = df_aggregert_merged[df_aggregert_merged[TEK_SHARES].isna()].copy()
+    manglende_rader[YEAR] = 2020
+    manglende_rader[TEK_SHARES] = 0
+    manglende_rader = manglende_rader[[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, YEAR, TEK_SHARES]]
 
     df_aggregert_alle_kombinasjoner = pd.concat([df_aggregert_0, manglende_rader])
     
@@ -21,14 +28,15 @@ def legge_til_alle_oppvarmingstyper(heating_systems_shares, heating_systems_effi
 
 def legge_til_ulike_oppvarmingslaster(df, heating_systems_efficiencies):
     df_hoved_spiss_og_ekstralast = heating_systems_efficiencies.copy()
-    df_oppvarmingsteknologier_andeler = df.merge(df_hoved_spiss_og_ekstralast, on = ['Oppvarmingstyper'], 
+    df_oppvarmingsteknologier_andeler = df.merge(df_hoved_spiss_og_ekstralast, on = [HEATING_SYSTEMS], 
                                                  how ='left')
+    df_oppvarmingsteknologier_andeler[YEAR] = df_oppvarmingsteknologier_andeler[YEAR].astype(int) 
     return df_oppvarmingsteknologier_andeler
 
 def aggregere_lik_oppvarming_fjern_0(df):
     df_fjern_null = df.query("TEK_andeler != 0").copy()
-    df_aggregert = df_fjern_null.groupby(["Bygningskategori", "TEK", "Oppvarmingstyper", "Year"], 
-                                         as_index = False)['TEK_andeler'].sum()
+    df_aggregert = df_fjern_null.groupby([BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, YEAR], 
+                                         as_index = False)[TEK_SHARES].sum()
     return df_aggregert
 
 def ekspandere_input_oppvarming(heating_systems_forecast):
@@ -38,63 +46,63 @@ def ekspandere_input_oppvarming(heating_systems_forecast):
     yrkesbygg = "Kindergarten+Office+Retail+Hotel+Sports+University+School+Nursinghome+Hospital+Storage repairs+Culture"
     
     df = heating_systems_forecast.copy()
-    df.loc[df['TEK'] == "default", 'TEK'] = alle_tek
-    df.loc[df['Bygningskategori'] == "default", 'Bygningskategori'] = alle_bygningskategorier
-    df.loc[df['Bygningskategori'] == "Household", 'Bygningskategori'] = husholdning
-    df.loc[df['Bygningskategori'] == "Non-residential", 'Bygningskategori'] = yrkesbygg
+    df.loc[df[TEK] == "default", TEK] = alle_tek
+    df.loc[df[BUILDING_CATEGORY] == "default", BUILDING_CATEGORY] = alle_bygningskategorier
+    df.loc[df[BUILDING_CATEGORY] == "Household", BUILDING_CATEGORY] = husholdning
+    df.loc[df[BUILDING_CATEGORY] == "Non-residential", BUILDING_CATEGORY] = yrkesbygg
 
-    df = df.assign(Bygningskategori = df['Bygningskategori'].str.split('+')).explode('Bygningskategori')
-    df2 = df.assign(TEK = df['TEK'].str.split('+')).explode('TEK')
+    df = df.assign(**{BUILDING_CATEGORY: df[BUILDING_CATEGORY].str.split('+')}).explode(BUILDING_CATEGORY)
+    df2 = df.assign(**{TEK: df[TEK].str.split('+')}).explode(TEK)
     df2 = df2.reset_index(drop = True)
     return df2
 
 def framskrive_oppvarming(df, inputfil):
     inputfil_oppvarming = inputfil
 
-    df_framskrive_oppvarming_long = inputfil_oppvarming.melt(id_vars = ["Bygningskategori", "TEK", "Oppvarmingstyper", "Nye_oppvarmingstyper"],
-                                                                var_name = "Year", value_name = "Andel_utskiftning")
-    liste_eksisterende_oppvarming = list(df_framskrive_oppvarming_long['Oppvarmingstyper'].unique())
-    liste_ny_oppvarming = list(df_framskrive_oppvarming_long['Nye_oppvarmingstyper'].unique())
+    df_framskrive_oppvarming_long = inputfil_oppvarming.melt(id_vars = [BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS],
+                                                                var_name = YEAR, value_name = "Andel_utskiftning")
+    liste_eksisterende_oppvarming = list(df_framskrive_oppvarming_long[HEATING_SYSTEMS].unique())
+    liste_ny_oppvarming = list(df_framskrive_oppvarming_long[NEW_HEATING_SYSTEMS].unique())
 
-    oppvarming_og_TEK = df.query(f"Oppvarmingstyper == {liste_eksisterende_oppvarming}")[['Bygningskategori','TEK', 'Oppvarmingstyper', 'Year', 'TEK_andeler']].copy()
-    oppvarming_og_TEK_foer_endring = df.query(f"Oppvarmingstyper == {liste_ny_oppvarming}")[['Bygningskategori','TEK','Oppvarmingstyper', 'TEK_andeler']].copy()
+    oppvarming_og_TEK = df.query(f"Oppvarmingstyper == {liste_eksisterende_oppvarming}")[[BUILDING_CATEGORY,TEK, HEATING_SYSTEMS, YEAR, TEK_SHARES]].copy()
+    oppvarming_og_TEK_foer_endring = df.query(f"Oppvarmingstyper == {liste_ny_oppvarming}")[[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS, TEK_SHARES]].copy()
 
-    df_merge = oppvarming_og_TEK.merge(df_framskrive_oppvarming_long, on = ['Bygningskategori','TEK','Oppvarmingstyper'], how = 'inner')
-    df_merge['Ny_andel'] = (df_merge['TEK_andeler']*
+    df_merge = oppvarming_og_TEK.merge(df_framskrive_oppvarming_long, on = [BUILDING_CATEGORY,TEK,HEATING_SYSTEMS], how = 'inner')
+    df_merge['Ny_andel'] = (df_merge[TEK_SHARES]*
                             df_merge['Andel_utskiftning'])
 
-    df_ny_andel_sum = df_merge.groupby(['Bygningskategori', 'TEK','Oppvarmingstyper', 'Year_y'], as_index = False)[['Ny_andel']].sum()
+    df_ny_andel_sum = df_merge.groupby([BUILDING_CATEGORY, TEK,HEATING_SYSTEMS, 'Year_y'], as_index = False)[['Ny_andel']].sum()
     df_ny_andel_sum = df_ny_andel_sum.rename(columns = {"Ny_andel": "Sum_ny_andel"})
 
-    df_merge_sum_ny_andel = pd.merge(df_merge, df_ny_andel_sum, on = ['Bygningskategori','TEK','Oppvarmingstyper', 'Year_y'])
+    df_merge_sum_ny_andel = pd.merge(df_merge, df_ny_andel_sum, on = [BUILDING_CATEGORY,TEK,HEATING_SYSTEMS, 'Year_y'])
 
-    df_merge_sum_ny_andel['Eksisterende_andel'] = ((df_merge_sum_ny_andel['TEK_andeler'] -
+    df_merge_sum_ny_andel['Eksisterende_andel'] = ((df_merge_sum_ny_andel[TEK_SHARES] -
                                                     df_merge_sum_ny_andel['Sum_ny_andel']))
 
-    kolonner_eksisterende = ['Year_y', 'Bygningskategori', 'TEK', 'Eksisterende_andel', 'Oppvarmingstyper']
-    navn_eksisterende_kolonner = {"Eksisterende_andel" : "TEK_andeler",
-                                    "Nye_oppvarmingstyper" : "Oppvarmingstyper", 
-                                    "Year_y" : "Year"}
+    kolonner_eksisterende = ['Year_y', BUILDING_CATEGORY, TEK, 'Eksisterende_andel', HEATING_SYSTEMS]
+    navn_eksisterende_kolonner = {"Eksisterende_andel" : TEK_SHARES,
+                                    NEW_HEATING_SYSTEMS : HEATING_SYSTEMS, 
+                                    "Year_y" : YEAR}
 
 
-    kolonner_nye = ['Year_y', 'Bygningskategori', 'TEK', 'Ny_andel', 'Nye_oppvarmingstyper']
-    navn_nye_kolonner = {"Ny_andel" : "TEK_andeler", 
-                        "Nye_oppvarmingstyper" : "Oppvarmingstyper", 
-                        "Year_y" : "Year"}
+    kolonner_nye = ['Year_y', BUILDING_CATEGORY, TEK, 'Ny_andel', NEW_HEATING_SYSTEMS]
+    navn_nye_kolonner = {"Ny_andel" : TEK_SHARES, 
+                        NEW_HEATING_SYSTEMS : HEATING_SYSTEMS, 
+                        "Year_y" : YEAR}
 
-    rekkefolge_kolonner = ['Year', 'Bygningskategori', 'TEK', 'Oppvarmingstyper', 'TEK_andeler']
+    rekkefolge_kolonner = [YEAR, BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, TEK_SHARES]
 
     nye_andeler_eksisterende = df_merge_sum_ny_andel[kolonner_eksisterende].rename(columns = navn_eksisterende_kolonner)
     
     nye_andeler_nye = df_merge_sum_ny_andel[kolonner_nye].rename(columns = navn_nye_kolonner)
     nye_andeler_nye = aggregere_lik_oppvarming_fjern_0(nye_andeler_nye)
 
-    nye_andeler_pluss_eksisterende = nye_andeler_nye.merge(oppvarming_og_TEK_foer_endring, on = ['Bygningskategori','TEK','Oppvarmingstyper'], how = 'inner')
-    nye_andeler_pluss_eksisterende['TEK_andeler'] = nye_andeler_pluss_eksisterende['TEK_andeler_x'] + nye_andeler_pluss_eksisterende['TEK_andeler_y']
+    nye_andeler_pluss_eksisterende = nye_andeler_nye.merge(oppvarming_og_TEK_foer_endring, on = [BUILDING_CATEGORY,TEK,HEATING_SYSTEMS], how = 'inner')
+    nye_andeler_pluss_eksisterende[TEK_SHARES] = nye_andeler_pluss_eksisterende['TEK_andeler_x'] + nye_andeler_pluss_eksisterende['TEK_andeler_y']
     nye_andeler_pluss_eksisterende = nye_andeler_pluss_eksisterende.drop(columns = ['TEK_andeler_x', 'TEK_andeler_y'])
 
     nye_andeler_samlet = pd.concat([nye_andeler_eksisterende, nye_andeler_pluss_eksisterende])
-    nye_andeler_drop_dupe = nye_andeler_samlet.drop_duplicates(subset = ['Year', 'Bygningskategori', 'TEK', 'Oppvarmingstyper', 'TEK_andeler'], keep = 'first')
+    nye_andeler_drop_dupe = nye_andeler_samlet.drop_duplicates(subset = [YEAR, BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, TEK_SHARES], keep = 'first')
     nye_andeler_samlet_uten_0 = aggregere_lik_oppvarming_fjern_0(nye_andeler_drop_dupe)
     nye_andeler_samlet_uten_0 = nye_andeler_samlet_uten_0[rekkefolge_kolonner]
 
@@ -105,7 +113,7 @@ def legge_til_resterende_aar_oppvarming(df_nye_andeler, df_eksisterende):
 
     def sortering_oppvarmingstyper(df):
         df_kombinasjoner = df.copy()
-        df_kombinasjoner['Sortering'] = df_kombinasjoner['Bygningskategori'] + df_kombinasjoner['TEK'] + df_kombinasjoner['Oppvarmingstyper']
+        df_kombinasjoner['Sortering'] = df_kombinasjoner[BUILDING_CATEGORY] + df_kombinasjoner[TEK] + df_kombinasjoner[HEATING_SYSTEMS]
         kombinasjonsliste = list(df_kombinasjoner['Sortering'].unique())
         
         return df_kombinasjoner, kombinasjonsliste
@@ -115,6 +123,7 @@ def legge_til_resterende_aar_oppvarming(df_nye_andeler, df_eksisterende):
     df_eksisterende_filtrert = df_eksisterende.query(f"Sortering != {alle_nye_kombinasjonsliste}")
     df_eksisterende_filtrert = df_eksisterende_filtrert.drop(columns = ['Sortering'])
 
+    # TODO: add period to this function, and set lower limit to period equal to last year (max) present in forecast data? 
     year_2021_2050 = list(range(2021, 2051))
     utvidede_aar_uendret = pd.concat([
         df_eksisterende_filtrert.assign(Year=year) for year in year_2021_2050

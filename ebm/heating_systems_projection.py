@@ -4,10 +4,11 @@ from ebm.model.building_category import BuildingCategory, RESIDENTIAL, NON_RESID
 
 BUILDING_CATEGORY = 'building_category'
 TEK = 'TEK'
-HEATING_SYSTEMS = 'Oppvarmingstyper'
-NEW_HEATING_SYSTEMS = 'Nye_oppvarmingstyper'
-YEAR = 'Year'
-TEK_SHARES = 'TEK_andeler'
+HEATING_SYSTEMS = 'heating_systems'
+NEW_HEATING_SYSTEMS = 'new_heating_systems'
+YEAR = 'year'
+TEK_SHARES = 'TEK_shares'
+
 
 def legge_til_alle_oppvarmingstyper(heating_systems_shares: pd.DataFrame, 
                                     heating_systems_efficiencies: pd.DataFrame) -> pd.DataFrame:
@@ -29,6 +30,7 @@ def legge_til_alle_oppvarmingstyper(heating_systems_shares: pd.DataFrame,
     
     return df_aggregert_alle_kombinasjoner
 
+
 def legge_til_ulike_oppvarmingslaster(df: pd.DataFrame, 
                                       heating_systems_efficiencies: pd.DataFrame) -> pd.DataFrame:
     df_hoved_spiss_og_ekstralast = heating_systems_efficiencies.copy()
@@ -37,11 +39,13 @@ def legge_til_ulike_oppvarmingslaster(df: pd.DataFrame,
     df_oppvarmingsteknologier_andeler[YEAR] = df_oppvarmingsteknologier_andeler[YEAR].astype(int) 
     return df_oppvarmingsteknologier_andeler
 
+
 def aggregere_lik_oppvarming_fjern_0(df):
     df_fjern_null = df.query(f"{TEK_SHARES} != 0").copy()
     df_aggregert = df_fjern_null.groupby([BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, YEAR], 
                                          as_index = False)[TEK_SHARES].sum()
     return df_aggregert
+
 
 def expand_building_category_tek(heating_systems_forecast: pd.DataFrame) -> pd.DataFrame:
     """
@@ -62,6 +66,7 @@ def expand_building_category_tek(heating_systems_forecast: pd.DataFrame) -> pd.D
     df2 = df.assign(**{TEK: df[TEK].str.split('+')}).explode(TEK)
     df2 = df2.reset_index(drop = True)
     return df2
+
 
 def framskrive_oppvarming(df: pd.DataFrame, 
                           inputfil: pd.DataFrame) -> pd.DataFrame:
@@ -116,6 +121,7 @@ def framskrive_oppvarming(df: pd.DataFrame,
 
     return nye_andeler_samlet_uten_0
 
+
 def legge_til_resterende_aar_oppvarming(df_nye_andeler: pd.DataFrame,
                                         df_eksisterende: pd.DataFrame) -> pd.DataFrame:
     df_nye_andeler_kopi = df_nye_andeler.copy()
@@ -135,13 +141,14 @@ def legge_til_resterende_aar_oppvarming(df_nye_andeler: pd.DataFrame,
     # TODO: add period to this function, and set lower limit to period equal to last year (max) present in forecast data? 
     year_2021_2050 = list(range(2021, 2051))
     utvidede_aar_uendret = pd.concat([
-        df_eksisterende_filtrert.assign(Year=year) for year in year_2021_2050
+        df_eksisterende_filtrert.assign(**{YEAR:year}) for year in year_2021_2050
     ])
 
     samlede_nye_andeler = pd.concat([utvidede_aar_uendret, df_nye_andeler_kopi, 
                                      df_eksisterende], ignore_index = True)
     samlede_nye_andeler = samlede_nye_andeler.drop(columns = ['Sortering'])
     return samlede_nye_andeler
+
 
 def main(heating_systems_shares: pd.DataFrame,
          heating_systems_efficiencies: pd.DataFrame,

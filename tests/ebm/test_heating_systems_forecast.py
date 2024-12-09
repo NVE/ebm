@@ -19,10 +19,10 @@ from ebm.heating_systems_projection import (legge_til_alle_oppvarmingstyper,
 
 BUILDING_CATEGORY = 'building_category'
 TEK = 'TEK'
-HEATING_SYSTEMS = 'Oppvarmingstyper'
-NEW_HEATING_SYSTEMS = 'Nye_oppvarmingstyper'
-YEAR = 'Year'
-TEK_SHARES = 'TEK_andeler'
+HEATING_SYSTEMS = 'heating_systems'
+NEW_HEATING_SYSTEMS = 'new_heating_systems'
+YEAR = 'year'
+TEK_SHARES = 'TEK_shares'
 
 @pytest.fixture
 def shares() -> pd.DataFrame:

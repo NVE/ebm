@@ -22,4 +22,15 @@ def test_transform_convert_column_names_and_values():
     pd.testing.assert_frame_equal(r, expected)
 
 
+def test_transform_unpack_purpose_when_on_and():
+    ccr = ComCalibrationReader()
+    values = (('Bygg', 'Gruppe', 'Endringsvariabel', 'Faktor', 'Endringsparameter'),
+              ('yrkesbygg', 'Energibehov', 'Heating rv and heating dhw', 0.8, '-'))
+    r = ccr.transform(values)
 
+    expected = pd.DataFrame([
+        ['non_residential', 'energy_requirement', EnergyPurpose.HEATING_RV, 0.8, None],
+        ['non_residential', 'energy_requirement', EnergyPurpose.HEATING_DHW, 0.8, None]],
+        columns=['building_category', 'group', 'purpose', 'heating_rv_factor', 'extra'])
+
+    pd.testing.assert_frame_equal(r, expected)

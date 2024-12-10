@@ -1,7 +1,7 @@
+import pathlib
 import typing
 from datetime import datetime
 import os
-import sys
 
 
 from loguru import logger
@@ -58,28 +58,36 @@ class ComCalibrationReader:
 
     def transform(self, com_calibration_table: typing.Tuple) -> pd.DataFrame:
         def replace_building_category(row):
+            for factor_name in row[2].split(' and '):
+                try:
+                    bc = building_category.from_norsk(row[0])
+                except ValueError as value_error:
+                    if row[0].lower() in ('yrksebygg', 'yrkesbygg'):
+                        bc = building_category.NON_RESIDENTIAL
+                    elif row[0].lower() == 'bolig':
+                        bc = building_category.RESIDENTIAL
+                erq = 'energy_requirement'
+                purpose = EnergyPurpose(factor_name) if factor_name.lower() != 'elspesifikt' else EnergyPurpose.ELECTRICAL_EQUIPMENT
+                yield bc, erq, purpose, row[3], None
 
-            try:
-                bc = building_category.from_norsk(row[0])
-            except ValueError as value_error:
-                if row[0] == 'Yrksebygg':
-                    bc = building_category.NON_RESIDENTIAL
-                elif row[0] == 'Bolig':
-                    bc = building_category.RESIDENTIAL
-            erq = 'energy_requirement'
-            purpose = EnergyPurpose(row[2]) if row[2].lower() != 'elspesifikt' else EnergyPurpose.ELECTRICAL_EQUIPMENT
-            return bc, erq, purpose, row[3], None
+        def handle_rows(rows):
+            for row in rows:
+                yield from replace_building_category(row)
         logger.debug(f'Transform {self.sheet_name}')
         data = com_calibration_table[1:]
 
-        data = [replace_building_category(r) for r in data if r[1] == 'Energibehov']
+        data = list(handle_rows([r for r in data if r[1] == 'Energibehov']))
 
         df = pd.DataFrame(data, columns=['building_category', 'group', 'purpose', 'heating_rv_factor', 'extra'])
 
         return df
 
-    def load(self):
-        logger.debug(f'Save {self.sheet_name} {self.workbook_name} to csv')
+    def load(self, to_file: typing.Union[str, pathlib.Path], df: pd.DataFrame):
+        logger.debug(f'Save {self.sheet_name} {self.workbook_name} to {to_file}')
+        if to_file.suffix == 'csv':
+            df.to_csv(to_file)
+        elif to_file.suffix == 'xlsx':
+            df.to_excel(to_file)
 
 
 class CalibrationResultWriter:
@@ -90,7 +98,7 @@ class CalibrationResultWriter:
     def __init__(self):
         pass
 
-    def extract(self) -> typing.Tuple:
+    def extract(self) -> None:
         self.workbook, self.sheet = os.environ.get('EBM_CALIBRATION_OUT').split('!')
 
         # Create an instance of the Excel application
@@ -120,6 +128,7 @@ class CalibrationResultWriter:
 
     def transform(self, df) -> pd.DataFrame:
         self.df = df
+        return df
 
     def load(self):
         # Create an instance of the Excel application

@@ -109,5 +109,3 @@ class CalibrationResultWriter:
 
         # Tag time
         sheet.Cells(55, 7).Value = datetime.now().isoformat()
-
-sys.exit(42)

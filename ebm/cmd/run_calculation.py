@@ -1,12 +1,14 @@
 import argparse
 import os
 import pathlib
+import sys
 import textwrap
 import typing
 from dataclasses import dataclass
 from typing import List, Dict
 
 import pandas as pd
+from loguru import logger
 
 from ebm.__version__ import version
 from ebm.holiday_home_energy import HolidayHomeEnergy
@@ -319,3 +321,17 @@ def calculate_energy_use():
     output = df.reset_index().rename(columns={'index': 'unit'})
     output = output.set_index(['building_category', 'energy_type', 'unit'])
     return output
+
+
+def configure_loglevel():
+    """
+    Sets loguru loglevel to INFO unless ebm is called with parameter --debug and the environment variable DEBUG is not
+    equal to True
+    """
+    logger.remove()
+    if '--debug' not in sys.argv and os.environ.get('DEBUG', '').upper() != 'TRUE':
+        logger.add(sys.stderr, level="INFO")
+    else:
+        logger.add(sys.stderr,
+                   filter=lambda f: not (f['name'] == 'ebm.model.file_handler' and f['level'].name == 'DEBUG'),
+                   level="DEBUG")

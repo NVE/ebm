@@ -9,7 +9,7 @@ from loguru import logger
 from ebm.cmd.calibrate import run_calibration, create_heating_rv
 from ebm.cmd.run_calculation import calculate_building_category_area_forecast, \
     result_to_horizontal_dataframe, make_arguments, validate_years, \
-    calculate_building_category_energy_requirements, calculate_heating_systems, calculate_energy_use
+    calculate_building_category_energy_requirements, calculate_heating_systems, calculate_energy_use, configure_loglevel
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.database_manager import DatabaseManager
@@ -153,20 +153,6 @@ You can overwrite the {arguments.output_file}. by using --force: {program_name} 
     if arguments.open:
         os.startfile(arguments.output_file, 'open')
     sys.exit(0)
-
-
-def configure_loglevel():
-    """
-    Sets loguru loglevel to INFO unless ebm is called with parameter --debug and the environment variable DEBUG is not
-    equal to True
-    """
-    logger.remove()
-    if '--debug' not in sys.argv and os.environ.get('DEBUG', '').upper() != 'TRUE':
-        logger.add(sys.stderr, level="INFO")
-    else:
-        logger.add(sys.stderr,
-                   filter=lambda f: not (f['name'] == 'ebm.model.file_handler' and f['level'].name == 'DEBUG'),
-                   level="DEBUG")
 
 
 if __name__ == '__main__':

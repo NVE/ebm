@@ -154,16 +154,16 @@ class CalibrationResultWriter:
 
         first_cell, last_cell = residential_columns.split(':')
         first_row = int(first_cell[1:])
-        self.update_energy_use(sheet, first_row, 'residential', 4)
+        self.update_energy_use(sheet, first_row, building_category.RESIDENTIAL, 4)
 
         first_cell, last_cell = non_residential_columns.split(':')
         first_row = int(first_cell[1:])
-        self.update_energy_use(sheet, first_row, 'commercial', 5)
+        self.update_energy_use(sheet, first_row, building_category.NON_RESIDENTIAL, 5)
 
         first_cell, last_cell = os.environ.get('EBM_CALIBRATION_ENERGY_HEATINGPUMP_RESIDENTIAL').split(':')
         first_row = int(first_cell[1:])
-        self.update_pump(sheet, first_row, 'residential', 4)
-        self.update_pump(sheet, first_row, 'commercial', 5)
+        self.update_pump(sheet, first_row, building_category.RESIDENTIAL, 4)
+        self.update_pump(sheet, first_row, building_category.NON_RESIDENTIAL, 5)
 
         # Tag time
         sheet.Cells(70, 3).Value = datetime.now().isoformat()

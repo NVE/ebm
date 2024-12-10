@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 from ebm.cmd.run_calculation import calculate_building_category_area_forecast
 from ebm.cmd.run_calculation import calculate_building_category_energy_requirements, calculate_heating_systems
-from ebm.model import DatabaseManager, FileHandler
+from ebm.model import DatabaseManager, FileHandler, building_category
 from ebm.model.calibrate_heating_rv import default_calibrate_heating_rv
 from ebm.model.data_classes import YearRange
 from ebm.model.building_category import BuildingCategory
@@ -77,8 +77,8 @@ def transform_heating_systems(heating_systems, calibration_year) -> pd.DataFrame
     #    (slice(None), slice(None), 'heating_rv', slice(None), slice(None), slice(None))].copy()
 
     # Group building_categories
-    heating_systems['is_residential'] = 'commercial'
-    heating_systems.loc[['house', 'apartment_block'], 'is_residential'] = 'residential'
+    heating_systems['is_residential'] = building_category.NON_RESIDENTIAL
+    heating_systems.loc[['house', 'apartment_block'], 'is_residential'] = building_category.RESIDENTIAL
     grouper = ['Oppvarmingstyper', 'is_residential', 'year']
     year_slice = (slice(None), slice(None), calibration_year)
     df: pd.DataFrame = heating_systems.groupby(by=grouper).sum('gwh').loc[year_slice]

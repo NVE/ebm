@@ -82,13 +82,6 @@ class ComCalibrationReader:
 
         return df
 
-    def load(self, to_file: typing.Union[str, pathlib.Path], df: pd.DataFrame):
-        logger.debug(f'Save {self.sheet_name} {self.workbook_name} to {to_file}')
-        if to_file.suffix == 'csv':
-            df.to_csv(to_file)
-        elif to_file.suffix == 'xlsx':
-            df.to_excel(to_file)
-
 
 class CalibrationResultWriter:
     workbook: str
@@ -161,31 +154,21 @@ class CalibrationResultWriter:
         non_residential_columns = os.environ.get('EBM_CALIBRATION_ENERGY_USAGE_NON_RESIDENTIAL')
 
         first_cell, last_cell = residential_columns.split(':')
-
-        first_column = first_cell[0]
         first_row = int(first_cell[1:])
-
-        for row_number, (k, t) in enumerate(self.df.loc['residential'].items(), start=first_row):
-            if k in ('luftluft', 'vannbåren'):
-                continue
-            column_name = sheet.Cells(row_number, 3).Value
-            column_value = self.df.loc['residential'][column_name]
-            logger.debug(f'{row_number=} {column_name=} {column_value=}')
-            sheet.Cells(row_number, 4).Value = column_value
+        self.update_energy_use(sheet, first_row, 'residential', 4)
 
         first_cell, last_cell = non_residential_columns.split(':')
-
-        first_column = first_cell[0]
         first_row = int(first_cell[1:])
+        self.update_energy_use(sheet, first_row, 'commercial', 5)
 
-        sheet.Cells(55, 6).Value = datetime.now().isoformat()
-        for row_number, (k, t) in enumerate(self.df.loc['commercial'].items(), start=first_row):
+        # Tag time
+        sheet.Cells(70, 3).Value = datetime.now().isoformat()
+
+    def update_energy_use(self, sheet, first_row, building_category, value_column):
+        for row_number, (k, t) in enumerate(self.df.loc[building_category].items(), start=first_row):
             if k in ('luftluft', 'vannbåren'):
                 continue
             column_name = sheet.Cells(row_number, 3).Value
-            column_value = self.df.loc['commercial'][column_name]
+            column_value = self.df.loc[building_category][column_name]
             logger.debug(f'{row_number=} {column_name=} {column_value=}')
-            sheet.Cells(row_number, 5).Value = column_value
-
-        # Tag time
-        sheet.Cells(55, 7).Value = datetime.now().isoformat()
+            sheet.Cells(row_number, value_column).Value = column_value

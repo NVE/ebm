@@ -1,6 +1,25 @@
+import pathlib
 import typing
+from builtins import int
 
+from loguru import logger
 import pandas as pd
+
+
+class EnergyRequirementCalibrationWriter:
+
+    def __init__(self):
+        pass
+
+    def load(self, df: pd.DataFrame, to_file: typing.Union[str, pathlib.Path] = pathlib.Path('input/calibrate_heating_rv.xlsx')):
+        logger.debug(f'Save {to_file}')
+        file_path: pathlib.Path = to_file if isinstance(to_file, pathlib.Path) else pathlib.Path(to_file)
+        df = df[['building_category', 'purpose', 'heating_rv_factor']].reset_index(drop=True)
+        if file_path.suffix == '.csv':
+            df.to_csv(file_path, index=False)
+        elif file_path.suffix == '.xlsx':
+            df.to_excel(file_path, index=False)
+        logger.info(f'Wrote {to_file}')
 
 
 def transform(heating_rv: pd.Series, heating_rv_factor=None) -> pd.Series:
@@ -21,29 +40,6 @@ def default_calibrate_heating_rv():
 class EbmCalibration:
     energy_requirement_original_condition: pd.Series
     pass
-
-class ComExcelCalibrationReader:
-    """ Extract relevant cells from workbook and sheet and convert
-        transform to EbmCalibration or pd.DataFrame?
-
-    """
-
-    com_excel_calibration: typing.Dict
-    def extract(self) -> pd.DataFrame:
-        """
-            Trenger workbook, sheet ?, kan vel hardkode cells i starten
-            returnerer dataframe som er 1 til 1 fra excel?
-
-        """
-
-        pass
-
-    def transform(self, df) -> EbmCalibration:
-        """ Konvertere dataframe til en som passer kalibrering
-            "gruppe", building_category, heating_rv, faktor <--- building_category skal være pakket ut?
-
-        """
-        pass
 
 
 class CalibrationReader:

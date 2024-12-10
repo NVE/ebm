@@ -1,4 +1,3 @@
-import pathlib
 import typing
 from datetime import datetime
 import os
@@ -161,6 +160,11 @@ class CalibrationResultWriter:
         first_row = int(first_cell[1:])
         self.update_energy_use(sheet, first_row, 'commercial', 5)
 
+        first_cell, last_cell = os.environ.get('EBM_CALIBRATION_ENERGY_HEATINGPUMP_RESIDENTIAL').split(':')
+        first_row = int(first_cell[1:])
+        self.update_pump(sheet, first_row, 'residential', 4)
+        self.update_pump(sheet, first_row, 'commercial', 5)
+
         # Tag time
         sheet.Cells(70, 3).Value = datetime.now().isoformat()
 
@@ -172,3 +176,12 @@ class CalibrationResultWriter:
             column_value = self.df.loc[building_category][column_name]
             logger.debug(f'{row_number=} {column_name=} {column_value=}')
             sheet.Cells(row_number, value_column).Value = column_value
+
+    def update_pump(self, sheet, first_row, building_category, value_column):
+        for row_number, (k, t) in enumerate(self.df.loc[building_category].items(), start=first_row):
+            if k not in ('luftluft', 'vannbåren'):
+                continue
+            column_name = sheet.Cells(row_number-4, 3).Value
+            column_value = self.df.loc[building_category][column_name]
+            logger.debug(f'{row_number=} {column_name=} {column_value=}')
+            sheet.Cells(row_number-4, value_column).Value = column_value

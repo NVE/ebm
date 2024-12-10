@@ -121,6 +121,7 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022] ,ski
     invalid_categories = [bc for bc in result_categories if bc not in non_residential_categories]
     assert not invalid_categories
 
+
 def test_project_heating_systems_ok():
 
     shares_start_year_all_systems = pd.read_csv(io.StringIO("""
@@ -151,10 +152,41 @@ names=[YEAR,BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,TEK_SHARES], skipinitialspace=
     
     pd.testing.assert_frame_equal(result, expected)
 
+@pytest.main.skip()
+def test_project_heating_systems_different_years_in_data():
+    """
+    """
+    shares_start_year_all_systems = pd.read_csv(io.StringIO("""
+kindergarten,TEK97,Electricity,2022,1
+kindergarten,TEK97,DH,2022,0.0                                                                                                   
+""".strip()), 
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES], skipinitialspace=True)
 
-#TODO: 
+    projected_shares = pd.read_csv(io.StringIO("""
+kindergarten,TEK97,Electricity,DH,0.25,0.5,0.75                                                                                                                     
+""".strip()),
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022,2023] ,skipinitialspace=True)
+
+    result = project_heating_systems(shares_start_year_all_systems, projected_shares)
+
+    expected = pd.read_csv(io.StringIO("""
+2023,kindergarten,TEK97,DH,0.75
+2023,kindergarten,TEK97,Electricity,0.25                                                                                                                   
+""".strip()), 
+names=[YEAR,BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,TEK_SHARES], skipinitialspace=True)
+
+    expected = expected.sort_values(by=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR])
+    result = result.sort_values(by=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR])
+    expected.reset_index(drop=True, inplace=True)
+    result.reset_index(drop=True, inplace=True)
+    
+    pd.testing.assert_frame_equal(result, expected)
+
+
 def test_add_existing_tek_shares_to_projection_ok():
-
+    """
+    Test that function returns expected result with ok input.
+    """
     projected_shares = pd.read_csv(io.StringIO("""
 2021,kindergarten,TEK97,DH,0.25
 2022,kindergarten,TEK97,DH,0.5
@@ -236,6 +268,57 @@ kindergarten,TEK97,DH,2022,0.5,0
 kindergarten,TEK97,Gas,2020,1,0
 kindergarten,TEK97,Gas,2021,1,0
 kindergarten,TEK97,Gas,2022,1,0                                                                              
+""".strip()),
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES,'Value'] ,skipinitialspace=True)
+    
+    expected = expected.sort_values(by=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR])
+    result = result.sort_values(by=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR])
+    expected.reset_index(drop=True, inplace=True)
+    result.reset_index(drop=True, inplace=True)
+    
+    pd.testing.assert_frame_equal(result, expected)
+
+
+@pytest.mark.skip()
+def test_main_different_periods():
+    """
+    """
+    shares_start_year = pd.read_csv(io.StringIO("""
+kindergarten,TEK97,Electricity,2022,1
+kindergarten,TEK97,Gas,2022,1                                                
+""".strip()), 
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES], skipinitialspace=True)
+
+    efficiencies = pd.read_csv(io.StringIO("""
+Electric boiler,0
+DH,0
+Electricity,0
+Gas,0
+Electricity - Bio,0
+DH - Bio,0
+HP - Bio,0
+HP - Electricity,0
+HP Central heating - DH,0
+HP Central heating,0
+HP Central heating - Gas,0
+Electric boiler - Solar,0
+HP Central heating - Bio,0                                                                                    
+""".strip()), 
+names=[HEATING_SYSTEMS, 'Value'], skipinitialspace=True)
+
+    projection = pd.read_csv(io.StringIO("""
+kindergarten,TEK97,Electricity,DH,0.1,0.25,0.5                                                                                                                     
+""".strip()),
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022,2023] ,skipinitialspace=True)
+
+    result = main(shares_start_year, efficiencies, projection, period=YearRange(2022,2023))
+
+    expected = pd.read_csv(io.StringIO("""
+kindergarten,TEK97,Electricity,2022,1,0
+kindergarten,TEK97,Electricity,2023,0.5,0
+kindergarten,TEK97,DH,2023,0.5,0
+kindergarten,TEK97,Gas,2022,1,0
+kindergarten,TEK97,Gas,2023,1,0                                                                              
 """.strip()),
 names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES,'Value'] ,skipinitialspace=True)
     

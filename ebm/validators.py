@@ -4,9 +4,10 @@ Pandera validators for ebm input files.
 import pandas as pd
 import pandera as pa
 
-from ebm.model.building_category import BuildingCategory
+from ebm.model.building_category import BuildingCategory, RESIDENTIAL, NON_RESIDENTIAL
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.energy_purpose import EnergyPurpose
+from ebm.model.heating_systems import HeatingSystems
 
 
 def check_building_category(value: pd.Series) -> pd.Series:
@@ -40,6 +41,22 @@ def check_default_building_category(value: pd.Series) -> pd.Series:
 
     """
     return value.isin(list(BuildingCategory) + ['default'])
+
+def check_default_building_category_with_group(value: pd.Series) -> pd.Series:
+    """
+    Makes sure that the series value contains values that are corresponding to a BuildingCategory, 
+    BuildingCategory group (RESIDENTIAL or NON_RESIDENTIAL) or 'default'
+
+    Parameters
+    ----------
+    value: pd.Series
+        A series of str that will be checked against BuildingCategory, RESIDENTIAL, NON_RESIDENTIAL and 'default' 
+
+    Returns
+    -------
+    pd.Series of bool values
+    """
+    return value.isin(list(BuildingCategory) + ['default'] + [RESIDENTIAL, NON_RESIDENTIAL])
 
 
 def check_building_condition(value: pd.Series) -> pd.Series:
@@ -215,6 +232,22 @@ def create_residential_area_checks():
         pa.Check.greater_than_or_equal_to(0.0)]
 
 
+def check_heating_systems(value: pd.Series) -> pd.Series:
+    """
+    Makes sure that the series contains values that corresponds to a HeatingSystems
+    
+    Parameters
+    ----------
+    value: pd.Series
+        A series of str that will be checked against HeatingSystems
+    
+    Returns
+    -------
+     pd.Series of bool values
+
+    """
+    return value.isin(iter(HeatingSystems))
+
 area_parameters = pa.DataFrameSchema(
     columns={
         "building_category": pa.Column(str, checks=[pa.Check(check_building_category)]),
@@ -389,6 +422,66 @@ area_per_person = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=pa.Check(check_building_category)),
         'area_per_person': pa.Column(float, nullable=True)
+    }
+)
+
+
+heating_systems_shares_start_year = pa.DataFrameSchema(
+    columns={
+        'building_category': pa.Column(str, checks=pa.Check(check_building_category)),
+        'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
+        'heating_systems': pa.Column(str, checks=pa.Check(check_heating_systems)),
+        'year': pa.Column(int, pa.Check(
+            lambda year: len(year.unique()) == 1,
+            error="All values in the 'year' column must be identical."
+        )),
+        #TODO: function to check that sum within tek and building category = 1
+        'TEK_shares': pa.Column(float, coerce=True, 
+                                checks=[pa.Check.between(min_value=0.0, include_min=True,
+                                                         max_value=1.0, include_max=True)]) 
+    }
+)
+
+
+#TODO: add check on years. Parse to make long format and check years and values? years must be in order, max limit (2070) etc.
+heating_systems_projection = pa.DataFrameSchema(
+    columns={
+        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category_with_group)),
+        'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
+        'heating_systems': pa.Column(str, checks=pa.Check(check_heating_systems)),
+        'new_heating_systems': pa.Column(str, checks=pa.Check(check_heating_systems)) 
+    }
+)
+
+
+"""
+TODO: how to check columns that are heating systems (but not in enum) and 'energivare'. Columns:
+        'Grunnlast': pa.Column(str), 
+        'Spisslast': pa.Column(str),
+        'Ekstralast': pa.Column(str),
+        'Grunnlast energivare': pa.Column(str),
+        'Spisslast energivare': pa.Column(str),
+        'Ekstralast energivare': pa.Column(str),  
+"""
+heating_systems_efficiencies = pa.DataFrameSchema(
+    columns={
+        'heating_systems': pa.Column(str, checks=pa.Check(check_heating_systems)),  
+        'Grunnlast': pa.Column(str), 
+        'Spisslast': pa.Column(str),
+        'Ekstralast': pa.Column(str),
+        'Grunnlast energivare': pa.Column(str),
+        'Spisslast energivare': pa.Column(str),
+        'Ekstralast energivare': pa.Column(str),        
+        'Ekstralast andel': pa.Column(float, coerce=True),
+        'Grunnlast andel': pa.Column(float, coerce=True),
+        'Spisslast andel': pa.Column(float, coerce=True),
+        'Grunnlast virkningsgrad': pa.Column(float, coerce=True),
+        'Spisslast virkningsgrad': pa.Column(float, coerce=True),
+        'Ekstralast virkningsgrad': pa.Column(float, coerce=True),
+        'Tappevann': pa.Column(str),
+        'Tappevann virkningsgrad': pa.Column(float, coerce=True),
+        'Spesifikt elforbruk': pa.Column(float, coerce=True),
+        'Kjoling virkningsgrad': pa.Column(float, coerce=True)
     }
 )
 

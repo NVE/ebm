@@ -149,6 +149,10 @@ def project_heating_systems(shares_start_year_all_systems: pd.DataFrame,
 def add_existing_tek_shares_to_projection(new_shares: pd.DataFrame,
                                           existing_shares: pd.DataFrame,
                                           period: YearRange) -> pd.DataFrame:
+    """
+    Keeps the TEK_share of a heating system constant for all years in the projection period, if the heating system have
+    an existing TEK share that have not been projected.    
+    """
     df_nye_andeler_kopi = new_shares.copy()
 
     def sortering_oppvarmingstyper(df):

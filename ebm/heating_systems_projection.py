@@ -1,6 +1,7 @@
 import pandas as pd
 
 from ebm.model.heating_systems import HeatingSystems
+from ebm.model.data_classes import YearRange
 from ebm.model.building_category import BuildingCategory, RESIDENTIAL, NON_RESIDENTIAL
 
 BUILDING_CATEGORY = 'building_category'
@@ -10,11 +11,23 @@ NEW_HEATING_SYSTEMS = 'new_heating_systems'
 YEAR = 'year'
 TEK_SHARES = 'TEK_shares'
 
-
 def add_missing_heating_systems(heating_systems_shares: pd.DataFrame, 
-                                heating_systems: HeatingSystems = None) -> pd.DataFrame:
+                                heating_systems: HeatingSystems = None,
+                                start_year: int = None) -> pd.DataFrame:
+    """
+    Add missing HeatingSystems per BuildingCategory and TEK with a default TEK_share of 0. 
+    """
     df_aggregert_0 = heating_systems_shares.copy()
-
+    input_start_year = df_aggregert_0['year'].unique()
+    if len(input_start_year) != 1:
+        raise ValueError(f"More than one year in 'heating_systems_share' df")
+    
+    # TODO: drop start year as input param and only use year in dataframe?
+    if not start_year:
+        start_year =  input_start_year[0]
+    elif start_year != input_start_year:
+        raise ValueError(f"Given start_year doesn't match year in 'heating_systems_share' dataframe.")
+    
     if not heating_systems:
         heating_systems = HeatingSystems
     oppvarmingstyper = pd.DataFrame(
@@ -29,8 +42,7 @@ def add_missing_heating_systems(heating_systems_shares: pd.DataFrame,
                                                                     how = 'left')
     #TODO: Kan droppe kopi av df og heller ta fillna() for de to kolonnene 
     manglende_rader = df_aggregert_merged[df_aggregert_merged[TEK_SHARES].isna()].copy()
-    # TODO: change to access year in dataframe
-    manglende_rader[YEAR] = 2020
+    manglende_rader[YEAR] = start_year
     manglende_rader[TEK_SHARES] = 0
     manglende_rader = manglende_rader[[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, YEAR, TEK_SHARES]]
 
@@ -76,9 +88,10 @@ def expand_building_category_tek(heating_systems_forecast: pd.DataFrame) -> pd.D
     return df2
 
 
-def framskrive_oppvarming(df: pd.DataFrame, 
-                          inputfil: pd.DataFrame) -> pd.DataFrame:
-    inputfil_oppvarming = inputfil
+def project_heating_systems(shares_start_year_all_systems: pd.DataFrame, 
+                            projected_shares: pd.DataFrame) -> pd.DataFrame:
+    df = shares_start_year_all_systems.copy()
+    inputfil_oppvarming = projected_shares.copy()
 
     df_framskrive_oppvarming_long = inputfil_oppvarming.melt(id_vars = [BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS],
                                                                 var_name = YEAR, value_name = "Andel_utskiftning")
@@ -127,12 +140,16 @@ def framskrive_oppvarming(df: pd.DataFrame,
     nye_andeler_samlet_uten_0 = aggregere_lik_oppvarming_fjern_0(nye_andeler_drop_dupe)
     nye_andeler_samlet_uten_0 = nye_andeler_samlet_uten_0[rekkefolge_kolonner]
 
+    #TODO: check dtype changes in function
+    nye_andeler_samlet_uten_0[YEAR] = nye_andeler_samlet_uten_0[YEAR].astype(int) 
+
     return nye_andeler_samlet_uten_0
 
-
-def legge_til_resterende_aar_oppvarming(df_nye_andeler: pd.DataFrame,
-                                        df_eksisterende: pd.DataFrame) -> pd.DataFrame:
-    df_nye_andeler_kopi = df_nye_andeler.copy()
+#TODO: existing share in start year = 0 is not added, when not in existing shares (example: test_ok on this function) 
+def add_existing_tek_shares_to_projection(new_shares: pd.DataFrame,
+                                          existing_shares: pd.DataFrame,
+                                          period: YearRange) -> pd.DataFrame:
+    df_nye_andeler_kopi = new_shares.copy()
 
     def sortering_oppvarmingstyper(df):
         df_kombinasjoner = df.copy()
@@ -141,38 +158,42 @@ def legge_til_resterende_aar_oppvarming(df_nye_andeler: pd.DataFrame,
         
         return df_kombinasjoner, kombinasjonsliste
 
-    df_nye_andeler, alle_nye_kombinasjonsliste = sortering_oppvarmingstyper(df_nye_andeler)
-    df_eksisterende, eksisterende_kombinasjonsliste = sortering_oppvarmingstyper(df_eksisterende)
-    df_eksisterende_filtrert = df_eksisterende.query(f"Sortering != {alle_nye_kombinasjonsliste}")
+    new_shares, alle_nye_kombinasjonsliste = sortering_oppvarmingstyper(new_shares)
+    existing_shares, eksisterende_kombinasjonsliste = sortering_oppvarmingstyper(existing_shares)
+    df_eksisterende_filtrert = existing_shares.query(f"Sortering != {alle_nye_kombinasjonsliste}")
     df_eksisterende_filtrert = df_eksisterende_filtrert.drop(columns = ['Sortering'])
 
-    # TODO: add period to this function, and set lower limit to period equal to last year (max) present in forecast data? 
-    year_2021_2050 = list(range(2021, 2051))
+    # TODO: set lower limit to period equal to last year (max) present in forecast data? 
+    projection_period = YearRange(period.start + 1, period.end).year_range
     utvidede_aar_uendret = pd.concat([
-        df_eksisterende_filtrert.assign(**{YEAR:year}) for year in year_2021_2050
+        df_eksisterende_filtrert.assign(**{YEAR:year}) for year in projection_period
     ])
 
     samlede_nye_andeler = pd.concat([utvidede_aar_uendret, df_nye_andeler_kopi, 
-                                     df_eksisterende], ignore_index = True)
+                                     existing_shares], ignore_index = True)
     samlede_nye_andeler = samlede_nye_andeler.drop(columns = ['Sortering'])
     return samlede_nye_andeler
 
 
 def main(heating_systems_shares: pd.DataFrame,
          heating_systems_efficiencies: pd.DataFrame,
-         heating_systems_forecast: pd.DataFrame) -> pd.DataFrame:
+         heating_systems_forecast: pd.DataFrame,
+         period: YearRange) -> pd.DataFrame:
     
-    # Legger til 0 på oppvarmingstyper som ikke eksisterer enda.
-    df_aggregert_alle_kombinasjoner = add_missing_heating_systems(heating_systems_shares)
+    start_year = period.start
+    df_aggregert_alle_kombinasjoner = add_missing_heating_systems(heating_systems_shares,
+                                                                  start_year=start_year)
 
     # Gjør klar inputfilen for oppvarmingsandelene som skal framskrives.
     inputfil_oppvarming = expand_building_category_tek(heating_systems_forecast)
 
     # Framskriver oppvarmingsløsninger basert på andelene i input filen
-    nye_andeler = framskrive_oppvarming(df_aggregert_alle_kombinasjoner, inputfil_oppvarming)
+    nye_andeler = project_heating_systems(df_aggregert_alle_kombinasjoner, inputfil_oppvarming)
 
-    # Legger til andeler det ikke er utført noen form for framskrivning på for 2021-2050
-    df_framskrevet_oppvarming = legge_til_resterende_aar_oppvarming(nye_andeler, heating_systems_shares)
+    # Legger til andeler det ikke er utført noen form for framskrivning på i projection perioden
+    df_framskrevet_oppvarming = add_existing_tek_shares_to_projection(nye_andeler, 
+                                                                      heating_systems_shares,
+                                                                      period)
 
     # Legger til virkningsgrader og andeler til grunn,spiss og ekstralast og tappevann
     df_framskrevet_oppvarming_lastfordeling = legge_til_ulike_oppvarmingslaster(df_framskrevet_oppvarming, 

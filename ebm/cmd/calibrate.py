@@ -14,6 +14,8 @@ from ebm.model.calibrate_heating_rv import default_calibrate_heating_rv
 from ebm.model.data_classes import YearRange
 from ebm.model.building_category import BuildingCategory
 
+from ebm.heating_systems import HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST
+
 ELECTRICITY = 'Elektrisitet'
 DISTRICT_HEATING = 'Fjernvarme'
 BIO = 'Bio'
@@ -71,8 +73,8 @@ def extract_heating_systems(energy_requirements, database_manager) -> pd.DataFra
 
 def transform_heating_systems(heating_systems, calibration_year) -> pd.DataFrame:
     # Filter heating_rv
-    heating_systems = heating_systems.loc[
-        (slice(None), slice(None), 'heating_rv', slice(None), slice(None), slice(None))].copy()
+    #heating_systems = heating_systems.loc[
+    #    (slice(None), slice(None), 'heating_rv', slice(None), slice(None), slice(None))].copy()
 
     # Group building_categories
     heating_systems['is_residential'] = 'commercial'
@@ -86,46 +88,63 @@ def transform_heating_systems(heating_systems, calibration_year) -> pd.DataFrame
         df.drop(columns=['energy_source'], inplace=True)
     df.insert(0, 'energy_source', value=None)
 
-    df.loc['DH', 'energy_source'] = DISTRICT_HEATING
-    df.loc['HP Central heating - DH', 'energy_source'] = DISTRICT_HEATING
-    df.loc['DH - Bio', 'energy_source'] = DISTRICT_HEATING
+    df[ELECTRICITY] = 0.0
+    df[BIO] = 0.0
+    df[DISTRICT_HEATING] = 0.0
+    df[FOSSIL] = 0.0
 
-    df.loc['Gas', 'energy_source'] = FOSSIL
+    df[HEATPUMP_AIR_SOURCE] = 0.0
+    df[HEATPUMP_WATER_SOUCE] = 0.0
+    df[DOMESTIC_HOT_WATER] = 0.0
 
-    df.loc['HP Central heating - Gas', 'energy_source'] = HEATPUMP_AIR_SOURCE
+    df.loc[('DH', slice(None)), DISTRICT_HEATING] = df.loc[('DH', slice(None)), HEATING_RV_GRUNNLAST]
 
-    df.loc['Electricity', 'energy_source'] = ELECTRICITY
+    df = _calculate_energy_source(df, 'DH', DISTRICT_HEATING)
+    df = _calculate_energy_source(df, 'HP Central heating - DH', ELECTRICITY, DISTRICT_HEATING)
+    df = _calculate_energy_source(df, 'DH - Bio', DISTRICT_HEATING, BIO)
+    df = _calculate_energy_source(df, 'Gas', FOSSIL)
+    df = _calculate_energy_source(df, 'HP Central heating - Gas', ELECTRICITY, FOSSIL)
+    df.loc[('HP Central heating - Gas', slice(None)), HEATPUMP_WATER_SOUCE] = df.loc[
+        ('HP Central heating - Gas', slice(None)), HEATING_RV_GRUNNLAST]
+    df = _calculate_energy_source(df, 'Electricity', ELECTRICITY)
+    df = _calculate_energy_source(df, 'Electric boiler', ELECTRICITY)
+    df = _calculate_energy_source(df, 'Electric boiler - Solar', ELECTRICITY, ELECTRICITY)
+    df = _calculate_energy_source(df, 'Electricity - Bio', ELECTRICITY, BIO)
+    df = _calculate_energy_source(df, 'HP - Bio', ELECTRICITY, BIO)
+    df.loc[('HP - Bio', slice(None)), HEATPUMP_AIR_SOURCE] = df.loc[('HP - Bio', slice(None)), HEATING_RV_GRUNNLAST]
 
-    df.loc['Electric boiler', 'energy_source'] = DOMESTIC_HOT_WATER
-    df.loc['Electric boiler - Solar', 'energy_source'] = DOMESTIC_HOT_WATER
+    df = _calculate_energy_source(df, 'HP - Electricity', ELECTRICITY, ELECTRICITY)
+    df.loc[('HP - Electricity', slice(None)), HEATPUMP_AIR_SOURCE] = df.loc[('HP - Electricity', slice(None)), HEATING_RV_GRUNNLAST]
 
-    df.loc['Electricity - Bio', 'energy_source'] = BIO
+    df = _calculate_energy_source(df, 'HP Central heating - Bio', ELECTRICITY, BIO)
+    df.loc[('HP Central heating - Bio', slice(None)), HEATPUMP_WATER_SOUCE] = df.loc[('HP Central heating - Bio', slice(None)), HEATING_RV_GRUNNLAST]
 
-    df.loc['HP - Bio', 'energy_source'] = HEATPUMP_WATER_SOUCE
-    df.loc['HP - Electricity', 'energy_source'] = HEATPUMP_AIR_SOURCE
-
-    df.loc['HP Central heating - Bio', 'energy_source'] = HEATPUMP_WATER_SOUCE
-    df.loc['HP Central heating', 'energy_source'] = HEATPUMP_WATER_SOUCE
+    df = _calculate_energy_source(df, 'HP Central heating', ELECTRICITY)
+    df.loc[('HP Central heating', slice(None)), [HEATPUMP_WATER_SOUCE]] = df.loc[slice('HP Central heating', None), HEATING_RV_GRUNNLAST]
 
     # Filter energy_use
 
-    energy_use = df[df['energy_source'].isin([ELECTRICITY, BIO, FOSSIL, DISTRICT_HEATING])].groupby(
-        by=['is_residential', 'energy_source']).sum()[['gwh']].copy()
+    energy_use = df.groupby(by=['is_residential', 'Oppvarmingstyper']).sum()[[
+        ELECTRICITY, DISTRICT_HEATING, BIO, FOSSIL, HEATPUMP_AIR_SOURCE, HEATPUMP_WATER_SOUCE]].copy()
 
     # Group and sum energy_usage by energy_source
-    grouped = energy_use.groupby(by=['is_residential', 'energy_source']).sum()[['gwh']].copy()
+    grouped = energy_use.groupby(by=['is_residential']).sum() / (10 ** 6)
 
-    grouped = grouped.reset_index().copy()[['is_residential', 'energy_source', 'gwh']]
-    grouped = grouped.pivot(columns=['is_residential'], index=['energy_source'], values=['gwh'])
-    grouped['comOres'] = grouped.loc[:, ('gwh', 'commercial')] / grouped.loc[:, ('gwh', 'residential')]
-
-    grouped.insert(1, ('pct', 'commercial'), grouped.loc[:, ('gwh', 'commercial')] / grouped.loc[:, ('gwh', 'commercial')].sum())
-    grouped.insert(2, ('pct', 'residential'), grouped.loc[:, ('gwh', 'residential')] / grouped.loc[:, ('gwh', 'residential')].sum())
-
-    # Add total
-
-    grouped['total'] = grouped[('gwh', 'commercial')] + grouped[('gwh', 'residential')]
     return grouped
+
+
+def _calculate_energy_source(df, heating_type, primary_source, secondary_source=None):
+    if secondary_source and primary_source == secondary_source:
+        df.loc[(heating_type, slice(None)), primary_source] = df.loc[(heating_type, slice(None)), HEATING_RV_GRUNNLAST] + \
+             df.loc[(heating_type, slice(None)), HEATING_RV_SPISSLAST]
+
+        return df
+    df.loc[(heating_type, slice(None)), primary_source] = df.loc[(heating_type, slice(None)), HEATING_RV_GRUNNLAST]
+    if secondary_source:
+        df.loc[(heating_type, slice(None)), secondary_source] = df.loc[
+            (heating_type, slice(None)), HEATING_RV_SPISSLAST]
+
+    return df
 
 
 def sort_heating_systems_by_energy_source(transformed):
@@ -170,18 +189,14 @@ def run_calibration(database_manager, calibration_year):
     heating_systems = extract_heating_systems(energy_requirements, database_manager)
     
     transformed = transform_heating_systems(heating_systems, calibration_year)
-    sorted_df = sort_heating_systems_by_energy_source(transformed)
-
-    transposed = sorted_df[[('gwh', 'residential'), ('gwh', 'commercial')]].transpose()
-    transposed = transposed.set_index(pd.Index(['Boliger', 'Yrkesbygg'], name='gwh'))
-    tabbed = transposed.round(1).to_csv(sep='\t', header=False, index_label=None).replace('.', ',')
+    tabbed = transformed.round(1).to_csv(sep='\t', header=False, index_label=None).replace('.', ',')
     print(tabbed)
     pyperclip.copy(tabbed)
-    return transposed
+    return transformed
 
 
 def main():
-    run_calibration(DatabaseManager(FileHandler(directory='kalibrering')))
+    run_calibration(DatabaseManager(FileHandler(directory='kalibrering')), calibration_year=2023)
 
 
 if __name__ == '__main__':

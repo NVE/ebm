@@ -1,5 +1,6 @@
 import io
 import itertools
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -24,7 +25,8 @@ from ebm.validators import (tek_parameters,
                             check_overlapping_tek_periods,
                             heating_systems_shares_start_year,
                             heating_systems_projection,
-                            heating_systems_efficiencies)
+                            heating_systems_efficiencies,
+                            check_sum_of_tek_shares_equal_1)
 
 
 @pytest.fixture
@@ -688,7 +690,7 @@ culture,PRE_TEK49,Electricity,2020,0.0731295180790151
 culture,PRE_TEK49,Electricity - Bio,2020,0.04554724481915243
 culture,PRE_TEK49,Gas,2020,0.00796869432401196
 culture,PRE_TEK49,HP Central heating,2020,0.06620268747246605
-culture,PRE_TEK49,HP Central heating - Bio,2020,0.005048860090718066                                                
+culture,PRE_TEK49,HP Central heating - Bio,2020,0.005048860090718066                                                                                                
 """.strip()), skipinitialspace=True) 
     
     heating_systems_shares_start_year.validate(shares_start_year)
@@ -723,6 +725,38 @@ apartment_block,TEK07,DH,2020,2
         heating_systems_shares_start_year.validate(shares_start_year)
 
 
+def test_heating_systems_shares_start_year_equal_1():
+
+    df = pd.read_csv(io.StringIO("""
+building_category,TEK,heating_systems,year,TEK_shares
+storage_repairs,TEK07,DH,2020,0.1513880769366867
+storage_repairs,TEK07,DH - Bio,2020,0.01303276731750762
+storage_repairs,TEK07,Electric boiler,2020,0.2258458963728039
+storage_repairs,TEK07,Electricity - Bio,2020,0.0797465812036097
+storage_repairs,TEK07,Gas,2020,0.2320505402244028
+storage_repairs,TEK07,HP Central heating,2020,0.2850441643853094   
+apartment_block,TEK07,DH,2020,0.3316670026630616
+apartment_block,TEK07,DH - Bio,2020,0.003305887353335002
+apartment_block,TEK07,Electric boiler,2020,0.002667754942095502
+apartment_block,TEK07,Electric boiler - Solar,2020,0.0002415945163788188
+apartment_block,TEK07,Electricity - Bio,2020,0.06266384914026892
+apartment_block,TEK07,Gas,2020,0.03680298490810775
+apartment_block,TEK07,HP Central heating,2020,0.5456616600524988
+apartment_block,TEK07,HP Central heating - Bio,2020,0.004734738186158519
+apartment_block,TEK07,HP Central heating - DH,2020,0.007549542895245683
+apartment_block,TEK07,HP Central heating - Gas,2020,0.0047049853428493                                                                                           
+""".strip()), skipinitialspace=True) 
+    
+    with warnings.catch_warnings(record=True) as caught_warnings:
+        warnings.simplefilter("always")
+        validated_df = heating_systems_shares_start_year.validate(df, lazy=True)
+        expected_in_error="<Check check_sum_of_tek_shares_equal_1:"
+        for warning in caught_warnings:
+            assert expected_in_error in str(warning.message)
+
+        assert caught_warnings
+
+
 def test_heating_systems_projection_ok():
     projection = pd.read_csv(io.StringIO("""
 building_category,TEK,heating_systems,new_heating_systems,2021,2022
@@ -735,7 +769,6 @@ kindergarten,TEK87,Electricity,DH,0.05,0.0550163004472704
 """.strip()), skipinitialspace=True) 
 
     heating_systems_projection.validate(projection)
-
 
 
 def test_heating_systems_efficiencies_ok():

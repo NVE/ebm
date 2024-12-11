@@ -44,7 +44,10 @@ def test_check_for_missing_files_return_list(tmp_path):
     assert 'holiday_home_energy_consumption.csv' in missing_files
     assert 'holiday_home_by_year.csv' in missing_files
     assert 'area_per_person.csv' in missing_files
-    assert len(missing_files) == 15, 'Unexpected list length returned from check_for_missing_files'
+    assert 'heating_systems_shares_start_year.csv' in missing_files    
+    assert 'heating_systems_efficiencies.csv' in missing_files    
+    assert 'heating_systems_projection.csv' in missing_files    
+    assert len(missing_files) == 18, 'Unexpected list length returned from check_for_missing_files'
 
 
 def test_filehandler_init_supports_alternative_path(tmp_path):
@@ -115,6 +118,9 @@ def test_filehandler_create_missing_input_files(tmp_path):
     assert (input_directory / 'energy_requirement_yearly_improvements.csv').is_file()
     assert (input_directory / 'energy_requirement_policy_improvements.csv').is_file()
     assert (input_directory / 'holiday_home_energy_consumption.csv').is_file()
+    assert (input_directory / 'heating_systems_shares_start_year.csv').is_file()
+    assert (input_directory / 'heating_systems_efficiencies.csv').is_file()
+    assert (input_directory / 'heating_systems_projection.csv').is_file()
 
 
 def test_filehandler_validate_created_input_file(tmp_file_handler):

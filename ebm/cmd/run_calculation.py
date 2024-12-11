@@ -323,15 +323,20 @@ def calculate_energy_use():
     return output
 
 
-def configure_loglevel():
+def configure_loglevel(format: str = None):
     """
     Sets loguru loglevel to INFO unless ebm is called with parameter --debug and the environment variable DEBUG is not
     equal to True
     """
     logger.remove()
+    options = {'level': 'INFO'}
+    if format:
+        options['format'] = format
+
+    # Add a new handler with a custom format
     if '--debug' not in sys.argv and os.environ.get('DEBUG', '').upper() != 'TRUE':
-        logger.add(sys.stderr, level="INFO")
+        logger.add(sys.stderr, **options)
     else:
         logger.add(sys.stderr,
                    filter=lambda f: not (f['name'] == 'ebm.model.file_handler' and f['level'].name == 'DEBUG'),
-                   level="DEBUG")
+                   **options)

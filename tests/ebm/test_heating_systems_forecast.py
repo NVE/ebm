@@ -152,7 +152,8 @@ names=[YEAR,BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,TEK_SHARES], skipinitialspace=
     
     pd.testing.assert_frame_equal(result, expected)
 
-@pytest.main.skip()
+
+@pytest.mark.skip()
 def test_project_heating_systems_different_years_in_data():
     """
     """

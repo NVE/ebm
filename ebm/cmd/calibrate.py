@@ -167,7 +167,9 @@ def create_heating_rv(database_manager):
         df.to_excel(heating_rv)
 
 
-def run_calibration(database_manager, calibration_year):
+def run_calibration(database_manager,
+                    calibration_year,
+                    area_forecast: pd.DataFrame = None):
     """
 
     Parameters
@@ -183,20 +185,23 @@ def run_calibration(database_manager, calibration_year):
     calibration_directory = pathlib.Path('kalibrering')
     input_directory = database_manager.file_handler.input_directory
 
-    logger.info(f'Using {input_directory}')
-    area_forecast = extract_area_forecast(database_manager)
+    logger.info(f'Using input directory "{input_directory}"')
+    logger.info('Extract area forecast')
+    area_forecast = extract_area_forecast(database_manager) if area_forecast is None else area_forecast
+    logger.info('Extract energy requirements')
     energy_requirements = extract_energy_requirements(area_forecast, database_manager)
+    logger.info('Extract heating systems')
     heating_systems = extract_heating_systems(energy_requirements, database_manager)
     
     transformed = transform_heating_systems(heating_systems, calibration_year)
-    tabbed = transformed.round(1).to_csv(sep='\t', header=False, index_label=None).replace('.', ',')
-    print(tabbed)
-    pyperclip.copy(tabbed)
+
     return transformed
 
 
 def main():
-    run_calibration(DatabaseManager(FileHandler(directory='kalibrering')), calibration_year=2023)
+    transformed = run_calibration(DatabaseManager(FileHandler(directory='kalibrering')), calibration_year=2023)
+    tabbed = transformed.round(1).to_csv(sep='\t', header=False, index_label=None).replace('.', ',')
+    pyperclip.copy(tabbed)
 
 
 if __name__ == '__main__':

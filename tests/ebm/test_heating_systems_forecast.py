@@ -1,14 +1,10 @@
 import io
-import typing
 import pandas as pd
 import pytest
 
 from ebm.heating_systems import HeatingSystems
 from ebm.model.data_classes import YearRange
-from ebm.model.building_category import BuildingCategory
 from ebm.heating_systems_projection import (add_missing_heating_systems,
-                                            legge_til_ulike_oppvarmingslaster,
-                                            aggregere_lik_oppvarming_fjern_0,
                                             expand_building_category_tek,
                                             project_heating_systems,
                                             add_existing_tek_shares_to_projection)

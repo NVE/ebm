@@ -2,19 +2,18 @@ import pathlib
 
 from loguru import logger
 import pandas as pd
-import tkinter as tk
 
 import pyperclip
 from dotenv import load_dotenv
 
 from ebm.cmd.run_calculation import calculate_building_category_area_forecast
 from ebm.cmd.run_calculation import calculate_building_category_energy_requirements, calculate_heating_systems
-from ebm.model import DatabaseManager, FileHandler, building_category
+from ebm.model import DatabaseManager, FileHandler
 from ebm.model.calibrate_heating_rv import default_calibrate_heating_rv
 from ebm.model.data_classes import YearRange
 from ebm.model.building_category import BuildingCategory
 
-from ebm.heating_systems import HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HeatingSystems, HEATING_SYSTEMS, \
+from ebm.heating_systems import HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HeatingSystems, \
     GRUNNLAST_ENERGIVARE, SPISSLAST_ENERGIVARE, EKSTRALAST_ENERGIVARE, HEATIG_RV_EKSTRALAST, COOLING_KV, OTHER_SV, \
     DHW_TV, TAPPEVANN_ENERGIVARE
 
@@ -189,7 +188,7 @@ def run_calibration(database_manager,
         heating_systems_forecast=projection)
 
     hf = df.set_index(['building_category', 'TEK', 'heating_systems', 'year'])
-    transformed = transform_heating_systems2(heating_systems, calibration_year)
+    transformed = transform_heating_systems(heating_systems, calibration_year)
 
     return transformed
 

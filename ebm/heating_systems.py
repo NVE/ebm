@@ -1,6 +1,9 @@
-import pandas as pd
 from loguru import logger
+import pandas as pd
 
+from ebm.heating_systems_projection import add_missing_heating_systems, expand_building_category_tek, \
+    project_heating_systems, add_existing_tek_shares_to_projection, legge_til_ulike_oppvarmingslaster
+from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.filter_tek import FilterTek
 
@@ -17,7 +20,8 @@ HEATING_DHW = 'heating_dhw'
 COOLING = 'cooling'
 DHW_EFFICIENCY = 'Tappevann virkningsgrad'
 
-TEK_SHARE = 'tek_share'
+HEATING_SYSTEMS = 'heating_systems'
+TEK_SHARES = 'TEK_shares'
 GRUNNLAST_ANDEL = 'Grunnlast andel'
 GRUNNLAST_VIRKNINGSGRAD = 'Grunnlast virkningsgrad'
 KJOLING_VIRKNINGSGRAD = 'Kjoling virkningsgrad'
@@ -26,6 +30,11 @@ EKSTRALAST_ANDEL = 'Ekstralast andel'
 EKSTRALAST_VIRKNINGSGRAD = 'Ekstralast virkningsgrad'
 SPISSLAST_ANDEL = 'Spisslast andel'
 SPISSLAST_VIRKNINGSGRAD = 'Spisslast virkningsgrad'
+
+GRUNNLAST_ENERGIVARE = 'Grunnlast energivare'
+SPISSLAST_ENERGIVARE = 'Spisslast energivare'
+EKSTRALAST_ENERGIVARE = 'Ekstralast energivare'
+TAPPEVANN_ENERGIVARE = 'Tappevann energivare'
 
 
 class HeatingSystems:
@@ -43,12 +52,13 @@ class HeatingSystems:
             heating_systems_parameters grouped and summed
         """
         df = self.heating_systems_parameters
+        df = df.rename(columns={'tek_share': TEK_SHARES})
 
-        aggregates = {TEK_SHARE: 'sum', EKSTRALAST_ANDEL: 'sum', GRUNNLAST_ANDEL: 'sum', SPISSLAST_ANDEL: 'sum',
+        aggregates = {'Grunnlast energivare': 'first', 'Spisslast energivare':'first', 'Ekstralast energivare':'first', 'Tappevann energivare': 'first', TEK_SHARES: 'sum', EKSTRALAST_ANDEL: 'sum', GRUNNLAST_ANDEL: 'sum', SPISSLAST_ANDEL: 'sum',
                       GRUNNLAST_VIRKNINGSGRAD: 'sum', SPISSLAST_VIRKNINGSGRAD: 'sum',
                       EKSTRALAST_VIRKNINGSGRAD: 'sum', DHW_EFFICIENCY: 'sum',
                       SPESIFIKT_ELFORBRUK: 'sum', KJOLING_VIRKNINGSGRAD: 'sum'}
-        grouped = df.groupby(by=['building_category', 'TEK', 'Oppvarmingstyper']).agg(aggregates)
+        grouped = df.groupby(by=['building_category', 'TEK', 'year', HEATING_SYSTEMS]).agg(aggregates)
         return grouped.reset_index()
 
     def calculate(self, energy_requirements: pd.DataFrame) -> pd.DataFrame:
@@ -73,12 +83,12 @@ class HeatingSystems:
         if energy_requirements.index.get_level_values('TEK').str.endswith(
                 '_RES').any() or energy_requirements.index.get_level_values('TEK').str.endswith('_COM').any():
             raise ValueError('Found _RES or _COM in energy_requirements')
-
+        self.heating_systems_parameters = self.heating_systems_parameters.rename(columns={'tek_share': TEK_SHARES})
         # Merge energy_requirements and heating_systems into df
         df = self._merge_energy_requirement_and_heating_systems(energy_requirements)
 
         # Make column eq_ts for tek_share adjusted energy requirement
-        df[ADJUSTED_REQUIREMENT] = df.energy_requirement * df[TEK_SHARE]
+        df[ADJUSTED_REQUIREMENT] = df.energy_requirement * df[TEK_SHARES]
 
         # Zero fill columns before calculating to prevent NaN from messing up sums
         df.loc[:,
@@ -87,70 +97,84 @@ class HeatingSystems:
         # Adjust energy requirements by efficiency
         # heating rv
 
-        heating_rv_slice = (slice(None), slice(None), HEATING_RV, slice(None), slice(None))
+        df = self.adjust_heating_rv(df)
+        df = self.adjust_heating_dhw(df)
+        df = self.adjust_cooling(df)
+        df = self.adjust_other(df)
 
-        df.loc[heating_rv_slice, HEATING_RV_GRUNNLAST] = (
-                df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] * df.loc[
-            heating_rv_slice, GRUNNLAST_ANDEL] / df.loc[
-                    heating_rv_slice, GRUNNLAST_VIRKNINGSGRAD])
-
-        df.loc[heating_rv_slice, HEATING_RV_SPISSLAST] = (
-                df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] *
-                df.loc[heating_rv_slice, SPISSLAST_ANDEL] / df.loc[heating_rv_slice, SPISSLAST_VIRKNINGSGRAD])
-
-        df.loc[heating_rv_slice, HEATIG_RV_EKSTRALAST] = (
-                df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] *
-                df.loc[heating_rv_slice, EKSTRALAST_ANDEL] / df.loc[heating_rv_slice, EKSTRALAST_VIRKNINGSGRAD])
-
-        # heating dhw energy use is calculated by dividing heating_dhw with 'Tappevann virkningsgrad'
-        heating_dhw_slice = (slice(None), slice(None), HEATING_DHW, slice(None), slice(None))
-        df.loc[heating_dhw_slice, DHW_TV] = df.loc[heating_dhw_slice, ADJUSTED_REQUIREMENT] / df.loc[
-            heating_dhw_slice, DHW_EFFICIENCY]
-
-        # cooling energy use is calculated by dividing cooling with 'Kjoling virkningsgrad'
-        cooling_slice = (slice(None), slice(None), COOLING, slice(None), slice(None))
-        df.loc[cooling_slice, COOLING_KV] = df.loc[cooling_slice, ADJUSTED_REQUIREMENT] / df.loc[
-            cooling_slice, KJOLING_VIRKNINGSGRAD]
-
-        # lighting, electrical equipment, fans and pumps energy use is calculated by dividing with spesific electricity
-        # useage
-        other_slice = (slice(None), slice(None), EnergyPurpose.other(), slice(None), slice(None))
-        df.loc[other_slice, OTHER_SV] = df.loc[other_slice, ADJUSTED_REQUIREMENT] / df.loc[
-            other_slice, SPESIFIKT_ELFORBRUK]
-
-        df.loc[:, 'kwh'] = df.loc[:,
-                           [HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HEATIG_RV_EKSTRALAST, DHW_TV, COOLING_KV,
-                            ('%s' % OTHER_SV)]].sum(axis=1)
+        # sum energy use
+        df.loc[:, 'kwh'] = df.loc[
+                           :,
+                           [HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HEATIG_RV_EKSTRALAST,
+                            DHW_TV, COOLING_KV, OTHER_SV]].sum(axis=1)
 
         df.loc[:, 'gwh'] = df.loc[:, 'kwh'] / 10 ** 6
 
         df = df.sort_index(
-            level=['building_category', 'TEK', 'year', 'building_condition', 'purpose', 'Oppvarmingstyper'])
-        return df[[TEK_SHARE,
+            level=['building_category', 'TEK', 'year', 'building_condition', 'purpose', HEATING_SYSTEMS])
+        return df[[TEK_SHARES,
                    ADJUSTED_REQUIREMENT,
-                   HEATING_RV_GRUNNLAST,
-                   HEATING_RV_SPISSLAST,
-                   HEATIG_RV_EKSTRALAST,
-                   DHW_TV,
+                   HEATING_RV_GRUNNLAST, GRUNNLAST_ENERGIVARE,
+                   HEATING_RV_SPISSLAST, SPISSLAST_ENERGIVARE,
+                   HEATIG_RV_EKSTRALAST, EKSTRALAST_ENERGIVARE,
+                   DHW_TV, TAPPEVANN_ENERGIVARE,
                    COOLING_KV,
                    OTHER_SV,
                    'kwh',
                    'gwh']]
 
+    def adjust_other(self, df):
+        # lighting, electrical equipment, fans and pumps energy use is calculated by dividing with spesific electricity
+        # useage
+        other_slice = (slice(None), slice(None), EnergyPurpose.other(), slice(None), slice(None))
+        df.loc[other_slice, OTHER_SV] = df.loc[other_slice, ADJUSTED_REQUIREMENT] / df.loc[
+            other_slice, SPESIFIKT_ELFORBRUK]
+        return df
+
+    def adjust_cooling(self, df):
+        # cooling energy use is calculated by dividing cooling with 'Kjoling virkningsgrad'
+        cooling_slice = (slice(None), slice(None), COOLING, slice(None), slice(None))
+        df.loc[cooling_slice, COOLING_KV] = df.loc[cooling_slice, ADJUSTED_REQUIREMENT] / df.loc[
+            cooling_slice, KJOLING_VIRKNINGSGRAD]
+        return df
+
+    def adjust_heating_dhw(self, df):
+        # heating dhw energy use is calculated by dividing heating_dhw with 'Tappevann virkningsgrad'
+        heating_dhw_slice = (slice(None), slice(None), HEATING_DHW, slice(None), slice(None))
+        df.loc[heating_dhw_slice, DHW_TV] = df.loc[heating_dhw_slice, ADJUSTED_REQUIREMENT] / df.loc[
+            heating_dhw_slice, DHW_EFFICIENCY]
+        return df
+
+    def adjust_heating_rv(self, df):
+        heating_rv_slice = (slice(None), slice(None), HEATING_RV, slice(None), slice(None))
+        df.loc[heating_rv_slice, HEATING_RV_GRUNNLAST] = (
+                df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] * df.loc[
+            heating_rv_slice, GRUNNLAST_ANDEL] / df.loc[
+                    heating_rv_slice, GRUNNLAST_VIRKNINGSGRAD])
+        df.loc[heating_rv_slice, HEATING_RV_SPISSLAST] = (
+                df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] *
+                df.loc[heating_rv_slice, SPISSLAST_ANDEL] / df.loc[heating_rv_slice, SPISSLAST_VIRKNINGSGRAD])
+        df.loc[heating_rv_slice, HEATIG_RV_EKSTRALAST] = (
+                df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] *
+                df.loc[heating_rv_slice, EKSTRALAST_ANDEL] / df.loc[heating_rv_slice, EKSTRALAST_VIRKNINGSGRAD])
+        return df
+
     def _merge_energy_requirement_and_heating_systems(self, energy_requirements):
         df = energy_requirements.reset_index().merge(
             self.heating_systems_parameters.reset_index(),
-            left_on=['building_category', 'TEK'],
-            right_on=['building_category', 'TEK'])[
+            left_on=['building_category', 'TEK', 'year'],
+            right_on=['building_category', 'TEK', 'year'])[
             ['building_category', 'building_condition', 'purpose', 'TEK', 'year', 'kwh_m2', 'm2', 'energy_requirement',
-             'Oppvarmingstyper', 'tek_share', GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD,
-             SPISSLAST_ANDEL, SPISSLAST_VIRKNINGSGRAD,
-             EKSTRALAST_VIRKNINGSGRAD, EKSTRALAST_ANDEL,
-             DHW_EFFICIENCY, SPESIFIKT_ELFORBRUK, KJOLING_VIRKNINGSGRAD]]
+             HEATING_SYSTEMS, TEK_SHARES,
+             GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE,
+             SPISSLAST_ANDEL, SPISSLAST_VIRKNINGSGRAD, SPISSLAST_ENERGIVARE,
+             EKSTRALAST_VIRKNINGSGRAD, EKSTRALAST_ANDEL, EKSTRALAST_ENERGIVARE,
+             TAPPEVANN_ENERGIVARE, DHW_EFFICIENCY,
+             SPESIFIKT_ELFORBRUK, KJOLING_VIRKNINGSGRAD]]
         # Unused columns
         # ,'Innfyrt_energi_kWh','Innfyrt_energi_GWh','Energibehov_samlet_GWh']]
         df = df.set_index(
-            ['building_category', 'building_condition', 'purpose', 'TEK', 'year', 'Oppvarmingstyper']).sort_index()
+            ['building_category', 'building_condition', 'purpose', 'TEK', 'year', HEATING_SYSTEMS]).sort_index()
         return df
 
     @staticmethod
@@ -166,3 +190,29 @@ class HeatingSystems:
         energy_requirements = FilterTek.remove_tek_suffix(energy_requirements, suffix='_RES')
         energy_requirements = FilterTek.remove_tek_suffix(energy_requirements, suffix='_COM')
         return energy_requirements
+    @staticmethod
+    def calculate_heating_systems_projection(heating_systems_shares: pd.DataFrame,
+                                         heating_systems_efficiencies: pd.DataFrame,
+                                         heating_systems_forecast: pd.DataFrame,
+                                         period: YearRange = YearRange(2020, 2050)) -> pd.DataFrame:
+
+        start_year = period.start
+        df_aggregert_alle_kombinasjoner = add_missing_heating_systems(heating_systems_shares,
+                                                                      start_year=start_year)
+
+        # Gjør klar inputfilen for oppvarmingsandelene som skal framskrives.
+        inputfil_oppvarming = expand_building_category_tek(heating_systems_forecast)
+
+        # Framskriver oppvarmingsløsninger basert på andelene i input filen
+        nye_andeler = project_heating_systems(df_aggregert_alle_kombinasjoner, inputfil_oppvarming)
+
+        # Legger til andeler det ikke er utført noen form for framskrivning på i projection perioden
+        df_framskrevet_oppvarming = add_existing_tek_shares_to_projection(nye_andeler,
+                                                                          heating_systems_shares,
+                                                                          period)
+
+        # Legger til virkningsgrader og andeler til grunn,spiss og ekstralast og tappevann
+        df_framskrevet_oppvarming_lastfordeling = legge_til_ulike_oppvarmingslaster(df_framskrevet_oppvarming,
+                                                                                    heating_systems_efficiencies)
+
+        return df_framskrevet_oppvarming_lastfordeling

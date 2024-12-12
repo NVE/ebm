@@ -291,6 +291,15 @@ class DatabaseManager:
         missing_files = self.file_handler.check_for_missing_files()
         return True
 
+    def get_heating_systems_shares_start_year(self):
+        return self.file_handler.get_heating_systems_shares_start_year()
+
+    def get_heating_systems_efficiencies(self):
+        return self.file_handler.get_heating_systems_efficiencies()
+
+    def get_heating_systems_projection(self):
+        return self.file_handler.get_heating_systems_projection()
+
 
 if __name__ == '__main__':
     db = DatabaseManager()

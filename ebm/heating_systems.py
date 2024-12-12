@@ -190,6 +190,7 @@ class HeatingSystems:
         energy_requirements = FilterTek.remove_tek_suffix(energy_requirements, suffix='_RES')
         energy_requirements = FilterTek.remove_tek_suffix(energy_requirements, suffix='_COM')
         return energy_requirements
+
     @staticmethod
     def calculate_heating_systems_projection(heating_systems_shares: pd.DataFrame,
                                          heating_systems_efficiencies: pd.DataFrame,

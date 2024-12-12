@@ -179,33 +179,6 @@ def add_existing_tek_shares_to_projection(new_shares: pd.DataFrame,
     return samlede_nye_andeler
 
 
-def main(heating_systems_shares: pd.DataFrame,
-         heating_systems_efficiencies: pd.DataFrame,
-         heating_systems_forecast: pd.DataFrame,
-         period: YearRange) -> pd.DataFrame:
-    
-    start_year = period.start
-    df_aggregert_alle_kombinasjoner = add_missing_heating_systems(heating_systems_shares,
-                                                                  start_year=start_year)
-
-    # Gjør klar inputfilen for oppvarmingsandelene som skal framskrives.
-    inputfil_oppvarming = expand_building_category_tek(heating_systems_forecast)
-
-    # Framskriver oppvarmingsløsninger basert på andelene i input filen
-    nye_andeler = project_heating_systems(df_aggregert_alle_kombinasjoner, inputfil_oppvarming)
-
-    # Legger til andeler det ikke er utført noen form for framskrivning på i projection perioden
-    df_framskrevet_oppvarming = add_existing_tek_shares_to_projection(nye_andeler, 
-                                                                      heating_systems_shares,
-                                                                      period)
-
-    # Legger til virkningsgrader og andeler til grunn,spiss og ekstralast og tappevann
-    df_framskrevet_oppvarming_lastfordeling = legge_til_ulike_oppvarmingslaster(df_framskrevet_oppvarming, 
-                                                                                heating_systems_efficiencies)
-
-    return df_framskrevet_oppvarming_lastfordeling
-
-
 #if __name__ == '__main__':
 #    main()
     

@@ -301,9 +301,15 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
 
 
 def calculate_heating_systems(energy_requirements, database_manager: DatabaseManager):
-    tekandeler_input = database_manager.get_tekandeler()
+    shares_start_year = database_manager.get_heating_systems_shares_start_year()
+    efficiencies = database_manager.get_heating_systems_efficiencies()
+    projection = database_manager.get_heating_systems_projection()
 
-    calculator = HeatingSystems(tekandeler_input)
+    hf = HeatingSystems.calculate_heating_systems_projection(
+        heating_systems_shares=shares_start_year,
+        heating_systems_efficiencies=efficiencies,
+        heating_systems_forecast=projection)
+    calculator = HeatingSystems(hf)
     calculator.heating_systems_parameters = calculator.grouped_heating_systems()
     df = calculator.calculate(energy_requirements)
 

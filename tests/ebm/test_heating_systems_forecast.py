@@ -3,16 +3,15 @@ import typing
 import pandas as pd
 import pytest
 
+from ebm.heating_systems import HeatingSystems
 from ebm.model.data_classes import YearRange
 from ebm.model.building_category import BuildingCategory
-from ebm.model.heating_systems import HeatingSystems
 from ebm.heating_systems_projection import (add_missing_heating_systems,
-                                          legge_til_ulike_oppvarmingslaster,
-                                          aggregere_lik_oppvarming_fjern_0,
-                                          expand_building_category_tek,
-                                          project_heating_systems,
-                                          add_existing_tek_shares_to_projection,
-                                          main)
+                                            legge_til_ulike_oppvarmingslaster,
+                                            aggregere_lik_oppvarming_fjern_0,
+                                            expand_building_category_tek,
+                                            project_heating_systems,
+                                            add_existing_tek_shares_to_projection)
 
 # TODO: 
 # add fixtures for the 3 input data files for one building category, 2 TEKS 
@@ -228,7 +227,7 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES] ,skipinitialspace=
 
 def test_main_ok():
     """
-    Test that main function runs ok with input that is correct.
+    Test that calculate_heating_systems_projection function runs ok with input that is correct.
     """
     shares_start_year = pd.read_csv(io.StringIO("""
 kindergarten,TEK97,Electricity,2020,1
@@ -258,7 +257,7 @@ kindergarten,TEK97,Electricity,DH,0.25,0.5
 """.strip()),
 names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022] ,skipinitialspace=True)
 
-    result = main(shares_start_year, efficiencies, projection, period=YearRange(2020,2022))
+    result = HeatingSystems.calculate_heating_systems_projection(shares_start_year, efficiencies, projection, period=YearRange(2020, 2022))
 
     expected = pd.read_csv(io.StringIO("""
 kindergarten,TEK97,Electricity,2020,1,0
@@ -312,7 +311,7 @@ kindergarten,TEK97,Electricity,DH,0.1,0.25,0.5
 """.strip()),
 names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022,2023] ,skipinitialspace=True)
 
-    result = main(shares_start_year, efficiencies, projection, period=YearRange(2022,2023))
+    result = HeatingSystems.calculate_heating_systems_projection(shares_start_year, efficiencies, projection, period=YearRange(2022, 2023))
 
     expected = pd.read_csv(io.StringIO("""
 kindergarten,TEK97,Electricity,2022,1,0

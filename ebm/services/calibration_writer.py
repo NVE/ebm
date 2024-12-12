@@ -32,7 +32,8 @@ class ComCalibrationReader:
         # Print the names of the currently open workbooks
         open_workbooks = [w.Name for w in workbooks]
         if self.workbook_name not in open_workbooks:
-            raise IOError(f'Did not found open workbook {self.workbook_name}')
+            logger.error(f'{open_workbooks}')
+            raise IOError(f'Did not find open workbook {self.workbook_name}')
         logger.debug(f'Using {self.workbook_name} {self.sheet_name}')
 
         workbook = workbooks[self.workbook_name]

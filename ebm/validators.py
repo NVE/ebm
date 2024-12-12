@@ -493,6 +493,7 @@ heating_systems_efficiencies = pa.DataFrameSchema(
         'Spisslast virkningsgrad': pa.Column(float, coerce=True),
         'Ekstralast virkningsgrad': pa.Column(float, coerce=True),
         'Tappevann': pa.Column(str),
+        'Tappevann energivare': pa.Column(str),
         'Tappevann virkningsgrad': pa.Column(float, coerce=True),
         'Spesifikt elforbruk': pa.Column(float, coerce=True),
         'Kjoling virkningsgrad': pa.Column(float, coerce=True)

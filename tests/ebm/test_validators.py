@@ -773,20 +773,20 @@ kindergarten,TEK87,Electricity,DH,0.05,0.0550163004472704
 
 def test_heating_systems_efficiencies_ok():
     efficiencies = pd.read_csv(io.StringIO("""
-heating_systems,Grunnlast,Spisslast,Ekstralast,Ekstralast andel,Grunnlast energivare,Spisslast energivare,Ekstralast energivare,Grunnlast andel,Spisslast andel,Grunnlast virkningsgrad,Spisslast virkningsgrad,Ekstralast virkningsgrad,Tappevann,Tappevann virkningsgrad,Spesifikt elforbruk,Kjoling virkningsgrad
-Electric boiler,Electric boiler,Ingen,Ingen,0.0,Electricity,Ingen,Ingen,1.0,0.0,0.98,1.0,1,Electric boiler,0.98,1,4
-DH,DH,Ingen,Ingen,0.0,DH,Ingen,Ingen,1.0,0.0,0.99,1.0,1,DH,0.99,1,4
-Electricity,Electricity,Ingen,Ingen,0.0,Electricity,Ingen,Ingen,1.0,0.0,1.0,1.0,1,Electricity,0.98,1,4
-Gas,Gas,Ingen,Ingen,0.0,Fossil,Ingen,Ingen,1.0,0.0,0.96,1.0,1,Gas,0.96,1,4
-Electricity - Bio,Electricity,Bio,Ingen,0.0,Electricity,Bio,Ingen,0.7,0.3,1.0,0.65,1,Electricity,0.98,1,4
-DH - Bio,DH,Bio,Ingen,0.0,DH,Bio,Ingen,0.95,0.05,0.99,0.65,1,DH,0.99,1,4
-HP - Bio,HP,Bio,Electricity,0.5,Electricity,Bio,Electricity,0.4,0.1,2.5,0.65,1,Electricity,0.98,1,4
-HP - Electricity,HP,Electricity,Ingen,0.0,Electricity,Electricity,Ingen,0.4,0.6,2.5,1.0,1,Electricity,0.98,1,4
-HP Central heating - DH,HP Central heating,DH,Ingen,0.0,Electricity,DH,Ingen,0.85,0.15,3.0,0.99,1,HP Central heating,3.0,1,4
-HP Central heating,HP Central heating,Electric boiler,Ingen,0.0,Electricity,Electricity,Ingen,0.85,0.15,3.0,0.98,1,HP Central heating,3.0,1,4
-HP Central heating - Gas,HP Central heating,Gas,Ingen,0.0,Electricity,Fossil,Ingen,0.85,0.15,3.0,0.96,1,HP Central heating,3.0,1,4
-Electric boiler - Solar,Electric boiler,Solar,Ingen,0.0,Electricity,Solar,Ingen,0.8,0.1999999999999999,0.99,0.96,1,Electric boiler,0.99,1,4
-HP Central heating - Bio,HP Central heating,Bio,Ingen,0.0,Electricity,Bio,Ingen,0.85,0.15,3.0,0.65,1,HP Central heating,3.0,1,4
+heating_systems,Grunnlast,Spisslast,Ekstralast,Ekstralast andel,Grunnlast energivare,Spisslast energivare,Ekstralast energivare,Grunnlast andel,Spisslast andel,Grunnlast virkningsgrad,Spisslast virkningsgrad,Ekstralast virkningsgrad,Tappevann,Tappevann energivare,Tappevann virkningsgrad,Spesifikt elforbruk,Kjoling virkningsgrad
+Electric boiler,Electric boiler,Ingen,Ingen,0.0,Electricity,Ingen,Ingen,1.0,0.0,0.98,1.0,1,Electric boiler,Electricity,0.98,1,4
+DH,DH,Ingen,Ingen,0.0,DH,Ingen,Ingen,1.0,0.0,0.99,1.0,1,DH,DH,0.99,1,4
+Electricity,Electricity,Ingen,Ingen,0.0,Electricity,Ingen,Ingen,1.0,0.0,1.0,1.0,1,Electricity,Electricity,0.98,1,4
+Gas,Gas,Ingen,Ingen,0.0,Fossil,Ingen,Ingen,1.0,0.0,0.96,1.0,1,Gas,Fossil,0.96,1,4
+Electricity - Bio,Electricity,Bio,Ingen,0.0,Electricity,Bio,Ingen,0.7,0.3,1.0,0.65,1,Electricity,Electricity,0.98,1,4
+DH - Bio,DH,Bio,Ingen,0.0,DH,Bio,Ingen,0.95,0.05,0.99,0.65,1,DH,DH,0.99,1,4
+HP - Bio,HP,Bio,Electricity,0.5,Electricity,Bio,Electricity,0.4,0.1,2.5,0.65,1,Electricity,Electricity,0.98,1,4
+HP - Electricity,HP,Electricity,Ingen,0.0,Electricity,Electricity,Ingen,0.4,0.6,2.5,1.0,1,Electricity,Electricity,0.98,1,4
+HP Central heating - DH,HP Central heating,DH,Ingen,0.0,Electricity,DH,Ingen,0.85,0.15,3.0,0.99,1,HP Central heating,Electricity,3.0,1,4
+HP Central heating,HP Central heating,Electric boiler,Ingen,0.0,Electricity,Electricity,Ingen,0.85,0.15,3.0,0.98,1,HP Central heating,Electricity,3.0,1,4
+HP Central heating - Gas,HP Central heating,Gas,Ingen,0.0,Electricity,Fossil,Ingen,0.85,0.15,3.0,0.96,1,HP Central heating,Electricity,3.0,1,4
+Electric boiler - Solar,Electric boiler,Solar,Ingen,0.0,Electricity,Solar,Ingen,0.8,0.1999999999999999,0.99,0.96,1,Electric boiler,Electricity,0.99,1,4
+HP Central heating - Bio,HP Central heating,Bio,Ingen,0.0,Electricity,Bio,Ingen,0.85,0.15,3.0,0.65,1,HP Central heating,Electricity,3.0,1,4
 """.strip()), skipinitialspace=True) 
     
     heating_systems_efficiencies.validate(efficiencies)

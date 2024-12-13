@@ -10,8 +10,10 @@ class EnergyRequirementCalibrationWriter:
     def __init__(self):
         pass
 
-    def load(self, df: pd.DataFrame, to_file: typing.Union[str, pathlib.Path] = pathlib.Path('input/calibrate_heating_rv.xlsx')):
+    def load(self, df: pd.DataFrame, to_file: typing.Union[str, pathlib.Path] = None):
         logger.debug(f'Save {to_file}')
+        if to_file is None:
+            to_file = pathlib.Path('input/calibrate_heating_rv.xlsx')
         file_path: pathlib.Path = to_file if isinstance(to_file, pathlib.Path) else pathlib.Path(to_file)
         df = df[['building_category', 'purpose', 'heating_rv_factor']].reset_index(drop=True)
         if file_path.suffix == '.csv':

@@ -90,8 +90,9 @@ def transform_by_energy_source(df, energy_class_column, energy_source_column):
 
 def transform_heating_systems(df: pd.DataFrame, calibration_year) -> pd.DataFrame:
     df['building_group'] = 'yrkesbygg'
-    df.loc['house', 'building_group'] = 'bolig'
-    df.loc['apartment_block', 'building_group'] = 'bolig'
+    df.loc[('house', slice(None),slice(None),slice(None),slice(None), slice(None),), 'building_group'] = 'bolig'
+    df.loc[('apartment_block', slice(None),slice(None),slice(None), slice(None), slice(None),), 'building_group'] = 'bolig'
+    # df.loc['apartment_block', 'building_group'] = 'bolig'
 
     df['ALWAYS_ELECTRICITY'] = 'Electricity'
     rv_gl = transform_by_energy_source(df, HEATING_RV_GRUNNLAST, GRUNNLAST_ENERGIVARE)
@@ -123,7 +124,6 @@ def transform_pumps(df: pd.DataFrame, calibration_year) -> pd.DataFrame:
     df['building_group'] = 'yrkesbygg'
     df.loc['house', 'building_group'] = 'bolig'
     df.loc['apartment_block', 'building_group'] = 'bolig'
-
 
     return df
 

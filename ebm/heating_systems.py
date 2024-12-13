@@ -12,6 +12,7 @@ ADJUSTED_REQUIREMENT = 'eq_ts'
 HEATING_RV_GRUNNLAST = 'RV_GL'
 HEATING_RV_SPISSLAST = 'RV_SL'
 HEATIG_RV_EKSTRALAST = 'RV_EL'
+HEAT_PUMP = 'RV_HP'
 COOLING_KV = 'CL_KV'
 DHW_TV = 'DHW_TV'
 OTHER_SV = 'O_SV'
@@ -35,6 +36,7 @@ GRUNNLAST_ENERGIVARE = 'Grunnlast energivare'
 SPISSLAST_ENERGIVARE = 'Spisslast energivare'
 EKSTRALAST_ENERGIVARE = 'Ekstralast energivare'
 TAPPEVANN_ENERGIVARE = 'Tappevann energivare'
+HP_ENERGY_SOURCE = 'hp_source'
 
 
 class HeatingSystems:
@@ -92,11 +94,12 @@ class HeatingSystems:
 
         # Zero fill columns before calculating to prevent NaN from messing up sums
         df.loc[:,
-        [HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HEATIG_RV_EKSTRALAST, DHW_TV, COOLING_KV, OTHER_SV]] = 0.0
+        [HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HEATIG_RV_EKSTRALAST, DHW_TV, COOLING_KV, OTHER_SV, HEAT_PUMP]] = 0.0
 
         # Adjust energy requirements by efficiency
         # heating rv
 
+        df = self.adjust_heat_pump(df)
         df = self.adjust_heating_rv(df)
         df = self.adjust_heating_dhw(df)
         df = self.adjust_cooling(df)
@@ -120,8 +123,28 @@ class HeatingSystems:
                    DHW_TV, TAPPEVANN_ENERGIVARE,
                    COOLING_KV,
                    OTHER_SV,
+                   HEAT_PUMP, HP_ENERGY_SOURCE,
                    'kwh',
                    'gwh']]
+
+    def adjust_heat_pump(self, df):
+        df[HP_ENERGY_SOURCE] = None
+        gass = ['HP Central heating - Gas']
+        vannbasert = [n for n in df.index.get_level_values('heating_systems').unique() if
+                      n.startswith('HP Central heating') and n not in gass]
+        elektrisk = [n for n in df.index.get_level_values('heating_systems').unique() if
+                      n.startswith('HP') and n not in vannbasert]
+
+        gass_slice = (slice(None), slice(None), slice(None), slice(None), gass)
+        vann_slice = (slice(None), slice(None), ['heating_rv'], slice(None), slice(None), vannbasert) # , 'heating_dhw'
+        el_slice = (slice(None), slice(None), ['heating_rv'], slice(None), slice(None), elektrisk) # 'heating_dhw'
+
+        df.loc[vann_slice, HEAT_PUMP] = df.loc[vann_slice, ADJUSTED_REQUIREMENT] * df.loc[vann_slice, GRUNNLAST_ANDEL]
+        df.loc[vann_slice, HP_ENERGY_SOURCE] = 'vannbåren'
+
+        df.loc[el_slice, HEAT_PUMP] = df.loc[el_slice, ADJUSTED_REQUIREMENT] * df.loc[el_slice, GRUNNLAST_ANDEL]
+        df.loc[el_slice, HP_ENERGY_SOURCE] = 'luftluft'
+        return df
 
     def adjust_other(self, df):
         # lighting, electrical equipment, fans and pumps energy use is calculated by dividing with spesific electricity

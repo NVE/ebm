@@ -1,6 +1,5 @@
 import pathlib
 import typing
-from builtins import int
 
 from loguru import logger
 import pandas as pd

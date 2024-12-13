@@ -15,7 +15,7 @@ from ebm.model.building_category import BuildingCategory
 
 from ebm.heating_systems import HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HeatingSystems, \
     GRUNNLAST_ENERGIVARE, SPISSLAST_ENERGIVARE, EKSTRALAST_ENERGIVARE, HEATIG_RV_EKSTRALAST, COOLING_KV, OTHER_SV, \
-    DHW_TV, TAPPEVANN_ENERGIVARE
+    DHW_TV, TAPPEVANN_ENERGIVARE, HEAT_PUMP, HP_ENERGY_SOURCE
 
 ELECTRICITY = 'Elektrisitet'
 DISTRICT_HEATING = 'Fjernvarme'
@@ -100,8 +100,9 @@ def transform_heating_systems(df: pd.DataFrame, calibration_year) -> pd.DataFram
     cooling = transform_by_energy_source(df, COOLING_KV, 'ALWAYS_ELECTRICITY')
     spesifikt_elforbruk = transform_by_energy_source(df, OTHER_SV, 'ALWAYS_ELECTRICITY')
     tappevann = transform_by_energy_source(df, DHW_TV, TAPPEVANN_ENERGIVARE)
+    rv_hp = transform_by_energy_source(df, HEAT_PUMP, HP_ENERGY_SOURCE)
 
-    energy_use = pd.concat([rv_gl, rv_sl, rv_el, cooling, spesifikt_elforbruk, tappevann])
+    energy_use = pd.concat([rv_gl, rv_sl, rv_el, cooling, spesifikt_elforbruk, tappevann, rv_hp])
     energy_use.loc[energy_use['energy_source'] == 'Solar', 'energy_source'] = 'Electricity'
     energy_use = energy_use.xs(calibration_year, level='year')
 
@@ -113,7 +114,16 @@ def transform_heating_systems(df: pd.DataFrame, calibration_year) -> pd.DataFram
     df.loc[df.building_category == 'bolig', 'building_category'] = 'residential'
     df.loc[df.building_category == 'yrkesbygg', 'building_category'] = 'non_residential'
     df = df.pivot(index='building_category', columns='energy_source', values='energy_use').reset_index()[
-        ['building_category', 'Elektrisitet', 'Fjernvarme', 'Bio', 'Fossil']].set_index(['building_category'], drop=True)
+        ['building_category', 'Elektrisitet', 'Fjernvarme', 'Bio', 'Fossil', 'luftluft', 'vannbåren']].set_index(['building_category'], drop=True)
+
+    return df
+
+
+def transform_pumps(df: pd.DataFrame, calibration_year) -> pd.DataFrame:
+    df['building_group'] = 'yrkesbygg'
+    df.loc['house', 'building_group'] = 'bolig'
+    df.loc['apartment_block', 'building_group'] = 'bolig'
+
 
     return df
 

@@ -2,7 +2,6 @@ import typing
 
 import pandas as pd
 
-from ebm.model.calibrate_heating_rv import default_calibrate_heating_rv
 from ebm.model.file_handler import FileHandler
 from ebm.model.building_category import BuildingCategory, expand_building_categories
 from ebm.model.data_classes import TEKParameters

@@ -6,28 +6,30 @@
 trigger:
 - sprint14
 
-pool:
-  vmImage: ubuntu-latest
-strategy:
-  matrix:
-    Python312:
-      python.version: '3.12'
+jobs:
+- job: PytestUbuntu
+  displayName: 'Run pytest on Ubuntu'
+  pool:
+    vmImage: 'ubuntu-latest'
+  strategy:
+    matrix:
+      Python312:
+        python.version: '3.12'
+  steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(python.version)'
+      displayName: 'Use Python $(python.version)'
 
-steps:
-- task: UsePythonVersion@0
-  inputs:
-    versionSpec: '$(python.version)'
-  displayName: 'Use Python $(python.version)'
-
-- script: |
-    python -m pip install --upgrade pip
-    pip install -r requirements.txt
-    pip install setuptools build twine
-  displayName: 'Install dependencies'
-- script: |
-    python -m build
-  displayName: 'Build package'
-- script: |
-    pip install pytest pytest-azurepipelines
-    pytest
-  displayName: 'pytest'
+    - script: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install setuptools build twine
+      displayName: 'Install dependencies'
+    - script: |
+        python -m build
+      displayName: 'Build package'
+    - script: |
+        pip install pytest pytest-azurepipelines
+        pytest
+      displayName: 'pytest'

@@ -1,10 +1,14 @@
+import sys
+
 import pandas as pd
+import pytest
 
 from ebm.model.energy_purpose import EnergyPurpose
-from ebm.services.calibration_writer import ComCalibrationReader
 
 
+@pytest.mark.skipif(sys.platform != "win32", reason="Test only runs on Windows")
 def test_transform_convert_column_names_and_values():
+    from ebm.services.calibration_writer import ComCalibrationReader
     ccr = ComCalibrationReader()
     values = (('Bygg', 'Gruppe', 'Endringsvariabel', 'Faktor', 'Endringsparameter'),
               ('Yrksebygg', 'Heating system', 'Electric boiler', 1.0, 'HP - Electricity'),
@@ -23,6 +27,7 @@ def test_transform_convert_column_names_and_values():
 
 
 def test_transform_unpack_purpose_when_on_and():
+    from ebm.services.calibration_writer import ComCalibrationReader
     ccr = ComCalibrationReader()
     values = (('Bygg', 'Gruppe', 'Endringsvariabel', 'Faktor', 'Endringsparameter'),
               ('yrkesbygg', 'Energibehov', 'Heating rv and heating dhw', 0.8, '-'))

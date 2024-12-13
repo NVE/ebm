@@ -131,12 +131,12 @@ class HeatingSystems:
         df[HP_ENERGY_SOURCE] = None
         gass = ['HP Central heating - Gas']
         vannbasert = [n for n in df.index.get_level_values('heating_systems').unique() if
-                      n.startswith('HP Central heating') and n not in gass]
+                      n.startswith('HP Central heating')]
         elektrisk = [n for n in df.index.get_level_values('heating_systems').unique() if
                       n.startswith('HP') and n not in vannbasert]
 
         gass_slice = (slice(None), slice(None), slice(None), slice(None), gass)
-        vann_slice = (slice(None), slice(None), ['heating_rv'], slice(None), slice(None), vannbasert) # , 'heating_dhw'
+        vann_slice = (slice(None), slice(None), ['heating_rv', 'heating_dhw'], slice(None), slice(None), vannbasert) # , 'heating_dhw'
         el_slice = (slice(None), slice(None), ['heating_rv'], slice(None), slice(None), elektrisk) # 'heating_dhw'
 
         df.loc[vann_slice, HEAT_PUMP] = df.loc[vann_slice, ADJUSTED_REQUIREMENT] * df.loc[vann_slice, GRUNNLAST_ANDEL]

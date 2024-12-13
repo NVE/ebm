@@ -8,6 +8,7 @@ from loguru import logger
 from pandera.errors import SchemaErrors, SchemaError
 
 import ebm.validators as validators
+from ebm.model.calibrate_heating_rv import default_calibrate_heating_rv
 
 
 class FileHandler:
@@ -32,7 +33,9 @@ class FileHandler:
     HOLIDAY_HOME_ENERGY_CONSUMPTION = 'holiday_home_energy_consumption.csv'
     AREA_PER_PERSON = 'area_per_person.csv'
     TEKANDELER = 'heating_systems.csv'
-
+    HS_SHARES_START_YEAR = 'heating_systems_shares_start_year.csv'
+    HS_EFFICIENCIES = 'heating_systems_efficiencies.csv'
+    HS_PROJECTION = 'heating_systems_projection.csv'
 
     input_directory: pathlib.Path
 
@@ -56,7 +59,7 @@ class FileHandler:
                                self.AREA_PARAMETERS, self.ENERGY_REQ_ORIGINAL_CONDITION, self.ENERGY_REQ_REDUCTION_CONDITION, 
                                self.ENERGY_REQ_YEARLY_IMPROVEMENTS, self.ENERGY_REQ_POLICY_IMPROVEMENTS, self.TEKANDELER,
                                self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_BY_YEAR,
-                               self.AREA_PER_PERSON]
+                               self.AREA_PER_PERSON, self.HS_SHARES_START_YEAR, self.HS_EFFICIENCIES, self.HS_PROJECTION]
 
     def get_file(self, file_name: str) -> pd.DataFrame:
         """
@@ -243,6 +246,27 @@ class FileHandler:
 
     def get_area_per_person(self):
         return self.get_file(self.AREA_PER_PERSON)
+
+    def get_calibrate_heating_rv(self) -> pd.DataFrame:
+        calibrate_heating_rv = self.input_directory / 'calibrate_heating_rv.xlsx'
+        if calibrate_heating_rv.is_file():
+            return self.get_file(calibrate_heating_rv.name)
+        return default_calibrate_heating_rv()
+
+    def get_heating_systems_shares_start_year(self) -> pd.DataFrame:
+        """
+        """
+        return self.get_file(self.HS_SHARES_START_YEAR)
+    
+    def get_heating_systems_efficiencies(self) -> pd.DataFrame:
+        """
+        """
+        return self.get_file(self.HS_EFFICIENCIES)
+
+    def get_heating_systems_projection(self) -> pd.DataFrame:
+        """
+        """
+        return self.get_file(self.HS_PROJECTION)
 
     def _check_is_file(self, filename: str) -> bool:
         """

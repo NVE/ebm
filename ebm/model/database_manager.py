@@ -3,7 +3,7 @@ import typing
 import pandas as pd
 
 from ebm.model.file_handler import FileHandler
-from ebm.model.building_category import BuildingCategory
+from ebm.model.building_category import BuildingCategory, expand_building_categories
 from ebm.model.data_classes import TEKParameters
 
 
@@ -180,9 +180,10 @@ class DatabaseManager:
 
         return area_dict
 
-    def get_energy_req_original_condition(self) -> pd.DataFrame: 
+    def get_energy_req_original_condition(self) -> pd.DataFrame:
         """
-        Get dataframe with energy requirement (kWh/m^2) for floor area in original condition.
+        Get dataframe with energy requirement (kWh/m^2) for floor area in original condition. The result will be
+            calibrated using the dataframe from DatabaseManger.get_calibrate_heating_rv
 
         Returns
         -------
@@ -190,7 +191,14 @@ class DatabaseManager:
             Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
             per building category and purpose.
         """
-        return self.file_handler.get_energy_req_original_condition()
+        df = self.file_handler.get_energy_req_original_condition().set_index(['building_category', 'purpose', 'TEK'])
+        heating_rv_factor = self.get_calibrate_heating_rv()
+
+        calibrated = heating_rv_factor * df.kwh_m2
+        calibrated.name = 'kwh_m2'
+        calibrated.loc[calibrated.isna()] = df.loc[calibrated.isna(), 'kwh_m2']
+        q = calibrated.to_frame().reset_index()
+        return q.loc[~q.kwh_m2.isna()]
 
     def get_energy_req_reduction_per_condition(self) -> pd.DataFrame:
         """
@@ -251,6 +259,11 @@ class DatabaseManager:
     def get_holiday_home_by_year(self) -> pd.DataFrame:
         return self.file_handler.get_holiday_home_by_year().set_index('year')
 
+    def get_calibrate_heating_rv(self) -> pd.Series:
+        df = self.file_handler.get_calibrate_heating_rv()
+        df = expand_building_categories(df, unique_columns=['building_category', 'purpose'])
+        return df.set_index(['building_category', 'purpose'])['heating_rv_factor']
+
     def get_area_per_person(self,
                             building_category: BuildingCategory = None) -> pd.Series:
         """
@@ -275,6 +288,15 @@ class DatabaseManager:
     def validate_database(self):
         missing_files = self.file_handler.check_for_missing_files()
         return True
+
+    def get_heating_systems_shares_start_year(self):
+        return self.file_handler.get_heating_systems_shares_start_year()
+
+    def get_heating_systems_efficiencies(self):
+        return self.file_handler.get_heating_systems_efficiencies()
+
+    def get_heating_systems_projection(self):
+        return self.file_handler.get_heating_systems_projection()
 
 
 if __name__ == '__main__':

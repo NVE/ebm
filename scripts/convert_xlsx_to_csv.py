@@ -8,7 +8,7 @@ from loguru import logger
 import pandas as pd
 
 
-DEFAULT_SOURCE = pathlib.Path('C:/Users/lfep/work_space/Energibruksmodell/input_2020/energy_requirement_original_condition.xlsx')
+DEFAULT_SOURCE = pathlib.Path('C:/Users/lfep/work_space/Energibruksmodell/ebm/data/heating_systems_projection.csv')
 
 def add_number_to_filename(file: pathlib.Path):
     if not file.exists():
@@ -73,7 +73,7 @@ def main():
         logger.info('Set CONVERT_ANY_TO_OTHER in .env or environment variable to convert a different file')
     source_path = pathlib.Path(os.environ.get('CONVERT_ANY_TO_OTHER', DEFAULT_SOURCE))
 
-    any_to_other(source_path, allow_overwrite=source_path.parent.name == 'input_2020')
+    any_to_other(source_path, allow_overwrite=source_path.parent.name == 'data')
     return 0
 
 

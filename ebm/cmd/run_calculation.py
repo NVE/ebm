@@ -1,12 +1,14 @@
 import argparse
 import os
 import pathlib
+import sys
 import textwrap
 import typing
 from dataclasses import dataclass
 from typing import List, Dict
 
 import pandas as pd
+from loguru import logger
 
 from ebm.__version__ import version
 from ebm.holiday_home_energy import HolidayHomeEnergy
@@ -128,6 +130,8 @@ Create input directory containing all required files in the current working dire
     arg_parser.add_argument('--end-year', nargs='?', type=int,
                             default=os.environ.get('EBM_END_YEAR', 2050),
                             help=argparse.SUPPRESS)
+    arg_parser.add_argument('--calibration-year', nargs='?', type=int,
+                            default=None)
 
     arg_parser.add_argument('--horizontal-years', '--horizontal', '--horisontal', action='store_true',
                             help='Show years horizontal (left to right)')
@@ -297,9 +301,15 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
 
 
 def calculate_heating_systems(energy_requirements, database_manager: DatabaseManager):
-    tekandeler_input = database_manager.get_tekandeler()
+    shares_start_year = database_manager.get_heating_systems_shares_start_year()
+    efficiencies = database_manager.get_heating_systems_efficiencies()
+    projection = database_manager.get_heating_systems_projection()
 
-    calculator = HeatingSystems(tekandeler_input)
+    hf = HeatingSystems.calculate_heating_systems_projection(
+        heating_systems_shares=shares_start_year,
+        heating_systems_efficiencies=efficiencies,
+        heating_systems_forecast=projection)
+    calculator = HeatingSystems(hf)
     calculator.heating_systems_parameters = calculator.grouped_heating_systems()
     df = calculator.calculate(energy_requirements)
 
@@ -317,3 +327,22 @@ def calculate_energy_use():
     output = df.reset_index().rename(columns={'index': 'unit'})
     output = output.set_index(['building_category', 'energy_type', 'unit'])
     return output
+
+
+def configure_loglevel(format: str = None):
+    """
+    Sets loguru loglevel to INFO unless ebm is called with parameter --debug and the environment variable DEBUG is not
+    equal to True
+    """
+    logger.remove()
+    options = {'level': 'INFO'}
+    if format:
+        options['format'] = format
+
+    # Add a new handler with a custom format
+    if '--debug' not in sys.argv and os.environ.get('DEBUG', '').upper() != 'TRUE':
+        logger.add(sys.stderr, **options)
+    else:
+        logger.add(sys.stderr,
+                   filter=lambda f: not (f['name'] == 'ebm.model.file_handler' and f['level'].name == 'DEBUG'),
+                   **options)

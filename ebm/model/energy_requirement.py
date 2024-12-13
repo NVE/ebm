@@ -26,10 +26,11 @@ class EnergyRequirement:
         self.tek_list = tek_list
         self.period = period
         self.calibration_year = calibration_year
-        if calibration_year not in period.subset(1):
-            logger.warning(f'Calibration year {calibration_year} is outside period {period.start}-{period.end}')
-        elif calibration_year == period.start:
-            logger.warning(f'Calibration year {calibration_year} is same as start year {period.start}')
+        if calibration_year == period.start:
+            logger.debug(f'Calibration year {calibration_year} is same as start year {period.start}')
+        elif calibration_year not in period.subset(1):
+            logger.debug(f'Calibration year {calibration_year} is outside period {period.start}-{period.end}')
+
 
     def calculate_for_building_category(self,
                                         building_category: BuildingCategory,
@@ -51,6 +52,7 @@ class EnergyRequirement:
 
         """
         er_filter = EnergyRequirementFilter.new_instance(building_category, database_manager)
+        heating_rv_factor = database_manager.get_calibrate_heating_rv()
         
         for tek, purpose in itertools.product(FilterTek.get_filtered_list(building_category, self.tek_list),
                                               [str(p) for p in EnergyPurpose]):
@@ -97,6 +99,7 @@ class EnergyRequirement:
 
                 result = heating_reduction.loc[heating_reduction['building_condition'] == building_condition]
                 result = result.set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year'])
+
                 yield result.kwh_m2
 
     def calculate_energy_requirements(

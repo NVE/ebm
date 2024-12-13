@@ -1,7 +1,11 @@
+import typing
 from enum import unique, StrEnum
 
+import pandas as pd
 from loguru import logger
 
+RESIDENTIAL = 'residential'
+NON_RESIDENTIAL = 'non_residential'
 
 @unique
 class BuildingCategory(StrEnum):
@@ -29,7 +33,7 @@ class BuildingCategory(StrEnum):
     def is_residential(self) -> bool:
         return self == BuildingCategory.HOUSE or self == BuildingCategory.APARTMENT_BLOCK
 
-    def is_commercial(self) -> bool:
+    def is_non_residential(self) -> bool:
         return not self.is_residential()
 
     @staticmethod
@@ -78,3 +82,62 @@ def from_norsk(norsk: str) -> BuildingCategory:
         return BuildingCategory.CULTURE
     return BuildingCategory.from_string(norsk)
 
+
+def expand_building_category(row: pd.Series) -> pd.DataFrame:
+    """
+        Expand a row of data based on the building category into multiple rows,
+        each representing a specific sub-category of either residential or non-residential buildings.
+
+        Parameters
+        ----------
+        row : pd.Series
+            A pandas Series containing the data for a single row, including a 'building_category' field.
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame with expanded rows for each sub-category of the building category.
+    """
+    if row['building_category'] in BuildingCategory:
+        return pd.DataFrame([row.to_dict()])
+    if row['building_category'] == NON_RESIDENTIAL:
+        categories = [b for b in BuildingCategory if b.is_non_residential()]
+    elif row['building_category'] == RESIDENTIAL:
+        categories = [b for b in BuildingCategory if b.is_residential()]
+
+    values = {k: [v] * len(categories) for k, v in row.to_dict().items() if k != 'building_category'}
+
+    return pd.DataFrame({
+        'building_category': categories,
+        **values
+    })
+
+
+# Apply the function to each row and concatenate the results
+def expand_building_categories(df: pd.DataFrame, unique_columns: typing.List[str] = None):
+    """
+    Transform input dataframe so that building_category within groups (residential/non-residential) are unpacked
+    into all containing categories. Duplicates categories are removed. Specific categories with values area
+    preferred over category groups when there is a conflict.
+
+    Parameters
+    ----------
+    df : pandas.core.frame.DataFrame
+    unique_columns : str
+        list of column names that should be treated as joint unique. default: ['building_category']
+
+
+    Returns
+    -------
+    pandas.core.frame.DataFrame
+    """
+    if unique_columns:
+        df = df.drop_duplicates(subset=unique_columns, ignore_index=True, keep='last')
+    groups = df[df.building_category.isin([RESIDENTIAL, NON_RESIDENTIAL])]
+    specific = df[~df.building_category.isin(groups.building_category)]
+
+    expanded_groups = [expand_building_category(row) for _, row in groups.iterrows()]
+
+    filtered = [d[~d.building_category.isin(specific.building_category)] for d in expanded_groups]
+
+    return pd.concat(filtered + [specific]).reindex()

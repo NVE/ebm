@@ -145,7 +145,30 @@ def project_heating_systems(shares_start_year_all_systems: pd.DataFrame,
 
     return nye_andeler_samlet_uten_0
 
-#TODO: existing share in start year = 0 is not added, when not in existing shares (example: test_ok on this function) 
+
+def check_sum_of_shares(projected_shares: pd.DataFrame):
+    """
+    Control that the sum of TEK_shares equals 1 per TEK, building category and year. 
+
+    Parameters
+    ----------
+    projected_shares: pd.Dataframe
+        Dataframe must contain columns: 'building_category', 'TEK', 'year' and 'TEK_shares'
+
+    Raises
+    ------
+    ValueError
+        If sum of shares for a TEK is not equal to 1.  
+    """
+    df = projected_shares.copy()
+    df = df.groupby(by=[BUILDING_CATEGORY, TEK, YEAR])[['TEK_shares']].sum()
+    df['check'] = df[TEK_SHARES] * 100 == 100.0
+    invalid_shares = df[df['check'] == False]
+    if len(invalid_shares) > 0:
+        n = len(invalid_shares)
+        raise ValueError(f"Sum of shares for {n} number of TEK's is not equal to 1. {invalid_shares[[TEK_SHARES]]}")
+
+
 def add_existing_tek_shares_to_projection(new_shares: pd.DataFrame,
                                           existing_shares: pd.DataFrame,
                                           period: YearRange) -> pd.DataFrame:
@@ -179,6 +202,4 @@ def add_existing_tek_shares_to_projection(new_shares: pd.DataFrame,
     return samlede_nye_andeler
 
 
-#if __name__ == '__main__':
-#    main()
     

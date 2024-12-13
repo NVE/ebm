@@ -7,7 +7,8 @@ from ebm.model.data_classes import YearRange
 from ebm.heating_systems_projection import (add_missing_heating_systems,
                                             expand_building_category_tek,
                                             project_heating_systems,
-                                            add_existing_tek_shares_to_projection)
+                                            add_existing_tek_shares_to_projection,
+                                            check_sum_of_shares)
 
 # TODO: 
 # add fixtures for the 3 input data files for one building category, 2 TEKS 
@@ -221,6 +222,29 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES] ,skipinitialspace=
     pd.testing.assert_frame_equal(result, expected)
 
 
+def test_check_sum_of_shares_ok():
+    """
+    """
+    projected_shares = pd.read_csv(io.StringIO("""
+house,TEK97,DH,2020,0.5
+house,TEK97,Electricity,2020,0.5
+house,TEK97,DH,2021,0.5
+house,TEK97,Electricity,2021,0.5                                               
+house,TEK07,Gas,2020,0.5
+house,TEK07,DH,2020,0.5
+house,TEK07,Gas,2021,0.4
+house,TEK07,DH,2021,0.5                                               
+kindergarten,TEK97,DH,2020,0.4
+kindergarten,TEK97,Gas,2020,0.5
+kindergarten,TEK97,DH,2021,0.5
+kindergarten,TEK97,Gas,2021,0.5                                                                                                                                                                                                                                                                     
+""".strip()),
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES] ,skipinitialspace=True)
+    
+    with pytest.raises(ValueError):
+        check_sum_of_shares(projected_shares)
+
+
 def test_main_ok():
     """
     Test that calculate_heating_systems_projection function runs ok with input that is correct.
@@ -273,58 +297,6 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES,'Value'] ,skipiniti
     result.reset_index(drop=True, inplace=True)
     
     pd.testing.assert_frame_equal(result, expected)
-
-
-@pytest.mark.skip()
-def test_main_different_periods():
-    """
-    """
-    shares_start_year = pd.read_csv(io.StringIO("""
-kindergarten,TEK97,Electricity,2022,1
-kindergarten,TEK97,Gas,2022,1                                                
-""".strip()), 
-names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES], skipinitialspace=True)
-
-    efficiencies = pd.read_csv(io.StringIO("""
-Electric boiler,0
-DH,0
-Electricity,0
-Gas,0
-Electricity - Bio,0
-DH - Bio,0
-HP - Bio,0
-HP - Electricity,0
-HP Central heating - DH,0
-HP Central heating,0
-HP Central heating - Gas,0
-Electric boiler - Solar,0
-HP Central heating - Bio,0                                                                                    
-""".strip()), 
-names=[HEATING_SYSTEMS, 'Value'], skipinitialspace=True)
-
-    projection = pd.read_csv(io.StringIO("""
-kindergarten,TEK97,Electricity,DH,0.1,0.25,0.5                                                                                                                     
-""".strip()),
-names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022,2023] ,skipinitialspace=True)
-
-    result = HeatingSystems.calculate_heating_systems_projection(shares_start_year, efficiencies, projection, period=YearRange(2022, 2023))
-
-    expected = pd.read_csv(io.StringIO("""
-kindergarten,TEK97,Electricity,2022,1,0
-kindergarten,TEK97,Electricity,2023,0.5,0
-kindergarten,TEK97,DH,2023,0.5,0
-kindergarten,TEK97,Gas,2022,1,0
-kindergarten,TEK97,Gas,2023,1,0                                                                              
-""".strip()),
-names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES,'Value'] ,skipinitialspace=True)
-    
-    expected = expected.sort_values(by=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR])
-    result = result.sort_values(by=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR])
-    expected.reset_index(drop=True, inplace=True)
-    result.reset_index(drop=True, inplace=True)
-    
-    pd.testing.assert_frame_equal(result, expected)
-
 
 if __name__ == "__main__":
     pytest.main()

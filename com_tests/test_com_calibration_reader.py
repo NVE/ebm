@@ -26,6 +26,7 @@ def test_transform_convert_column_names_and_values():
     pd.testing.assert_frame_equal(r, expected)
 
 
+@pytest.mark.skipif(sys.platform != "win32", reason="Test only runs on Windows")
 def test_transform_unpack_purpose_when_on_and():
     from ebm.services.calibration_writer import ComCalibrationReader
     ccr = ComCalibrationReader()

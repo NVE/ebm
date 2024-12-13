@@ -76,6 +76,7 @@ def test_get_calibrate_heating_rv():
     dm = DatabaseManager(mock_fh)
 
     calibrated_heating_rv = pd.DataFrame({'building_category': ['kindergarten', 'non_residential', 'residential'],
+                                          'purpose': ['heating_rv'] * 3,
                                           'heating_rv_factor': [1.2, 1.2, 3.4]})
     mock_fh.get_calibrate_heating_rv = Mock()
     mock_fh.get_calibrate_heating_rv.return_value = calibrated_heating_rv

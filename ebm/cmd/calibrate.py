@@ -89,6 +89,7 @@ def transform_by_energy_source(df, energy_class_column, energy_source_column):
 
 
 def transform_heating_systems(df: pd.DataFrame, calibration_year) -> pd.DataFrame:
+    df = df.reindex()
     df['building_group'] = 'yrkesbygg'
     df.loc[('house', slice(None),slice(None),slice(None),slice(None), slice(None),), 'building_group'] = 'bolig'
     df.loc[('apartment_block', slice(None),slice(None),slice(None), slice(None), slice(None),), 'building_group'] = 'bolig'
@@ -200,7 +201,7 @@ def run_calibration(database_manager,
     hf = df.set_index(['building_category', 'TEK', 'heating_systems', 'year'])
     transformed = transform_heating_systems(heating_systems, calibration_year)
 
-    return transformed
+    return transformed.fillna(0)
 
 
 def main():

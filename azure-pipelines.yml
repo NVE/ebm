@@ -10,8 +10,6 @@ pool:
   vmImage: ubuntu-latest
 strategy:
   matrix:
-    Python311:
-      python.version: '3.11'
     Python312:
       python.version: '3.12'
 

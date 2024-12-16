@@ -92,3 +92,10 @@ def test_expand_building_categories_ignore_duplicates_by_default():
                             columns=['building_category', 'other_index', 'foo'])
 
     pd.testing.assert_frame_equal(actual, expected)
+
+
+def test_building_category_contains():
+    assert 'house' in BuildingCategory
+    assert 'dog' not in BuildingCategory
+    assert 1 not in BuildingCategory
+    assert BuildingCategory.HOUSE in BuildingCategory

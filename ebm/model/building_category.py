@@ -1,5 +1,5 @@
 import typing
-from enum import unique, StrEnum
+from enum import unique, StrEnum, EnumType
 
 import pandas as pd
 from loguru import logger
@@ -7,8 +7,14 @@ from loguru import logger
 RESIDENTIAL = 'residential'
 NON_RESIDENTIAL = 'non_residential'
 
+
+class MyEnumType(EnumType):
+    def __contains__(cls, value):
+        return value in cls._value2member_map_
+
+
 @unique
-class BuildingCategory(StrEnum):
+class BuildingCategory(StrEnum, metaclass=MyEnumType):
     HOUSE = 'house'
     APARTMENT_BLOCK = 'apartment_block'
     KINDERGARTEN = 'kindergarten'

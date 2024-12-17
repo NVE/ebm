@@ -240,3 +240,29 @@ class HeatingSystems:
                                                                                     heating_systems_efficiencies)
 
         return df_framskrevet_oppvarming_lastfordeling
+
+
+def calibrate_heating_systems(df: pd.DataFrame, factor: float) -> float:
+
+    to_change_filter = (df['Grunnlast'] == 'DH') & (df['Spisslast'] == 'Ingen')
+    other_value_filter = (df['Grunnlast'] == 'DH') & (df['Spisslast'] == 'Bio')
+
+    ch_df = df[to_change_filter]
+    o_df = df[other_value_filter]
+    rest_df = df[~(to_change_filter | other_value_filter)]
+
+    value = ch_df.TEK_shares.sum()
+    other = o_df.TEK_shares.sum()
+
+    max_value = 1.0 - rest_df.TEK_shares.sum()
+    max_change = o_df.TEK_shares.sum()
+    min_value = rest_df.TEK_shares.sum() - 1.0
+    change_factor = (factor - 1)
+    expected_value = ch_df.TEK_shares.sum() * change_factor
+    actual_change = min(max_value, max_change, expected_value)
+    actual_change = max(actual_change, min_value)
+    new_value = value + actual_change
+    new_other = other - actual_change
+    new_sum = rest_df.TEK_shares.sum() + new_other + new_value
+
+    return new_value

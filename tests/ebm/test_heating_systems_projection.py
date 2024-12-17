@@ -8,7 +8,8 @@ from ebm.heating_systems_projection import (add_missing_heating_systems,
                                             expand_building_category_tek,
                                             project_heating_systems,
                                             add_existing_tek_shares_to_projection,
-                                            check_sum_of_shares)
+                                            check_sum_of_shares,
+                                            HeatingSystemsProjection)
 
 # TODO: 
 # add fixtures for the 3 input data files for one building category, 2 TEKS 
@@ -20,6 +21,89 @@ HEATING_SYSTEMS = 'heating_systems'
 NEW_HEATING_SYSTEMS = 'new_heating_systems'
 YEAR = 'year'
 TEK_SHARES = 'TEK_shares'
+
+
+def test_validate_years_require_one_start_year():
+    """
+    ValueError if there is more than one start year in the 'shares_start_year' dataframe.
+    """
+    shares_start_year = pd.read_csv(io.StringIO("""
+kindergarten,TEK97,Electricity,2021,1
+kindergarten,TEK97,Gas,2020,1                                                
+""".strip()), 
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES], skipinitialspace=True)
+    
+    with pytest.raises(ValueError, match='More than one start year in dataframe.'):
+        hsp = HeatingSystemsProjection(shares_start_year=shares_start_year,
+                                efficiencies=pd.DataFrame(),
+                                projection=pd.DataFrame(),
+                                period=YearRange(2020,2022))
+
+
+def test_validate_years_require_match_on_start_year():
+    """
+    ValueError if the start_year of the period is not equal to the start year in the 'shares_start_year' dataframe.
+    """
+    shares_start_year = pd.read_csv(io.StringIO("""
+kindergarten,TEK97,Electricity,2020,0.5
+kindergarten,TEK97,Gas,2020,0.5                                                
+""".strip()), 
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES], skipinitialspace=True)
+    
+    with pytest.raises(ValueError, match="Start year in dataframe doesn't match start year for given period."):
+        hsp = HeatingSystemsProjection(shares_start_year=shares_start_year,
+                                    efficiencies=pd.DataFrame(),
+                                    projection=pd.DataFrame(),
+                                    period=YearRange(2021,2023))
+
+
+def test_validate_years_require_matching_years_between_dataframes():
+    """
+    ValueError if the start_year in 'projection' is not equal to one year after the start year in 'shares_start_year'
+    """
+    shares_start_year = pd.read_csv(io.StringIO("""
+kindergarten,TEK97,Electricity,2020,0.5
+kindergarten,TEK97,Gas,2020,0.5                                                
+""".strip()), 
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES], skipinitialspace=True)
+        
+    projection = pd.read_csv(io.StringIO("""
+kindergarten,TEK97,Electricity,DH,0.25,0.5,0.55
+house,TEK97,Electricity,DH,0.25,0.5,0.55
+apartment_block,TEK07,Electricity,DH,0.25,0.5,0.55                                                                                                                                                                                                         
+""".strip()),
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2020,2021,2022] ,skipinitialspace=True)
+    
+
+    with pytest.raises(ValueError, match="Years don't match between dataframes."):
+        hsp = HeatingSystemsProjection(shares_start_year=shares_start_year,
+                                    efficiencies=pd.DataFrame(),
+                                    projection=projection,
+                                    period=YearRange(2020,2022))
+
+
+def test_validate_years_require_period_years_present_in_projection():
+    """
+    ValueError if the years in the given 'period' is not present in the years col of the 'projection' dataframe.   
+    """
+    shares_start_year = pd.read_csv(io.StringIO("""
+kindergarten,TEK97,Electricity,2020,0.5
+kindergarten,TEK97,Gas,2020,0.5                                                
+""".strip()), 
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES], skipinitialspace=True)
+        
+    projection = pd.read_csv(io.StringIO("""
+kindergarten,TEK97,Electricity,DH,0.25,0.5,0.55
+house,TEK97,Electricity,DH,0.25,0.5,0.55
+apartment_block,TEK07,Electricity,DH,0.25,0.5,0.55                                                                                                                                                                                                         
+""".strip()),
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022,2023] ,skipinitialspace=True)
+    
+    with pytest.raises(ValueError, match="Years in dataframe not present in given period."):
+        hsp = HeatingSystemsProjection(shares_start_year=shares_start_year,
+                                    efficiencies=pd.DataFrame(),
+                                    projection=projection,
+                                    period=YearRange(2020,2030))
 
 
 def test_add_missing_heating_systems_ok():
@@ -131,7 +215,7 @@ kindergarten,TEK97,Electricity,DH,0.25,0.5
 """.strip()),
 names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022] ,skipinitialspace=True)
 
-    result = project_heating_systems(shares_start_year_all_systems, projected_shares)
+    result = project_heating_systems(shares_start_year_all_systems, projected_shares, YearRange(2020,2022))
 
     expected = pd.read_csv(io.StringIO("""
 2021,kindergarten,TEK97,DH,0.25
@@ -149,7 +233,6 @@ names=[YEAR,BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,TEK_SHARES], skipinitialspace=
     pd.testing.assert_frame_equal(result, expected)
 
 
-@pytest.mark.skip()
 def test_project_heating_systems_different_years_in_data():
     """
     """
@@ -164,7 +247,7 @@ kindergarten,TEK97,Electricity,DH,0.25,0.5,0.75
 """.strip()),
 names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022,2023] ,skipinitialspace=True)
 
-    result = project_heating_systems(shares_start_year_all_systems, projected_shares)
+    result = project_heating_systems(shares_start_year_all_systems, projected_shares, YearRange(2022,2023))
 
     expected = pd.read_csv(io.StringIO("""
 2023,kindergarten,TEK97,DH,0.75
@@ -242,16 +325,16 @@ kindergarten,TEK97,Gas,2021,0.5
 names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES] ,skipinitialspace=True)
     
     with pytest.raises(ValueError):
-        check_sum_of_shares(projected_shares)
+        check_sum_of_shares(projected_shares, precision=1)
 
 
-def test_main_ok():
+def test_calculate_projection_ok():
     """
-    Test that calculate_heating_systems_projection function runs ok with input that is correct.
+    Test that calculate_projection method runs ok with input that is correct.
     """
     shares_start_year = pd.read_csv(io.StringIO("""
-kindergarten,TEK97,Electricity,2020,1
-kindergarten,TEK97,Gas,2020,1                                                
+kindergarten,TEK97,Electricity,2020,0.5
+kindergarten,TEK97,Gas,2020,0.5                                                
 """.strip()), 
 names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES], skipinitialspace=True)
 
@@ -273,24 +356,30 @@ HP Central heating - Bio,0
 names=[HEATING_SYSTEMS, 'Value'], skipinitialspace=True)
 
     projection = pd.read_csv(io.StringIO("""
-kindergarten,TEK97,Electricity,DH,0.25,0.5                                                                                                                     
+kindergarten,TEK97,Electricity,DH,0.25,0.5,0.5,0.5                                                                                                                     
 """.strip()),
-names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022] ,skipinitialspace=True)
-
-    result = HeatingSystems.calculate_heating_systems_projection(shares_start_year, efficiencies, projection, period=YearRange(2020, 2022))
-
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022,2023,2024] ,skipinitialspace=True)
+    
+    hsp = HeatingSystemsProjection(shares_start_year=shares_start_year,
+                                   efficiencies=efficiencies,
+                                   projection=projection,
+                                   period=YearRange(2020,2022))
+    
+    result = hsp.calculate_projection()
+    
     expected = pd.read_csv(io.StringIO("""
-kindergarten,TEK97,Electricity,2020,1,0
-kindergarten,TEK97,Electricity,2021,0.75,0
-kindergarten,TEK97,Electricity,2022,0.5,0
-kindergarten,TEK97,DH,2021,0.25,0
-kindergarten,TEK97,DH,2022,0.5,0
-kindergarten,TEK97,Gas,2020,1,0
-kindergarten,TEK97,Gas,2021,1,0
-kindergarten,TEK97,Gas,2022,1,0                                                                              
+kindergarten,TEK97,Electricity,2020,0.5,0
+kindergarten,TEK97,Electricity,2021,0.375,0
+kindergarten,TEK97,Electricity,2022,0.25,0
+kindergarten,TEK97,DH,2021,0.125,0
+kindergarten,TEK97,DH,2022,0.25,0
+kindergarten,TEK97,Gas,2020,0.5,0
+kindergarten,TEK97,Gas,2021,0.5,0
+kindergarten,TEK97,Gas,2022,0.5,0                                                                              
 """.strip()),
 names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES,'Value'] ,skipinitialspace=True)
     
+    # dataframe formatting
     expected = expected.sort_values(by=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR])
     result = result.sort_values(by=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR])
     expected.reset_index(drop=True, inplace=True)

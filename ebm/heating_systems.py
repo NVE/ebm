@@ -2,7 +2,7 @@ from loguru import logger
 import pandas as pd
 
 from ebm.heating_systems_projection import add_missing_heating_systems, expand_building_category_tek, \
-    project_heating_systems, add_existing_tek_shares_to_projection, legge_til_ulike_oppvarmingslaster
+    project_heating_systems, add_existing_tek_shares_to_projection, add_load_shares_and_efficiencies
 from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.filter_tek import FilterTek
@@ -236,7 +236,7 @@ class HeatingSystems:
                                                                           period)
 
         # Legger til virkningsgrader og andeler til grunn,spiss og ekstralast og tappevann
-        df_framskrevet_oppvarming_lastfordeling = legge_til_ulike_oppvarmingslaster(df_framskrevet_oppvarming,
+        df_framskrevet_oppvarming_lastfordeling = add_load_shares_and_efficiencies(df_framskrevet_oppvarming,
                                                                                     heating_systems_efficiencies)
 
         return df_framskrevet_oppvarming_lastfordeling

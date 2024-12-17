@@ -1,3 +1,4 @@
+import typing
 import pandas as pd
 
 from loguru import logger
@@ -20,11 +21,13 @@ class HeatingSystemsProjection:
                  shares_start_year: pd.DataFrame,
                  efficiencies: pd.DataFrame,
                  projection: pd.DataFrame,
+                 tek_list: typing.List[str],
                  period: YearRange):
         
         self.shares_start_year = shares_start_year
         self.efficiencies = efficiencies
         self.projection = projection
+        self.tek_list = tek_list
         self.period = period
         
         self._validate_years()
@@ -58,6 +61,7 @@ class HeatingSystemsProjection:
         
         projection = self.projection.melt(id_vars = [BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS],
                                           var_name = YEAR, value_name = "Andel_utskiftning")
+        projection[YEAR] = projection[YEAR].astype(int) 
         min_df = projection.groupby([BUILDING_CATEGORY, TEK]).agg(min_year=(YEAR, 'min')).reset_index()
         min_mismatch = min_df[min_df['min_year'] != (start_year + 1)]
 
@@ -90,7 +94,7 @@ class HeatingSystemsProjection:
         shares_all_heating_systems = add_missing_heating_systems(self.shares_start_year, 
                                                                  HeatingSystems,
                                                                  self.period.start) 
-        projected_shares = expand_building_category_tek(self.projection)
+        projected_shares = expand_building_category_tek(self.projection, self.tek_list)
         new_shares = project_heating_systems(shares_all_heating_systems, projected_shares, self.period)
         heating_systems_projection = add_existing_tek_shares_to_projection(new_shares, 
                                                                            self.shares_start_year, 
@@ -120,12 +124,14 @@ class HeatingSystemsProjection:
             database manager.
         """
         dm = database_manager if isinstance(database_manager, DatabaseManager) else DatabaseManager()
-        shares_start_year = database_manager.get_heating_systems_shares_start_year()
-        efficiencies = database_manager.get_heating_systems_efficiencies()
-        projection = database_manager.get_heating_systems_projection()
+        shares_start_year = dm.get_heating_systems_shares_start_year()
+        efficiencies = dm.get_heating_systems_efficiencies()
+        projection = dm.get_heating_systems_projection()
+        tek_list = dm.get_tek_list()
         return HeatingSystemsProjection(shares_start_year=shares_start_year,
                                         efficiencies=efficiencies,
                                         projection=projection,
+                                        tek_list=tek_list,
                                         period=period)
 
 
@@ -185,12 +191,13 @@ def aggregere_lik_oppvarming_fjern_0(df):
     return df_aggregert
 
 
-def expand_building_category_tek(heating_systems_forecast: pd.DataFrame) -> pd.DataFrame:
+def expand_building_category_tek(heating_systems_forecast: pd.DataFrame,
+                                 tek_list: typing.List[str]) -> pd.DataFrame:
     """
     Adds necessary building categories and TEK's to the heating_systems_forecast dataframe. 
     """
     alle_bygningskategorier = '+'.join(BuildingCategory)
-    alle_tek = "PRE_TEK49+TEK49+TEK69+TEK87+TEK97+TEK07+TEK10+TEK17"
+    alle_tek = '+'.join(tek for tek in tek_list)
     husholdning = '+'.join(bc for bc in BuildingCategory if bc.is_residential())
     yrkesbygg = '+'.join(bc for bc in BuildingCategory if bc.is_non_residential())
     

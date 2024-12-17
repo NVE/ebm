@@ -4,6 +4,7 @@ import pathlib
 
 from dotenv import load_dotenv
 
+from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
 from ebm.heating_systems_projection import *
 from ebm.heating_systems import HeatingSystems
@@ -19,27 +20,19 @@ efficiencies = file_handler.get_heating_systems_efficiencies()
 projection = file_handler.get_heating_systems_projection()
 period = YearRange(2020, 2050)
 
-def project():
-    start_time = time()
-    df = HeatingSystems.calculate_heating_systems_projection(heating_systems_shares=shares_start_year,
-                                            heating_systems_efficiencies=efficiencies,
-                                            heating_systems_forecast=projection,
-                                            period=period)
-
-    print((time() - start_time) * 13)
-
-project()
-
+dm = DatabaseManager()
+tek_list = dm.get_tek_list()
 
 def run_projection():
+    start_time = time()
     hsp = HeatingSystemsProjection(shares_start_year,
                                efficiencies,
                                projection,
+                               tek_list,
                                period)
 
+    print((time() - start_time) * 13)
     df = hsp.calculate_projection()
+    print(df)
 
-start_time = time()
-df = add_load_shares_and_efficiencies(shares_start_year, efficiencies)
-print((time() - start_time) * 13)
-print(df)
+run_projection()

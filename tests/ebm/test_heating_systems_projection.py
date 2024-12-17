@@ -11,9 +11,6 @@ from ebm.heating_systems_projection import (add_missing_heating_systems,
                                             check_sum_of_shares,
                                             HeatingSystemsProjection)
 
-# TODO: 
-# add fixtures for the 3 input data files for one building category, 2 TEKS 
-# add expected result dataframe and see that it runs ok. Refactor from there
 
 BUILDING_CATEGORY = 'building_category'
 TEK = 'TEK'
@@ -22,6 +19,9 @@ NEW_HEATING_SYSTEMS = 'new_heating_systems'
 YEAR = 'year'
 TEK_SHARES = 'TEK_shares'
 
+@pytest.fixture
+def tek_list():
+    return ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17']
 
 def test_validate_years_require_one_start_year():
     """
@@ -37,6 +37,7 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES], skipinitialspace=
         hsp = HeatingSystemsProjection(shares_start_year=shares_start_year,
                                 efficiencies=pd.DataFrame(),
                                 projection=pd.DataFrame(),
+                                tek_list=[],
                                 period=YearRange(2020,2022))
 
 
@@ -54,6 +55,7 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES], skipinitialspace=
         hsp = HeatingSystemsProjection(shares_start_year=shares_start_year,
                                     efficiencies=pd.DataFrame(),
                                     projection=pd.DataFrame(),
+                                    tek_list=[],
                                     period=YearRange(2021,2023))
 
 
@@ -79,6 +81,7 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2020,2021,2022]
         hsp = HeatingSystemsProjection(shares_start_year=shares_start_year,
                                     efficiencies=pd.DataFrame(),
                                     projection=projection,
+                                    tek_list=[],
                                     period=YearRange(2020,2022))
 
 
@@ -103,6 +106,7 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022,2023]
         hsp = HeatingSystemsProjection(shares_start_year=shares_start_year,
                                     efficiencies=pd.DataFrame(),
                                     projection=projection,
+                                    tek_list=[],
                                     period=YearRange(2020,2030))
 
 
@@ -155,7 +159,7 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES], skipinitialspace=
         add_missing_heating_systems(shares, start_year=2023)
 
 
-def test_expand_building_categoy_tek_all_categories():
+def test_expand_building_categoy_tek_all_categories(tek_list):
     """
     Checks if all categories are added if building_category value == default.
     """
@@ -163,7 +167,7 @@ def test_expand_building_categoy_tek_all_categories():
 default,default,gas,DH,0.05,0.075    
 """.strip()),
 names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022] ,skipinitialspace=True)
-    result = expand_building_category_tek(forecast)
+    result = expand_building_category_tek(forecast, tek_list)
     result_categories = result[BUILDING_CATEGORY].unique()
     expected_categories = ['house', 'apartment_block', 'kindergarten', 'school', 'university', 'office', 'retail',
                            'hotel', 'hospital', 'nursing_home', 'culture', 'sports', 'storage_repairs']
@@ -171,7 +175,7 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022] ,ski
     assert not invalid_categories
 
 
-def test_expand_building_categoy_tek_residential_categories():
+def test_expand_building_categoy_tek_residential_categories(tek_list):
     """
     Checks if correct categories are added if building_category value == residential.
     """
@@ -179,14 +183,14 @@ def test_expand_building_categoy_tek_residential_categories():
 residential,default,gas,DH,0.05,0.075    
 """.strip()),
 names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022] ,skipinitialspace=True)
-    result = expand_building_category_tek(forecast)
+    result = expand_building_category_tek(forecast, tek_list)
     result_categories = result[BUILDING_CATEGORY].unique()
     residential_categories = ['house', 'apartment_block']
     invalid_categories = [bc for bc in result_categories if bc not in residential_categories]
     assert not invalid_categories
 
 
-def test_expand_building_categoy_tek_non_residential_categories():
+def test_expand_building_categoy_tek_non_residential_categories(tek_list):
     """
     Checks if correct categories are added if building_category value == non_residential.
     """
@@ -194,7 +198,7 @@ def test_expand_building_categoy_tek_non_residential_categories():
 non_residential,default,gas,DH,0.05,0.075    
 """.strip()),
 names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022] ,skipinitialspace=True)
-    result = expand_building_category_tek(forecast)
+    result = expand_building_category_tek(forecast, tek_list)
     result_categories = result[BUILDING_CATEGORY].unique()
     non_residential_categories = ['kindergarten', 'school', 'university', 'office', 'retail', 'hotel',
                                   'hospital', 'nursing_home', 'culture', 'sports', 'storage_repairs']
@@ -328,7 +332,7 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES] ,skipinitialspace=
         check_sum_of_shares(projected_shares, precision=1)
 
 
-def test_calculate_projection_ok():
+def test_calculate_projection_ok(tek_list):
     """
     Test that calculate_projection method runs ok with input that is correct.
     """
@@ -363,6 +367,7 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022,2023,
     hsp = HeatingSystemsProjection(shares_start_year=shares_start_year,
                                    efficiencies=efficiencies,
                                    projection=projection,
+                                   tek_list=tek_list,
                                    period=YearRange(2020,2022))
     
     result = hsp.calculate_projection()
@@ -386,6 +391,7 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES,'Value'] ,skipiniti
     result.reset_index(drop=True, inplace=True)
     
     pd.testing.assert_frame_equal(result, expected)
+
 
 if __name__ == "__main__":
     pytest.main()

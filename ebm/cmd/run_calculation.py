@@ -20,6 +20,7 @@ from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement
 from ebm.heating_systems import HeatingSystems
+from ebm.heating_systems_projection import HeatingSystemsProjection
 
 TEK = """PRE_TEK49
 PRE_TEK49
@@ -301,14 +302,9 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
 
 
 def calculate_heating_systems(energy_requirements, database_manager: DatabaseManager):
-    shares_start_year = database_manager.get_heating_systems_shares_start_year()
-    efficiencies = database_manager.get_heating_systems_efficiencies()
-    projection = database_manager.get_heating_systems_projection()
-
-    hf = HeatingSystems.calculate_heating_systems_projection(
-        heating_systems_shares=shares_start_year,
-        heating_systems_efficiencies=efficiencies,
-        heating_systems_forecast=projection)
+    projection_period = YearRange(2020,2050)
+    hsp = HeatingSystemsProjection.new_instance(projection_period, database_manager)
+    hf = hsp.calculate_projection()
     calculator = HeatingSystems(hf)
     calculator.heating_systems_parameters = calculator.grouped_heating_systems()
     df = calculator.calculate(energy_requirements)

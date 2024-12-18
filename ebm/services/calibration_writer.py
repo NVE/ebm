@@ -1,9 +1,7 @@
 import itertools
 import typing
-from dataclasses import dataclass
 from datetime import datetime
 import os
-
 
 from loguru import logger
 import pandas as pd
@@ -12,13 +10,7 @@ from win32com.universal import com_error
 
 from ebm.model import building_category
 from ebm.model.energy_purpose import EnergyPurpose
-
-
-@dataclass
-class SpreadsheetCell:
-    row: int
-    column: int
-    value: str
+from ebm.services.spreadsheet import SpreadsheetCell
 
 
 class ComCalibrationReader:

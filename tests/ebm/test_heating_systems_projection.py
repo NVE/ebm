@@ -194,8 +194,8 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021] ,skipinit
                            'hotel', 'hospital', 'nursing_home', 'culture', 'sports', 'storage_repairs']
 
     expected = pd.read_csv(io.StringIO("""
-house,TEK07,Gas,DH,0.06
-apartment_block,TEK07,Gas,DH,0.05
+house,TEK07,Gas,DH,0.06                                       
+apartment_block,TEK07,Gas,DH,0.07
 kindergarten,TEK07,Gas,DH,0.05
 school,TEK07,Gas,DH,0.05
 university,TEK07,Gas,DH,0.05

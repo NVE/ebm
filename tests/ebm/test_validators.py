@@ -771,6 +771,17 @@ kindergarten,TEK87,Electricity,DH,0.05,0.0550163004472704
     heating_systems_projection.validate(projection)
 
 
+def test_heating_systems_projection_unique_columns():
+    projection = pd.read_csv(io.StringIO("""
+building_category,TEK,heating_systems,new_heating_systems,2021,2022
+default,default,Gas,Electric boiler,0.05,0.06
+default,default,Gas,Electric boiler,0.05,0.05
+""".strip()), skipinitialspace=True) 
+
+    with pytest.raises(pa.errors.SchemaError):
+        heating_systems_projection.validate(projection)
+
+
 def test_heating_systems_efficiencies_ok():
     efficiencies = pd.read_csv(io.StringIO("""
 heating_systems,Grunnlast,Spisslast,Ekstralast,Ekstralast andel,Grunnlast energivare,Spisslast energivare,Ekstralast energivare,Grunnlast andel,Spisslast andel,Grunnlast virkningsgrad,Spisslast virkningsgrad,Ekstralast virkningsgrad,Tappevann,Tappevann energivare,Tappevann virkningsgrad,Spesifikt elforbruk,Kjoling virkningsgrad

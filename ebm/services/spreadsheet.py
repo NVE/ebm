@@ -25,8 +25,8 @@ class SpreadsheetCell:
         first_column_index = ord(first_column[0]) - ord('A') + 1
         last_column_index = ord(last_column[0]) - ord('A') + 1
         column_range = list(range(first_column_index, last_column_index + 1))
-
-        return tuple(SpreadsheetCell(column=c, row=1, value=None) for c in column_range)
+        first_row_index = int(first_column[1])
+        return tuple(SpreadsheetCell(column=c, row=first_row_index, value=None) for c in column_range)
 
     @classmethod
     def cell_range_to_cells(cls, cell_range):

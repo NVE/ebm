@@ -11,11 +11,11 @@ def test_spreadsheet_cell_first_row():
     )
 
     assert SpreadsheetCell.first_row("B2:B4") == (
-        SpreadsheetCell(row=1, column=2, value=None),
+        SpreadsheetCell(row=2, column=2, value=None),
     )
 
     assert SpreadsheetCell.first_row("B2") == (
-        SpreadsheetCell(row=1, column=2, value=None),
+        SpreadsheetCell(row=2, column=2, value=None),
     )
 
     with pytest.raises(ValueError):

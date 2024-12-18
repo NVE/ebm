@@ -175,6 +175,49 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022] ,ski
     assert not invalid_categories
 
 
+@pytest.mark.skip()
+def test_expand_building_category_prioritize_specific_building_category(tek_list):
+    """
+    Function should be able to prioritize the most specific building value, and not produce duplicate values.
+    The prioritzation should be: a valid BuildingCategory (e.g. 'house'), then 'residential'/'non-residential',
+    then 'default'. The same goes for TEK, where valid TEK (present in TEK list) is prioritized over 'default'. 
+    There shoult be no duplicates.
+    """
+    projection = pd.read_csv(io.StringIO("""
+default,TEK07,Gas,DH,0.05
+house,TEK07,Gas,DH,0.06
+residential,TEK07,Gas,DH,0.07                                                                             
+""".strip()),
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021] ,skipinitialspace=True)
+    result = expand_building_category_tek(projection, tek_list)
+    expected_categories = ['house', 'apartment_block', 'kindergarten', 'school', 'university', 'office', 'retail',
+                           'hotel', 'hospital', 'nursing_home', 'culture', 'sports', 'storage_repairs']
+
+    expected = pd.read_csv(io.StringIO("""
+house,TEK07,Gas,DH,0.06
+apartment_block,TEK07,Gas,DH,0.05
+kindergarten,TEK07,Gas,DH,0.05
+school,TEK07,Gas,DH,0.05
+university,TEK07,Gas,DH,0.05
+office,TEK07,Gas,DH,0.05
+retail,TEK07,Gas,DH,0.05
+hotel,TEK07,Gas,DH,0.05
+hospital,TEK07,Gas,DH,0.05
+nursing_home,TEK07,Gas,DH,0.05
+culture,TEK07,Gas,DH,0.05
+sports,TEK07,Gas,DH,0.05
+storage_repairs,TEK07,Gas,DH,0.05                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
+""".strip()),
+names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021] ,skipinitialspace=True)
+    
+    expected = expected.sort_values(by=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS])
+    result = result.sort_values(by=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS])
+    expected.reset_index(drop=True, inplace=True)
+    result.reset_index(drop=True, inplace=True)
+
+    pd.testing.assert_frame_equal(result, expected)
+
+
 def test_expand_building_categoy_tek_residential_categories(tek_list):
     """
     Checks if correct categories are added if building_category value == residential.

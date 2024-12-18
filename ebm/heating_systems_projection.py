@@ -191,7 +191,7 @@ def aggregere_lik_oppvarming_fjern_0(df):
     return df_aggregert
 
 
-def expand_building_category_tek(heating_systems_forecast: pd.DataFrame,
+def expand_building_category_tek(projection: pd.DataFrame,
                                  tek_list: typing.List[str]) -> pd.DataFrame:
     """
     Adds necessary building categories and TEK's to the heating_systems_forecast dataframe. 
@@ -201,7 +201,7 @@ def expand_building_category_tek(heating_systems_forecast: pd.DataFrame,
     husholdning = '+'.join(bc for bc in BuildingCategory if bc.is_residential())
     yrkesbygg = '+'.join(bc for bc in BuildingCategory if bc.is_non_residential())
     
-    df = heating_systems_forecast.copy()
+    df = projection.copy()
     df.loc[df[TEK] == "default", TEK] = alle_tek
     df.loc[df[BUILDING_CATEGORY] == "default", BUILDING_CATEGORY] = alle_bygningskategorier
     df.loc[df[BUILDING_CATEGORY] == RESIDENTIAL, BUILDING_CATEGORY] = husholdning
@@ -289,7 +289,7 @@ def check_sum_of_shares(projected_shares: pd.DataFrame, precision: int = 5):
         If sum of shares for a TEK is not equal to 1.  
     """
     df = projected_shares.copy()
-    df = df.groupby(by=[BUILDING_CATEGORY, TEK, YEAR])[['TEK_shares']].sum()
+    df = df.groupby(by=[BUILDING_CATEGORY, TEK, YEAR])[[TEK_SHARES]].sum()
     df['check'] = round(df[TEK_SHARES] * 100, precision) == 100.0
     invalid_shares = df[df['check'] == False].copy()
     invalid_shares.drop(columns=['check'], inplace=True)

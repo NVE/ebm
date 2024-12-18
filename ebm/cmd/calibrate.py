@@ -184,25 +184,14 @@ def run_calibration(database_manager,
     logger.info(f'Using input directory "{input_directory}"')
     logger.info('Extract area forecast')
     area_forecast = extract_area_forecast(database_manager) if area_forecast is None else area_forecast
+
     logger.info('Extract energy requirements')
     energy_requirements = extract_energy_requirements(area_forecast, database_manager)
+
     logger.info('Extract heating systems')
     heating_systems = extract_heating_systems(energy_requirements, database_manager)
 
-    shares_start_year = database_manager.get_heating_systems_shares_start_year()
-    efficiencies = database_manager.get_heating_systems_efficiencies()
-    projection = database_manager.get_heating_systems_projection()
-
-    df = HeatingSystems.calculate_heating_systems_projection(
-        heating_systems_shares=shares_start_year,
-        heating_systems_efficiencies=efficiencies,
-        heating_systems_forecast=projection)
-
-    hf = df.set_index(['building_category', 'TEK', 'heating_systems', 'year'])
-    transformed = transform_heating_systems(heating_systems, calibration_year)
-
-    return transformed.fillna(0)
-
+    return heating_systems
 
 def main():
     transformed = run_calibration(DatabaseManager(FileHandler(directory='kalibrering')), calibration_year=2023)

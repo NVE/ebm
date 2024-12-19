@@ -37,18 +37,17 @@ def main():
     load_dotenv(pathlib.Path('.env'))
     configure_loglevel(format=LOG_FORMAT)
 
-    calibration_out = os.environ.get("EBM_CALIBRATION_OUT", "")
-    calibration_sheet = os.environ.get("EBM_CALIBRATION_SHEET", "")
-    DEBUG = os.environ.get('DEBUG', 'False').capitalize() == 'True'
+    calibration_out = os.environ.get("EBM_CALIBRATION_OUT", "Kalibreringsark.xlsx!Ut")
+    calibration_sheet = os.environ.get("EBM_CALIBRATION_SHEET", "Kalibreringsark.xlsx!Kalibreringsfaktorer")
+
     logger.info(f'Loading {calibration_sheet}')
+
     com_calibration_reader = ComCalibrationReader()
     values = com_calibration_reader.extract()
-    if DEBUG:
-        pprint(values)
+
     logger.info(f'Make {calibration_sheet} compatible with ebm')
     energy_source_by_building_group = com_calibration_reader.transform(values)
-    if DEBUG:
-        pprint(energy_source_by_building_group)
+
     logger.info('Write calibration to ebm')
     enreq_writer = EnergyRequirementCalibrationWriter()
     enreq_writer.load(energy_source_by_building_group, os.environ.get('EBM_CALIBRATION_ENERGY_REQUIREMENT',
@@ -68,8 +67,11 @@ def main():
     energy_source_by_building_group = energy_source_by_building_group.fillna(0)
 
     logger.info(f'Writing heating systems distribution to {calibration_out}')
+    hs_distribution_cells = os.environ.get('EBM_CALIBRATION_ENERGY_HEATING_SYSTEMS_DISTRIBUTION', 'C33:F44')
+    hs_distribution_writer = HeatingSystemsDistributionWriter(excel_filename=calibration_out,
+                                                              target_cells=hs_distribution_cells)
+
     distribution_of_heating_systems_by_building_group = DistributionOfHeatingSystems().transform(df)
-    hs_distribution_writer = HeatingSystemsDistributionWriter()
     hs_distribution_writer.extract()
     hs_distribution_writer.transform(distribution_of_heating_systems_by_building_group)
     hs_distribution_writer.load()

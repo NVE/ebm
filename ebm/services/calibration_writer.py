@@ -121,7 +121,8 @@ class CalibrationResultWriter:
 
 class HeatingSystemsDistributionWriter:
     """
-    A class to handle the extraction, transformation, and loading of heating systems distribution data.
+    A class to handle the extraction, transformation, and loading of heating systems distribution data in a
+    open Excel spreadsheet.
 
     Attributes
     ----------
@@ -149,12 +150,17 @@ class HeatingSystemsDistributionWriter:
     """
     workbook: str
     sheet: str
+    target_cells: str
     df: pd.DataFrame
     cells_to_update: typing.List[SpreadsheetCell]
     rows: typing.List[SpreadsheetCell]
     columns: typing.List[SpreadsheetCell]
 
-    def __init__(self, excel_filename=None, workbook='Kalibreringsark.xlsx', sheet='Ut'):
+    def __init__(self,
+                 excel_filename=None,
+                 workbook='Kalibreringsark.xlsx',
+                 sheet='Ut',
+                 target_cells=None):
         """
         Initializes the HeatingSystemsDistributionWriter with empty lists for cells to update, rows, and columns.
 
@@ -167,6 +173,9 @@ class HeatingSystemsDistributionWriter:
             Optional name of the spreadsheet to used for reading and writing. (default is 'Kalibreringsark.xlsx')
         sheet : str, optional
             Optional name of the sheet used for reading and writing. (default is 'Ut')
+        target_cells : str, optional
+            A range of cells that contain the data to update from the dataframe
+
 
         """
 
@@ -174,6 +183,10 @@ class HeatingSystemsDistributionWriter:
 
         self.workbook = workbook
         self.sheet = sheet
+        self.target_cells = target_cells
+        if not target_cells:
+            self.target_cells = target_cells = os.environ.get('EBM_CALIBRATION_ENERGY_HEATING_SYSTEMS_DISTRIBUTION')
+
         if excel_filename:
             if '!' in excel_filename:
                 self.workbook, self.sheet = excel_filename.split('!')
@@ -202,17 +215,15 @@ class HeatingSystemsDistributionWriter:
         # Create an instance of the Excel application
         sheet = open_sheet(self.workbook, self.sheet)
 
-        target_cells = os.environ.get('EBM_CALIBRATION_ENERGY_HEATING_SYSTEMS_DISTRIBUTION')
-
         # Make index of columns and rows
-        first_row = SpreadsheetCell.first_row(target_cells)
+        first_row = SpreadsheetCell.first_row(self.target_cells)
         self.columns = {cell.column: cell.replace(value=sheet.Cells(cell.row, cell.column).Value) for cell in first_row[1:]}
 
-        first_column = SpreadsheetCell.first_column(target_cells)
+        first_column = SpreadsheetCell.first_column(self.target_cells)
         self.rows = {cell.row: cell.replace(value=sheet.Cells(cell.row, cell.column).Value) for cell in first_column[1:]}
 
         # Initialize value cells
-        self.values = SpreadsheetCell.submatrix(target_cells)
+        self.values = SpreadsheetCell.submatrix(self.target_cells)
 
         return self.rows, self.columns, self.values
 

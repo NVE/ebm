@@ -58,65 +58,6 @@ class ComCalibrationReader:
 
 
 class CalibrationResultWriter:
-    workbook: str
-    sheet: str
-    df: pd.DataFrame
-    distribution_of_heating_systems_by_building_group: pd.DataFrame
-
-    def __init__(self):
-        pass
-
-    def extract(self) -> None:
-        self.workbook, self.sheet = os.environ.get('EBM_CALIBRATION_OUT').split('!')
-        access_excel_sheet(self.workbook, self.sheet)
-
-    def transform(self, df) -> pd.DataFrame:
-        self.df = df
-        return df
-
-    def load(self):
-        sheet = access_excel_sheet(self.workbook, self.sheet)
-
-        # Residential
-        residential_columns = os.environ.get('EBM_CALIBRATION_ENERGY_USAGE_RESIDENTIAL')
-        non_residential_columns = os.environ.get('EBM_CALIBRATION_ENERGY_USAGE_NON_RESIDENTIAL')
-
-        first_cell, last_cell = residential_columns.split(':')
-        first_row = int(first_cell[1:])
-        self.update_energy_use(sheet, first_row, building_category.RESIDENTIAL, 4)
-
-        first_cell, last_cell = non_residential_columns.split(':')
-        first_row = int(first_cell[1:])
-        self.update_energy_use(sheet, first_row, building_category.NON_RESIDENTIAL, 5)
-
-        first_cell, last_cell = os.environ.get('EBM_CALIBRATION_ENERGY_HEATINGPUMP_RESIDENTIAL').split(':')
-        first_row = int(first_cell[1:])
-        self.update_pump(sheet, first_row, building_category.RESIDENTIAL, 4)
-        self.update_pump(sheet, first_row, building_category.NON_RESIDENTIAL, 5)
-
-        # Tag time
-        sheet.Cells(70, 3).Value = datetime.now().isoformat()
-
-    def update_energy_use(self, sheet, first_row, building_category, value_column):
-        for row_number, (k, t) in enumerate(self.df.loc[building_category].items(), start=first_row):
-            if k in ('luftluft', 'vannbåren'):
-                continue
-            column_name = sheet.Cells(row_number, 3).Value
-            column_value = self.df.loc[building_category][column_name]
-            logger.debug(f'{row_number=} {column_name=} {column_value=}')
-            sheet.Cells(row_number, value_column).Value = column_value
-
-    def update_pump(self, sheet, first_row, building_category, value_column):
-        for row_number, (k, t) in enumerate(self.df.loc[building_category].items(), start=first_row):
-            if k not in ('luftluft', 'vannbåren'):
-                continue
-            column_name = sheet.Cells(row_number-4, 3).Value
-            column_value = self.df.loc[building_category][column_name]
-            logger.debug(f'{row_number=} {column_name=} {column_value=}')
-            sheet.Cells(row_number-4, value_column).Value = column_value
-
-
-class HeatingSystemsDistributionWriter:
     """
     A class to handle the extraction, transformation, and loading of heating systems distribution data in a
     open Excel spreadsheet.

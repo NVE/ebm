@@ -1,4 +1,5 @@
 import itertools
+import logging
 import typing
 from datetime import datetime
 import os
@@ -255,6 +256,7 @@ class HeatingSystemsDistributionWriter:
 
 
 def open_sheet(workbook_name: str, sheet_name: str):
+    logging.debug(f'Opening sheet {sheet_name} in {workbook_name}')
     excel = win32com.client.Dispatch("Excel.Application")
     # Get the currently open workbooks
     workbooks = excel.Workbooks
@@ -263,7 +265,13 @@ def open_sheet(workbook_name: str, sheet_name: str):
         logger.debug(f"Open Workbook: {workbook.Name}")
     logger.debug(f'Using {workbook_name} {sheet_name}')
     # Access a specific workbook by name
-    workbook = workbooks[workbook_name]
+    try:
+        workbook = workbooks[workbook_name]
+    except com_error as ex:
+        logger.error(f'Error opening {workbook_name}')
+        for wb in workbooks:
+            logger.error(f'Found workbook {wb.Name}')
+        raise ex
     # Now you can interact with the workbook, for example, read a cell value
     sheet = []
     try:
@@ -271,6 +279,6 @@ def open_sheet(workbook_name: str, sheet_name: str):
     except com_error as ex:
         logger.error(f'Error opening {sheet_name}')
         for s in workbook.Sheets:
-            logger.error(f'Found {s.Name}')
+            logger.error(f'Found sheet {s.Name}')
         raise ex
     return sheet

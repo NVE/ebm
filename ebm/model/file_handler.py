@@ -8,7 +8,7 @@ from loguru import logger
 from pandera.errors import SchemaErrors, SchemaError
 
 import ebm.validators as validators
-from ebm.model.calibrate_heating_rv import default_calibrate_heating_rv
+from ebm.model.calibrate_energy_requirements import default_calibrate_heating_rv
 
 
 class FileHandler:

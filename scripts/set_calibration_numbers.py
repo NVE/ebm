@@ -9,7 +9,7 @@ from rich.pretty import pprint
 from ebm.cmd.calibrate import run_calibration, transform_heating_systems
 from ebm.cmd.run_calculation import configure_loglevel
 from ebm.model import FileHandler, DatabaseManager
-from ebm.model.calibrate_heating_rv import EnergyRequirementCalibrationWriter
+from ebm.model.calibrate_energy_requirements import EnergyRequirementCalibrationWriter
 from ebm.services.calibration_writer import CalibrationResultWriter, ComCalibrationReader, \
     HeatingSystemsDistributionWriter
 

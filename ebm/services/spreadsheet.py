@@ -1,16 +1,9 @@
 import itertools
-import re
 import typing
 import string
 from dataclasses import dataclass
 
-
-def split_string_at_first_number(s):
-    match = re.search(r'\d', s)
-    if match:
-        index = match.start()
-        return s[:index], s[index:]
-    return s, ''
+from openpyxl.utils.cell import cols_from_range, coordinate_to_tuple
 
 
 @dataclass
@@ -21,32 +14,15 @@ class SpreadsheetCell:
 
     @classmethod
     def first_row(cls, cell_range):
-        first_column, last_column = cls.cell_range_to_cells(cell_range)
-        first_column_index = ord(first_column[0]) - ord('A') + 1
-        last_column_index = ord(last_column[0]) - ord('A') + 1
-        column_range = list(range(first_column_index, last_column_index + 1))
-        first_row_index = int(first_column[1])
-        return tuple(SpreadsheetCell(column=c, row=first_row_index, value=None) for c in column_range)
-
-    @classmethod
-    def cell_range_to_cells(cls, cell_range):
-        cell_range = cell_range.upper()
-        a1 = cell_range.split(':')[0] if ':' in cell_range else cell_range
-        b3 = cell_range.split(':')[1] if ':' in cell_range else cell_range
-        if not a1.strip():
-            raise ValueError(f'Unexpected cell range {cell_range}. Expected range like A1:B3 or A1.')
-        first_column, last_column = split_string_at_first_number(a1), split_string_at_first_number(b3)
-        return first_column, last_column
+        table = list(cols_from_range(cell_range))
+        first_row = [coordinate_to_tuple(cols[0]) for cols in table]
+        return tuple(SpreadsheetCell(column=c[1], row=c[0], value=None) for c in first_row)
 
     @classmethod
     def first_column(cls, cell_range):
-        first_column, last_column = cls.cell_range_to_cells(cell_range)
-        first_column_index = ord(first_column[0]) - ord('A') + 1
-        first_row_index = int(first_column[1])
-        last_row_index = int(last_column[1])
-        row_range = list(range(first_row_index, last_row_index + 1))
-
-        return tuple(SpreadsheetCell(column=first_column_index, row=r, value=None) for r in row_range)
+        table = list(cols_from_range(cell_range))
+        first_column = [coordinate_to_tuple(cell) for cell in table[0]]
+        return tuple(SpreadsheetCell(column=cell[1], row=cell[0], value=None) for cell in first_column)
 
 
 def iter_cells(first_column: str = 'E', left_padding: str = '') -> typing.Generator[str, None, None]:

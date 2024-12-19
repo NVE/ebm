@@ -115,10 +115,7 @@ def transform_heating_systems(df: pd.DataFrame, calibration_year) -> pd.DataFram
     df.loc[df.energy_source == 'Electricity', 'energy_source'] = 'Elektrisitet'
     df.loc[df.building_category == 'bolig', 'building_category'] = 'residential'
     df.loc[df.building_category == 'yrkesbygg', 'building_category'] = 'non_residential'
-    df = df.pivot(index='building_category', columns='energy_source', values='energy_use').reset_index()[
-        ['building_category', 'Elektrisitet', 'Fjernvarme', 'Bio', 'Fossil', 'luftluft', 'vannbåren']].set_index(['building_category'], drop=True)
-
-    return df
+    return df.set_index(['building_category', 'energy_source'])
 
 
 def transform_pumps(df: pd.DataFrame, calibration_year) -> pd.DataFrame:

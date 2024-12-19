@@ -119,6 +119,33 @@ class CalibrationResultWriter:
 
 
 class HeatingSystemsDistributionWriter:
+    """
+    A class to handle the extraction, transformation, and loading of heating systems distribution data.
+
+    Attributes
+    ----------
+    workbook : str
+        The name of the workbook.
+    sheet : str
+        The name of the sheet.
+    df : pd.DataFrame
+        The DataFrame containing the data.
+    cells_to_update : typing.List[SpreadsheetCell]
+        List of cells to update.
+    rows : typing.List[SpreadsheetCell]
+        List of row header cells.
+    columns : typing.List[SpreadsheetCell]
+        List of column header cells.
+
+    Methods
+    -------
+    extract() -> typing.Tuple[typing.List[SpreadsheetCell], typing.List[SpreadsheetCell]]
+        Extracts the target cells and initializes row and column headers.
+    transform(df) -> typing.Iterable[SpreadsheetCell]
+        Transforms the DataFrame into a list of SpreadsheetCell objects to update.
+    load()
+        Loads the updated values into the Excel sheet.
+    """
     workbook: str
     sheet: str
     df: pd.DataFrame
@@ -126,14 +153,51 @@ class HeatingSystemsDistributionWriter:
     rows: typing.List[SpreadsheetCell]
     columns: typing.List[SpreadsheetCell]
 
-    def __init__(self):
+    def __init__(self, excel_filename=None, workbook='Kalibreringsark.xlsx', sheet='Ut'):
+        """
+        Initializes the HeatingSystemsDistributionWriter with empty lists for cells to update, rows, and columns.
+
+        Parameters
+        ----------
+        excel_filename : str, optional
+            Name of the target spreadsheet. If there is no ! and sheet name in excel_filename, the parameter sheet is
+                used instead
+        workbook : str, optinal
+            Optional name of the spreadsheet to used for reading and writing. (default is 'Kalibreringsark.xlsx')
+        sheet : str, optional
+            Optional name of the sheet used for reading and writing. (default is 'Ut')
+
+        """
+
+        self.workbook, self.sheet = os.environ.get('EBM_CALIBRATION_OUT', f'{workbook}{sheet}').split('!')
+
+        self.workbook = workbook
+        self.sheet = sheet
+        if excel_filename:
+            if '!' in excel_filename:
+                self.workbook, self.sheet = excel_filename.split('!')
+            else:
+                self.workbook = excel_filename
         self.cells_to_update = []
         self.rows = []
         self.columns = []
 
-    def extract(self) -> typing.Tuple[typing.List[SpreadsheetCell], typing.List[SpreadsheetCell]]:
-        self.workbook, self.sheet = os.environ.get('EBM_CALIBRATION_OUT').split('!')
+    def extract(self) -> typing.Tuple[
+            typing.Dict[int, SpreadsheetCell],
+            typing.Dict[int, SpreadsheetCell],
+            typing.Iterable[SpreadsheetCell]]:
+        """
+        Extracts the target cells and initializes row and column headers.
 
+        Returns
+        -------
+        typing.Tuple[
+            typing.Dict[int, SpreadsheetCell],
+            typing.Dict[int, SpreadsheetCell],
+            typing.Iterable[SpreadsheetCell]]
+
+            A tuple containing lists of row, column header cells and cells to update.
+        """
         # Create an instance of the Excel application
         sheet = open_sheet(self.workbook, self.sheet)
 
@@ -149,9 +213,22 @@ class HeatingSystemsDistributionWriter:
         # Initialize value cells
         self.values = SpreadsheetCell.submatrix(target_cells)
 
-        return self.rows, self.columns
+        return self.rows, self.columns, self.values
 
-    def transform(self, df) -> typing.Iterable[SpreadsheetCell]:
+    def transform(self, df: pd.DataFrame) -> typing.Iterable[SpreadsheetCell]:
+        """
+       Transforms the DataFrame into a list of SpreadsheetCell objects to update.
+
+       Parameters
+       ----------
+       df : pd.DataFrame
+           The DataFrame containing the data.
+
+       Returns
+       -------
+       typing.Iterable[SpreadsheetCell]
+           An iterable of SpreadsheetCell objects to update.
+        """
         self.cells_to_update = []
         for cell in self.values:
             try:
@@ -164,6 +241,9 @@ class HeatingSystemsDistributionWriter:
         return self.cells_to_update
 
     def load(self):
+        """
+        Loads the updated values into the Excel sheet defined in obj.workbook and obj.sheet.
+        """
         sheet = open_sheet(self.workbook, self.sheet)
 
         # Update cells

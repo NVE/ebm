@@ -35,3 +35,13 @@ def test_spreadsheet_cell_first_column():
         SpreadsheetCell(row=4, column=2, value=None),
     )
 
+
+def test_spreadsheet_submatrix():
+    assert SpreadsheetCell.submatrix("A1:C4") == (
+        SpreadsheetCell(column=2, row=2, value=None),
+        SpreadsheetCell(column=3, row=2, value=None),
+        SpreadsheetCell(column=2, row=3, value=None),
+        SpreadsheetCell(column=3, row=3,  value=None),
+        SpreadsheetCell(column=2, row=4, value=None),
+        SpreadsheetCell(column=3, row=4,  value=None),
+    )

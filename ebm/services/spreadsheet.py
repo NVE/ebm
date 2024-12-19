@@ -1,16 +1,26 @@
+import dataclasses
 import itertools
 import typing
 import string
 from dataclasses import dataclass
 
-from openpyxl.utils.cell import cols_from_range, coordinate_to_tuple
+from openpyxl.utils.cell import cols_from_range, coordinate_to_tuple, get_column_letter
 
 
 @dataclass
 class SpreadsheetCell:
-    row: int
     column: int
-    value: typing.Union[str, None]
+    row: int
+    value: object
+
+    def spreadsheet_cell(self) -> str:
+        return f'{get_column_letter(self.column)}{self.row}'
+
+    def replace(self, **kwargs) -> 'SpreadsheetCell':
+        obj = dataclasses.replace(self)
+        if 'value' in kwargs:
+            obj.value = kwargs.get('value')
+        return obj
 
     @classmethod
     def first_row(cls, cell_range):
@@ -23,6 +33,20 @@ class SpreadsheetCell:
         table = list(cols_from_range(cell_range))
         first_column = [coordinate_to_tuple(cell) for cell in table[0]]
         return tuple(SpreadsheetCell(column=cell[1], row=cell[0], value=None) for cell in first_column)
+
+    @classmethod
+    def submatrix(cls, cell_range):
+        table = list(cols_from_range(cell_range))
+        first_column = [coordinate_to_tuple(cell) for cell in table[0]]
+        first_row = [coordinate_to_tuple(cols[0]) for cols in table]
+        box = []
+        for row in table:
+            for column in row:
+                r, c = coordinate_to_tuple(column)
+                if (r, c) not in first_column and (r, c) not in first_row:
+                    box.append(SpreadsheetCell(column=c, row=r, value=None))
+
+        return tuple(sorted(box, key=lambda k: (k.row, k.column)))
 
 
 def iter_cells(first_column: str = 'E', left_padding: str = '') -> typing.Generator[str, None, None]:

@@ -335,6 +335,9 @@ def configure_loglevel(format: str = None):
     if format:
         options['format'] = format
 
+    if '--debug' in sys.argv or os.environ.get('DEBUG', '').upper() == 'TRUE':
+        options['level'] = 'DEBUG'
+
     # Add a new handler with a custom format
     if '--debug' not in sys.argv and os.environ.get('DEBUG', '').upper() != 'TRUE':
         logger.add(sys.stderr, **options)

@@ -244,7 +244,13 @@ class HeatingSystemsDistributionWriter:
         self.cells_to_update = []
         for cell in self.values:
             try:
-                value = df.loc[(self.columns[cell.column].value, self.rows[cell.row].value), 'TEK_shares']
+                row_header = self.columns[cell.column].value
+                column_header = self.rows[cell.row].value
+                if row_header not in df.index:
+                    raise KeyError(f'"{row_header}" not found')
+                elif (row_header, column_header) not in df.index:
+                    raise KeyError(f'"{column_header}" not found')
+                value = df.loc[(row_header, column_header), 'TEK_shares']
             except KeyError as ex:
                 logger.error(f'KeyError {str(ex)} while loading data for {cell.spreadsheet_cell()}')
                 value = f'KeyError {str(ex)}'

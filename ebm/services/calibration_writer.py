@@ -247,7 +247,8 @@ class HeatingSystemsDistributionWriter:
                     raise KeyError(f'"{row_header}" not found')
                 elif (row_header, column_header) not in df.index:
                     raise KeyError(f'"{column_header}" not found')
-                value = df.loc[(row_header, column_header), 'TEK_shares']
+                column_name = 'TEK_shares' if 'TEK_shares' in df.columns else df.columns[-1]
+                value = df.loc[(row_header, column_header), column_name]
             except KeyError as ex:
                 logger.error(f'KeyError {str(ex)} while loading data for {cell.spreadsheet_cell()}')
                 value = f'KeyError {str(ex)}'

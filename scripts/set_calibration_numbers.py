@@ -24,7 +24,8 @@ class DistributionOfHeatingSystems:
         df['building_group'] = 'Yrkesbygg'
 
         df = df[df['building_category'] != 'storage_repairs']
-        df.loc[df['building_category'].isin(['house', 'apartment_block']), 'building_group'] = 'Bolig'
+        df.loc[df['building_category'].isin(['apartment_block']), 'building_group'] = 'Boligblokk'
+        df.loc[df['building_category'].isin(['house']), 'building_group'] = 'Småhus'
 
         distribution_of_heating_systems_by_building_group = df.groupby(by=['building_group', 'heating_systems'])[
             ['TEK_shares']].mean()

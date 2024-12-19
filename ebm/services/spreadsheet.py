@@ -17,16 +17,13 @@ class SpreadsheetCell:
         return f'{get_column_letter(self.column)}{self.row}'
 
     def replace(self, **kwargs) -> 'SpreadsheetCell':
-        obj = dataclasses.replace(self)
-        if 'value' in kwargs:
-            obj.value = kwargs.get('value')
-        return obj
+        return dataclasses.replace(self, **kwargs)
 
     @classmethod
     def first_row(cls, cell_range):
         table = list(cols_from_range(cell_range))
-        first_row = [coordinate_to_tuple(cols[0]) for cols in table]
-        return tuple(SpreadsheetCell(column=c[1], row=c[0], value=None) for c in first_row)
+        first_row = [coordinate_to_tuple(rows[0]) for rows in table]
+        return tuple(SpreadsheetCell(column=cell[1], row=cell[0], value=None) for cell in first_row)
 
     @classmethod
     def first_column(cls, cell_range):

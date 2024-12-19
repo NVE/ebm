@@ -25,7 +25,7 @@ class ComCalibrationReader:
         self.sheet_name = sh if sheet_name is None else sheet_name
 
     def extract(self) -> pd.DataFrame:
-        sheet = open_sheet(self.workbook_name, self.sheet_name)
+        sheet = access_excel_sheet(self.workbook_name, self.sheet_name)
         used_range = sheet.UsedRange
 
         values = used_range.Value
@@ -71,14 +71,14 @@ class CalibrationResultWriter:
 
     def extract(self) -> None:
         self.workbook, self.sheet = os.environ.get('EBM_CALIBRATION_OUT').split('!')
-        open_sheet(self.workbook, self.sheet)
+        access_excel_sheet(self.workbook, self.sheet)
 
     def transform(self, df) -> pd.DataFrame:
         self.df = df
         return df
 
     def load(self):
-        sheet = open_sheet(self.workbook, self.sheet)
+        sheet = access_excel_sheet(self.workbook, self.sheet)
 
         # Residential
         residential_columns = os.environ.get('EBM_CALIBRATION_ENERGY_USAGE_RESIDENTIAL')
@@ -213,7 +213,7 @@ class HeatingSystemsDistributionWriter:
             A tuple containing lists of row, column header cells and cells to update.
         """
         # Create an instance of the Excel application
-        sheet = open_sheet(self.workbook, self.sheet)
+        sheet = access_excel_sheet(self.workbook, self.sheet)
 
         # Make index of columns and rows
         first_row = SpreadsheetCell.first_row(self.target_cells)
@@ -262,7 +262,7 @@ class HeatingSystemsDistributionWriter:
         """
         Loads the updated values into the Excel sheet defined in obj.workbook and obj.sheet.
         """
-        sheet = open_sheet(self.workbook, self.sheet)
+        sheet = access_excel_sheet(self.workbook, self.sheet)
 
         # Update cells
         for cell_to_update in self.cells_to_update:
@@ -272,26 +272,52 @@ class HeatingSystemsDistributionWriter:
         sheet.Cells(33, 2).Value = datetime.now().isoformat()
 
 
-def open_sheet(workbook_name: str, sheet_name: str):
+def access_excel_sheet(workbook_name: str, sheet_name: str) -> win32com.client.CDispatch:
+    """
+   Opens the specified sheet in the specified workbook using COM.
+
+   Parameters
+   ----------
+   workbook_name : str
+       The name of the workbook.
+   sheet_name : str
+       The name of the sheet.
+
+   Returns
+   -------
+   win32com.client.CDispatch
+       The specified sheet object.
+    """
     logging.debug(f'Opening sheet {sheet_name} in {workbook_name}')
     excel = win32com.client.Dispatch("Excel.Application")
+
     # Get the currently open workbooks
     workbooks = excel.Workbooks
 
     for workbook in workbooks:
-        logger.debug(f"Open Workbook: {workbook.Name}")
+        logger.debug(f"Found open Workbook: {workbook.Name}")
     logger.debug(f'Using {workbook_name} {sheet_name}')
     # Access a specific workbook by name
     try:
+        if workbook_name not in [n.Name for n in workbooks]:
+            ex_msg = f'No open workbook named: \'{workbook_name}\''
+            raise FileNotFoundError(ex_msg)
         workbook = workbooks[workbook_name]
     except com_error as ex:
         logger.error(f'Error opening {workbook_name}')
-        for wb in workbooks:
-            logger.error(f'Found workbook {wb.Name}')
+        if not workbooks:
+            logger.error('No open workbooks')
+        else:
+            logger.info('Open workbooks: ')
+            for wb in workbooks:
+                logger.info(f'Found workbook {wb.Name}')
         raise ex
     # Now you can interact with the workbook, for example, read a cell value
     sheet = []
     try:
+        if sheet_name not in [n.Name for n in workbook.Sheets]:
+            ex_msg = f'{workbook_name} exists and is open, but there is no sheet named: \'{sheet_name}\''
+            raise ValueError(ex_msg)
         sheet = workbook.Sheets(sheet_name)
     except com_error as ex:
         logger.error(f'Error opening {sheet_name}')

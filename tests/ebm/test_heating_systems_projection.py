@@ -128,10 +128,9 @@ kindergarten,TEK97,Electricity,2020,0.0
 kindergarten,TEK97,Gas,2020,0.0                                       
 kindergarten,TEK97,Electricity - Bio,2020,0.0
 kindergarten,TEK97,DH - Bio,2020,0.0
-kindergarten,TEK97,HP - Bio,2020,0.0
+kindergarten,TEK97,HP - Bio - Electricity,2020,0.0
 kindergarten,TEK97,HP - Electricity,2020,0.0
-kindergarten,TEK97,HP Central heating - DH,2020,0.0
-kindergarten,TEK97,HP Central heating,2020,0.0
+kindergarten,TEK97,HP Central heating - Electric boiler,2020,0.0
 kindergarten,TEK97,HP Central heating - Gas,2020,0.0
 kindergarten,TEK97,Electric boiler - Solar,2020,0.0
 kindergarten,TEK97,HP Central heating - Bio,2020,0.0                                                                                                    

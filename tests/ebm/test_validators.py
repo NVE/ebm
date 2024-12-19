@@ -674,23 +674,28 @@ invalid_category,0.6
 def test_heating_systems_shares_start_year_ok():
     shares_start_year = pd.read_csv(io.StringIO("""
 building_category,TEK,heating_systems,year,TEK_shares
-apartment_block,TEK07,DH,2020,0.3316670026630616
-apartment_block,TEK07,DH - Bio,2020,0.003305887353335002
-apartment_block,TEK07,Electric boiler,2020,0.002667754942095502
-apartment_block,TEK07,Electric boiler - Solar,2020,0.0002415945163788188
-apartment_block,TEK07,Electricity - Bio,2020,0.06266384914026892
-apartment_block,TEK07,Gas,2020,0.03680298490810775
-apartment_block,TEK07,HP Central heating,2020,0.5456616600524988
-apartment_block,TEK07,HP Central heating - Bio,2020,0.004734738186158519
-apartment_block,TEK07,HP Central heating - DH,2020,0.007549542895245683
-apartment_block,TEK07,HP Central heating - Gas,2020,0.0047049853428493
-culture,PRE_TEK49,DH,2020,0.448808476036656
-culture,PRE_TEK49,Electric boiler,2020,0.3532945191779804
-culture,PRE_TEK49,Electricity,2020,0.0731295180790151
-culture,PRE_TEK49,Electricity - Bio,2020,0.04554724481915243
-culture,PRE_TEK49,Gas,2020,0.00796869432401196
-culture,PRE_TEK49,HP Central heating,2020,0.06620268747246605
-culture,PRE_TEK49,HP Central heating - Bio,2020,0.005048860090718066                                                                                                
+apartment_block,TEK17,DH,2023,0.2067590404511288
+apartment_block,TEK17,DH - Bio,2023,0.0033946606308616
+apartment_block,TEK17,Electric boiler,2023,0.0340346740470787
+apartment_block,TEK17,Electric boiler - Solar,2023,0.0003390668680222
+apartment_block,TEK17,Electricity,2023,0.4560101624930742
+apartment_block,TEK17,Electricity - Bio,2023,0.1128016818166627
+apartment_block,TEK17,Gas,2023,0.0205424237443141
+apartment_block,TEK17,HP - Electricity,2023,0.0073046316982173
+apartment_block,TEK17,HP Central heating - Bio,2023,0.0086647944512573
+apartment_block,TEK17,HP Central heating - Electric boiler,2023,0.1487089355849942
+apartment_block,TEK17,HP Central heating - Gas,2023,0.0014399282143885
+university,TEK97,DH,2023,0.3182453573763764
+university,TEK97,DH - Bio,2023,0.0002142250969049
+university,TEK97,Electric boiler,2023,0.1177376992297113
+university,TEK97,Electric boiler - Solar,2023,0.0002493794096936
+university,TEK97,Electricity,2023,0.1413637792376423
+university,TEK97,Electricity - Bio,2023,0.0216740945571909
+university,TEK97,Gas,2023,0.0331300895188176
+university,TEK97,HP - Electricity,2023,0.0030762755043380
+university,TEK97,HP Central heating - Bio,2023,0.0001936265574100
+university,TEK97,HP Central heating - Electric boiler,2023,0.3640435119049470
+university,TEK97,HP Central heating - Gas,2023,0.0000719616069676                                                                                                                                             
 """.strip()), skipinitialspace=True) 
     
     heating_systems_shares_start_year.validate(shares_start_year)
@@ -725,26 +730,14 @@ apartment_block,TEK07,DH,2020,2
         heating_systems_shares_start_year.validate(shares_start_year)
 
 
-def test_heating_systems_shares_start_year_equal_1():
+def test_heating_systems_shares_start_year_sum_shares_equal_1():
 
     df = pd.read_csv(io.StringIO("""
 building_category,TEK,heating_systems,year,TEK_shares
-storage_repairs,TEK07,DH,2020,0.1513880769366867
-storage_repairs,TEK07,DH - Bio,2020,0.01303276731750762
-storage_repairs,TEK07,Electric boiler,2020,0.2258458963728039
-storage_repairs,TEK07,Electricity - Bio,2020,0.0797465812036097
-storage_repairs,TEK07,Gas,2020,0.2320505402244028
-storage_repairs,TEK07,HP Central heating,2020,0.2850441643853094   
-apartment_block,TEK07,DH,2020,0.3316670026630616
-apartment_block,TEK07,DH - Bio,2020,0.003305887353335002
-apartment_block,TEK07,Electric boiler,2020,0.002667754942095502
-apartment_block,TEK07,Electric boiler - Solar,2020,0.0002415945163788188
-apartment_block,TEK07,Electricity - Bio,2020,0.06266384914026892
-apartment_block,TEK07,Gas,2020,0.03680298490810775
-apartment_block,TEK07,HP Central heating,2020,0.5456616600524988
-apartment_block,TEK07,HP Central heating - Bio,2020,0.004734738186158519
-apartment_block,TEK07,HP Central heating - DH,2020,0.007549542895245683
-apartment_block,TEK07,HP Central heating - Gas,2020,0.0047049853428493                                                                                           
+apartment_block,TEK17,DH,2023,0.5
+apartment_block,TEK17,DH - Bio,2023,0.5
+university,TEK97,Electricity,2023,0.5
+university,TEK97,Electricity - Bio,2023,0.4                                                                                                                         
 """.strip()), skipinitialspace=True) 
     
     with warnings.catch_warnings(record=True) as caught_warnings:
@@ -759,13 +752,17 @@ apartment_block,TEK07,HP Central heating - Gas,2020,0.0047049853428493
 
 def test_heating_systems_projection_ok():
     projection = pd.read_csv(io.StringIO("""
-building_category,TEK,heating_systems,new_heating_systems,2021,2022
-default,default,Gas,HP Central heating,0.05,0.075
-default,default,Gas,Electric boiler,0.05,0.075
-non_residential,TEK69,HP Central heating - Gas,HP Central heating,0.1,0.15
-house,default,Electricity - Bio,HP - Bio,0.05,0.054893999666245
-residential,default,HP - Electricity,HP - Bio,0.05,0.0550163004472704
-kindergarten,TEK87,Electricity,DH,0.05,0.0550163004472704                                                                                                                                                                                                                                                                                 
+building_category,TEK,heating_systems,new_heating_systems,2024,2025
+apartment_block,default,Electricity - Bio,HP Central heating - Bio,0.1,0.1
+default,default,Gas,Electric boiler,0.1,0.2
+default,default,Gas,HP Central heating - Electric boiler,0.1,0.2
+house,default,Electricity - Bio,HP - Bio - Electricity,0.1,0.1
+kindergarten,TEK87,Electricity,DH,0.1,0.1
+kindergarten,TEK97,Electricity,DH,0.1,0.1
+non_residential,TEK69,HP Central heating - Gas,HP Central heating - Electric boiler,0.2,0.3
+office,TEK87,Electricity,DH,0.1,0.1
+office,TEK97,Electricity,DH,0.1,0.1
+residential,default,HP - Electricity,HP - Bio - Electricity,0.1,0.1                                                                                                                                                                                                                                                                             
 """.strip()), skipinitialspace=True) 
 
     heating_systems_projection.validate(projection)
@@ -784,20 +781,19 @@ default,default,Gas,Electric boiler,0.05,0.05
 
 def test_heating_systems_efficiencies_ok():
     efficiencies = pd.read_csv(io.StringIO("""
-heating_systems,Grunnlast,Spisslast,Ekstralast,Ekstralast andel,Grunnlast energivare,Spisslast energivare,Ekstralast energivare,Grunnlast andel,Spisslast andel,Grunnlast virkningsgrad,Spisslast virkningsgrad,Ekstralast virkningsgrad,Tappevann,Tappevann energivare,Tappevann virkningsgrad,Spesifikt elforbruk,Kjoling virkningsgrad
-Electric boiler,Electric boiler,Ingen,Ingen,0.0,Electricity,Ingen,Ingen,1.0,0.0,0.98,1.0,1,Electric boiler,Electricity,0.98,1,4
-DH,DH,Ingen,Ingen,0.0,DH,Ingen,Ingen,1.0,0.0,0.99,1.0,1,DH,DH,0.99,1,4
-Electricity,Electricity,Ingen,Ingen,0.0,Electricity,Ingen,Ingen,1.0,0.0,1.0,1.0,1,Electricity,Electricity,0.98,1,4
-Gas,Gas,Ingen,Ingen,0.0,Fossil,Ingen,Ingen,1.0,0.0,0.96,1.0,1,Gas,Fossil,0.96,1,4
-Electricity - Bio,Electricity,Bio,Ingen,0.0,Electricity,Bio,Ingen,0.7,0.3,1.0,0.65,1,Electricity,Electricity,0.98,1,4
-DH - Bio,DH,Bio,Ingen,0.0,DH,Bio,Ingen,0.95,0.05,0.99,0.65,1,DH,DH,0.99,1,4
-HP - Bio,HP,Bio,Electricity,0.5,Electricity,Bio,Electricity,0.4,0.1,2.5,0.65,1,Electricity,Electricity,0.98,1,4
-HP - Electricity,HP,Electricity,Ingen,0.0,Electricity,Electricity,Ingen,0.4,0.6,2.5,1.0,1,Electricity,Electricity,0.98,1,4
-HP Central heating - DH,HP Central heating,DH,Ingen,0.0,Electricity,DH,Ingen,0.85,0.15,3.0,0.99,1,HP Central heating,Electricity,3.0,1,4
-HP Central heating,HP Central heating,Electric boiler,Ingen,0.0,Electricity,Electricity,Ingen,0.85,0.15,3.0,0.98,1,HP Central heating,Electricity,3.0,1,4
-HP Central heating - Gas,HP Central heating,Gas,Ingen,0.0,Electricity,Fossil,Ingen,0.85,0.15,3.0,0.96,1,HP Central heating,Electricity,3.0,1,4
-Electric boiler - Solar,Electric boiler,Solar,Ingen,0.0,Electricity,Solar,Ingen,0.8,0.1999999999999999,0.99,0.96,1,Electric boiler,Electricity,0.99,1,4
-HP Central heating - Bio,HP Central heating,Bio,Ingen,0.0,Electricity,Bio,Ingen,0.85,0.15,3.0,0.65,1,HP Central heating,Electricity,3.0,1,4
+heating_systems,Grunnlast,Spisslast,Ekstralast,Grunnlast energivare,Spisslast energivare,Ekstralast energivare,Ekstralast andel,Grunnlast andel,Spisslast andel,Grunnlast virkningsgrad,Spisslast virkningsgrad,Ekstralast virkningsgrad,Tappevann,Tappevann energivare,Tappevann virkningsgrad,Spesifikt elforbruk,Kjoling virkningsgrad
+Electric boiler,Electric boiler,Ingen,Ingen,Electricity,Ingen,Ingen,0.0,1.0,0.0,0.98,1.0,1,Electric boiler,Electricity,0.98,1,4
+DH,DH,Ingen,Ingen,DH,Ingen,Ingen,0.0,1.0,0.0,0.99,1.0,1,DH,DH,0.99,1,4
+Electricity,Electricity,Ingen,Ingen,Electricity,Ingen,Ingen,0.0,1.0,0.0,1.0,1.0,1,Electricity,Electricity,0.98,1,4
+Gas,Gas,Ingen,Ingen,Fossil,Ingen,Ingen,0.0,1.0,0.0,0.96,0.96,1,Gas,Fossil,0.96,1,4
+Electricity - Bio,Electricity,Bio,Ingen,Electricity,Bio,Ingen,0.0,0.7,0.3,1.0,0.65,1,Electricity,Electricity,0.98,1,4
+DH - Bio,DH,Bio,Ingen,DH,Bio,Ingen,0.0,0.95,0.050000000000000044,0.99,0.65,1,DH,DH,0.99,1,4
+HP - Bio - Electricity,HP,Bio,Electricity,Electricity,Bio,Electricity,0.4,0.5,0.1,2.5,0.65,1,Electricity,Electricity,0.98,1,4
+HP - Electricity,HP,Electricity,Ingen,Electricity,Electricity,Ingen,0.0,0.5,0.5,2.5,1.0,1,Electricity,Electricity,0.98,1,4
+HP Central heating - Electric boiler,HP Central heating,Electric boiler,Ingen,Electricity,Electricity,Ingen,0.0,0.85,0.15000000000000002,3.0,0.99,1,HP Central heating,Electricity,3.0,1,4
+HP Central heating - Gas,HP Central heating,Gas,Ingen,Electricity,Fossil,Ingen,0.0,0.85,0.15000000000000002,3.0,0.96,1,HP Central heating,Electricity,3.0,1,4
+Electric boiler - Solar,Electric boiler,Solar,Ingen,Electricity,Solar,Ingen,0.0,0.85,0.15000000000000002,0.98,0.7,1,Electric boiler,Electricity,0.98,1,4
+HP Central heating - Bio,HP Central heating,Bio,Ingen,Electricity,Bio,Ingen,0.0,0.85,0.15000000000000002,3.0,0.65,1,HP Central heating,Electricity,3.0,1,4
 """.strip()), skipinitialspace=True) 
     
     heating_systems_efficiencies.validate(efficiencies)

@@ -302,7 +302,7 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
 
 
 def calculate_heating_systems(energy_requirements, database_manager: DatabaseManager):
-    projection_period = YearRange(2020,2050)
+    projection_period = YearRange(2023,2050)
     hsp = HeatingSystemsProjection.new_instance(projection_period, database_manager)
     hf = hsp.calculate_projection()
     calculator = HeatingSystems(hf)

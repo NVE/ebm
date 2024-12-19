@@ -275,7 +275,7 @@ def project_heating_systems(shares_start_year_all_systems: pd.DataFrame,
     return nye_andeler_samlet_uten_0
 
 
-def check_sum_of_shares(projected_shares: pd.DataFrame, precision: int = 5):
+def check_sum_of_shares(projected_shares: pd.DataFrame, precision: int = 10):
     """
     Control that the sum of TEK_shares equals 1 per TEK, building category and year. 
 

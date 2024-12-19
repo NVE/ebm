@@ -8,7 +8,7 @@ from loguru import logger
 import pandas as pd
 
 
-DEFAULT_SOURCE = pathlib.Path('C:/Users/lfep/work_space/Energibruksmodell/ebm/data/heating_systems_projection.csv')
+DEFAULT_SOURCE = pathlib.Path('C:/Users/lfep/work_space/Energibruksmodell/ebm/data/heating_systems_projection.xlsx')
 
 def add_number_to_filename(file: pathlib.Path):
     if not file.exists():

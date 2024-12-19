@@ -5,13 +5,12 @@ import time
 import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
-from rich.pretty import pprint
+
 from ebm.cmd.calibrate import run_calibration, transform_heating_systems
 from ebm.cmd.run_calculation import configure_loglevel
 from ebm.model import FileHandler, DatabaseManager
-from ebm.model.calibrate_heating_rv import EnergyRequirementCalibrationWriter
-from ebm.services.calibration_writer import CalibrationResultWriter, ComCalibrationReader, \
-    HeatingSystemsDistributionWriter
+from ebm.model.calibrate_energy_requirements import EnergyRequirementCalibrationWriter
+from ebm.services.calibration_writer import ComCalibrationReader, CalibrationResultWriter
 
 LOG_FORMAT = """
 <green>{time:HH:mm:ss.SSS}</green> | <blue>{elapsed}</blue> | <level>{level: <8}</level> | <cyan>{function: <20}</cyan>:<cyan>{line: <3}</cyan> - <level>{message}</level>
@@ -19,8 +18,8 @@ LOG_FORMAT = """
 
 
 class DistributionOfHeatingSystems:
-
-    def transform(self, df):
+    @staticmethod
+    def transform(df):
         df = df.reset_index()
         df['building_group'] = 'Yrkesbygg'
 
@@ -37,23 +36,22 @@ def main():
     load_dotenv(pathlib.Path('.env'))
     configure_loglevel(format=LOG_FORMAT)
 
-    calibration_out = os.environ.get("EBM_CALIBRATION_OUT", "")
-    calibration_sheet = os.environ.get("EBM_CALIBRATION_SHEET", "")
-    DEBUG = os.environ.get('DEBUG', 'False').capitalize() == 'True'
+    calibration_out = os.environ.get("EBM_CALIBRATION_OUT", "Kalibreringsark.xlsx!Ut")
+    calibration_sheet = os.environ.get("EBM_CALIBRATION_SHEET", "Kalibreringsark.xlsx!Kalibreringsfaktorer")
+
     logger.info(f'Loading {calibration_sheet}')
+
     com_calibration_reader = ComCalibrationReader()
     values = com_calibration_reader.extract()
-    if DEBUG:
-        pprint(values)
+
     logger.info(f'Make {calibration_sheet} compatible with ebm')
     energy_source_by_building_group = com_calibration_reader.transform(values)
-    if DEBUG:
-        pprint(energy_source_by_building_group)
+
     logger.info('Write calibration to ebm')
     enreq_writer = EnergyRequirementCalibrationWriter()
     enreq_writer.load(energy_source_by_building_group, os.environ.get('EBM_CALIBRATION_ENERGY_REQUIREMENT',
-                                                  'kalibrering/slettmeg.csv'))
-    calibration_result_writer = CalibrationResultWriter()
+                      'kalibrering/slettmeg.csv'))
+
     logger.info('Calculate calibrated energy use')
     area_forecast = None
     area_forecast_file = pathlib.Path('kalibrering/area_forecast.csv')
@@ -68,19 +66,33 @@ def main():
     energy_source_by_building_group = energy_source_by_building_group.fillna(0)
 
     logger.info(f'Writing heating systems distribution to {calibration_out}')
+    hs_distribution_cells = os.environ.get('EBM_CALIBRATION_ENERGY_HEATING_SYSTEMS_DISTRIBUTION', 'C33:F44')
+    hs_distribution_writer = CalibrationResultWriter(excel_filename=calibration_out,
+                                                     target_cells=hs_distribution_cells)
+
     distribution_of_heating_systems_by_building_group = DistributionOfHeatingSystems().transform(df)
-    hs_distribution_writer = HeatingSystemsDistributionWriter()
     hs_distribution_writer.extract()
     hs_distribution_writer.transform(distribution_of_heating_systems_by_building_group)
     hs_distribution_writer.load()
 
-    logger.info(f'Writing calculated energy use to {calibration_out}')
-    calibration_result_writer.extract()
-    calibration_result_writer.transform(energy_source_by_building_group)
-    calibration_result_writer.load()
+    energy_source_out = 'Kalibreringsark – Kopi.xlsx!Ut'
+    energy_source_target_cells = 'C64:E68'
+
+    logger.info(f'Writing energy_source using writer to {energy_source_out}')
+    writer = CalibrationResultWriter(excel_filename=energy_source_out,
+                                     target_cells=energy_source_target_cells)
+    writer.extract()
+    writer.transform(energy_source_by_building_group)
+    writer.load()
+
+    logger.info(f'Writing calculated energy pump use to {calibration_out}')
+    writer = CalibrationResultWriter(excel_filename=energy_source_out,
+                                     target_cells='C72:E74')
+    writer.extract()
+    writer.transform(energy_source_by_building_group)
+    writer.load()
     logger.info(f'Calibrated {calibration_out} in {round(time.time() - start_time, 2)} seconds')
 
 
 if __name__ == '__main__':
     main()
-

@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from ebm.cmd.run_calculation import calculate_building_category_area_forecast
 from ebm.cmd.run_calculation import calculate_building_category_energy_requirements, calculate_heating_systems
 from ebm.model import DatabaseManager, FileHandler
-from ebm.model.calibrate_heating_rv import default_calibrate_heating_rv
+from ebm.model.calibrate_energy_requirements import default_calibrate_heating_rv
 from ebm.model.data_classes import YearRange
 from ebm.model.building_category import BuildingCategory
 
@@ -192,6 +192,7 @@ def run_calibration(database_manager,
     heating_systems = extract_heating_systems(energy_requirements, database_manager)
 
     return heating_systems
+
 
 def main():
     transformed = run_calibration(DatabaseManager(FileHandler(directory='kalibrering')), calibration_year=2023)

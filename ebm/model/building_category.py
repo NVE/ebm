@@ -64,7 +64,7 @@ class BuildingCategory(StrEnum, metaclass=MyEnumType):
 def from_norsk(norsk: str) -> BuildingCategory:
     if norsk.lower() == 'småhus':
         return BuildingCategory.HOUSE
-    if norsk.lower() == 'leilighet':
+    if norsk.lower()  in ('leilighet', 'boligblokk'):
         return BuildingCategory.APARTMENT_BLOCK
     if norsk.lower() == 'barnehage':
         return BuildingCategory.KINDERGARTEN

@@ -123,7 +123,7 @@ You can overwrite the {arguments.output_file}. by using --force: {program_name} 
                     start_year=arguments.start_year,
                     end_year=arguments.end_year)
                 df = energy_requirements_result
-                if 'heating-systems' in arguments.step:
+                if 'heating-systems' in arguments.step and building_category != BuildingCategory.STORAGE_REPAIRS:
                     df = calculate_heating_systems(energy_requirements=energy_requirements_result,
                                                    database_manager=database_manager)
 

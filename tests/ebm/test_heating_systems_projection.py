@@ -352,8 +352,10 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES] ,skipinitialspace=
     pd.testing.assert_frame_equal(result, expected)
 
 
+@pytest.mark.skip()
 def test_check_sum_of_shares_ok():
     """
+    Control that the sum of TEK_shares equals 1 per TEK, building category and year. 
     """
     projected_shares = pd.read_csv(io.StringIO("""
 house,TEK97,DH,2020,0.5

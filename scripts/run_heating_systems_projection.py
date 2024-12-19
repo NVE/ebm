@@ -33,6 +33,8 @@ def run_projection():
 
     print((time() - start_time) * 13)
     df = hsp.calculate_projection()
-    print(df)
+    return df
 
-run_projection()
+df = run_projection()
+df = df[['building_category','TEK','heating_systems','year','TEK_shares']]
+print(df)

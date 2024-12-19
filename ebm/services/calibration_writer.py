@@ -138,29 +138,35 @@ class HeatingSystemsDistributionWriter:
         sheet = open_sheet(self.workbook, self.sheet)
 
         target_cells = os.environ.get('EBM_CALIBRATION_ENERGY_HEATING_SYSTEMS_DISTRIBUTION')
-        rows = list(range(33, 37))
-        columns = [('Bolig', 4), ('Yrkesbygg', 5)]
 
-        self.columns = [SpreadsheetCell(row=47, column=4, value='Bolig'),
-                        SpreadsheetCell(row=47, column=5, value='Yrkesbygg')]
-        self.rows = [SpreadsheetCell(row=row, column=3, value=sheet.Cells(row, 3).Value.strip()) for row in range(33, 37)]
+        # Make index of columns and rows
+        first_row = SpreadsheetCell.first_row(target_cells)
+        self.columns = {cell.column: cell.replace(value=sheet.Cells(cell.row, cell.column).Value) for cell in first_row[1:]}
+
+        first_column = SpreadsheetCell.first_column(target_cells)
+        self.rows = {cell.row: cell.replace(value=sheet.Cells(cell.row, cell.column).Value) for cell in first_column[1:]}
+
+        # Initialize value cells
+        self.values = SpreadsheetCell.submatrix(target_cells)
 
         return self.rows, self.columns
 
     def transform(self, df) -> typing.Iterable[SpreadsheetCell]:
         self.cells_to_update = []
-        for row, column in itertools.product(self.rows, self.columns):
-            value = df.loc[(column.value, row.value), 'TEK_shares']
-            self.cells_to_update.append(
-                SpreadsheetCell(row=row.row, column=column.column, value=value)
-            )
+        for cell in self.values:
+            try:
+                value = df.loc[(self.columns[cell.column].value, self.rows[cell.row].value), 'TEK_shares']
+            except KeyError as ex:
+                logger.error(f'KeyError {str(ex)} while loading data for {cell.spreadsheet_cell()}')
+                value = f'KeyError {str(ex)}'
+            self.cells_to_update.append(SpreadsheetCell(row=cell.row, column=cell.column, value=value))
 
         return self.cells_to_update
 
     def load(self):
         sheet = open_sheet(self.workbook, self.sheet)
 
-        # Residential
+        # Update cells
         for cell_to_update in self.cells_to_update:
             sheet.Cells(cell_to_update.row, cell_to_update.column).Value = cell_to_update.value
 

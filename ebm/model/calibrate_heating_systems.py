@@ -17,8 +17,8 @@ FOSSIL = 'Fossil'
 
 DOMESTIC_HOT_WATER = 'Tappevann'
 
-HEATPUMP_AIR_SOURCE = 'luftluft'
-HEATPUMP_WATER_SOUCE = 'vannbåren'
+HEATPUMP_AIR_SOURCE = 'Luft/luft'
+HEATPUMP_WATER_SOUCE = 'Vannbåren varme'
 
 CALIBRATION_YEAR = 2023
 
@@ -27,7 +27,7 @@ start_year = model_period.start
 end_year = model_period.end
 
 
-def extract_area_forecast(database_manager) ->pd.DataFrame:
+def extract_area_forecast(database_manager) -> pd.DataFrame:
     area_forecasts = []
     for building_category in BuildingCategory:
         area_forecast_result = calculate_building_category_area_forecast(
@@ -106,15 +106,15 @@ def transform_heating_systems(df: pd.DataFrame, calibration_year) -> pd.DataFram
     df = df.rename(columns={'building_group': 'building_category'})
     df.loc[df.energy_source == 'DH', 'energy_source'] = 'Fjernvarme'
     df.loc[df.energy_source == 'Electricity', 'energy_source'] = 'Elektrisitet'
-    df.loc[df.building_category == 'bolig', 'building_category'] = 'residential'
-    df.loc[df.building_category == 'yrkesbygg', 'building_category'] = 'non_residential'
+    df.loc[df.building_category == 'bolig', 'building_category'] = 'Bolig'
+    df.loc[df.building_category == 'yrkesbygg', 'building_category'] = 'Yrkesbygg'
     return df.set_index(['building_category', 'energy_source'])
 
 
 def transform_pumps(df: pd.DataFrame, calibration_year) -> pd.DataFrame:
-    df['building_group'] = 'yrkesbygg'
-    df.loc['house', 'building_group'] = 'bolig'
-    df.loc['apartment_block', 'building_group'] = 'bolig'
+    df['building_group'] = 'Yrkesbygg'
+    df.loc['house', 'building_group'] = 'Bolig'
+    df.loc['apartment_block', 'building_group'] = 'Bolig'
 
     return df
 

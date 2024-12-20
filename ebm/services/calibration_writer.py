@@ -59,8 +59,31 @@ class ComCalibrationReader:
 
 class CalibrationResultWriter:
     """
-    A class to handle the extraction, transformation, and loading of heating systems distribution data in a
-    open Excel spreadsheet.
+    A class to handle the extraction, transformation, and loading of a pd.Dataframe to a open Excel spreadsheet.
+    The Dataframe is expected to have two columns in the index. The first index column is used to match the
+    first row of the Excel range. The index second column is used to match the first column in the Excel range. The
+    rest of the range is filled out by the last column in the dataframe.
+
+    Excel range: A1:D4
+
+    XXXXXX | index1 | index2 | index3
+    indexA   value1   value4   value7
+    indexB   value2   value5   value8
+    indexC   value3   value6   value8
+
+    Dataframe:
+
+    clumn1, colmn2, colmn3, colmn4
+    index1, indexA, valueA, value1
+    index1, indexB, valueB, value2
+    index1, indexC, valueC, value3
+    index2, indexA, valueD, value4
+    index2, indexB, valueE, value5
+    index2, indexC, valueF, value6
+    index3, indexA, valueG, value7
+    index3, indexB, valueH, value8
+    index3, indexC, valueI, value9
+
 
     Attributes
     ----------
@@ -206,6 +229,3 @@ class CalibrationResultWriter:
         # Update cells
         for cell_to_update in self.cells_to_update:
             sheet.Cells(cell_to_update.row, cell_to_update.column).Value = cell_to_update.value
-
-        # Tag time
-        sheet.Cells(33, 2).Value = datetime.now().isoformat()

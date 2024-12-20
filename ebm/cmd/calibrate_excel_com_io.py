@@ -23,8 +23,15 @@ def main():
     load_dotenv(pathlib.Path('.env'))
     configure_loglevel(format=LOG_FORMAT)
 
+    calibration_year = int(os.environ.get('EBM_CALIBRATION_YEAR', 2023))
     calibration_out = os.environ.get("EBM_CALIBRATION_OUT", "Kalibreringsark.xlsx!Ut")
     calibration_sheet = os.environ.get("EBM_CALIBRATION_SHEET", "Kalibreringsark.xlsx!Kalibreringsfaktorer")
+
+    energy_requirements_calibration_file = os.environ.get('EBM_CALIBRATION_ENERGY_REQUIREMENT',
+                                                          'kalibrering/calibrate_heating_rv.xlsx')
+    energy_source_target_cells = os.environ.get('EBM_CALIBRATION_ENERGY_SOURCE_USAGE', 'C64:E68')
+    ebm_calibration_energy_heating_pump = os.environ.get('EBM_CALIBRATION_ENERGY_HEATING_PUMP', 'C72:E74')
+    hs_distribution_cells = os.environ.get('EBM_CALIBRATION_ENERGY_HEATING_SYSTEMS_DISTRIBUTION', 'C33:F44')
 
     logger.info(f'Loading {calibration_sheet}')
 
@@ -36,8 +43,7 @@ def main():
 
     logger.info('Write calibration to ebm')
     enreq_writer = EnergyRequirementCalibrationWriter()
-    enreq_writer.load(energy_source_by_building_group, os.environ.get('EBM_CALIBRATION_ENERGY_REQUIREMENT',
-                      'kalibrering/slettmeg.csv'))
+    enreq_writer.load(energy_source_by_building_group, energy_requirements_calibration_file)
 
     logger.info('Calculate calibrated energy use')
     area_forecast = None
@@ -45,15 +51,15 @@ def main():
     if area_forecast_file.is_file():
         logger.info(f'  Using {area_forecast_file}')
         area_forecast = pd.read_csv(area_forecast_file)
+
     df = run_calibration(DatabaseManager(FileHandler(directory='kalibrering')), calibration_year=2023,
                          area_forecast=area_forecast)
     logger.info('Transform heating systems')
 
-    energy_source_by_building_group = transform_heating_systems(df, int(os.environ.get('EBM_CALIBRATION_YEAR', 2023)))
+    energy_source_by_building_group = transform_heating_systems(df, calibration_year)
     energy_source_by_building_group = energy_source_by_building_group.fillna(0)
 
     logger.info(f'Writing heating systems distribution to {calibration_out}')
-    hs_distribution_cells = os.environ.get('EBM_CALIBRATION_ENERGY_HEATING_SYSTEMS_DISTRIBUTION', 'C33:F44')
     hs_distribution_writer = CalibrationResultWriter(excel_filename=calibration_out,
                                                      target_cells=hs_distribution_cells)
 
@@ -63,7 +69,6 @@ def main():
     hs_distribution_writer.load()
 
     energy_source_out = 'Kalibreringsark – Kopi.xlsx!Ut'
-    energy_source_target_cells = 'C64:E68'
 
     logger.info(f'Writing energy_source using writer to {energy_source_out}')
     writer = CalibrationResultWriter(excel_filename=energy_source_out,
@@ -71,10 +76,9 @@ def main():
     writer.extract()
     writer.transform(energy_source_by_building_group)
     writer.load()
-
     logger.info(f'Writing calculated energy pump use to {calibration_out}')
     writer = CalibrationResultWriter(excel_filename=energy_source_out,
-                                     target_cells='C72:E74')
+                                     target_cells=ebm_calibration_energy_heating_pump)
     writer.extract()
     writer.transform(energy_source_by_building_group)
     writer.load()

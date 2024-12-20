@@ -68,16 +68,14 @@ def main():
     hs_distribution_writer.transform(distribution_of_heating_systems_by_building_group)
     hs_distribution_writer.load()
 
-    energy_source_out = 'Kalibreringsark – Kopi.xlsx!Ut'
-
-    logger.info(f'Writing energy_source using writer to {energy_source_out}')
-    writer = CalibrationResultWriter(excel_filename=energy_source_out,
+    logger.info(f'Writing energy_source using writer to {calibration_out}')
+    writer = CalibrationResultWriter(excel_filename=calibration_out,
                                      target_cells=energy_source_target_cells)
     writer.extract()
     writer.transform(energy_source_by_building_group)
     writer.load()
     logger.info(f'Writing calculated energy pump use to {calibration_out}')
-    writer = CalibrationResultWriter(excel_filename=energy_source_out,
+    writer = CalibrationResultWriter(excel_filename=calibration_out,
                                      target_cells=ebm_calibration_energy_heating_pump)
     writer.extract()
     writer.transform(energy_source_by_building_group)

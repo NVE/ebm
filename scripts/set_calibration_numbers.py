@@ -6,30 +6,16 @@ import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
-from ebm.cmd.calibrate import run_calibration, transform_heating_systems
+from ebm.cmd.calibrate import run_calibration
 from ebm.cmd.run_calculation import configure_loglevel
 from ebm.model import FileHandler, DatabaseManager
 from ebm.model.calibrate_energy_requirements import EnergyRequirementCalibrationWriter
+from ebm.model.calibrate_heating_systems import DistributionOfHeatingSystems, transform_heating_systems
 from ebm.services.calibration_writer import ComCalibrationReader, CalibrationResultWriter
 
 LOG_FORMAT = """
 <green>{time:HH:mm:ss.SSS}</green> | <blue>{elapsed}</blue> | <level>{level: <8}</level> | <cyan>{function: <20}</cyan>:<cyan>{line: <3}</cyan> - <level>{message}</level>
 """.strip()
-
-
-class DistributionOfHeatingSystems:
-    @staticmethod
-    def transform(df):
-        df = df.reset_index()
-        df['building_group'] = 'Yrkesbygg'
-
-        df = df[df['building_category'] != 'storage_repairs']
-        df.loc[df['building_category'].isin(['apartment_block']), 'building_group'] = 'Boligblokk'
-        df.loc[df['building_category'].isin(['house']), 'building_group'] = 'Småhus'
-
-        distribution_of_heating_systems_by_building_group = df.groupby(by=['building_group', 'heating_systems'])[
-            ['TEK_shares']].mean()
-        return distribution_of_heating_systems_by_building_group
 
 
 def main():

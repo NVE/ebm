@@ -39,6 +39,15 @@ def default_calibrate_heating_rv():
     return df
 
 
+def create_heating_rv(database_manager):
+    file_handler = database_manager.file_handler
+    heating_rv = file_handler.input_directory / 'calibrate_heating_rv.xlsx'
+    if not heating_rv.is_file():
+        logger.info(f'Creating {heating_rv}')
+        df = default_calibrate_heating_rv()
+        df.to_excel(heating_rv)
+
+
 class EbmCalibration:
     energy_requirement_original_condition: pd.Series
     pass

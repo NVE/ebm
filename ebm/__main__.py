@@ -6,7 +6,8 @@ import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
-from ebm.cmd.calibrate import run_calibration, create_heating_rv
+from ebm.cmd.calibrate import run_calibration
+from ebm.model.calibrate_energy_requirements import create_heating_rv
 from ebm.cmd.run_calculation import calculate_building_category_area_forecast, \
     result_to_horizontal_dataframe, make_arguments, validate_years, \
     calculate_building_category_energy_requirements, calculate_heating_systems, calculate_energy_use, configure_loglevel

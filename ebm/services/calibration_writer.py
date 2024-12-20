@@ -10,6 +10,9 @@ from ebm.model.energy_purpose import EnergyPurpose
 from ebm.services.excel_loader import access_excel_sheet
 from ebm.services.spreadsheet import SpreadsheetCell
 
+KEY_ERROR_COLOR = 0xC0C0C0
+COLOR_AUTO = -4105
+
 
 class ComCalibrationReader:
     filename: str
@@ -210,7 +213,7 @@ class CalibrationResultWriter:
                 if row_header not in df.index:
                     raise KeyError(f'"{row_header}" not found')
                 elif (row_header, column_header) not in df.index:
-                    raise KeyError(f'"{column_header}" not found')
+                    raise KeyError(f'"{column_header}" for "{row_header}" not found')
                 column_name = 'TEK_shares' if 'TEK_shares' in df.columns else df.columns[-1]
                 value = df.loc[(row_header, column_header), column_name]
             except KeyError as ex:
@@ -228,4 +231,10 @@ class CalibrationResultWriter:
 
         # Update cells
         for cell_to_update in self.cells_to_update:
-            sheet.Cells(cell_to_update.row, cell_to_update.column).Value = cell_to_update.value
+            cell = sheet.Cells(cell_to_update.row, cell_to_update.column)
+            if isinstance(cell_to_update.value, str) and cell_to_update.value.startswith('KeyError'):
+                cell.Value = 0
+                cell.Font.Color = KEY_ERROR_COLOR
+            else:
+                sheet.Cells(cell_to_update.row, cell_to_update.column).Value = cell_to_update.value
+                cell.Font.ColorIndex = COLOR_AUTO

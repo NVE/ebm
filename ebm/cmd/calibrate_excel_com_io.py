@@ -52,7 +52,8 @@ def main():
         logger.info(f'  Using {area_forecast_file}')
         area_forecast = pd.read_csv(area_forecast_file)
 
-    df = run_calibration(DatabaseManager(FileHandler(directory='kalibrering')), calibration_year=2023,
+    database_manager = DatabaseManager(FileHandler(directory='kalibrering'))
+    df = run_calibration(database_manager, calibration_year=2023,
                          area_forecast=area_forecast)
     logger.info('Transform heating systems')
 
@@ -63,7 +64,8 @@ def main():
     hs_distribution_writer = CalibrationResultWriter(excel_filename=calibration_out,
                                                      target_cells=hs_distribution_cells)
 
-    distribution_of_heating_systems_by_building_group = DistributionOfHeatingSystems().transform(df)
+    distribution_of_heating_systems_by_building_group = DistributionOfHeatingSystems().transform(
+        database_manager.get_heating_systems_shares_start_year())
     hs_distribution_writer.extract()
     hs_distribution_writer.transform(distribution_of_heating_systems_by_building_group)
     hs_distribution_writer.load()

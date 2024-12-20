@@ -34,7 +34,7 @@ def access_excel_sheet(workbook_name: str, sheet_name: str) -> win32com.client.C
     try:
         if workbook_name not in [n.Name for n in workbooks]:
             ex_msg = f'No open workbook named: \'{workbook_name}\''
-            raise FileNotFoundError(ex_msg)
+            raise IOError(ex_msg)
         workbook = workbooks[workbook_name]
     except com_error as ex:
         logger.error(f'Error opening {workbook_name}')
@@ -50,7 +50,7 @@ def access_excel_sheet(workbook_name: str, sheet_name: str) -> win32com.client.C
     try:
         if sheet_name not in [n.Name for n in workbook.Sheets]:
             ex_msg = f'{workbook_name} exists and is open, but there is no sheet named: \'{sheet_name}\''
-            raise ValueError(ex_msg)
+            raise IOError(ex_msg)
         sheet = workbook.Sheets(sheet_name)
     except com_error as ex:
         logger.error(f'Error opening {sheet_name}')

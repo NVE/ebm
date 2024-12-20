@@ -31,11 +31,11 @@ def main():
                                                           'kalibrering/calibrate_heating_rv.xlsx')
     energy_source_target_cells = os.environ.get('EBM_CALIBRATION_ENERGY_SOURCE_USAGE', 'C64:E68')
     ebm_calibration_energy_heating_pump = os.environ.get('EBM_CALIBRATION_ENERGY_HEATING_PUMP', 'C72:E74')
-    hs_distribution_cells = os.environ.get('EBM_CALIBRATION_ENERGY_HEATING_SYSTEMS_DISTRIBUTION', 'C33:F44')
+    hs_distribution_cells = os.environ.get('EBM_CALIBRATION_ENERGY_HEATING_SYSTEMS_DISTRIBUTION', 'C32:F44')
 
     logger.info(f'Loading {calibration_sheet}')
 
-    com_calibration_reader = ComCalibrationReader()
+    com_calibration_reader = ComCalibrationReader(*calibration_sheet.split('!'))
     values = com_calibration_reader.extract()
 
     logger.info(f'Make {calibration_sheet} compatible with ebm')

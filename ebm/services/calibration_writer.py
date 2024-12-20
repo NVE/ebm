@@ -143,7 +143,7 @@ class CalibrationResultWriter:
 
         """
 
-        self.workbook, self.sheet = os.environ.get('EBM_CALIBRATION_OUT', f'{workbook}{sheet}').split('!')
+        self.workbook, self.sheet = os.environ.get('EBM_CALIBRATION_OUT', f'{workbook}!{sheet}').split('!')
 
         self.workbook = workbook
         self.sheet = sheet

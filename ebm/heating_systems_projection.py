@@ -197,14 +197,17 @@ def expand_building_category_tek(projection: pd.DataFrame,
     """
     Adds necessary building categories and TEK's to the heating_systems_forecast dataframe. 
     """
-    projection['_o_bc'] = projection['building_category']
-    projection['_o_tek'] = projection['TEK']
+    score = '_score'
+    original_building_category = '_original_bc'
+    original_tek = '_original_tek'
+    projection[original_building_category] = projection['building_category']
+    projection[original_tek] = projection['TEK']
 
     alle_bygningskategorier = '+'.join(BuildingCategory)
     alle_tek = '+'.join(tek for tek in tek_list)
     husholdning = '+'.join(bc for bc in BuildingCategory if bc.is_residential())
     yrkesbygg = '+'.join(bc for bc in BuildingCategory if bc.is_non_residential())
-    
+
     df = projection.copy()
     df.loc[df[TEK] == "default", TEK] = alle_tek
     df.loc[df[BUILDING_CATEGORY] == "default", BUILDING_CATEGORY] = alle_bygningskategorier
@@ -213,11 +216,14 @@ def expand_building_category_tek(projection: pd.DataFrame,
 
     df = df.assign(**{BUILDING_CATEGORY: df[BUILDING_CATEGORY].str.split('+')}).explode(BUILDING_CATEGORY)
     df2 = df.assign(**{TEK: df[TEK].str.split('+')}).explode(TEK)
-    df2 = df2.reset_index(drop = True)
-    df2['_score'] = (df2['_o_bc'] != 'default') * 1 + (~df2['_o_bc'].isin(['default', NON_RESIDENTIAL, RESIDENTIAL]))  * 1 +(df2['_o_tek'] != 'defaultds') * 1
-    df2 = df2.sort_values(by=['_score'])
+    df2 = df2.reset_index(drop=True)
+    df2[score] = (df2[original_building_category] != 'default') * 1 + \
+                 (~df2[original_building_category].isin(['default', NON_RESIDENTIAL, RESIDENTIAL])) * 1 + \
+                 (df2[original_tek] != 'default') * 1
+
+    df2 = df2.sort_values(by=[score])
     de_duped = df2.drop_duplicates(subset=['building_category', 'TEK'], keep='last')
-    return de_duped.drop(columns=['_score', '_o_bc', '_o_tek'])
+    return de_duped.drop(columns=[score, original_building_category, original_tek])
 
 
 def project_heating_systems(shares_start_year_all_systems: pd.DataFrame, 

@@ -18,9 +18,11 @@ NEW_HEATING_SYSTEMS = 'new_heating_systems'
 YEAR = 'year'
 TEK_SHARES = 'TEK_shares'
 
+
 @pytest.fixture
 def tek_list():
     return ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17']
+
 
 def test_validate_years_require_one_start_year():
     """
@@ -185,10 +187,9 @@ default,TEK07,Gas,DH,0.05
 house,TEK07,Gas,DH,0.06
 residential,TEK07,Gas,DH,0.07                                                                             
 """.strip()),
-names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021] ,skipinitialspace=True)
+                             names=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021],
+                             skipinitialspace=True)
     result = expand_building_category_tek(projection, tek_list)
-    expected_categories = ['house', 'apartment_block', 'kindergarten', 'school', 'university', 'office', 'retail',
-                           'hotel', 'hospital', 'nursing_home', 'culture', 'sports', 'storage_repairs']
 
     expected = pd.read_csv(io.StringIO("""
 house,TEK07,Gas,DH,0.06                                       
@@ -205,14 +206,15 @@ culture,TEK07,Gas,DH,0.05
 sports,TEK07,Gas,DH,0.05
 storage_repairs,TEK07,Gas,DH,0.05                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
 """.strip()),
-names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021] ,skipinitialspace=True)
+                           names=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021],
+                           skipinitialspace=True)
     
-    expected = expected.sort_values(by=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS])
+    expected_sorted = expected.sort_values(by=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS])
     result = result.sort_values(by=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS])
-    expected.reset_index(drop=True, inplace=True)
+    expected_sorted.reset_index(drop=True, inplace=True)
     result.reset_index(drop=True, inplace=True)
 
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result, expected_sorted)
 
 
 def test_expand_building_categoy_tek_residential_categories(tek_list):

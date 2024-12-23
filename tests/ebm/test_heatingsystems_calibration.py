@@ -3,7 +3,7 @@ import io
 import pandas as pd
 import pytest
 
-from ebm.heating_systems import calibrate_heating_systems
+from ebm.energy_consumption import calibrate_heating_systems
 
 
 @pytest.mark.skip(reason='Incorrect data type, in the middle of refactor')

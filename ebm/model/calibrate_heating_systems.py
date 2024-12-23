@@ -6,7 +6,7 @@ from ebm.cmd.run_calculation import calculate_building_category_energy_requireme
 from ebm.model.data_classes import YearRange
 from ebm.model.building_category import BuildingCategory
 
-from ebm.heating_systems import (HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, GRUNNLAST_ENERGIVARE, SPISSLAST_ENERGIVARE,
+from ebm.energy_consumption import (HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, GRUNNLAST_ENERGIVARE, SPISSLAST_ENERGIVARE,
                                  EKSTRALAST_ENERGIVARE, HEATIG_RV_EKSTRALAST, COOLING_KV, OTHER_SV, DHW_TV,
                                  TAPPEVANN_ENERGIVARE, HEAT_PUMP, HP_ENERGY_SOURCE)
 

@@ -7,8 +7,6 @@ from dotenv import load_dotenv
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
 from ebm.heating_systems_projection import *
-from ebm.heating_systems import HeatingSystems
-
 
 load_dotenv(pathlib.Path('.env'))
 
@@ -19,11 +17,6 @@ shares_start_year = file_handler.get_heating_systems_shares_start_year()
 efficiencies = file_handler.get_heating_systems_efficiencies()
 projection = file_handler.get_heating_systems_projection()
 period = YearRange(2023, 2050)
-
-
-#t = projection.sort_values(by=['building_category','TEK','heating_systems','new_heating_systems'])
-#t = t[['building_category','TEK','heating_systems','new_heating_systems','2024','2025']]
-#print(t.to_csv(index=False, float_format='%.1f'))
 
 dm = DatabaseManager()
 tek_list = dm.get_tek_list()

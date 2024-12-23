@@ -2,7 +2,6 @@ import io
 import pandas as pd
 import pytest
 
-from ebm.heating_systems import HeatingSystems
 from ebm.model.data_classes import YearRange
 from ebm.heating_systems_projection import (add_missing_heating_systems,
                                             expand_building_category_tek,

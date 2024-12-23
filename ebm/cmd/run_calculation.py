@@ -19,7 +19,7 @@ from ebm.model.construction import ConstructionCalculator
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement
-from ebm.heating_systems import HeatingSystems
+from ebm.energy_consumption import EnergyConsumption
 from ebm.heating_systems_projection import HeatingSystemsProjection
 
 TEK = """PRE_TEK49
@@ -305,7 +305,7 @@ def calculate_heating_systems(energy_requirements, database_manager: DatabaseMan
     projection_period = YearRange(2023,2050)
     hsp = HeatingSystemsProjection.new_instance(projection_period, database_manager)
     hf = hsp.calculate_projection()
-    calculator = HeatingSystems(hf)
+    calculator = EnergyConsumption(hf)
     calculator.heating_systems_parameters = calculator.grouped_heating_systems()
     df = calculator.calculate(energy_requirements)
 

@@ -39,7 +39,7 @@ TAPPEVANN_ENERGIVARE = 'Tappevann energivare'
 HP_ENERGY_SOURCE = 'hp_source'
 
 
-class HeatingSystems:
+class EnergyConsumption:
     def __init__(self, heating_systems_parameters: pd.DataFrame = None):
         self.heating_systems_parameters = heating_systems_parameters
 

@@ -15,7 +15,28 @@ class EnergyRequirementCalibrationWriter:
         if to_file is None:
             to_file = pathlib.Path('input/calibrate_heating_rv.xlsx')
         file_path: pathlib.Path = to_file if isinstance(to_file, pathlib.Path) else pathlib.Path(to_file)
+        df = df[df['group'] == 'energy_requirements']
+        df = df.rename(columns={'variable': 'purpose'})
         df = df[['building_category', 'purpose', 'heating_rv_factor']].reset_index(drop=True)
+        if file_path.suffix == '.csv':
+            df.to_csv(file_path, index=False)
+        elif file_path.suffix == '.xlsx':
+            df.to_excel(file_path, index=False)
+        logger.info(f'Wrote {to_file}')
+
+
+class EnergyConsumptionCalibrationWriter:
+
+    def __init__(self):
+        pass
+
+    def load(self, df: pd.DataFrame, to_file: typing.Union[str, pathlib.Path] = None):
+        logger.debug(f'Save {to_file}')
+        if to_file is None:
+            to_file = pathlib.Path('input/calibrate_energy_consumption.xlsx')
+        file_path: pathlib.Path = to_file if isinstance(to_file, pathlib.Path) else pathlib.Path(to_file)
+        df = df[df['group'] == 'energy_consumption']
+        df = df[['building_category', 'variable', 'heating_rv_factor']].reset_index(drop=True)
         if file_path.suffix == '.csv':
             df.to_csv(file_path, index=False)
         elif file_path.suffix == '.xlsx':

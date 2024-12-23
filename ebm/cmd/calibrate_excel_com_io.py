@@ -9,7 +9,8 @@ from loguru import logger
 from ebm.cmd.calibrate import run_calibration
 from ebm.cmd.run_calculation import configure_loglevel
 from ebm.model import FileHandler, DatabaseManager
-from ebm.model.calibrate_energy_requirements import EnergyRequirementCalibrationWriter
+from ebm.model.calibrate_energy_requirements import EnergyRequirementCalibrationWriter, \
+    EnergyConsumptionCalibrationWriter
 from ebm.model.calibrate_heating_systems import DistributionOfHeatingSystems, transform_heating_systems
 from ebm.services.calibration_writer import ComCalibrationReader, CalibrationResultWriter
 
@@ -29,6 +30,9 @@ def main():
 
     energy_requirements_calibration_file = os.environ.get('EBM_CALIBRATION_ENERGY_REQUIREMENT',
                                                           'kalibrering/calibrate_heating_rv.xlsx')
+    energy_consumption_calibration_file = os.environ.get('EBM_CALIBRATION_ENERGY_CONSUMPTION',
+                                                          'kalibrering/calibrate_energy_consumption.xlsx')
+
     energy_source_target_cells = os.environ.get('EBM_CALIBRATION_ENERGY_SOURCE_USAGE', 'C64:E68')
     ebm_calibration_energy_heating_pump = os.environ.get('EBM_CALIBRATION_ENERGY_HEATING_PUMP', 'C72:E74')
     hs_distribution_cells = os.environ.get('EBM_CALIBRATION_ENERGY_HEATING_SYSTEMS_DISTRIBUTION', 'C32:F44')
@@ -43,7 +47,12 @@ def main():
 
     logger.info('Write calibration to ebm')
     enreq_writer = EnergyRequirementCalibrationWriter()
-    enreq_writer.load(energy_source_by_building_group, energy_requirements_calibration_file)
+    enreq_writer.load(energy_source_by_building_group,
+                      energy_requirements_calibration_file)
+
+    energy_consumption_writer = EnergyConsumptionCalibrationWriter()
+    energy_consumption_writer.load(energy_source_by_building_group,
+                                   energy_consumption_calibration_file)
 
     logger.info('Calculate calibrated energy use')
     area_forecast = None

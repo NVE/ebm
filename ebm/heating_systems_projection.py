@@ -1,7 +1,7 @@
 import typing
-import pandas as pd
 
 from loguru import logger
+import pandas as pd
 
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.heating_systems import HeatingSystems
@@ -14,6 +14,7 @@ HEATING_SYSTEMS = 'heating_systems'
 NEW_HEATING_SYSTEMS = 'new_heating_systems'
 YEAR = 'year'
 TEK_SHARES = 'TEK_shares'
+
 
 class HeatingSystemsProjection:
 
@@ -176,7 +177,7 @@ def add_missing_heating_systems(heating_systems_shares: pd.DataFrame,
 
 
 def add_load_shares_and_efficiencies(df: pd.DataFrame, 
-                                      heating_systems_efficiencies: pd.DataFrame) -> pd.DataFrame:
+                                     heating_systems_efficiencies: pd.DataFrame) -> pd.DataFrame:
     df_hoved_spiss_og_ekstralast = heating_systems_efficiencies.copy()
     df_oppvarmingsteknologier_andeler = df.merge(df_hoved_spiss_og_ekstralast, on = [HEATING_SYSTEMS], 
                                                  how ='left')
@@ -219,23 +220,25 @@ def project_heating_systems(shares_start_year_all_systems: pd.DataFrame,
     df = shares_start_year_all_systems.copy()
     inputfil_oppvarming = projected_shares.copy()
 
-    df_framskrive_oppvarming_long = inputfil_oppvarming.melt(id_vars = [BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS],
-                                                            var_name = YEAR, value_name = "Andel_utskiftning")
+    df_framskrive_oppvarming_long = inputfil_oppvarming.melt(id_vars=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS,
+                                                                      NEW_HEATING_SYSTEMS],
+                                                             var_name=YEAR, value_name="Andel_utskiftning")
+
     df_framskrive_oppvarming_long[YEAR] = df_framskrive_oppvarming_long[YEAR].astype(int)
     df_framskrive_oppvarming_long = df_framskrive_oppvarming_long[df_framskrive_oppvarming_long[YEAR].isin(period.subset(1).range())]
 
     liste_eksisterende_oppvarming = list(df_framskrive_oppvarming_long[HEATING_SYSTEMS].unique())
     liste_ny_oppvarming = list(df_framskrive_oppvarming_long[NEW_HEATING_SYSTEMS].unique())
 
-    oppvarming_og_TEK = df.query(f"{HEATING_SYSTEMS} == {liste_eksisterende_oppvarming}")[[BUILDING_CATEGORY,TEK, HEATING_SYSTEMS, YEAR, TEK_SHARES]].copy()
-    oppvarming_og_TEK_foer_endring = df.query(f"{HEATING_SYSTEMS} == {liste_ny_oppvarming}")[[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS, TEK_SHARES]].copy()
+    oppvarming_og_TEK = df.query(f"{HEATING_SYSTEMS} == {liste_eksisterende_oppvarming}")[[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, YEAR, TEK_SHARES]].copy()
+    oppvarming_og_TEK_foer_endring = df.query(f"{HEATING_SYSTEMS} == {liste_ny_oppvarming}")[[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, TEK_SHARES]].copy()
 
-    df_merge = oppvarming_og_TEK.merge(df_framskrive_oppvarming_long, on = [BUILDING_CATEGORY,TEK,HEATING_SYSTEMS], how = 'inner')
-    df_merge['Ny_andel'] = (df_merge[TEK_SHARES]*
-                            df_merge['Andel_utskiftning'])
+    df_merge = oppvarming_og_TEK.merge(df_framskrive_oppvarming_long,
+                                       on=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS], how='inner')
+    df_merge['Ny_andel'] = (df_merge[TEK_SHARES] * df_merge['Andel_utskiftning'])
 
-    df_ny_andel_sum = df_merge.groupby([BUILDING_CATEGORY, TEK,HEATING_SYSTEMS, f'{YEAR}_y'], as_index = False)[['Ny_andel']].sum()
-    df_ny_andel_sum = df_ny_andel_sum.rename(columns = {"Ny_andel": "Sum_ny_andel"})
+    df_ny_andel_sum = df_merge.groupby([BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, f'{YEAR}_y'], as_index = False)[['Ny_andel']].sum()
+    df_ny_andel_sum = df_ny_andel_sum.rename(columns={"Ny_andel": "Sum_ny_andel"})
 
     df_merge_sum_ny_andel = pd.merge(df_merge, df_ny_andel_sum, on = [BUILDING_CATEGORY,TEK,HEATING_SYSTEMS, f'{YEAR}_y'])
 
@@ -243,33 +246,34 @@ def project_heating_systems(shares_start_year_all_systems: pd.DataFrame,
                                                     df_merge_sum_ny_andel['Sum_ny_andel']))
 
     kolonner_eksisterende = [f'{YEAR}_y', BUILDING_CATEGORY, TEK, 'Eksisterende_andel', HEATING_SYSTEMS]
-    navn_eksisterende_kolonner = {"Eksisterende_andel" : TEK_SHARES,
-                                    NEW_HEATING_SYSTEMS : HEATING_SYSTEMS, 
-                                    f'{YEAR}_y' : YEAR}
-
+    navn_eksisterende_kolonner = {"Eksisterende_andel": TEK_SHARES,
+                                  NEW_HEATING_SYSTEMS : HEATING_SYSTEMS,
+                                  f'{YEAR}_y': YEAR}
 
     kolonner_nye = [f'{YEAR}_y', BUILDING_CATEGORY, TEK, 'Ny_andel', NEW_HEATING_SYSTEMS]
-    navn_nye_kolonner = {"Ny_andel" : TEK_SHARES, 
-                        NEW_HEATING_SYSTEMS : HEATING_SYSTEMS, 
-                        f'{YEAR}_y' : YEAR}
+    navn_nye_kolonner = {"Ny_andel": TEK_SHARES,
+                         NEW_HEATING_SYSTEMS: HEATING_SYSTEMS,
+                         f'{YEAR}_y': YEAR}
 
     rekkefolge_kolonner = [YEAR, BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, TEK_SHARES]
 
-    nye_andeler_eksisterende = df_merge_sum_ny_andel[kolonner_eksisterende].rename(columns = navn_eksisterende_kolonner)
+    nye_andeler_eksisterende = df_merge_sum_ny_andel[kolonner_eksisterende].rename(columns=navn_eksisterende_kolonner)
     
-    nye_andeler_nye = df_merge_sum_ny_andel[kolonner_nye].rename(columns = navn_nye_kolonner)
+    nye_andeler_nye = df_merge_sum_ny_andel[kolonner_nye].rename(columns=navn_nye_kolonner)
     nye_andeler_nye = aggregere_lik_oppvarming_fjern_0(nye_andeler_nye)
 
     nye_andeler_pluss_eksisterende = nye_andeler_nye.merge(oppvarming_og_TEK_foer_endring, on = [BUILDING_CATEGORY,TEK,HEATING_SYSTEMS], how = 'inner')
     nye_andeler_pluss_eksisterende[TEK_SHARES] = nye_andeler_pluss_eksisterende[f'{TEK_SHARES}_x'] + nye_andeler_pluss_eksisterende[f'{TEK_SHARES}_y']
-    nye_andeler_pluss_eksisterende = nye_andeler_pluss_eksisterende.drop(columns = [f'{TEK_SHARES}_x', f'{TEK_SHARES}_y'])
+    nye_andeler_pluss_eksisterende = nye_andeler_pluss_eksisterende.drop(columns=[f'{TEK_SHARES}_x', f'{TEK_SHARES}_y'])
 
     nye_andeler_samlet = pd.concat([nye_andeler_eksisterende, nye_andeler_pluss_eksisterende])
-    nye_andeler_drop_dupe = nye_andeler_samlet.drop_duplicates(subset = [YEAR, BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, TEK_SHARES], keep = 'first')
+    nye_andeler_drop_dupe = nye_andeler_samlet.drop_duplicates(
+        subset=[YEAR, BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, TEK_SHARES], keep='first')
+
     nye_andeler_samlet_uten_0 = aggregere_lik_oppvarming_fjern_0(nye_andeler_drop_dupe)
     nye_andeler_samlet_uten_0 = nye_andeler_samlet_uten_0[rekkefolge_kolonner]
 
-    #TODO: check dtype changes in function
+    # TODO: check dtype changes in function
     nye_andeler_samlet_uten_0[YEAR] = nye_andeler_samlet_uten_0[YEAR].astype(int) 
 
     return nye_andeler_samlet_uten_0
@@ -314,7 +318,8 @@ def add_existing_tek_shares_to_projection(new_shares: pd.DataFrame,
 
     def sortering_oppvarmingstyper(df):
         df_kombinasjoner = df.copy()
-        df_kombinasjoner['Sortering'] = df_kombinasjoner[BUILDING_CATEGORY] + df_kombinasjoner[TEK] + df_kombinasjoner[HEATING_SYSTEMS]
+        df_kombinasjoner['Sortering'] = df_kombinasjoner[BUILDING_CATEGORY] + df_kombinasjoner[TEK] + \
+                                        df_kombinasjoner[HEATING_SYSTEMS]
         kombinasjonsliste = list(df_kombinasjoner['Sortering'].unique())
         
         return df_kombinasjoner, kombinasjonsliste
@@ -327,13 +332,10 @@ def add_existing_tek_shares_to_projection(new_shares: pd.DataFrame,
     # TODO: set lower limit to period equal to last year (max) present in forecast data? 
     projection_period = YearRange(period.start + 1, period.end).year_range
     utvidede_aar_uendret = pd.concat([
-        df_eksisterende_filtrert.assign(**{YEAR:year}) for year in projection_period
+        df_eksisterende_filtrert.assign(**{YEAR: year}) for year in projection_period
     ])
 
     samlede_nye_andeler = pd.concat([utvidede_aar_uendret, df_nye_andeler_kopi, 
-                                     existing_shares], ignore_index = True)
-    samlede_nye_andeler = samlede_nye_andeler.drop(columns = ['Sortering'])
+                                     existing_shares], ignore_index=True)
+    samlede_nye_andeler = samlede_nye_andeler.drop(columns=['Sortering'])
     return samlede_nye_andeler
-
-
-    

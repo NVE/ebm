@@ -173,7 +173,6 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022] ,ski
     assert not invalid_categories
 
 
-@pytest.mark.skip()
 def test_expand_building_category_prioritize_specific_building_category(tek_list):
     """
     Function should be able to prioritize the most specific building value, and not produce duplicate values.

@@ -1,9 +1,6 @@
 from loguru import logger
 import pandas as pd
 
-from ebm.heating_systems_projection import add_missing_heating_systems, expand_building_category_tek, \
-    project_heating_systems, add_existing_tek_shares_to_projection, add_load_shares_and_efficiencies
-from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.filter_tek import FilterTek
 
@@ -56,10 +53,11 @@ class EnergyConsumption:
         df = self.heating_systems_parameters
         df = df.rename(columns={'tek_share': TEK_SHARES})
 
-        aggregates = {'Grunnlast energivare': 'first', 'Spisslast energivare':'first', 'Ekstralast energivare':'first', 'Tappevann energivare': 'first', TEK_SHARES: 'sum', EKSTRALAST_ANDEL: 'sum', GRUNNLAST_ANDEL: 'sum', SPISSLAST_ANDEL: 'sum',
-                      GRUNNLAST_VIRKNINGSGRAD: 'sum', SPISSLAST_VIRKNINGSGRAD: 'sum',
-                      EKSTRALAST_VIRKNINGSGRAD: 'sum', DHW_EFFICIENCY: 'sum',
-                      SPESIFIKT_ELFORBRUK: 'sum', KJOLING_VIRKNINGSGRAD: 'sum'}
+        aggregates = {'Grunnlast energivare': 'first', 'Spisslast energivare': 'first',
+                      'Ekstralast energivare': 'first', 'Tappevann energivare': 'first', TEK_SHARES: 'sum',
+                      EKSTRALAST_ANDEL: 'sum', GRUNNLAST_ANDEL: 'sum', SPISSLAST_ANDEL: 'sum',
+                      GRUNNLAST_VIRKNINGSGRAD: 'sum', SPISSLAST_VIRKNINGSGRAD: 'sum', EKSTRALAST_VIRKNINGSGRAD: 'sum',
+                      DHW_EFFICIENCY: 'sum', SPESIFIKT_ELFORBRUK: 'sum', KJOLING_VIRKNINGSGRAD: 'sum'}
         grouped = df.groupby(by=['building_category', 'TEK', 'year', HEATING_SYSTEMS]).agg(aggregates)
         return grouped.reset_index()
 
@@ -93,8 +91,8 @@ class EnergyConsumption:
         df[ADJUSTED_REQUIREMENT] = df.energy_requirement * df[TEK_SHARES]
 
         # Zero fill columns before calculating to prevent NaN from messing up sums
-        df.loc[:,
-        [HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HEATIG_RV_EKSTRALAST, DHW_TV, COOLING_KV, OTHER_SV, HEAT_PUMP]] = 0.0
+        df.loc[:, [HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HEATIG_RV_EKSTRALAST, DHW_TV, COOLING_KV, OTHER_SV,
+                   HEAT_PUMP]] = 0.0
 
         # Adjust energy requirements by efficiency
         # heating rv
@@ -106,26 +104,16 @@ class EnergyConsumption:
         df = self.adjust_other(df)
 
         # sum energy use
-        df.loc[:, 'kwh'] = df.loc[
-                           :,
-                           [HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HEATIG_RV_EKSTRALAST,
-                            DHW_TV, COOLING_KV, OTHER_SV]].sum(axis=1)
+        df.loc[:, 'kwh'] = df.loc[:,
+                           [HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HEATIG_RV_EKSTRALAST, DHW_TV, COOLING_KV,
+                            OTHER_SV]].sum(axis=1)
 
         df.loc[:, 'gwh'] = df.loc[:, 'kwh'] / 10 ** 6
 
-        df = df.sort_index(
-            level=['building_category', 'TEK', 'year', 'building_condition', 'purpose', HEATING_SYSTEMS])
-        return df[[TEK_SHARES,
-                   ADJUSTED_REQUIREMENT,
-                   HEATING_RV_GRUNNLAST, GRUNNLAST_ENERGIVARE,
-                   HEATING_RV_SPISSLAST, SPISSLAST_ENERGIVARE,
-                   HEATIG_RV_EKSTRALAST, EKSTRALAST_ENERGIVARE,
-                   DHW_TV, TAPPEVANN_ENERGIVARE,
-                   COOLING_KV,
-                   OTHER_SV,
-                   HEAT_PUMP, HP_ENERGY_SOURCE,
-                   'kwh',
-                   'gwh']]
+        df = df.sort_index(level=['building_category', 'TEK', 'year', 'building_condition', 'purpose', HEATING_SYSTEMS])
+        return df[[TEK_SHARES, ADJUSTED_REQUIREMENT, HEATING_RV_GRUNNLAST, GRUNNLAST_ENERGIVARE, HEATING_RV_SPISSLAST,
+                   SPISSLAST_ENERGIVARE, HEATIG_RV_EKSTRALAST, EKSTRALAST_ENERGIVARE, DHW_TV, TAPPEVANN_ENERGIVARE,
+                   COOLING_KV, OTHER_SV, HEAT_PUMP, HP_ENERGY_SOURCE, 'kwh', 'gwh']]
 
     def adjust_heat_pump(self, df):
         df[HP_ENERGY_SOURCE] = None
@@ -133,11 +121,12 @@ class EnergyConsumption:
         vannbasert = [n for n in df.index.get_level_values('heating_systems').unique() if
                       n.startswith('HP Central heating')]
         elektrisk = [n for n in df.index.get_level_values('heating_systems').unique() if
-                      n.startswith('HP') and n not in vannbasert]
+                     n.startswith('HP') and n not in vannbasert]
 
         gass_slice = (slice(None), slice(None), slice(None), slice(None), gass)
-        vann_slice = (slice(None), slice(None), ['heating_rv', 'heating_dhw'], slice(None), slice(None), vannbasert) # , 'heating_dhw'
-        el_slice = (slice(None), slice(None), ['heating_rv'], slice(None), slice(None), elektrisk) # 'heating_dhw'
+        vann_slice = (slice(None), slice(None), ['heating_rv', 'heating_dhw'], slice(None), slice(None),
+                      vannbasert)  # , 'heating_dhw'
+        el_slice = (slice(None), slice(None), ['heating_rv'], slice(None), slice(None), elektrisk)  # 'heating_dhw'
 
         df.loc[vann_slice, HEAT_PUMP] = df.loc[vann_slice, ADJUSTED_REQUIREMENT] * df.loc[vann_slice, GRUNNLAST_ANDEL]
         df.loc[vann_slice, HP_ENERGY_SOURCE] = 'Vannbåren varme'
@@ -171,29 +160,23 @@ class EnergyConsumption:
     def adjust_heating_rv(self, df):
         heating_rv_slice = (slice(None), slice(None), HEATING_RV, slice(None), slice(None))
         df.loc[heating_rv_slice, HEATING_RV_GRUNNLAST] = (
-                df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] * df.loc[
-            heating_rv_slice, GRUNNLAST_ANDEL] / df.loc[
-                    heating_rv_slice, GRUNNLAST_VIRKNINGSGRAD])
+                df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] * df.loc[heating_rv_slice, GRUNNLAST_ANDEL] / df.loc[
+            heating_rv_slice, GRUNNLAST_VIRKNINGSGRAD])
         df.loc[heating_rv_slice, HEATING_RV_SPISSLAST] = (
-                df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] *
-                df.loc[heating_rv_slice, SPISSLAST_ANDEL] / df.loc[heating_rv_slice, SPISSLAST_VIRKNINGSGRAD])
+                df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] * df.loc[heating_rv_slice, SPISSLAST_ANDEL] / df.loc[
+            heating_rv_slice, SPISSLAST_VIRKNINGSGRAD])
         df.loc[heating_rv_slice, HEATIG_RV_EKSTRALAST] = (
-                df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] *
-                df.loc[heating_rv_slice, EKSTRALAST_ANDEL] / df.loc[heating_rv_slice, EKSTRALAST_VIRKNINGSGRAD])
+                df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] * df.loc[heating_rv_slice, EKSTRALAST_ANDEL] / df.loc[
+            heating_rv_slice, EKSTRALAST_VIRKNINGSGRAD])
         return df
 
     def _merge_energy_requirement_and_heating_systems(self, energy_requirements):
-        df = energy_requirements.reset_index().merge(
-            self.heating_systems_parameters.reset_index(),
-            left_on=['building_category', 'TEK', 'year'],
-            right_on=['building_category', 'TEK', 'year'])[
+        df = energy_requirements.reset_index().merge(self.heating_systems_parameters.reset_index(),
+            left_on=['building_category', 'TEK', 'year'], right_on=['building_category', 'TEK', 'year'])[
             ['building_category', 'building_condition', 'purpose', 'TEK', 'year', 'kwh_m2', 'm2', 'energy_requirement',
-             HEATING_SYSTEMS, TEK_SHARES,
-             GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE,
-             SPISSLAST_ANDEL, SPISSLAST_VIRKNINGSGRAD, SPISSLAST_ENERGIVARE,
-             EKSTRALAST_VIRKNINGSGRAD, EKSTRALAST_ANDEL, EKSTRALAST_ENERGIVARE,
-             TAPPEVANN_ENERGIVARE, DHW_EFFICIENCY,
-             SPESIFIKT_ELFORBRUK, KJOLING_VIRKNINGSGRAD]]
+             HEATING_SYSTEMS, TEK_SHARES, GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE,
+             SPISSLAST_ANDEL, SPISSLAST_VIRKNINGSGRAD, SPISSLAST_ENERGIVARE, EKSTRALAST_VIRKNINGSGRAD, EKSTRALAST_ANDEL,
+             EKSTRALAST_ENERGIVARE, TAPPEVANN_ENERGIVARE, DHW_EFFICIENCY, SPESIFIKT_ELFORBRUK, KJOLING_VIRKNINGSGRAD]]
         # Unused columns
         # ,'Innfyrt_energi_kWh','Innfyrt_energi_GWh','Energibehov_samlet_GWh']]
         df = df.set_index(
@@ -215,9 +198,7 @@ class EnergyConsumption:
         return energy_requirements
 
 
-
 def calibrate_heating_systems(df: pd.DataFrame, factor: float) -> float:
-
     to_change_filter = (df['Grunnlast'] == 'DH') & (df['Spisslast'] == 'Ingen')
     other_value_filter = (df['Grunnlast'] == 'DH') & (df['Spisslast'] == 'Bio')
 

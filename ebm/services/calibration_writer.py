@@ -43,19 +43,27 @@ class ComCalibrationReader:
                         bc = building_category.NON_RESIDENTIAL
                     elif row[0].lower() == 'bolig':
                         bc = building_category.RESIDENTIAL
-                erq = 'energy_requirement'
-                purpose = EnergyPurpose(factor_name) if factor_name.lower() != 'elspesifikt' else EnergyPurpose.ELECTRICAL_EQUIPMENT
-                yield bc, erq, purpose, row[3], None
+                erq = 'energy_requirement' if row[1].lower() == 'energibehov' else 'energy_consumption'
+                variabel = factor_name
+                extra = None
+                if erq == 'energy_requirement':
+                    variabel = EnergyPurpose(factor_name) if factor_name.lower() != 'elspesifikt' else EnergyPurpose.ELECTRICAL_EQUIPMENT
+                else:
+                    variabel = factor_name
+                    extra = row[-1]
+                yield bc, erq, variabel, row[3], extra
 
         def handle_rows(rows):
             for row in rows:
                 yield from replace_building_category(row)
+
         logger.debug(f'Transform {self.sheet_name}')
         data = com_calibration_table[1:]
 
-        data = list(handle_rows([r for r in data if r[1] == 'Energibehov']))
+        data = list(handle_rows([r for r in data if r[1].lower().replace('_','').replace(' ','') in ('energibehov',
+                                                                                                     'heatingsystem')]))
 
-        df = pd.DataFrame(data, columns=['building_category', 'group', 'purpose', 'heating_rv_factor', 'extra'])
+        df = pd.DataFrame(data, columns=['building_category', 'group', 'variable', 'heating_rv_factor', 'extra'])
 
         return df
 

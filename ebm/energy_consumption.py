@@ -198,6 +198,29 @@ class EnergyConsumption:
         return energy_requirements
 
 
+def calibrate_heating_systems2(df: pd.DataFrame, factor: pd.Series) -> pd.DataFrame:
+    df = df.copy().set_index(['building_category', 'Grunnlast', 'Spisslast'])
+
+    cal_from = factor.copy()
+    cal_from[['Grunnlast', 'Spisslast']] = cal_from['from'].apply(
+        lambda c: c if '-' in c else c + '-Ingen').str.split("-", expand=True, n=2)
+    cal_from = cal_from.set_index(['building_category', 'Grunnlast', 'Spisslast'])
+
+    cal_to = factor.copy()
+    cal_to[['Grunnlast', 'Spisslast']] = cal_to['to'].apply(
+        lambda c: c if '-' in c else c + '-Ingen').str.split("-", expand=True, n=2)
+    cal_to = cal_to.set_index(['building_category', 'Grunnlast', 'Spisslast'])
+
+    df['nu'] = df['TEK_shares']
+    to_change = df.loc[cal_to.index, 'TEK_shares'] * cal_to.loc[cal_to.index, 'factor'] - df.loc[cal_to.index, 'TEK_shares']
+    from_change = df.loc[cal_from.index, 'TEK_shares'] * cal_from.loc[cal_from.index, 'factor'] - df.loc[cal_from.index, 'TEK_shares']
+
+    df.loc[cal_to.index, 'TEK_shares'] = df.loc[cal_to.index, 'TEK_shares'] + to_change[cal_to.index]
+    df.loc[cal_from.index, 'TEK_shares'] = df.loc[cal_from.index, 'TEK_shares'] - from_change[cal_from.index]
+
+    return df.reset_index()[['building_group', 'building_category', 'TEK', 'TEK_shares', 'Grunnlast', 'Grunnlast andel', 'Spisslast', 'Spisslast andel']]
+
+
 def calibrate_heating_systems(df: pd.DataFrame, factor: float) -> float:
     to_change_filter = (df['Grunnlast'] == 'DH') & (df['Spisslast'] == 'Ingen')
     other_value_filter = (df['Grunnlast'] == 'DH') & (df['Spisslast'] == 'Bio')
@@ -212,10 +235,12 @@ def calibrate_heating_systems(df: pd.DataFrame, factor: float) -> float:
     max_value = 1.0 - rest_df.TEK_shares.sum()
     max_change = o_df.TEK_shares.sum()
     min_value = rest_df.TEK_shares.sum() - 1.0
-    change_factor = (factor - 1)
+    change_factor = (factor.factor - 1)
     expected_value = ch_df.TEK_shares.sum() * change_factor
-    actual_change = min(max_value, max_change, expected_value)
-    actual_change = max(actual_change, min_value)
+    actual_change = pd.DataFrame([max_value, max_change, expected_value]).min(axis=1).to_frame()
+    actual_change['min_value'] = min_value
+    actual_change = actual_change.max(axis=1)
+
     new_value = value + actual_change
     new_other = other - actual_change
     new_sum = rest_df.TEK_shares.sum() + new_other + new_value

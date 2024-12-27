@@ -217,6 +217,35 @@ storage_repairs,TEK07,Gas,DH,0.05
     pd.testing.assert_frame_equal(result, expected_sorted)
 
 
+def test_expand_building_category_prioritize_specific_tek():
+    """
+    Function should be able to prioritize the most specific tek value, and not produce duplicate values.
+    The prioritzation should be: a specified TEK (e.g. 'TEK01') and finally 'default'.
+    """
+
+    projection = pd.read_csv(
+        names=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021],
+        skipinitialspace=True,
+        filepath_or_buffer=io.StringIO("""
+house,default,Gas,DH,0.19
+house,TEK01,Gas,DH,0.21
+residential,default,Gas,DH,0.39
+""".strip()))
+
+    result = expand_building_category_tek(projection, ['TEK01', 'TEK02']).reset_index(drop=True)
+
+    expected = pd.read_csv(names=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021],
+                           skipinitialspace=True,
+                           filepath_or_buffer=io.StringIO("""
+apartment_block,TEK02,Gas,DH,0.39
+apartment_block,TEK01,Gas,DH,0.39
+house,TEK02,Gas,DH,0.19
+house,TEK01,Gas,DH,0.21
+""".strip()))
+
+    pd.testing.assert_frame_equal(result, expected, check_like=True)
+
+
 def test_expand_building_categoy_tek_residential_categories(tek_list):
     """
     Checks if correct categories are added if building_category value == residential.

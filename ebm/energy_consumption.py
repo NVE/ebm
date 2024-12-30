@@ -201,17 +201,13 @@ class EnergyConsumption:
 def calibrate_heating_systems2(df: pd.DataFrame, factor: pd.Series) -> pd.DataFrame:
     df = df.copy().set_index(['building_category', 'Grunnlast', 'Spisslast'])
 
-    cal_from = factor.copy()
-    cal_from[['Grunnlast', 'Spisslast']] = cal_from['from'].apply(
-        lambda c: c if '-' in c else c + '-Ingen').str.split("-", expand=True, n=2)
-    cal_from = cal_from.set_index(['building_category', 'Grunnlast', 'Spisslast'])
+    factor = factor.copy()
+    factor[['Grunnlast_F', 'Spisslast_F']] = factor['from'].apply(lambda c: c if '-' in c else c + '-Ingen').str.split("-", expand=True, n=2)
+    factor[['Grunnlast_T', 'Spisslast_T']] = factor['to'].apply(lambda c: c if '-' in c else c + '-Ingen').str.split("-", expand=True, n=2)
 
-    cal_to = factor.copy()
-    cal_to[['Grunnlast', 'Spisslast']] = cal_to['to'].apply(
-        lambda c: c if '-' in c else c + '-Ingen').str.split("-", expand=True, n=2)
-    cal_to = cal_to.set_index(['building_category', 'Grunnlast', 'Spisslast'])
+    cal_from = factor.copy().reset_index().set_index(['building_category', 'Grunnlast_F', 'Spisslast_F'])
+    cal_to = factor.copy().reset_index().set_index(['building_category', 'Grunnlast_T', 'Spisslast_T'])
 
-    df['nu'] = df['TEK_shares']
     to_change = df.loc[cal_to.index, 'TEK_shares'] * cal_to.loc[cal_to.index, 'factor'] - df.loc[cal_to.index, 'TEK_shares']
     from_change = df.loc[cal_from.index, 'TEK_shares'] * cal_from.loc[cal_from.index, 'factor'] - df.loc[cal_from.index, 'TEK_shares']
 

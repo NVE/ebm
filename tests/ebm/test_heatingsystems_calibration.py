@@ -1,7 +1,6 @@
 import io
 
 import pandas as pd
-import pytest
 
 from ebm.energy_consumption import calibrate_heating_systems, calibrate_heating_systems2
 
@@ -45,7 +44,8 @@ house,Heating system,DH,1.1,DH-Bio
     expected = pd.read_csv(io.StringIO("""building_group,building_category,TEK,TEK_shares,Grunnlast,Grunnlast andel,Spisslast,Spisslast andel
 Bolig,house,TEK07,0.55,DH,1.0,Ingen,0.0
 Bolig,house,TEK07,0.20,DH,0.95,Bio,0.05
-Bolig,house,TEK07,0.25,DH,0.95,Gas,0.05
+Bolig, house, TEK07, 0.25, DH, 0.95, Gas, 0.05
 """.strip()))
+
 
     pd.testing.assert_frame_equal(result, expected, check_like=True)

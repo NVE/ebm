@@ -209,9 +209,10 @@ def calibrate_heating_systems2(df: pd.DataFrame, factor: pd.Series) -> pd.DataFr
 
     ### Add action and value
     t_df = df.merge(factor, left_on=['building_category', 'Grunnlast', 'Spisslast'],
-                    right_on=['building_category', 'Grunnlast_T', 'Spisslast_T' ])
+                    right_on=['building_category', 'Grunnlast_T', 'Spisslast_T'])
+
     t_df['act'] = 'add'
-    f_df = df.merge(factor, left_on=['building_category', 'Grunnlast', 'Spisslast' ],
+    f_df = df.merge(factor, left_on=['building_category', 'Grunnlast', 'Spisslast'],
                     right_on=['building_category', 'Grunnlast_F', 'Spisslast_F'])
     f_df['act'] = 'sub'
 
@@ -219,12 +220,12 @@ def calibrate_heating_systems2(df: pd.DataFrame, factor: pd.Series) -> pd.DataFr
     b_df['nu'] = b_df['TEK_shares']
 
     # Calculate value to add
-    a_df = b_df[b_df['act'] == 'add'].set_index(['building_category', 'Grunnlast_T', 'Spisslast_T', 'act'])
+    a_df = b_df[b_df['act'] == 'add'].set_index(['building_category', 'TEK', 'Grunnlast_T', 'Spisslast_T'])
     a_df['v'] = a_df.TEK_shares * a_df.factor - a_df.TEK_shares
 
     # Calculate value to substract
-    s_df = b_df[b_df['act'] == 'sub'].set_index(['building_category', 'Grunnlast_F', 'Spisslast_F', 'act'])
-    s_df['v'] = -(s_df.TEK_shares * s_df.factor - s_df.TEK_shares)
+    s_df = b_df[b_df['act'] == 'sub'].set_index(['building_category', 'TEK', 'Grunnlast_F', 'Spisslast_F'])
+    s_df.loc[:, 'v'] = -a_df.reset_index().set_index(['building_category', 'TEK', 'Grunnlast_F', 'Spisslast_F']).loc[:, 'v']
 
     # Join add and substract rows
     a_df = a_df.reset_index().set_index(['building_category', 'TEK', 'Grunnlast_T', 'Spisslast_T'])
@@ -250,7 +251,11 @@ def calibrate_heating_systems2(df: pd.DataFrame, factor: pd.Series) -> pd.DataFr
                  'Spisslast_F': 'Spisslast', 'v_t': 'v'})
     df_r = pd.concat([df_to, df_from])
 
-    return df_r.reset_index()[keep_columns].reindex()
+    resulter = df_r.reset_index()[keep_columns].reindex()
+
+    r = pd.concat([resulter, df.reset_index()]).drop_duplicates(['building_category', 'Grunnlast', 'Spisslast'], keep='first').drop(columns='index',
+                                                                                                               errors='ignore')
+    return r
 
 
 def calibrate_heating_systems(df: pd.DataFrame, factor: float) -> float:

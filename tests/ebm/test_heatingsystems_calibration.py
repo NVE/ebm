@@ -2,7 +2,7 @@ import io
 
 import pandas as pd
 
-from ebm.energy_consumption import calibrate_heating_systems, calibrate_heating_systems2
+from ebm.energy_consumption import calibrate_heating_systems
 
 
 def test_heating_system_calibration_reduce_other_type():
@@ -18,7 +18,7 @@ apartment_block,Heating system,DH,1.1,DH-Bio
 house,Heating system,DH-Bio,2,DH
     """.strip()))
 
-    result = calibrate_heating_systems2(df, cal)
+    result = calibrate_heating_systems(df, cal)
     expected = pd.read_csv(io.StringIO("""building_group,building_category,TEK,TEK_shares,Grunnlast,Grunnlast andel,Spisslast,Spisslast andel
 Bolig,apartment_block,TEK07,0.55,DH,1.0,Ingen,0.0
 Bolig,house,TEK07,1.0,DH,0.95,Bio,0.05
@@ -29,7 +29,12 @@ Bolig,house,TEK07,0.0,DH,1.0,Ingen,0.0
     pd.testing.assert_frame_equal(result, expected, check_like=True)
 
 
-def test_heating_system_calibration_support_three_heating_systems():
+def test_heating_system_calibration_keep_uncalibrated_heating_systems_in_frame():
+    """
+    Make sure any heating system value in the original dataframe remains untouched when no related calibration is
+    present. In this case DH - Gas should be kept as is in the result.
+
+    """
     df = pd.read_csv(io.StringIO("""building_group,building_category,TEK,TEK_shares,Grunnlast,Grunnlast andel,Spisslast,Spisslast andel
 Bolig,house,TEK07,0.5,DH,1.0,Ingen,0.0
 Bolig,house,TEK07,0.25,DH,0.95,Bio,0.05
@@ -40,12 +45,11 @@ Bolig,house,TEK07,0.25,DH,0.95,Gas,0.05
 house,Heating system,DH,1.1,DH-Bio
     """.strip()))
 
-    result = calibrate_heating_systems2(df, cal)
+    result = calibrate_heating_systems(df, cal)
     expected = pd.read_csv(io.StringIO("""building_group,building_category,TEK,TEK_shares,Grunnlast,Grunnlast andel,Spisslast,Spisslast andel
 Bolig,house,TEK07,0.55,DH,1.0,Ingen,0.0
 Bolig,house,TEK07,0.20,DH,0.95,Bio,0.05
-Bolig, house, TEK07, 0.25, DH, 0.95, Gas, 0.05
+Bolig,house,TEK07,0.25,DH,0.95,Gas,0.05
 """.strip()))
-
 
     pd.testing.assert_frame_equal(result, expected, check_like=True)

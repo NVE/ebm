@@ -198,7 +198,7 @@ class EnergyConsumption:
         return energy_requirements
 
 
-def calibrate_heating_systems2(df: pd.DataFrame, factor: pd.Series) -> pd.DataFrame:
+def calibrate_heating_systems(df: pd.DataFrame, factor: pd.Series) -> pd.DataFrame:
     df = df.copy().set_index(['building_category', 'Grunnlast', 'Spisslast'])
     factor = factor.copy()
 
@@ -217,7 +217,6 @@ def calibrate_heating_systems2(df: pd.DataFrame, factor: pd.Series) -> pd.DataFr
     f_df['act'] = 'sub'
 
     b_df = pd.concat([t_df, f_df])
-    b_df['nu'] = b_df['TEK_shares']
 
     # Calculate value to add
     a_df = b_df[b_df['act'] == 'add'].set_index(['building_category', 'TEK', 'Grunnlast_T', 'Spisslast_T'])
@@ -232,7 +231,6 @@ def calibrate_heating_systems2(df: pd.DataFrame, factor: pd.Series) -> pd.DataFr
     s_df = s_df.reset_index().set_index(['building_category', 'TEK', 'Grunnlast_F', 'Spisslast_F'])
 
     q = a_df.join(s_df, rsuffix='_t')
-    q[['TEK_shares', 'TEK_shares_t', 'Grunnlast_T', 'Spisslast_T', 'factor', 'v', 'v_t']]
 
     keep_columns = ['building_group', 'building_category', 'TEK', 'TEK_shares', 'Grunnlast', 'Grunnlast andel',
                     'Spisslast', 'Spisslast andel']
@@ -245,7 +243,7 @@ def calibrate_heating_systems2(df: pd.DataFrame, factor: pd.Series) -> pd.DataFr
     df_to = q[['building_group', 'TEK_shares_nu', 'Grunnlast andel', 'Spisslast andel', 'TEK_shares', 'v']].reset_index().rename(columns={'TEK_shares': 'TEK_shares_old', 'TEK_shares_nu': 'TEK_shares', 'Grunnlast_T': 'Grunnlast', 'Spisslast_T': 'Spisslast',
 
     })
-    df_from = q[['building_group', 'TEK_shares_nu_t', 'Grunnlast andel_t', 'Spisslast andel_t', #'Grunnlast_F',  'Spisslast_F',
+    df_from = q[['building_group', 'TEK_shares_nu_t', 'Grunnlast andel_t', 'Spisslast andel_t',
                  'TEK_shares', 'v_t']].reset_index().rename(
         columns={'TEK_shares': 'TEK_shares_old', 'TEK_shares_nu_t': 'TEK_shares', 'Grunnlast_F': 'Grunnlast', 'Grunnlast andel_t': 'Grunnlast andel', 'Spisslast andel_t': 'Spisslast andel',
                  'Spisslast_F': 'Spisslast', 'v_t': 'v'})
@@ -256,30 +254,3 @@ def calibrate_heating_systems2(df: pd.DataFrame, factor: pd.Series) -> pd.DataFr
     r = pd.concat([resulter, df.reset_index()]).drop_duplicates(['building_category', 'Grunnlast', 'Spisslast'], keep='first').drop(columns='index',
                                                                                                                errors='ignore')
     return r
-
-
-def calibrate_heating_systems(df: pd.DataFrame, factor: float) -> float:
-    to_change_filter = (df['Grunnlast'] == 'DH') & (df['Spisslast'] == 'Ingen')
-    other_value_filter = (df['Grunnlast'] == 'DH') & (df['Spisslast'] == 'Bio')
-
-    ch_df = df[to_change_filter]
-    o_df = df[other_value_filter]
-    rest_df = df[~(to_change_filter | other_value_filter)]
-
-    value = ch_df.TEK_shares.sum()
-    other = o_df.TEK_shares.sum()
-
-    max_value = 1.0 - rest_df.TEK_shares.sum()
-    max_change = o_df.TEK_shares.sum()
-    min_value = rest_df.TEK_shares.sum() - 1.0
-    change_factor = (factor.factor - 1)
-    expected_value = ch_df.TEK_shares.sum() * change_factor
-    actual_change = pd.DataFrame([max_value, max_change, expected_value]).min(axis=1).to_frame()
-    actual_change['min_value'] = min_value
-    actual_change = actual_change.max(axis=1)
-
-    new_value = value + actual_change
-    new_other = other - actual_change
-    new_sum = rest_df.TEK_shares.sum() + new_other + new_value
-
-    return new_value

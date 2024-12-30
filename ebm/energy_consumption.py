@@ -200,21 +200,57 @@ class EnergyConsumption:
 
 def calibrate_heating_systems2(df: pd.DataFrame, factor: pd.Series) -> pd.DataFrame:
     df = df.copy().set_index(['building_category', 'Grunnlast', 'Spisslast'])
-
     factor = factor.copy()
-    factor[['Grunnlast_F', 'Spisslast_F']] = factor['from'].apply(lambda c: c if '-' in c else c + '-Ingen').str.split("-", expand=True, n=2)
-    factor[['Grunnlast_T', 'Spisslast_T']] = factor['to'].apply(lambda c: c if '-' in c else c + '-Ingen').str.split("-", expand=True, n=2)
 
-    cal_from = factor.copy().reset_index().set_index(['building_category', 'Grunnlast_F', 'Spisslast_F'])
-    cal_to = factor.copy().reset_index().set_index(['building_category', 'Grunnlast_T', 'Spisslast_T'])
+    factor[['Grunnlast_F', 'Spisslast_F']] = factor['from'].apply(lambda c: c if '-' in c else c + '-Ingen').str.split(
+        "-", expand=True, n=2)
+    factor[['Grunnlast_T', 'Spisslast_T']] = factor['to'].apply(lambda c: c if '-' in c else c + '-Ingen').str.split(
+        "-", expand=True, n=2)
 
-    to_change = df.loc[cal_to.index, 'TEK_shares'] * cal_to.loc[cal_to.index, 'factor'] - df.loc[cal_to.index, 'TEK_shares']
-    from_change = df.loc[cal_from.index, 'TEK_shares'] * cal_from.loc[cal_from.index, 'factor'] - df.loc[cal_from.index, 'TEK_shares']
+    ### Add action and value
+    t_df = df.merge(factor, left_on=['building_category', 'Grunnlast', 'Spisslast'],
+                    right_on=['building_category', 'Grunnlast_T', 'Spisslast_T' ])
+    t_df['act'] = 'add'
+    f_df = df.merge(factor, left_on=['building_category', 'Grunnlast', 'Spisslast' ],
+                    right_on=['building_category', 'Grunnlast_F', 'Spisslast_F'])
+    f_df['act'] = 'sub'
 
-    df.loc[cal_to.index, 'TEK_shares'] = df.loc[cal_to.index, 'TEK_shares'] + to_change[cal_to.index]
-    df.loc[cal_from.index, 'TEK_shares'] = df.loc[cal_from.index, 'TEK_shares'] - from_change[cal_from.index]
+    b_df = pd.concat([t_df, f_df])
+    b_df['nu'] = b_df['TEK_shares']
 
-    return df.reset_index()[['building_group', 'building_category', 'TEK', 'TEK_shares', 'Grunnlast', 'Grunnlast andel', 'Spisslast', 'Spisslast andel']]
+    # Calculate value to add
+    a_df = b_df[b_df['act'] == 'add'].set_index(['building_category', 'Grunnlast_T', 'Spisslast_T', 'act'])
+    a_df['v'] = a_df.TEK_shares * a_df.factor - a_df.TEK_shares
+
+    # Calculate value to substract
+    s_df = b_df[b_df['act'] == 'sub'].set_index(['building_category', 'Grunnlast_F', 'Spisslast_F', 'act'])
+    s_df['v'] = -(s_df.TEK_shares * s_df.factor - s_df.TEK_shares)
+
+    # Join add and substract rows
+    a_df = a_df.reset_index().set_index(['building_category', 'TEK', 'Grunnlast_T', 'Spisslast_T'])
+    s_df = s_df.reset_index().set_index(['building_category', 'TEK', 'Grunnlast_F', 'Spisslast_F'])
+
+    q = a_df.join(s_df, rsuffix='_t')
+    q[['TEK_shares', 'TEK_shares_t', 'Grunnlast_T', 'Spisslast_T', 'factor', 'v', 'v_t']]
+
+    keep_columns = ['building_group', 'building_category', 'TEK', 'TEK_shares', 'Grunnlast', 'Grunnlast andel',
+                    'Spisslast', 'Spisslast andel']
+
+    ### Sett ny TEK_shares verdier fra v og v_t
+    q['TEK_shares_nu'] = q['TEK_shares'] + q['v']
+    q['TEK_shares_nu_t'] = q['TEK_shares_t'] + q['v_t']
+
+    # Lag egne linjer for Til/Fra Grunnlast og Spisslast?
+    df_to = q[['building_group', 'TEK_shares_nu', 'Grunnlast andel', 'Spisslast andel', 'TEK_shares', 'v']].reset_index().rename(columns={'TEK_shares': 'TEK_shares_old', 'TEK_shares_nu': 'TEK_shares', 'Grunnlast_T': 'Grunnlast', 'Spisslast_T': 'Spisslast',
+
+    })
+    df_from = q[['building_group', 'TEK_shares_nu_t', 'Grunnlast andel_t', 'Spisslast andel_t', #'Grunnlast_F',  'Spisslast_F',
+                 'TEK_shares', 'v_t']].reset_index().rename(
+        columns={'TEK_shares': 'TEK_shares_old', 'TEK_shares_nu_t': 'TEK_shares', 'Grunnlast_F': 'Grunnlast', 'Grunnlast andel_t': 'Grunnlast andel', 'Spisslast andel_t': 'Spisslast andel',
+                 'Spisslast_F': 'Spisslast', 'v_t': 'v'})
+    df_r = pd.concat([df_to, df_from])
+
+    return df_r.reset_index()[keep_columns].reindex()
 
 
 def calibrate_heating_systems(df: pd.DataFrame, factor: float) -> float:

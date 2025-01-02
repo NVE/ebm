@@ -205,18 +205,18 @@ def calibrate_heating_systems(df: pd.DataFrame, factor: pd.DataFrame) -> pd.Data
     original = df.copy().set_index(['building_category', 'Grunnlast', 'Spisslast'])
     factor = factor.copy()
 
-    factor[['Grunnlast_F', 'Spisslast_F']] = factor['from'].apply(lambda c: c if '-' in c else c + '-Ingen').str.split(
-        "-", expand=True, n=2)
-    factor[['Grunnlast_T', 'Spisslast_T']] = factor['to'].apply(lambda c: c if '-' in c else c + '-Ingen').str.split(
-        "-", expand=True, n=2)
+    factor = unpack_dashed_column(df=factor, column_to_split='from', new_columns=['Grunnlast_F', 'Spisslast_F'])
+    factor = unpack_dashed_column(df=factor, column_to_split='to', new_columns=['Grunnlast_T', 'Spisslast_T'])
 
     # Add action and value
-    df_to = original.merge(factor, left_on=['building_category', 'Grunnlast', 'Spisslast'],
-                          right_on=['building_category', 'Grunnlast_T', 'Spisslast_T'])
-
+    df_to = original.merge(factor,
+                           left_on=['building_category', 'Grunnlast', 'Spisslast'],
+                           right_on=['building_category', 'Grunnlast_T', 'Spisslast_T'])
     df_to['act'] = 'add'
-    df_from = original.merge(factor, left_on=['building_category', 'Grunnlast', 'Spisslast'],
-                          right_on=['building_category', 'Grunnlast_F', 'Spisslast_F'])
+
+    df_from = original.merge(factor,
+                             left_on=['building_category', 'Grunnlast', 'Spisslast'],
+                             right_on=['building_category', 'Grunnlast_F', 'Spisslast_F'])
     df_from['act'] = 'sub'
 
     df_both = pd.concat([df_to, df_from])
@@ -268,3 +268,9 @@ def calibrate_heating_systems(df: pd.DataFrame, factor: pd.DataFrame) -> pd.Data
                            errors='ignore')
 
     return calibrated_and_original
+
+
+def unpack_dashed_column(df, column_to_split, new_columns):
+    df[new_columns] = df[column_to_split].apply(
+        lambda c: c if '-' in c else c + '-Ingen').str.split("-", expand=True, n=2)
+    return df

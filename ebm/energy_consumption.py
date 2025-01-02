@@ -199,7 +199,7 @@ class EnergyConsumption:
 
 
 def calibrate_heating_systems(df: pd.DataFrame, factor: pd.Series) -> pd.DataFrame:
-    df = df.copy().set_index(['building_category', 'Grunnlast', 'Spisslast'])
+    original = df.copy().set_index(['building_category', 'Grunnlast', 'Spisslast'])
     factor = factor.copy()
 
     factor[['Grunnlast_F', 'Spisslast_F']] = factor['from'].apply(lambda c: c if '-' in c else c + '-Ingen').str.split(
@@ -207,51 +207,61 @@ def calibrate_heating_systems(df: pd.DataFrame, factor: pd.Series) -> pd.DataFra
     factor[['Grunnlast_T', 'Spisslast_T']] = factor['to'].apply(lambda c: c if '-' in c else c + '-Ingen').str.split(
         "-", expand=True, n=2)
 
-    ### Add action and value
-    t_df = df.merge(factor, left_on=['building_category', 'Grunnlast', 'Spisslast'],
-                    right_on=['building_category', 'Grunnlast_T', 'Spisslast_T'])
+    # Add action and value
+    df_to = original.merge(factor, left_on=['building_category', 'Grunnlast', 'Spisslast'],
+                          right_on=['building_category', 'Grunnlast_T', 'Spisslast_T'])
 
-    t_df['act'] = 'add'
-    f_df = df.merge(factor, left_on=['building_category', 'Grunnlast', 'Spisslast'],
-                    right_on=['building_category', 'Grunnlast_F', 'Spisslast_F'])
-    f_df['act'] = 'sub'
+    df_to['act'] = 'add'
+    df_from = original.merge(factor, left_on=['building_category', 'Grunnlast', 'Spisslast'],
+                          right_on=['building_category', 'Grunnlast_F', 'Spisslast_F'])
+    df_from['act'] = 'sub'
 
-    b_df = pd.concat([t_df, f_df])
+    df_both = pd.concat([df_to, df_from])
 
     # Calculate value to add
-    a_df = b_df[b_df['act'] == 'add'].set_index(['building_category', 'TEK', 'Grunnlast_T', 'Spisslast_T'])
-    a_df['v'] = a_df.TEK_shares * a_df.factor - a_df.TEK_shares
+    df_to_add = df_both[df_both['act'] == 'add'].set_index(['building_category', 'TEK', 'Grunnlast_T', 'Spisslast_T'])
+    df_to_add['v'] = df_to_add.TEK_shares * df_to_add.factor - df_to_add.TEK_shares
 
     # Calculate value to substract
-    s_df = b_df[b_df['act'] == 'sub'].set_index(['building_category', 'TEK', 'Grunnlast_F', 'Spisslast_F'])
-    s_df.loc[:, 'v'] = -a_df.reset_index().set_index(['building_category', 'TEK', 'Grunnlast_F', 'Spisslast_F']).loc[:, 'v']
+    df_to_subtract = df_both[df_both['act'] == 'sub'].set_index(
+        ['building_category', 'TEK', 'Grunnlast_F', 'Spisslast_F'])
+    df_to_subtract.loc[:, 'v'] = -df_to_add.reset_index().set_index(
+        ['building_category', 'TEK', 'Grunnlast_F', 'Spisslast_F']).loc[:, 'v']
 
     # Join add and substract rows
-    a_df = a_df.reset_index().set_index(['building_category', 'TEK', 'Grunnlast_T', 'Spisslast_T'])
-    s_df = s_df.reset_index().set_index(['building_category', 'TEK', 'Grunnlast_F', 'Spisslast_F'])
+    df_to_add = df_to_add.reset_index().set_index(['building_category', 'TEK', 'Grunnlast_T', 'Spisslast_T'])
+    df_to_subtract = df_to_subtract.reset_index().set_index(['building_category', 'TEK', 'Grunnlast_F', 'Spisslast_F'])
 
-    q = a_df.join(s_df, rsuffix='_t')
+    df_to_sum = df_to_add.join(df_to_subtract, rsuffix='_t')
 
     keep_columns = ['building_group', 'building_category', 'TEK', 'TEK_shares', 'Grunnlast', 'Grunnlast andel',
                     'Spisslast', 'Spisslast andel']
 
-    ### Sett ny TEK_shares verdier fra v og v_t
-    q['TEK_shares_nu'] = q['TEK_shares'] + q['v']
-    q['TEK_shares_nu_t'] = q['TEK_shares_t'] + q['v_t']
+    # Sett ny TEK_shares verdier fra v og v_t
+    df_to_sum['TEK_shares_nu'] = df_to_sum['TEK_shares'] + df_to_sum['v']
+    df_to_sum['TEK_shares_nu_t'] = df_to_sum['TEK_shares_t'] + df_to_sum['v_t']
 
     # Lag egne linjer for Til/Fra Grunnlast og Spisslast?
-    df_to = q[['building_group', 'TEK_shares_nu', 'Grunnlast andel', 'Spisslast andel', 'TEK_shares', 'v']].reset_index().rename(columns={'TEK_shares': 'TEK_shares_old', 'TEK_shares_nu': 'TEK_shares', 'Grunnlast_T': 'Grunnlast', 'Spisslast_T': 'Spisslast',
+    df_to = df_to_sum[
+        ['building_group', 'TEK_shares_nu', 'Grunnlast andel', 'Spisslast andel', 'TEK_shares', 'v']
+        ].reset_index().rename(columns={
+            'TEK_shares': 'TEK_shares_old',
+            'TEK_shares_nu': 'TEK_shares',
+            'Grunnlast_T': 'Grunnlast',
+            'Spisslast_T': 'Spisslast'})
 
-    })
-    df_from = q[['building_group', 'TEK_shares_nu_t', 'Grunnlast andel_t', 'Spisslast andel_t',
-                 'TEK_shares', 'v_t']].reset_index().rename(
-        columns={'TEK_shares': 'TEK_shares_old', 'TEK_shares_nu_t': 'TEK_shares', 'Grunnlast_F': 'Grunnlast', 'Grunnlast andel_t': 'Grunnlast andel', 'Spisslast andel_t': 'Spisslast andel',
+    df_from = df_to_sum[['building_group', 'TEK_shares_nu_t', 'Grunnlast andel_t', 'Spisslast andel_t',
+                         'TEK_shares', 'v_t']].reset_index().rename(
+        columns={'TEK_shares': 'TEK_shares_old', 'TEK_shares_nu_t': 'TEK_shares', 'Grunnlast_F': 'Grunnlast',
+                 'Grunnlast andel_t': 'Grunnlast andel', 'Spisslast andel_t': 'Spisslast andel',
                  'Spisslast_F': 'Spisslast', 'v_t': 'v'})
     df_r = pd.concat([df_to, df_from])
 
-    resulter = df_r.reset_index()[keep_columns].reindex()
+    calibrated = df_r.reset_index()[keep_columns].reindex()
 
-    r = pd.concat([resulter, df.reset_index()]).drop_duplicates(['building_category', 'Grunnlast', 'Spisslast'], keep='first').drop(columns='index',
-                                                                                                               errors='ignore')
-    return r
+    calibrated_and_original = pd.concat([calibrated, original.reset_index()]).drop_duplicates(
+        ['building_category', 'Grunnlast', 'Spisslast'],
+        keep='first').drop(columns='index',
+                           errors='ignore')
 
+    return calibrated_and_original

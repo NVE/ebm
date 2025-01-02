@@ -204,41 +204,36 @@ def calibrate_heating_systems(df: pd.DataFrame, factor: pd.DataFrame) -> pd.Data
     # When factor is empty or all factors are 1.0, there is no need to change anything.
     if len(factor) == 0 or (factor.factor == 1.0).all():
         return df
-    original = unpack_dashed_column(df=df.copy(),
-                                    column_to_split='heating_systems',
-                                    new_columns=['Grunnlast', 'Spisslast'])
-    original = original.set_index(['building_category', 'Grunnlast', 'Spisslast'])
+    original = df.copy()
     factor = factor.copy()
-
-    factor = unpack_dashed_column(df=factor, column_to_split='from', new_columns=['Grunnlast_F', 'Spisslast_F'])
-    factor = unpack_dashed_column(df=factor, column_to_split='to', new_columns=['Grunnlast_T', 'Spisslast_T'])
+    factor['heating_systems_T'] = factor['to']
+    factor['heating_systems_F'] = factor['from']
 
     # Add action and value
     df_to = original.merge(factor,
-                           left_on=['building_category', 'Grunnlast', 'Spisslast'],
-                           right_on=['building_category', 'Grunnlast_T', 'Spisslast_T'])
+                           left_on=['building_category', 'heating_systems'],
+                           right_on=['building_category', 'heating_systems_T'])
     df_to['act'] = 'add'
 
     df_from = original.merge(factor,
-                             left_on=['building_category', 'Grunnlast', 'Spisslast'],
-                             right_on=['building_category', 'Grunnlast_F', 'Spisslast_F'])
+                             left_on=['building_category', 'heating_systems'],
+                             right_on=['building_category', 'heating_systems_F'])
     df_from['act'] = 'sub'
 
     df_both = pd.concat([df_to, df_from])
 
     # Calculate value to add
-    df_to_add = df_both[df_both['act'] == 'add'].set_index(['building_category', 'TEK', 'Grunnlast_T', 'Spisslast_T'])
+    df_to_add = df_both[df_both['act'] == 'add'].set_index(['building_category', 'TEK', 'heating_systems_T'])
     df_to_add['v'] = df_to_add.TEK_shares * df_to_add.factor - df_to_add.TEK_shares
 
-    # Calculate value to substract
+    # Calculate value to subtract
     df_to_subtract = df_both[df_both['act'] == 'sub'].set_index(
-        ['building_category', 'TEK', 'Grunnlast_F', 'Spisslast_F'])
-    df_to_subtract.loc[:, 'v'] = -df_to_add.reset_index().set_index(
-        ['building_category', 'TEK', 'Grunnlast_F', 'Spisslast_F']).loc[:, 'v']
+        ['building_category', 'TEK', 'heating_systems_F'])
+    df_to_subtract.loc[:, 'v'] = -df_to_add.reset_index().set_index(['building_category', 'TEK', 'heating_systems_F']).v
 
     # Join add and substract rows
-    df_to_add = df_to_add.reset_index().set_index(['building_category', 'TEK', 'Grunnlast_T', 'Spisslast_T'])
-    df_to_subtract = df_to_subtract.reset_index().set_index(['building_category', 'TEK', 'Grunnlast_F', 'Spisslast_F'])
+    df_to_add = df_to_add.reset_index().set_index(['building_category', 'TEK', 'heating_systems_T'])
+    df_to_subtract = df_to_subtract.reset_index().set_index(['building_category', 'TEK', 'heating_systems_F'])
 
     df_to_sum = df_to_add.join(df_to_subtract, rsuffix='_t')
 
@@ -248,31 +243,19 @@ def calibrate_heating_systems(df: pd.DataFrame, factor: pd.DataFrame) -> pd.Data
     df_to_sum['TEK_shares_nu'] = df_to_sum['TEK_shares'] + df_to_sum['v']
     df_to_sum['TEK_shares_nu_t'] = df_to_sum['TEK_shares_t'] + df_to_sum['v_t']
 
-    # Lag egne linjer for Til/Fra Grunnlast og Spisslast?
     df_to = df_to_sum[
-        ['year', 'heating_systems', 'TEK_shares_nu', 'TEK_shares', 'v']
-        ].reset_index().rename(columns={
-            'TEK_shares': 'TEK_shares_old',
-            'TEK_shares_nu': 'TEK_shares',
-            'Grunnlast_T': 'Grunnlast',
-            'Spisslast_T': 'Spisslast'})
+        ['year', 'TEK_shares_nu', 'v']
+        ].reset_index().rename(columns={'TEK_shares_nu': 'TEK_shares', 'heating_systems_T': 'heating_systems'})
 
-    df_from = df_to_sum[['year', 'heating_systems_t', 'TEK_shares_nu_t', 'TEK_shares', 'v']].reset_index().rename(
-        columns={'TEK_shares': 'TEK_shares_old', 'heating_systems_t': 'heating_systems', 'TEK_shares_nu_t': 'TEK_shares', 'Grunnlast_F': 'Grunnlast',
-                 'Spisslast_F': 'Spisslast', 'v_t': 'v'})
+    df_from = df_to_sum[['year', 'TEK_shares_nu_t', 'v_t']].reset_index().rename(
+        columns={'TEK_shares_nu_t': 'TEK_shares', 'heating_systems_F': 'heating_systems', 'v_t': 'v'})
     df_r = pd.concat([df_to, df_from])
 
-    calibrated = df_r.reset_index()[keep_columns + ['Grunnlast', 'Spisslast']].reindex()
+    calibrated = df_r.reset_index()[keep_columns].reindex()
 
     calibrated_and_original = pd.concat([calibrated, original.reset_index()]).drop_duplicates(
-        ['building_category', 'Grunnlast', 'Spisslast'],
+        ['building_category', 'heating_systems'],
         keep='first').drop(columns='index',
                            errors='ignore')
 
     return calibrated_and_original[keep_columns].reset_index(drop=True)
-
-
-def unpack_dashed_column(df, column_to_split, new_columns):
-    df[new_columns] = df[column_to_split].apply(
-        lambda c: c if '-' in c else c + '-Ingen').str.split("-", expand=True, n=2)
-    return df

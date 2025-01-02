@@ -7,23 +7,23 @@ from ebm.energy_consumption import calibrate_heating_systems
 
 def test_heating_system_calibration_reduce_other_type():
     df = pd.read_csv(io.StringIO("""building_category,TEK,TEK_shares,heating_systems,year
-apartment_block,TEK07,0.5,DH-Ingen,2023
-apartment_block,TEK07,0.5,DH-Bio,2023
-house,TEK07,0.5,DH-Ingen,2023
+apartment_block,TEK07,0.5,Electricity,2023
+apartment_block,TEK07,0.5,Gas,2023
+house,TEK07,0.5,DH,2023
 house,TEK07,0.5,DH-Bio,2023
 """.strip()))
 
     cal = pd.read_csv(io.StringIO("""building_category,to,factor,from
-apartment_block,DH,1.1,DH-Bio
+apartment_block,Electricity,1.1,Gas
 house,DH-Bio,2,DH
     """.strip()))
 
     result = calibrate_heating_systems(df, cal)
     expected = pd.read_csv(io.StringIO("""building_category,TEK,year,heating_systems,TEK_shares
-apartment_block,TEK07,2023,DH-Ingen,0.55
+apartment_block,TEK07,2023,Electricity,0.55
 house,TEK07,2023,DH-Bio,1.0
-apartment_block,TEK07,2023,DH-Bio,0.45
-house,TEK07,2023,DH-Ingen,0.0
+apartment_block,TEK07,2023,Gas,0.45
+house,TEK07,2023,DH,0.0
 """.strip()))
 
     pd.testing.assert_frame_equal(result, expected, check_like=True)
@@ -36,7 +36,7 @@ def test_heating_system_calibration_keep_uncalibrated_heating_systems_in_frame()
 
     """
     df = pd.read_csv(io.StringIO("""building_category,TEK,year,heating_systems,TEK_shares
-house,TEK07,2023,DH-Ingen,0.5
+house,TEK07,2023,DH,0.5
 house,TEK07,2023,DH-Bio,0.25
 house,TEK07,2023,DH-Gas,0.25
 """.strip()))
@@ -47,7 +47,7 @@ house,DH,1.1,DH-Bio
 
     result = calibrate_heating_systems(df, cal)
     expected = pd.read_csv(io.StringIO("""building_category,TEK,year,heating_systems,TEK_shares
-house,TEK07,2023,DH-Ingen,0.55
+house,TEK07,2023,DH,0.55
 house,TEK07,2023,DH-Bio,0.20
 house,TEK07,2023,DH-Gas,0.25
 """.strip()))
@@ -66,7 +66,7 @@ house,TEK07,2023,DH-Gas,0.25
 """.strip()))
 
     cal = pd.read_csv(io.StringIO("""building_category,to,factor,from
-house,DH,1.1,DH-Bio
+house,DH-Ingen,1.1,DH-Bio
 house,DH-Bio,1.5,DH-Gas
     """.strip()))
 

@@ -6,6 +6,7 @@ from loguru import logger
 import pandas as pd
 
 from ebm.model import building_category
+from ebm.model.heating_systems import HeatingSystems
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.services.excel_loader import access_excel_sheet
 from ebm.services.spreadsheet import SpreadsheetCell
@@ -51,6 +52,8 @@ class ComCalibrationReader:
                 else:
                     variabel = factor_name
                     extra = row[-1]
+                    if not extra or extra.strip() in ('?', ''):
+                        extra = HeatingSystems.ELECTRICITY
                 yield bc, erq, variabel, row[3], extra
 
         def handle_rows(rows):

@@ -51,8 +51,8 @@ def main():
                       energy_requirements_calibration_file)
 
     energy_consumption_writer = EnergyConsumptionCalibrationWriter()
-    energy_consumption_writer.load(energy_source_by_building_group,
-                                   energy_consumption_calibration_file)
+    ec_calibration = energy_consumption_writer.transform(energy_source_by_building_group)
+    energy_consumption_writer.load(ec_calibration, energy_consumption_calibration_file)
 
     logger.info('Calculate calibrated energy use')
     area_forecast = None

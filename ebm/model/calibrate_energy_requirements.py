@@ -26,17 +26,27 @@ class EnergyRequirementCalibrationWriter:
 
 
 class EnergyConsumptionCalibrationWriter:
+    df: pd.DataFrame
 
     def __init__(self):
         pass
+
+    def transform(self, df):
+        df = df[df['group'] == 'energy_consumption']
+        df = df[['building_category', 'variable', 'extra', 'heating_rv_factor']].reset_index(drop=True)
+        df = df.rename(columns={'variable': 'to',
+                                'extra': 'from',
+                                'heating_rv_factor': 'factor'}, errors='ignore')
+
+        self.df = df
+        return df
 
     def load(self, df: pd.DataFrame, to_file: typing.Union[str, pathlib.Path] = None):
         logger.debug(f'Save {to_file}')
         if to_file is None:
             to_file = pathlib.Path('input/calibrate_energy_consumption.xlsx')
         file_path: pathlib.Path = to_file if isinstance(to_file, pathlib.Path) else pathlib.Path(to_file)
-        df = df[df['group'] == 'energy_consumption']
-        df = df[['building_category', 'variable', 'heating_rv_factor']].reset_index(drop=True)
+
         if file_path.suffix == '.csv':
             df.to_csv(file_path, index=False)
         elif file_path.suffix == '.xlsx':

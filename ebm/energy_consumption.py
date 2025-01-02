@@ -198,7 +198,10 @@ class EnergyConsumption:
         return energy_requirements
 
 
-def calibrate_heating_systems(df: pd.DataFrame, factor: pd.Series) -> pd.DataFrame:
+def calibrate_heating_systems(df: pd.DataFrame, factor: pd.DataFrame) -> pd.DataFrame:
+    # When factor is empty or all factors are 1.0, there is no need to change anything.
+    if len(factor) == 0 or (factor.factor == 1.0).all():
+        return df
     original = df.copy().set_index(['building_category', 'Grunnlast', 'Spisslast'])
     factor = factor.copy()
 

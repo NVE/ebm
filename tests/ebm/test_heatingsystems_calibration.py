@@ -86,18 +86,18 @@ Bolig,house,TEK07,0.125,DH,0.95,Gas,0.05
 
 def test_heating_system_calibration_works_with_no_calibration():
     """
-
+    When no factor are provided to calibrate_heating_system, simply return the original dataframe
     """
+
     df = pd.read_csv(io.StringIO("""building_group,building_category,TEK,TEK_shares,Grunnlast,Grunnlast andel,Spisslast,Spisslast andel
 Bolig,house,TEK07,0.5,DH,1.0,Ingen,0.0
 Bolig,house,TEK07,0.25,DH,0.95,Bio,0.05
 Bolig,house,TEK07,0.25,DH,0.95,Gas,0.05
 """.strip()))
 
-    cal = pd.read_csv(io.StringIO("""building_category,c_type,to,factor,from
-kindergarten,Heating system,DH,1.0,DH-Bio""".strip()))
+    cal = pd.DataFrame(data=[], columns=['building_category', 'c_type' , 'to', 'factor', 'from'])
 
-    result = calibrate_heating_systems(df, cal).reset_index(drop=True)
+    result = calibrate_heating_systems(df, cal)
     expected = pd.read_csv(io.StringIO("""building_group,building_category,TEK,TEK_shares,Grunnlast,Grunnlast andel,Spisslast,Spisslast andel
 Bolig,house,TEK07,0.5,DH,1.0,Ingen,0.0
 Bolig,house,TEK07,0.25,DH,0.95,Bio,0.05
@@ -105,3 +105,4 @@ Bolig,house,TEK07,0.25,DH,0.95,Gas,0.05
 """.strip()))
 
     pd.testing.assert_frame_equal(result, expected, check_like=True)
+    assert result is df

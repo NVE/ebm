@@ -254,3 +254,4 @@ def calibrate_heating_systems(df: pd.DataFrame, factor: pd.Series) -> pd.DataFra
     r = pd.concat([resulter, df.reset_index()]).drop_duplicates(['building_category', 'Grunnlast', 'Spisslast'], keep='first').drop(columns='index',
                                                                                                                errors='ignore')
     return r
+

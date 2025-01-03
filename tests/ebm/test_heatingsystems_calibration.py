@@ -1,4 +1,5 @@
 import io
+import os
 
 import pandas as pd
 
@@ -21,9 +22,9 @@ house,DH-Bio,2,DH
     result = calibrate_heating_systems(df, cal)
     expected = pd.read_csv(io.StringIO("""building_category,TEK,year,heating_systems,TEK_shares
 apartment_block,TEK07,2023,Electricity,0.55
-house,TEK07,2023,DH-Bio,1.0
 apartment_block,TEK07,2023,Gas,0.45
 house,TEK07,2023,DH,0.0
+house,TEK07,2023,DH-Bio,1.0
 """.strip()))
 
     pd.testing.assert_frame_equal(result, expected, check_like=True)
@@ -55,7 +56,7 @@ house,TEK07,2023,DH-Gas,0.25
     pd.testing.assert_frame_equal(result, expected, check_like=True)
 
 
-def test_heating_system_calibration_calibrate_multiple_values():
+def test_heating_system_calibration_can_add_to_duplicate_to_value():
     """
 
     """
@@ -67,18 +68,18 @@ house,TEK07,2023,DH-Gas,0.25
 
     cal = pd.read_csv(io.StringIO("""building_category,to,factor,from
 house,DH-Ingen,1.1,DH-Bio
-house,DH-Bio,1.5,DH-Gas
+house,DH-Ingen,1.1,DH-Gas
     """.strip()))
 
     result = calibrate_heating_systems(df, cal).reset_index(drop=True)
     expected = pd.read_csv(io.StringIO("""building_category,TEK,year,heating_systems,TEK_shares
-house,TEK07,2023,DH-Ingen,0.55
-house,TEK07,2023,DH-Bio,0.375
-house,TEK07,2023,DH-Gas,0.125
+house,TEK07,2023,DH-Ingen,0.6
+house,TEK07,2023,DH-Bio,0.2
+house,TEK07,2023,DH-Gas,0.2
 """.strip()))
 
     # Alternative/correct non-parallel result:
-    # Bolig, house, TEK07, 0.30, DH, 0.95, Bio, 0.05
+    # Bolig, house, TEK07, 0.30, DH, 0.95, Elec, 0.05
     # Bolig, house, TEK07, 0.15, DH, 0.95, Gas, 0.05
 
     pd.testing.assert_frame_equal(result, expected, check_like=True)
@@ -106,3 +107,18 @@ house,TEK07,0.25,DH-Gas,0.05,2023
 
     pd.testing.assert_frame_equal(result, expected, check_like=True)
     assert result is df
+
+
+def test_heating_system_calibration_does_not_produce_duplicate_values():
+    """
+    When no factor are provided to calibrate_heating_system, simply return the original dataframe
+    """
+    os.chdir('C:/Users/kenord/pyc/workspace')
+    df = pd.read_csv('kalibrering/heating_systems_shares_start_year.csv')
+    cal = pd.read_csv('kalibrering/calibrate_energy_consumption.csv')
+
+    df = df[df['building_category'] == 'house']
+    cal = cal[cal['building_category'] == 'house']
+    result = calibrate_heating_systems(df, cal)
+
+    assert isinstance(result, pd.DataFrame)

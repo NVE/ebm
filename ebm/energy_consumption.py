@@ -217,25 +217,28 @@ def calibrate_heating_systems(df: pd.DataFrame, factor: pd.DataFrame) -> pd.Data
                              right_on=['building_category', 'from'])
 
     # Calculate value to add
-    df_to_add = df_to.set_index(['building_category', 'TEK', 'to'])
+    df_to_add = df_to.set_index(['building_category', 'TEK', 'year', 'to'])
     df_to_add['v'] = df_to_add.TEK_shares * df_to_add.factor - df_to_add.TEK_shares
 
     # Calculate value to subtract
-    df_to_subtract = df_from.set_index(['building_category', 'TEK', 'from'])
-    df_to_subtract.loc[:, 'v'] = -df_to_add.reset_index().groupby(by=['building_category', 'TEK', 'from']).agg({'v': 'sum'})
+    df_to_subtract = df_from.set_index(['building_category', 'TEK', 'year', 'from'])
+    df_to_subtract.loc[:, 'v'] = -df_to_add.reset_index().groupby(by=['building_category', 'TEK', 'year', 'from']).agg(
+        {'v': 'sum'})
 
     # Join add and substract rows
-    addition_grouped = df_to_add.groupby(by=['building_category', 'TEK', 'to']).agg({'v': 'sum', 'year': 'first', 'heating_systems': 'first', 'TEK_shares': 'first', 'factor': 'first', 'from': 'first'})
-    subtraction_grouped = df_to_subtract.groupby(by=['building_category', 'TEK', 'from']).agg({'v': 'sum', 'year': 'first', 'heating_systems': 'first', 'TEK_shares': 'first', 'factor': 'first', 'to': 'first'})
+    addition_grouped = df_to_add.groupby(by=['building_category', 'TEK', 'year', 'to']).agg(
+        {'v': 'sum', 'heating_systems': 'first', 'TEK_shares': 'first', 'factor': 'first', 'from': 'first'})
+    subtraction_grouped = df_to_subtract.groupby(by=['building_category', 'TEK', 'year', 'from']).agg(
+        {'v': 'sum', 'heating_systems': 'first', 'TEK_shares': 'first', 'factor': 'first', 'to': 'first'})
 
-    df_to_sum = original.set_index(['building_category', 'TEK', 'heating_systems'])
+    df_to_sum = original.set_index(['building_category', 'TEK', 'year', 'heating_systems'])
     df_to_sum.loc[:, 'add'] = addition_grouped.loc[:, 'v']
     df_to_sum.loc[:, 'sub'] = subtraction_grouped.loc[:, 'v']
 
     df_to_sum.TEK_shares = df_to_sum.TEK_shares + df_to_sum['add'].fillna(0) + df_to_sum['sub'].fillna(0)
 
     calibrated_and_original = pd.concat([df_to_sum.reset_index(), original.reset_index()]).drop_duplicates(
-        ['building_category', 'heating_systems'],
+        ['building_category', 'TEK', 'year', 'heating_systems'],
         keep='first').drop(columns='index',
                            errors='ignore')
 

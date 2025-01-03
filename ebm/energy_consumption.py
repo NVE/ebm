@@ -206,52 +206,38 @@ def calibrate_heating_systems(df: pd.DataFrame, factor: pd.DataFrame) -> pd.Data
         return df
     original = df.copy()
     factor = factor.copy()
-    factor['heating_systems_T'] = factor['to']
-    factor['heating_systems_F'] = factor['from']
 
     # Add action and value
     df_to = original.merge(factor,
                            left_on=['building_category', 'heating_systems'],
-                           right_on=['building_category', 'heating_systems_T'])
-    df_to['act'] = 'add'
+                           right_on=['building_category', 'to'])
 
     df_from = original.merge(factor,
                              left_on=['building_category', 'heating_systems'],
-                             right_on=['building_category', 'heating_systems_F'])
-    df_from['act'] = 'sub'
-
-    df_both = pd.concat([df_to, df_from])
+                             right_on=['building_category', 'from'])
 
     # Calculate value to add
-    df_to_add = df_both[df_both['act'] == 'add'].set_index(['building_category', 'TEK', 'heating_systems_T'])
+    df_to_add = df_to.set_index(['building_category', 'TEK', 'to'])
     df_to_add['v'] = df_to_add.TEK_shares * df_to_add.factor - df_to_add.TEK_shares
 
     # Calculate value to subtract
-    df_to_subtract = df_both[df_both['act'] == 'sub'].set_index(
-        ['building_category', 'TEK', 'heating_systems_F'])
-
+    df_to_subtract = df_from.set_index(['building_category', 'TEK', 'from'])
     df_to_subtract.loc[:, 'v'] = -df_to_add.reset_index().groupby(by=['building_category', 'TEK', 'from']).agg({'v': 'sum'})
 
     # Join add and substract rows
-    df_to_add = df_to_add.reset_index().set_index(['building_category', 'TEK', 'heating_systems_T'])
-    df_to_subtract = df_to_subtract.reset_index().set_index(['building_category', 'TEK', 'heating_systems_F'])
-
-    df_to_add = df_to_add.groupby(by=['building_category', 'TEK', 'to']).agg({'v': 'sum', 'year': 'first', 'heating_systems': 'first', 'TEK_shares': 'first', 'to': 'first', 'factor': 'first', 'from': 'first','heating_systems_F': 'first', 'act': 'first'})
-    df_to_subtract = df_to_subtract.groupby(by=['building_category', 'TEK', 'from']).agg({'v': 'sum', 'year': 'first', 'heating_systems': 'first', 'TEK_shares': 'first', 'to': 'first', 'factor': 'first', 'from': 'first', 'heating_systems_T': 'first', 'act': 'first'})
+    addition_grouped = df_to_add.groupby(by=['building_category', 'TEK', 'to']).agg({'v': 'sum', 'year': 'first', 'heating_systems': 'first', 'TEK_shares': 'first', 'factor': 'first', 'from': 'first'})
+    subtraction_grouped = df_to_subtract.groupby(by=['building_category', 'TEK', 'from']).agg({'v': 'sum', 'year': 'first', 'heating_systems': 'first', 'TEK_shares': 'first', 'factor': 'first', 'to': 'first'})
 
     df_to_sum = original.set_index(['building_category', 'TEK', 'heating_systems'])
-    df_to_sum.loc[:, 'add'] = df_to_add.loc[:, 'v']
-    df_to_sum.loc[:, 'sub'] = df_to_subtract.loc[:, 'v']
+    df_to_sum.loc[:, 'add'] = addition_grouped.loc[:, 'v']
+    df_to_sum.loc[:, 'sub'] = subtraction_grouped.loc[:, 'v']
 
     df_to_sum.TEK_shares = df_to_sum.TEK_shares + df_to_sum['add'].fillna(0) + df_to_sum['sub'].fillna(0)
 
-    keep_columns = ['building_category', 'TEK', 'year', 'heating_systems', 'TEK_shares']
-
-    calibrated = df_to_sum.reset_index()[keep_columns].reindex()
-
-    calibrated_and_original = pd.concat([calibrated, original.reset_index()]).drop_duplicates(
+    calibrated_and_original = pd.concat([df_to_sum.reset_index(), original.reset_index()]).drop_duplicates(
         ['building_category', 'heating_systems'],
         keep='first').drop(columns='index',
                            errors='ignore')
 
-    return calibrated_and_original[keep_columns].reset_index(drop=True)
+    columns_to_keep = ['building_category', 'TEK', 'year', 'heating_systems', 'TEK_shares']
+    return calibrated_and_original[columns_to_keep].reset_index(drop=True)

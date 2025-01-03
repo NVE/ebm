@@ -240,6 +240,7 @@ class DatabaseManager:
         """
         Load input dataframe for "TEK-andeler"
 
+        Rename this to something more appropriate, i.e get_heating_systems
         Returns
         -------
         pd.DataFrame
@@ -263,6 +264,11 @@ class DatabaseManager:
         df = self.file_handler.get_calibrate_heating_rv()
         df = expand_building_categories(df, unique_columns=['building_category', 'purpose'])
         return df.set_index(['building_category', 'purpose'])['heating_rv_factor']
+
+    def get_calibrate_heating_systems(self) -> pd.DataFrame:
+        df = self.file_handler.get_calibrate_heating_systems()
+        df = expand_building_categories(df, unique_columns=['building_category', 'to', 'from'])
+        return df
 
     def get_area_per_person(self,
                             building_category: BuildingCategory = None) -> pd.Series:
@@ -290,7 +296,13 @@ class DatabaseManager:
         return True
 
     def get_heating_systems_shares_start_year(self):
-        return self.file_handler.get_heating_systems_shares_start_year()
+        # TODO Fix circular import issue
+        from ebm.energy_consumption import calibrate_heating_systems
+        df = self.file_handler.get_heating_systems_shares_start_year()
+        heating_systems_factor = self.get_calibrate_heating_systems()
+        calibrated = calibrate_heating_systems(df, heating_systems_factor)
+
+        return calibrated
 
     def get_heating_systems_efficiencies(self):
         return self.file_handler.get_heating_systems_efficiencies()

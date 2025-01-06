@@ -29,7 +29,8 @@ Repository = "https://NVE-devops@dev.azure.com/NVE-devops/Energibruksmodell/_git
 [tool.setuptools]
 packages = ["ebm"]
 [project.scripts]
-calculate-area-forecast = "ebm.__main__:main"
+ebm = "ebm.__main__:main"
+ebm-calibrate = "ebm.cmd.calibrate_excel_com_io:main"
 [tool.setuptools.dynamic]
 version = {attr = "ebm.__version__.version"}
 [tool.setuptools.package-data]

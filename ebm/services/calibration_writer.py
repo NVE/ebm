@@ -36,6 +36,7 @@ class ComCalibrationReader:
 
     def transform(self, com_calibration_table: typing.Tuple) -> pd.DataFrame:
         def replace_building_category(row):
+            unknown_heating_systems = set()
             for factor_name in row[2].split(' and '):
                 try:
                     bc = building_category.from_norsk(row[0])
@@ -54,7 +55,17 @@ class ComCalibrationReader:
                     extra = row[-1]
                     if not extra or extra.strip() in ('?', ''):
                         extra = HeatingSystems.ELECTRICITY
+
+                    if variabel not in HeatingSystems:
+                        unknown_heating_systems.add(variabel)
+                    if extra not in HeatingSystems:
+                        unknown_heating_systems.add(extra)
                 yield bc, erq, variabel, row[3], extra
+            if len(unknown_heating_systems) > 0:
+                unknowns = ','.join([f'"{hs}"' for hs in unknown_heating_systems])
+                msg = f'Unknown heating systems {unknowns}'
+                raise ValueError(msg)
+
 
         def handle_rows(rows):
             for row in rows:

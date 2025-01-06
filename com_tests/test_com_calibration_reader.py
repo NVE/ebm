@@ -45,7 +45,7 @@ def test_transform_unpack_purpose_when_on_and():
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Test only runs on Windows")
-def test_transform_convert_question_mark_to_electricty():
+def test_transform_convert_question_mark_to_electricity():
     """
     When `endringsparameter` is ? convert it to Electricity
     """
@@ -64,3 +64,22 @@ def test_transform_convert_question_mark_to_electricty():
         columns=['building_category', 'group', 'variable', 'heating_rv_factor', 'extra'])
 
     pd.testing.assert_frame_equal(r, expected)
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Test only runs on Windows")
+def test_transform_raise_value_error_on_unknown_heating_systems():
+    """
+    When `endringsparameter` is ? convert it to Electricity
+    """
+    from ebm.services.calibration_writer import ComCalibrationReader
+    ccr = ComCalibrationReader()
+    values = (('Bygg', 'Gruppe', 'Endringsvariabel', 'Faktor', 'Endringsparameter'),
+              ('school', 'Heating system', 'DH -Boiler', 0.9, None),
+              ('kindergarten', 'Heating system', 'DH -Boiler', 0.8, ' '),
+              ('barnehage', 'Heating system', 'DH -Boiler', 1.1, ' ?   '))
+
+    with pytest.raises(ValueError):
+        ccr.transform(values)
+
+
+

@@ -240,7 +240,8 @@ def calibrate_heating_systems(df: pd.DataFrame, factor: pd.DataFrame, multiply=F
 
     df_to_sum = original.set_index(['building_category', 'TEK', 'year', 'heating_systems'])
     df_to_sum.loc[:, 'add'] = addition_grouped.loc[:, 'v']
-    df_to_sum.loc[:, 'sub'] = subtraction_grouped.loc[:, 'v']
+    df_to_sum.loc[:, 'sub'] = subtraction_grouped.loc[:, 'v'].fillna(0)
+    df_to_sum.loc[:, 'sub'] = df_to_sum.loc[:, 'sub'].fillna(0)
 
     df_to_sum.TEK_shares = df_to_sum.TEK_shares + df_to_sum['add'].fillna(0) + df_to_sum['sub'].fillna(0)
 

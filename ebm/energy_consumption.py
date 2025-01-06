@@ -1,5 +1,3 @@
-import typing
-
 from loguru import logger
 import pandas as pd
 
@@ -228,15 +226,15 @@ def calibrate_heating_systems(df: pd.DataFrame, factor: pd.DataFrame, multiply=F
         df_to_add['v'] = df_to_add.TEK_shares * df_to_add.factor - df_to_add.TEK_shares
 
     # Calculate value to subtract
-    df_to_subtract = df_from.set_index(['building_category', 'TEK', 'year', 'from'])
-    df_to_subtract.loc[:, 'v'] = -df_to_add.reset_index().groupby(by=['building_category', 'TEK', 'year', 'from']).agg(
+    df_to_subtract = df_from.set_index(['building_category', 'TEK', 'year', 'from', 'to'])
+    df_to_subtract.loc[:, 'v'] = -df_to_add.reset_index().groupby(by=['building_category', 'TEK', 'year', 'from', 'to']).agg(
         {'v': 'sum'})
 
     # Join add and substract rows
     addition_grouped = df_to_add.groupby(by=['building_category', 'TEK', 'year', 'to']).agg(
         {'v': 'sum', 'heating_systems': 'first', 'TEK_shares': 'first', 'factor': 'first', 'from': 'first'})
     subtraction_grouped = df_to_subtract.groupby(by=['building_category', 'TEK', 'year', 'from']).agg(
-        {'v': 'sum', 'heating_systems': 'first', 'TEK_shares': 'first', 'factor': 'first', 'to': 'first'})
+        {'v': 'sum', 'heating_systems': 'first', 'TEK_shares': 'first', 'factor': 'first'})
 
     df_to_sum = original.set_index(['building_category', 'TEK', 'year', 'heating_systems'])
     df_to_sum.loc[:, 'add'] = addition_grouped.loc[:, 'v']

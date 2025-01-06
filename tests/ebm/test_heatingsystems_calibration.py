@@ -8,30 +8,6 @@ import pytest
 from ebm.energy_consumption import calibrate_heating_systems
 
 
-def test_heating_system_calibration_reduce_other_type():
-    df = pd.read_csv(io.StringIO("""building_category,TEK,TEK_shares,heating_systems,year
-apartment_block,TEK07,0.5,Electricity,2023
-apartment_block,TEK07,0.5,Gas,2023
-house,TEK07,0.5,DH,2023
-house,TEK07,0.5,DH-Bio,2023
-""".strip()))
-
-    cal = pd.read_csv(io.StringIO("""building_category,to,factor,from
-apartment_block,Electricity,1.1,Gas
-house,DH-Bio,2,DH
-    """.strip()))
-
-    result = calibrate_heating_systems(df, cal)
-    expected = pd.read_csv(io.StringIO("""building_category,TEK,year,heating_systems,TEK_shares
-apartment_block,TEK07,2023,Electricity,0.55
-apartment_block,TEK07,2023,Gas,0.45
-house,TEK07,2023,DH,0.0
-house,TEK07,2023,DH-Bio,1.0
-""".strip()))
-
-    pd.testing.assert_frame_equal(result, expected, check_like=True)
-
-
 def test_heating_system_calibration_keep_uncalibrated_heating_systems_in_frame():
     """
     Make sure any heating system value in the original dataframe remains untouched when no related calibration is
@@ -53,6 +29,33 @@ house,DH,1.1,DH-Bio
 house,TEK07,2023,DH,0.55
 house,TEK07,2023,DH-Bio,0.20
 house,TEK07,2023,DH-Gas,0.25
+""".strip()))
+
+    pd.testing.assert_frame_equal(result, expected, check_like=True)
+
+
+def test_heating_system_calibration_reduce_other_type():
+    df = pd.read_csv(io.StringIO("""building_category,TEK,TEK_shares,heating_systems,year
+apartment_block,TEK07,0.5,Electricity,2023
+apartment_block,TEK07,0.5,Gas,2023
+house,TEK07,0.5,DH,2023
+house,TEK07,0.5,DH-Bio,2023
+house,TEK07,1.0,Electrical boiler,2023
+""".strip()))
+
+    cal = pd.read_csv(io.StringIO("""building_category,to,factor,from
+apartment_block,Electricity,1.1,Gas
+apartment_block,Electricity,1,Electrical boiler
+house,DH-Bio,2,DH
+    """.strip()))
+
+    result = calibrate_heating_systems(df, cal)
+    expected = pd.read_csv(io.StringIO("""building_category,TEK,year,heating_systems,TEK_shares
+apartment_block,TEK07,2023,Electricity,0.55
+apartment_block,TEK07,2023,Gas,0.45
+house,TEK07,2023,DH,0.0
+house,TEK07,2023,DH-Bio,1.0
+house,TEK07,2023,Electrical boiler,1.0
 """.strip()))
 
     pd.testing.assert_frame_equal(result, expected, check_like=True)
@@ -123,7 +126,10 @@ def test_heating_system_calibration_round_values_within_specification():
     # cal = pd.DataFrame(data=[['heis', 'DH', 100.0, 'DH - Bio']], columns=['building_category', 'to', 'factor', 'from'])
     df = df[df['building_category'] == 'house']
     df_shares = df.groupby(by=['building_category', 'TEK', 'year']).sum().TEK_shares
-#    assert all(df_shares == 1.000000000)
+    for idx, tek_share in df_shares.items():
+        # assert tek_share == 1.0, f'{idx} {tek_share=} expected=1.0'
+        assert 1.01 > tek_share > 0.99
+
     cal = cal[cal['building_category'] == 'house']
     result = calibrate_heating_systems(df, cal)
     #assert isinstance(result, pd.DataFrame)
@@ -131,8 +137,8 @@ def test_heating_system_calibration_round_values_within_specification():
     summed_result = result.groupby(by=['building_category', 'TEK']).sum()
 
     for idx, tek_share in summed_result.TEK_shares.items():
+        # assert tek_share == 1.0, f'{idx} {tek_share=} expected=1.0'
         assert 1.01 > tek_share > 0.99
-        #assert tek_share == 1.0, f'{idx} {tek_share=} expected=1.0'
 
 
 def test_heating_system_calibration_preserve_tek():
@@ -208,3 +214,30 @@ house,TEK07,2023,HP Central heating - Gas,0.00373076086305975""".strip()))
 
     assert 0.9999999 < float(result.groupby(by=['building_category', 'TEK']).sum().TEK_shares) < 1.000001
     pd.testing.assert_frame_equal(result, expected, check_like=True, atol=1e-5)
+
+
+def test_heating_system_calibration_reduce_single_building_category():
+    df = pd.read_csv(io.StringIO("""building_category,TEK,TEK_shares,heating_systems,year
+apartment_block,TEK07,1.0,Electric boiler,2023
+apartment_block,TEK07,2.0,Electricity,2023
+apartment_block,TEK07,3.0,Gas,2023
+apartment_block,TEK07,4.0,DH,2023
+""".strip()))
+
+    cal = pd.read_csv(io.StringIO("""building_category,to,factor,from
+apartment_block,Electric boiler,1.5,Electricity
+apartment_block,Electricity,1.0,Electricity
+apartment_block,Gas,1.0,Electricity
+apartment_block,DH,1.0,Electricity
+apartment_block,Bio,1.0,Electricity
+    """.strip()))
+
+    result = calibrate_heating_systems(df, cal)
+    expected = pd.read_csv(io.StringIO("""building_category,TEK,year,heating_systems,TEK_shares
+apartment_block,TEK07,2023,Electric boiler,1.5
+apartment_block,TEK07,2023,Electricity,1.5
+apartment_block,TEK07,2023,Gas,3.0
+apartment_block,TEK07,2023,DH,4.0
+""".strip()))
+
+    pd.testing.assert_frame_equal(result, expected)

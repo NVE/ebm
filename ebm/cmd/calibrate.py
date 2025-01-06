@@ -3,7 +3,6 @@ import pathlib
 from loguru import logger
 import pandas as pd
 
-import pyperclip
 from dotenv import load_dotenv
 
 from ebm.model import DatabaseManager, FileHandler
@@ -53,7 +52,6 @@ def run_calibration(database_manager,
 def main():
     transformed = run_calibration(DatabaseManager(FileHandler(directory='kalibrering')), calibration_year=2023)
     tabbed = transformed.round(1).to_csv(sep='\t', header=False, index_label=None).replace('.', ',')
-    pyperclip.copy(tabbed)
 
 
 if __name__ == '__main__':

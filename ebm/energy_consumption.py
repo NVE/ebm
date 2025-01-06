@@ -200,12 +200,15 @@ class EnergyConsumption:
         return energy_requirements
 
 
-def calibrate_heating_systems(df: pd.DataFrame, factor: pd.DataFrame) -> pd.DataFrame:
+def calibrate_heating_systems(df: pd.DataFrame, factor: pd.DataFrame, multiply=False) -> pd.DataFrame:
     # When factor is empty or all factors are 1.0, there is no need to change anything.
     if len(factor) == 0 or (factor.factor == 1.0).all():
         return df
     original = df.copy()
     factor = factor.copy()
+
+    if multiply:
+        factor['factor'] = factor['factor'] * 100
 
     # Add action and value
     df_to = original.merge(factor,
@@ -218,7 +221,11 @@ def calibrate_heating_systems(df: pd.DataFrame, factor: pd.DataFrame) -> pd.Data
 
     # Calculate value to add
     df_to_add = df_to.set_index(['building_category', 'TEK', 'year', 'to'])
-    df_to_add['v'] = df_to_add.TEK_shares * df_to_add.factor - df_to_add.TEK_shares
+
+    if multiply:
+        df_to_add['v'] = (df_to_add.TEK_shares * df_to_add.factor)/100 - df_to_add.TEK_shares
+    else:
+        df_to_add['v'] = df_to_add.TEK_shares * df_to_add.factor - df_to_add.TEK_shares
 
     # Calculate value to subtract
     df_to_subtract = df_from.set_index(['building_category', 'TEK', 'year', 'from'])

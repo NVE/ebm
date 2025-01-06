@@ -15,7 +15,7 @@ class EnergyRequirementCalibrationWriter:
         if to_file is None:
             to_file = pathlib.Path('input/calibrate_heating_rv.xlsx')
         file_path: pathlib.Path = to_file if isinstance(to_file, pathlib.Path) else pathlib.Path(to_file)
-        df = df[df['group'] == 'energy_requirements']
+        df = df[df['group'].isin(['energy_requirements', 'energy_requirement'])]
         df = df.rename(columns={'variable': 'purpose'})
         df = df[['building_category', 'purpose', 'heating_rv_factor']].reset_index(drop=True)
         if file_path.suffix == '.csv':

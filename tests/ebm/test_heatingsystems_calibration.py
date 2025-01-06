@@ -127,8 +127,7 @@ def test_heating_system_calibration_round_values_within_specification():
     df = df[df['building_category'] == 'house']
     df_shares = df.groupby(by=['building_category', 'TEK', 'year']).sum().TEK_shares
     for idx, tek_share in df_shares.items():
-        # assert tek_share == 1.0, f'{idx} {tek_share=} expected=1.0'
-        assert 1.01 > tek_share > 0.99
+        assert tek_share == 1.0, f'{idx} {tek_share=} expected=1.0'
 
     cal = cal[cal['building_category'] == 'house']
     result = calibrate_heating_systems(df, cal)
@@ -137,8 +136,7 @@ def test_heating_system_calibration_round_values_within_specification():
     summed_result = result.groupby(by=['building_category', 'TEK']).sum()
 
     for idx, tek_share in summed_result.TEK_shares.items():
-        # assert tek_share == 1.0, f'{idx} {tek_share=} expected=1.0'
-        assert 1.01 > tek_share > 0.99
+        assert tek_share == 1.0, f'{idx} {tek_share=} expected=1.0'
 
 
 def test_heating_system_calibration_preserve_tek():

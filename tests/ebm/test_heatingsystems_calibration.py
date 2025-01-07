@@ -171,6 +171,7 @@ house,TEK10,2024,DH-Bio,0.25
     pd.testing.assert_frame_equal(result, expected, check_like=True)
 
 
+@pytest.mark.skipif(not pathlib.Path('C:/Users/kenord/pyc/workspace').is_dir(), reason='Require special environment')
 def test_heating_system_calibration_add_5_percent():
     """
     When no factor are provided to calibrate_heating_system, simply return the original dataframe

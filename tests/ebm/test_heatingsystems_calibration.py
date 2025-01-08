@@ -127,7 +127,7 @@ def test_heating_system_calibration_round_values_within_specification():
     df = df[df['building_category'] == 'house']
     df_shares = df.groupby(by=['building_category', 'TEK', 'year']).sum().TEK_shares
     for idx, tek_share in df_shares.items():
-        assert tek_share == 1.0, f'{idx} {tek_share=} expected=1.0'
+        assert round(tek_share, 12) == 1.0, f'{idx} {tek_share=} expected=1.0'
 
     cal = cal[cal['building_category'] == 'house']
     result = calibrate_heating_systems(df, cal)
@@ -136,7 +136,7 @@ def test_heating_system_calibration_round_values_within_specification():
     summed_result = result.groupby(by=['building_category', 'TEK']).sum()
 
     for idx, tek_share in summed_result.TEK_shares.items():
-        assert tek_share == 1.0, f'{idx} {tek_share=} expected=1.0'
+        assert round(tek_share, 12) == 1.0, f'{idx} {tek_share=} expected=1.0'
 
 
 def test_heating_system_calibration_preserve_tek():
@@ -240,3 +240,56 @@ apartment_block,TEK07,2023,DH,4.0
 """.strip()))
 
     pd.testing.assert_frame_equal(result, expected)
+
+
+def test_calibration_when_factor_is_zero():
+    df = pd.read_csv(io.StringIO("""building_category,TEK,heating_systems,year,TEK_shares
+house,TEK49,Electricity,2023,0.3
+house,TEK49,DH,2023,0.2
+house,TEK49,DH - Bio,2023,0.1
+house,TEK49,Electric boiler,2023,0.05
+house,TEK49,Electric boiler - Solar,2023,0.05
+house,TEK49,Electricity - Bio,2023,0.05
+house,TEK49,HP - Bio - Electricity,2023,0.14
+house,TEK49,HP - Electricity,2023,0.049
+house,TEK49,HP Central heating - Electric boiler,2023,0.05
+house,TEK49,HP Central heating - Gas,2023,0.01
+house,TEK49,Gas,2023,0.001
+apartment_block,TEK49,DH,2023,0.2067590404511288
+apartment_block,TEK49,DH - Bio,2023,0.003394660630861671
+apartment_block,TEK49,Electric boiler,2023,0.03403467404707875
+apartment_block,TEK49,Electric boiler - Solar,2023,0.0003390668680222294
+apartment_block,TEK49,Electricity,2023,0.4560101624930742
+apartment_block,TEK49,Electricity - Bio,2023,0.1128016818166627
+apartment_block,TEK49,Gas,2023,0.02054242374431415
+apartment_block,TEK49,HP - Electricity,2023,0.007304631698217375
+apartment_block,TEK49,HP Central heating - Bio,2023,0.008664794451257389
+apartment_block,TEK49,HP Central heating - Electric boiler,2023,0.1487089355849942
+apartment_block,TEK49,HP Central heating - Gas,2023,0.001439928214388532""".strip()))
+
+    cal = pd.read_csv(io.StringIO("""building_category,to,factor,from
+house,Gas,0,Electricity
+apartment_block,Gas,0,Electric boiler
+        """.strip()))
+    result = calibrate_heating_systems(df, cal).set_index(['building_category', 'TEK', 'year', 'heating_systems'])
+
+    assert result.loc[('house', 'TEK49', 2023, 'Electricity'), 'TEK_shares'] == 0.301
+    assert result.loc[('house', 'TEK49', 2023, 'DH'), 'TEK_shares'] == 0.2
+    assert result.loc[('house', 'TEK49', 2023, 'DH - Bio'), 'TEK_shares'] == 0.1
+    assert result.loc[('house', 'TEK49', 2023, 'Electric boiler'), 'TEK_shares'] == 0.05
+    assert result.loc[('house', 'TEK49', 2023, 'Electric boiler - Solar'), 'TEK_shares'] == 0.05
+    assert result.loc[('house', 'TEK49', 2023, 'Electricity - Bio'), 'TEK_shares'] == 0.05
+    assert result.loc[('house', 'TEK49', 2023, 'HP - Bio - Electricity'), 'TEK_shares'] == 0.14
+    assert result.loc[('house', 'TEK49', 2023, 'HP - Electricity'), 'TEK_shares'] == 0.049
+    assert result.loc[('house', 'TEK49', 2023, 'HP Central heating - Electric boiler'), 'TEK_shares'] == 0.05
+    assert result.loc[('house', 'TEK49', 2023, 'HP Central heating - Gas'), 'TEK_shares'] == 0.01
+    assert result.loc[('house', 'TEK49', 2023, 'Gas'), 'TEK_shares'] == 0.0
+
+    assert result.loc[('apartment_block', 'TEK49', 2023, 'Gas'), 'TEK_shares'] == 0.0
+    assert result.loc[('apartment_block', 'TEK49', 2023, 'Electric boiler'), 'TEK_shares'].round(12) == 0.054577097791
+
+    assert result.loc[('house', 'TEK49', 2023, slice(None)), 'TEK_shares'].sum() == 1.0
+    assert result.loc[('apartment_block', 'TEK49', 2023, slice(None)), 'TEK_shares'].sum().round(12) == 1.0
+
+
+

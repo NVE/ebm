@@ -297,10 +297,10 @@ class DatabaseManager:
 
     def get_heating_systems_shares_start_year(self):
         # TODO Fix circular import issue
-        from ebm.energy_consumption import calibrate_heating_systems_adder
+        from ebm.energy_consumption import calibrate_heating_systems
         df = self.file_handler.get_heating_systems_shares_start_year()
         heating_systems_factor = self.get_calibrate_heating_systems()
-        calibrated = calibrate_heating_systems_adder(df, heating_systems_factor)
+        calibrated = calibrate_heating_systems(df, heating_systems_factor)
 
         return calibrated
 

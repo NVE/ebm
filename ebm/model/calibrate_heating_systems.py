@@ -84,8 +84,17 @@ def transform_by_energy_source(df, energy_class_column, energy_source_column):
 def transform_heating_systems(df: pd.DataFrame, calibration_year) -> pd.DataFrame:
     df = df.reindex()
     df['building_group'] = 'yrkesbygg'
-    df.loc[('house', slice(None),slice(None),slice(None),slice(None), slice(None),), 'building_group'] = 'bolig'
-    df.loc[('apartment_block', slice(None),slice(None),slice(None), slice(None), slice(None),), 'building_group'] = 'bolig'
+    try:
+        df.loc[('house', slice(None),slice(None),slice(None),slice(None), slice(None),), 'building_group'] = 'bolig'
+    except KeyError as key_error:
+        logger.error('Missing key when setting group bolig for house')
+        logger.error(key_error)
+    try:
+        df.loc[('apartment_block', slice(None),slice(None),slice(None), slice(None), slice(None),), 'building_group'] = 'bolig'
+    except KeyError as key_error:
+        logger.error('Missing key when setting group bolig for apartment_block')
+        logger.error(key_error)
+
     # df.loc['apartment_block', 'building_group'] = 'bolig'
 
     df['ALWAYS_ELECTRICITY'] = 'Electricity'
@@ -98,16 +107,32 @@ def transform_heating_systems(df: pd.DataFrame, calibration_year) -> pd.DataFram
     rv_hp = transform_by_energy_source(df, HEAT_PUMP, HP_ENERGY_SOURCE)
 
     energy_use = pd.concat([rv_gl, rv_sl, rv_el, cooling, spesifikt_elforbruk, tappevann, rv_hp])
-    energy_use.loc[energy_use['energy_source'] == 'Solar', 'energy_source'] = 'Electricity'
+    try:
+        energy_use.loc[energy_use['energy_source'] == 'Solar', 'energy_source'] = 'Electricity'
+    except KeyError as key_error:
+        logger.exception(key_error)
+
     energy_use = energy_use.xs(calibration_year, level='year')
 
     sums = energy_use.groupby(by=['building_group', 'energy_source']).sum() / (10**6)
     df = sums.reset_index()
     df = df.rename(columns={'building_group': 'building_category'})
-    df.loc[df.energy_source == 'DH', 'energy_source'] = 'Fjernvarme'
-    df.loc[df.energy_source == 'Electricity', 'energy_source'] = 'Elektrisitet'
-    df.loc[df.building_category == 'bolig', 'building_category'] = 'Bolig'
-    df.loc[df.building_category == 'yrkesbygg', 'building_category'] = 'Yrkesbygg'
+    try:
+        df.loc[df.energy_source == 'DH', 'energy_source'] = 'Fjernvarme'
+    except KeyError as ex:
+        logger.exception(ex)
+    try:
+        df.loc[df.energy_source == 'Electricity', 'energy_source'] = 'Elektrisitet'
+    except KeyError as ex:
+        logger.exception(ex)
+    try:
+        df.loc[df.building_category == 'bolig', 'building_category'] = 'Bolig'
+    except KeyError as ex:
+        logger.exception(ex)
+    try:
+        df.loc[df.building_category == 'yrkesbygg', 'building_category'] = 'Yrkesbygg'
+    except KeyError as ex:
+        logger.exception(ex)
     return df.set_index(['building_category', 'energy_source'])
 
 

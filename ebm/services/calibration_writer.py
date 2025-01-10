@@ -82,7 +82,7 @@ class ComCalibrationReader:
         return df
 
 
-class CalibrationResultWriter:
+class ExcelComCalibrationResultWriter:
     """
     A class to handle the extraction, transformation, and loading of a pd.Dataframe to a open Excel spreadsheet.
     The Dataframe is expected to have two columns in the index. The first index column is used to match the

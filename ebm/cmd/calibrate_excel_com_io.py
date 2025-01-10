@@ -73,9 +73,9 @@ def main():
     energy_source_by_building_group = transform_heating_systems(df, calibration_year)
     energy_source_by_building_group = energy_source_by_building_group.fillna(0)
 
-    logger.info(f'Writing heating systems distribution to {calibration_out}')
-    hs_distribution_writer = CalibrationResultWriter(excel_filename=calibration_out,
-                                                     target_cells=hs_distribution_cells)
+    logger.info(f'Writing heating systems distribution to {calibration_spreadsheet_name}')
+    hs_distribution_writer = ExcelComCalibrationResultWriter(excel_filename=calibration_spreadsheet_name,
+                                                             target_cells=hs_distribution_cells)
 
     distribution_of_heating_systems_by_building_group = DistributionOfHeatingSystems().transform(
         database_manager.get_heating_systems_shares_start_year())
@@ -83,19 +83,23 @@ def main():
     hs_distribution_writer.transform(distribution_of_heating_systems_by_building_group)
     hs_distribution_writer.load()
 
-    logger.info(f'Writing energy_source using writer to {calibration_out}')
-    writer = CalibrationResultWriter(excel_filename=calibration_out,
-                                     target_cells=energy_source_target_cells)
-    writer.extract()
-    writer.transform(energy_source_by_building_group)
-    writer.load()
-    logger.info(f'Writing calculated energy pump use to {calibration_out}')
-    writer = CalibrationResultWriter(excel_filename=calibration_out,
-                                     target_cells=ebm_calibration_energy_heating_pump)
-    writer.extract()
-    writer.transform(energy_source_by_building_group)
-    writer.load()
-    logger.info(f'Calibrated {calibration_out} in {round(time.time() - start_time, 2)} seconds')
+    logger.info(f'Writing energy_source using writer to {calibration_spreadsheet_name}')
+    energy_source_excel_com_writer = ExcelComCalibrationResultWriter(
+        excel_filename=calibration_spreadsheet_name, target_cells=energy_source_cells)
+
+    energy_source_excel_com_writer.extract()
+    energy_source_excel_com_writer.transform(energy_source_by_building_group)
+    energy_source_excel_com_writer.load()
+
+    logger.info(f'Writing calculated energy pump use to {calibration_spreadsheet_name}')
+    heatpump_excel_com_writer = ExcelComCalibrationResultWriter(
+        excel_filename=calibration_spreadsheet_name, target_cells=ebm_calibration_energy_heating_pump)
+
+    heatpump_excel_com_writer.extract()
+    heatpump_excel_com_writer.transform(energy_source_by_building_group)
+    heatpump_excel_com_writer.load()
+
+    logger.info(f'Calibrated {calibration_spreadsheet_name} in {round(time.time() - start_time, 2)} seconds')
 
 
 if __name__ == '__main__':

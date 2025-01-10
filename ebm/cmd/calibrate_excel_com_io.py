@@ -6,17 +6,27 @@ import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
-from ebm.cmd.calibrate import run_calibration
+from ebm.cmd.calibrate import run_calibration, write_dataframe
 from ebm.cmd.run_calculation import configure_loglevel
 from ebm.model import FileHandler, DatabaseManager
 from ebm.model.calibrate_energy_requirements import EnergyRequirementCalibrationWriter, \
     EnergyConsumptionCalibrationWriter
 from ebm.model.calibrate_heating_systems import DistributionOfHeatingSystems, transform_heating_systems
-from ebm.services.calibration_writer import ComCalibrationReader, CalibrationResultWriter
+from ebm.services.calibration_writer import ComCalibrationReader, ExcelComCalibrationResultWriter
 
 LOG_FORMAT = """
 <green>{time:HH:mm:ss.SSS}</green> | <blue>{elapsed}</blue> | <level>{level: <8}</level> | <cyan>{function: <20}</cyan>:<cyan>{line: <3}</cyan> - <level>{message}</level>
 """.strip()
+
+
+def heatpump_filter(df):
+    vannbasert = [n for n in df.index.get_level_values('heating_systems').unique() if
+                  n.startswith('HP Central heating')]
+    elektrisk = [n for n in df.index.get_level_values('heating_systems').unique() if
+                 n.startswith('HP') and n not in vannbasert]
+    el_slice = (slice(None), ['original_condition'], ['heating_rv'], ['TEK07'], slice(None), elektrisk + vannbasert)
+    df = df.loc[el_slice]  # luftluft
+    return df
 
 
 def main():
@@ -26,7 +36,7 @@ def main():
 
     write_to_disk = os.environ.get('EBM_WRITE_TO_DISK', 'False').upper() == 'TRUE'
     calibration_year = int(os.environ.get('EBM_CALIBRATION_YEAR', 2023))
-    calibration_out = os.environ.get("EBM_CALIBRATION_OUT", "Kalibreringsark.xlsx!Ut")
+    calibration_spreadsheet_name = os.environ.get("EBM_CALIBRATION_OUT", "Kalibreringsark.xlsx!Ut")
     calibration_sheet = os.environ.get("EBM_CALIBRATION_SHEET", "Kalibreringsark.xlsx!Kalibreringsfaktorer")
 
     energy_requirements_calibration_file = os.environ.get('EBM_CALIBRATION_ENERGY_REQUIREMENT',
@@ -38,18 +48,20 @@ def main():
     ebm_calibration_energy_heating_pump = os.environ.get('EBM_CALIBRATION_ENERGY_HEATING_PUMP', 'C72:E74')
     hs_distribution_cells = os.environ.get('EBM_CALIBRATION_ENERGY_HEATING_SYSTEMS_DISTRIBUTION', 'C32:F44')
 
+    output_directory = pathlib.Path('output')
+
     logger.info(f'Loading {calibration_sheet}')
+    workbook_name = calibration_sheet.split('!')[0]
+    sheet_name = calibration_sheet.split('!')[1] if '!' in calibration_sheet else 'Kalibreringsfaktorer'
 
-    com_calibration_reader = ComCalibrationReader(*calibration_sheet.split('!'))
-    values = com_calibration_reader.extract()
-
+    com_calibration_reader = ComCalibrationReader(workbook_name, sheet_name)
+    calibration = com_calibration_reader.extract()
     logger.info(f'Make {calibration_sheet} compatible with ebm')
-    energy_source_by_building_group = com_calibration_reader.transform(values)
+    energy_source_by_building_group = com_calibration_reader.transform(calibration)
 
     logger.info('Write calibration to ebm')
     enreq_writer = EnergyRequirementCalibrationWriter()
-    enreq_writer.load(energy_source_by_building_group,
-                      energy_requirements_calibration_file)
+    enreq_writer.load(energy_source_by_building_group, energy_requirements_calibration_file)
 
     energy_consumption_writer = EnergyConsumptionCalibrationWriter()
     ec_calibration = energy_consumption_writer.transform(energy_source_by_building_group)
@@ -63,6 +75,7 @@ def main():
         area_forecast = pd.read_csv(area_forecast_file)
 
     database_manager = DatabaseManager(FileHandler(directory='kalibrering'))
+
     df = run_calibration(database_manager, calibration_year=2023,
                          area_forecast=area_forecast, write_to_output=write_to_disk)
 
@@ -71,21 +84,29 @@ def main():
     logger.info('Transform heating systems')
 
     energy_source_by_building_group = transform_heating_systems(df, calibration_year)
+
+    if write_to_disk:
+        if not output_directory.is_dir():
+            output_directory.mkdir()
+        write_dataframe(energy_source_by_building_group, 'energy_source_by_building_group')
+
     energy_source_by_building_group = energy_source_by_building_group.fillna(0)
 
     logger.info(f'Writing heating systems distribution to {calibration_spreadsheet_name}')
     hs_distribution_writer = ExcelComCalibrationResultWriter(excel_filename=calibration_spreadsheet_name,
                                                              target_cells=hs_distribution_cells)
 
-    distribution_of_heating_systems_by_building_group = DistributionOfHeatingSystems().transform(
-        database_manager.get_heating_systems_shares_start_year())
+    distribution_of_heating_systems = DistributionOfHeatingSystems()
+    shares_start_year = distribution_of_heating_systems.extract(database_manager)
+    heating_systems_distribution = distribution_of_heating_systems.transform(shares_start_year)
+
     hs_distribution_writer.extract()
-    hs_distribution_writer.transform(distribution_of_heating_systems_by_building_group)
+    hs_distribution_writer.transform(heating_systems_distribution)
     hs_distribution_writer.load()
 
     logger.info(f'Writing energy_source using writer to {calibration_spreadsheet_name}')
     energy_source_excel_com_writer = ExcelComCalibrationResultWriter(
-        excel_filename=calibration_spreadsheet_name, target_cells=energy_source_cells)
+        excel_filename=calibration_spreadsheet_name, target_cells=energy_source_target_cells)
 
     energy_source_excel_com_writer.extract()
     energy_source_excel_com_writer.transform(energy_source_by_building_group)

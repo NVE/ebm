@@ -239,7 +239,7 @@ class CalibrationResultWriter:
                 column_name = 'TEK_shares' if 'TEK_shares' in df.columns else df.columns[-1]
                 value = df.loc[(row_header, column_header), column_name]
             except KeyError as ex:
-                logger.error(f'KeyError {str(ex)} while loading data for {cell.spreadsheet_cell()}')
+                logger.warning(f'KeyError {str(ex)} while loading data for cell {cell.spreadsheet_cell()}')
                 value = f'KeyError {str(ex)}'
             self.cells_to_update.append(SpreadsheetCell(row=cell.row, column=cell.column, value=value))
 

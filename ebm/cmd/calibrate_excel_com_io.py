@@ -24,6 +24,7 @@ def main():
     load_dotenv(pathlib.Path('.env'))
     configure_loglevel(format=LOG_FORMAT)
 
+    write_to_disk = os.environ.get('EBM_WRITE_TO_DISK', 'False').upper() == 'TRUE'
     calibration_year = int(os.environ.get('EBM_CALIBRATION_YEAR', 2023))
     calibration_out = os.environ.get("EBM_CALIBRATION_OUT", "Kalibreringsark.xlsx!Ut")
     calibration_sheet = os.environ.get("EBM_CALIBRATION_SHEET", "Kalibreringsark.xlsx!Kalibreringsfaktorer")
@@ -63,7 +64,10 @@ def main():
 
     database_manager = DatabaseManager(FileHandler(directory='kalibrering'))
     df = run_calibration(database_manager, calibration_year=2023,
-                         area_forecast=area_forecast)
+                         area_forecast=area_forecast, write_to_output=write_to_disk)
+
+    # df = heatpump_filter(df)
+
     logger.info('Transform heating systems')
 
     energy_source_by_building_group = transform_heating_systems(df, calibration_year)

@@ -8,6 +8,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 
 from ebm.__main__ import calculate_building_category_area_forecast
 from ebm.model import BuildingCategory, DatabaseManager
+from ebm.model.bema_validation import get_building_category_sheet
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
 from ebm.model.data_classes import YearRange
@@ -439,3 +440,42 @@ def beregne_energibehov(building_category = BuildingCategory.KINDERGARTEN):
                 building_category=building_category,
                 purpose='cooling'))
         })
+
+def make_building_condition(v):
+    if 'u' in v:
+        return BuildingCondition.ORIGINAL_CONDITION
+    if 're' in v:
+        return BuildingCondition.RENOVATION_AND_SMALL_MEASURE
+    if 'r' in v:
+        return BuildingCondition.RENOVATION
+    if 'e' in v:
+        return BuildingCondition.SMALL_MEASURE
+    if 'd' in v:
+        return BuildingCondition.DEMOLITION
+    return v
+
+def make_tek(v):
+    if '48' in v:
+        return 'PRE_TEK49'
+    return f'TEK{v[0:2]}'
+
+def load_building_categories_area(spreadsheet_file):
+    df = pd.concat([load_building_category_area(spreadsheet_file, bc) for bc in BuildingCategory]).reset_index(drop=True)
+    return df
+
+def load_building_category_area(spreadsheet_file, building_category):
+    sheet_name = get_building_category_sheet(building_category, area_sheet=True)
+    df = pd.read_excel(spreadsheet_file, sheet_name=sheet_name, skiprows=346, nrows=36)
+    df = df.rename(columns={'Unnamed: 3': 'TEK_condition'})
+    df.loc[:, 'building_category'] = building_category
+    df.loc[:, 'building_condition'] = df['TEK_condition'].apply(make_building_condition)
+    df.loc[:, 'TEK'] = df['TEK_condition'].apply(make_tek)
+    df = df.drop(columns=[c for c in df.columns.to_list() if str(c).startswith("Unnamed")] + ['Samlet arealutvikling scenario R', 'TEK_condition'], errors='ignore')
+
+    return df
+
+
+def merge_teks(df, teks, merged_tek_name = None):
+    merged_df = df[df.TEK.isin(teks)].groupby(by=['building_category', 'building_condition'], as_index=False).sum()
+    merged_df.TEK = merged_tek_name if merged_tek_name else teks[0]
+    return pd.concat([df[~df.TEK.isin(teks)], merged_df]).reset_index(drop=True)

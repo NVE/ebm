@@ -107,10 +107,6 @@ def transform_heating_systems(df: pd.DataFrame, calibration_year) -> pd.DataFram
     rv_hp = transform_by_energy_source(df, HEAT_PUMP, HP_ENERGY_SOURCE)
 
     energy_use = pd.concat([rv_gl, rv_sl, rv_el, cooling, spesifikt_elforbruk, tappevann, rv_hp])
-    try:
-        energy_use.loc[energy_use['energy_source'] == 'Solar', 'energy_source'] = 'Electricity'
-    except KeyError as key_error:
-        logger.exception(key_error)
 
     energy_use = energy_use.xs(calibration_year, level='year')
 

@@ -60,12 +60,12 @@ def main():
     energy_source_by_building_group = com_calibration_reader.transform(calibration)
 
     logger.info('Write calibration to ebm')
-    enreq_writer = EnergyRequirementCalibrationWriter()
-    enreq_writer.load(energy_source_by_building_group, energy_requirements_calibration_file)
+    eq_calibration_writer = EnergyRequirementCalibrationWriter()
+    eq_calibration_writer.load(energy_source_by_building_group, energy_requirements_calibration_file)
 
-    energy_consumption_writer = EnergyConsumptionCalibrationWriter()
-    ec_calibration = energy_consumption_writer.transform(energy_source_by_building_group)
-    energy_consumption_writer.load(ec_calibration, energy_consumption_calibration_file)
+    ec_calibration_writer = EnergyConsumptionCalibrationWriter()
+    ec_calibration = ec_calibration_writer.transform(energy_source_by_building_group)
+    ec_calibration_writer.load(ec_calibration, energy_consumption_calibration_file)
 
     logger.info('Calculate calibrated energy use')
     area_forecast = None

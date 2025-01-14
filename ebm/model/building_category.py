@@ -60,7 +60,6 @@ class BuildingCategory(StrEnum, metaclass=MyEnumType):
                 return building_category
         raise ValueError(f'No such building category {category_name}')
 
-
 def from_norsk(norsk: str) -> BuildingCategory:
     if norsk.lower() == 'småhus':
         return BuildingCategory.HOUSE
@@ -147,3 +146,10 @@ def expand_building_categories(df: pd.DataFrame, unique_columns: typing.List[str
     filtered = [d[~d.building_category.isin(specific.building_category)] for d in expanded_groups]
 
     return pd.concat(filtered + [specific]).reindex()
+
+
+BEMA_ORDER = {
+    BuildingCategory.HOUSE: 1, BuildingCategory.APARTMENT_BLOCK: 2, BuildingCategory.RETAIL: 3,
+    BuildingCategory.OFFICE: 4, BuildingCategory.KINDERGARTEN: 5, BuildingCategory.SCHOOL: 6,
+    BuildingCategory.UNIVERSITY: 7, BuildingCategory.HOSPITAL: 8, BuildingCategory.NURSING_HOME: 9,
+    BuildingCategory.SPORTS: 10, BuildingCategory.CULTURE: 11, BuildingCategory.STORAGE_REPAIRS: 12}

@@ -5,7 +5,8 @@ import pandas as pd
 
 from dotenv import load_dotenv
 
-from ebm.model import DatabaseManager, FileHandler, BuildingCategory
+from ebm.model import DatabaseManager, FileHandler
+from ebm.model.building_category import BEMA_ORDER as custom_building_category_order
 
 from ebm.model.calibrate_heating_systems import extract_area_forecast, extract_energy_requirements, \
     extract_heating_systems
@@ -47,11 +48,11 @@ def run_calibration(database_manager,
     energy_requirements = extract_energy_requirements(area_forecast, database_manager)
     if write_to_output:
         en_req = energy_requirements.xs(2023, level='year').reset_index().sort_values(
-            by='building_category', key=lambda x: x.map(custom_building_category_order()))
+            by='building_category', key=lambda x: x.map(custom_building_category_order))
         write_dataframe(en_req, 'energy_requirements')
         grouped = en_req[['building_category', 'm2', 'kwh_m2', 'energy_requirement']].groupby(
             by=['building_category'], as_index=False).agg({'m2': 'first', 'kwh_m2': 'first', 'energy_requirement': 'sum'})
-        grouped = grouped.sort_values(by='building_category', key=lambda x: x.map(custom_building_category_order()))
+        grouped = grouped.sort_values(by='building_category', key=lambda x: x.map(custom_building_category_order))
         write_dataframe(grouped, 'energy_requirements_sum', sheet_name='sum')
 
     logger.info('Extract heating systems')
@@ -73,20 +74,6 @@ def write_dataframe(df, name='dataframe', sheet_name='Sheet1'):
         logger.info(f'Wrote {name} to {output_file} ! {sheet_name if sheet_name!="Sheet1" else ""}')
     else:
         logger.warning(f'Cannot write to {output_directory}. Directory does not exists')
-
-def custom_building_category_order():
-    return {BuildingCategory.HOUSE: 1,
-            BuildingCategory.APARTMENT_BLOCK: 2,
-            BuildingCategory.RETAIL: 3,
-            BuildingCategory.OFFICE: 4,
-            BuildingCategory.KINDERGARTEN: 5,
-            BuildingCategory.SCHOOL: 6,
-            BuildingCategory.UNIVERSITY: 7,
-            BuildingCategory.HOSPITAL: 8,
-            BuildingCategory.NURSING_HOME: 9,
-            BuildingCategory.SPORTS: 10,
-            BuildingCategory.CULTURE: 11,
-            BuildingCategory.STORAGE_REPAIRS: 12}
 
 
 def main():

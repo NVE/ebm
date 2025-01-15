@@ -257,7 +257,13 @@ class FileHandler:
         calibrate_energy_consumption = self.input_directory / 'calibrate_energy_consumption.xlsx'
         if calibrate_energy_consumption.is_file():
             return self.get_file(calibrate_energy_consumption.name)
-        return None
+        df = pd.DataFrame({
+            'building_category': [],
+            'to': [],
+            'from': [],
+            'factor': []}
+        )
+        return df
 
     def get_heating_systems_shares_start_year(self) -> pd.DataFrame:
         """

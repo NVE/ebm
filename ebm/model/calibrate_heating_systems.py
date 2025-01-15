@@ -168,6 +168,10 @@ def sort_heating_systems_by_energy_source(transformed):
 
 class DistributionOfHeatingSystems:
     @staticmethod
+    def extract(database_manager):
+        return database_manager.get_heating_systems_shares_start_year()
+
+    @staticmethod
     def transform(df):
         df = df.reset_index()
         df['building_group'] = 'Yrkesbygg'

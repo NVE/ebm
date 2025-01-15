@@ -83,6 +83,9 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
 """.strip(),
               file=sys.stderr)
         return 1
+    if not file_is_writable(output_file):
+        logger.error(f'{output_file} is not writable')
+        return 2
 
     logger.info('Loading area forecast')
 
@@ -164,6 +167,21 @@ def write_result(output_file, csv_delimiter, output):
         output.to_excel(excel_writer, sheet_name='area forecast', merge_cells=False, freeze_panes=(1, 3))
         excel_writer.close()
         logger.info(f'Wrote {output_file}')
+
+
+def file_is_writable(output_file: pathlib.Path) -> bool:
+    access = os.access(output_file, os.W_OK) or not output_file.is_file()
+    if not access:
+        return False
+
+    # It is not enough to check file access in Windows. We must also check that it is possible to open the file
+    try:
+        with output_file.open('a'):
+            pass
+    except PermissionError as ex:
+        logger.error(str(ex) + '. File already open?')
+        return False
+    return access
 
 
 if __name__ == '__main__':

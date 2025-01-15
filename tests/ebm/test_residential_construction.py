@@ -61,7 +61,7 @@ def test_calculate_yearly_constructed_floor_area():
     yearly_floor_area_change = pd.Series([10, 20, 30], index=[0, 1, 2])
     yearly_demolished_floor_area = pd.Series([5, 15, 25], index=[0, 1, 2])
 
-    expected_constructed_floor_area = pd.Series([100, 200, 300], name='constructed_floor_area', index=[0, 1, 2])
+    expected_constructed_floor_area = pd.Series([0, 200, 300], name='constructed_floor_area', index=[0, 1, 2])
 
     result = ConstructionCalculator.calculate_yearly_constructed_floor_area(
         build_area_sum, yearly_floor_area_change, yearly_demolished_floor_area)
@@ -128,9 +128,9 @@ def test_calculate_residential_construction():
         'yearly_floor_area_constructed': pd.Series([0, 0, 5928.44, 6904.89], index=[2010, 2011, 2012, 2013],
                                                    name='house_floor_area_change'),
         'demolished_floor_area': yearly_demolished_floor_area,
-        'constructed_floor_area': pd.Series([100.0, 200.0, 300.0, 400.0], index=[2010, 2011, 2012, 2013],
+        'constructed_floor_area': pd.Series([0, 200.0, 300.0, 400.0], index=[2010, 2011, 2012, 2013],
                                             name='constructed_floor_area'),
-        'accumulated_constructed_floor_area': pd.Series([100.0, 300.0, 600.0, 1000.0], index=[2010, 2011, 2012, 2013],
+        'accumulated_constructed_floor_area': pd.Series([0, 200.0, 500.0, 900.0], index=[2010, 2011, 2012, 2013],
                                                         name='accumulated_constructed_floor_area')
     }
 
@@ -167,9 +167,9 @@ def test_calculate_residential_construction_2011():
         'yearly_floor_area_constructed': pd.Series([0, 0, 5928.44, 6904.89], index=period.to_index(),
                                                    name='house_floor_area_change'),
         'demolished_floor_area': yearly_demolished_floor_area,
-        'constructed_floor_area': pd.Series([100.0, 200.0, 300.0, 400.0], index=period.to_index(),
+        'constructed_floor_area': pd.Series([0, 200.0, 300.0, 400.0], index=period.to_index(),
                                             name='constructed_floor_area'),
-        'accumulated_constructed_floor_area': pd.Series([100.0, 300.0, 600.0, 1000.0],
+        'accumulated_constructed_floor_area': pd.Series([0.0, 200.0, 500.0, 900.0],
                                                         index=period.to_index(),
                                                         name='accumulated_constructed_floor_area')
     }
@@ -250,8 +250,8 @@ def test_calculate_residential_construction_for_ten_years(default_input):
 
     accumulated_constructed_floor_area = result.accumulated_constructed_floor_area
     expected = pd.Series(
-        data=[10000.0, 30000.0, 4420349.59, 6720971.5, 8980429.70, 11846230.1,
-              13620002.80, 17062970.79715203, 19520260.74, 21983008.85], index=period.range(),
+        data=[0, 20_000.0, 4410_349.59, 6_710_971.5, 8_970_429.70, 11_836_230.1,
+              13_610_002.80, 17_052_970.79715203, 19_510_260.74, 21_973_008.85], index=period.range(),
         name='accumulated_constructed_floor_area')
 
     pd.testing.assert_series_equal(accumulated_constructed_floor_area, expected)

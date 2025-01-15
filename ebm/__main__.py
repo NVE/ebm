@@ -72,13 +72,14 @@ def main() -> int:
         return 2
 
     database_manager.file_handler.validate_input_files()
-    database_manager.file_handler.make_output_directory(arguments.output_file.parent)
+    output_file = arguments.output_file
+    database_manager.file_handler.make_output_directory(output_file.parent)
 
-    if arguments.output_file.is_file() and arguments.output_file != default_path and not arguments.force:
+    if output_file.is_file() and output_file != default_path and not arguments.force:
         # If the file already exists and is not the default, display error and exit unless --force was used.
-        logger.error(f'{arguments.output_file}. already exists.')
+        logger.error(f'{output_file}. already exists.')
         print(f"""
-You can overwrite the {arguments.output_file}. by using --force: {program_name} {' '.join(sys.argv[1:])} --force
+You can overwrite the {output_file}. by using --force: {program_name} {' '.join(sys.argv[1:])} --force
 """.strip(),
               file=sys.stderr)
         return 1
@@ -86,8 +87,11 @@ You can overwrite the {arguments.output_file}. by using --force: {program_name} 
     logger.info('Loading area forecast')
 
     output = None
-    if arguments.calibration_year:
-        output = run_calibration(database_manager, arguments.calibration_year)
+    calibration_year = arguments.calibration_year
+    step_choice = arguments.step
+
+    if calibration_year:
+        output = run_calibration(database_manager, calibration_year)
         calibration_directory = pathlib.Path('kalibrering')
         if not calibration_directory.is_dir():
             calibration_directory.mkdir()
@@ -99,7 +103,7 @@ You can overwrite the {arguments.output_file}. by using --force: {program_name} 
         for building_category in building_categories:
             if building_category == BuildingCategory.STORAGE_REPAIRS:
                 continue
-            if arguments.step == 'energy-use':
+            if step_choice == 'energy-use':
                 output = calculate_energy_use()
                 break
             else:
@@ -118,7 +122,7 @@ You can overwrite the {arguments.output_file}. by using --force: {program_name} 
                     tek_in_index = [t for t in arguments.tek if any(df.index.isin([t], level=1))]
                     df = df.loc[:, tek_in_index, :]
 
-            if 'energy-requirements' in arguments.step or 'heating-systems' in arguments.step:
+            if 'energy-requirements' in step_choice or 'heating-systems' in step_choice:
                 energy_requirements_result = calculate_building_category_energy_requirements(
                     building_category=building_category,
                     area_forecast=df,
@@ -126,7 +130,7 @@ You can overwrite the {arguments.output_file}. by using --force: {program_name} 
                     start_year=arguments.start_year,
                     end_year=arguments.end_year)
                 df = energy_requirements_result
-                if 'heating-systems' in arguments.step and building_category != BuildingCategory.STORAGE_REPAIRS:
+                if 'heating-systems' in step_choice and building_category != BuildingCategory.STORAGE_REPAIRS:
                     df = calculate_heating_systems(energy_requirements=energy_requirements_result,
                                                    database_manager=database_manager)
 
@@ -134,28 +138,32 @@ You can overwrite the {arguments.output_file}. by using --force: {program_name} 
                 output = df
             else:
                 output = pd.concat([output, df])
-        if arguments.horizontal_years:
+        transform_to_horizontal_years = arguments.horizontal_years
+        if transform_to_horizontal_years:
             output = result_to_horizontal_dataframe(output)
 
-    logger.debug(f'Writing to {arguments.output_file}')
-    if str(arguments.output_file) == '-':
+    write_result(output_file, csv_delimiter, output)
+
+    if arguments.open:
+        os.startfile(output_file, 'open')
+    sys.exit(0)
+
+def write_result(output_file, csv_delimiter, output):
+    logger.debug(f'Writing to {output_file}')
+    if str(output_file) == '-':
         try:
             print(output.to_markdown())
 
         except ImportError:
             print(output.to_string())
-    elif arguments.output_file.suffix == '.csv':
-        output.to_csv(arguments.output_file, sep=csv_delimiter)
-        logger.info(f'Wrote {arguments.output_file}')
+    elif output_file.suffix == '.csv':
+        output.to_csv(output_file, sep=csv_delimiter)
+        logger.info(f'Wrote {output_file}')
     else:
-        excel_writer = pd.ExcelWriter(arguments.output_file, engine='openpyxl')
+        excel_writer = pd.ExcelWriter(output_file, engine='openpyxl')
         output.to_excel(excel_writer, sheet_name='area forecast', merge_cells=False, freeze_panes=(1, 3))
         excel_writer.close()
-        logger.info(f'Wrote {arguments.output_file}')
-
-    if arguments.open:
-        os.startfile(arguments.output_file, 'open')
-    sys.exit(0)
+        logger.info(f'Wrote {output_file}')
 
 
 if __name__ == '__main__':

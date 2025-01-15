@@ -83,6 +83,7 @@ def transform_by_energy_source(df, energy_class_column, energy_source_column):
 
 def transform_heating_systems(df: pd.DataFrame, calibration_year) -> pd.DataFrame:
     df = df.reindex()
+    df = df.sort_index()
     df['building_group'] = 'yrkesbygg'
     try:
         df.loc[('house', slice(None),slice(None),slice(None),slice(None), slice(None),), 'building_group'] = 'bolig'

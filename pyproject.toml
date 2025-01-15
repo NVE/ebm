@@ -27,7 +27,7 @@ Documentation = "https://dev.azure.com/NVE-devops/Energibruksmodell/_wiki/wikis"
 Repository = "https://NVE-devops@dev.azure.com/NVE-devops/Energibruksmodell/_git/Energibruksmodell"
 
 [tool.setuptools]
-packages = ["ebm"]
+packages = ['ebm', 'ebm.model', 'ebm.services', 'ebm.cmd', 'ebm.data']
 [project.scripts]
 ebm = "ebm.__main__:main"
 ebm-calibrate = "ebm.cmd.calibrate_excel_com_io:main"

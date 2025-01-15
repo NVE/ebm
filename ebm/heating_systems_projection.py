@@ -78,7 +78,7 @@ class HeatingSystemsProjection:
         if not period_match[period_match[0] == False].empty:
             raise ValueError("Years in dataframe not present in given period.")
 
-    def calculate_projection(self):
+    def calculate_projection(self) -> pd.DataFrame:
         """
         Project heating system shares across model years. 
 
@@ -134,6 +134,33 @@ class HeatingSystemsProjection:
                                         projection=projection,
                                         tek_list=tek_list,
                                         period=period)
+
+    @staticmethod
+    def pad_projection(hf: pd.DataFrame, years_to_pad: YearRange) -> pd.DataFrame:
+        """
+        Left pad dataframe hf with years in years_to_pad. The padding will be equal to existing first year of hf.
+
+        Parameters
+        ----------
+        hf : pd.DataFrame
+            heating systems to pad
+        years_to_pad : YearRange
+            range of years to pad unto hf
+
+        Returns
+        -------
+        HeatingSystemsProjection
+            hf with left padding
+        """
+
+        padding_value = hf[hf.year == years_to_pad.end + 1].copy()
+        left_padding = []
+        for year in years_to_pad:
+            year_values = padding_value.copy()
+            year_values['year'] = year
+            left_padding.append(year_values)
+
+        return pd.concat(left_padding + [hf])
 
 
 def add_missing_heating_systems(heating_systems_shares: pd.DataFrame, 

@@ -111,9 +111,11 @@ class EnergyConsumption:
         df.loc[:, 'gwh'] = df.loc[:, 'kwh'] / 10 ** 6
 
         df = df.sort_index(level=['building_category', 'TEK', 'year', 'building_condition', 'purpose', HEATING_SYSTEMS])
-        return df[[TEK_SHARES, ADJUSTED_REQUIREMENT, HEATING_RV_GRUNNLAST, GRUNNLAST_ENERGIVARE, HEATING_RV_SPISSLAST,
-                   SPISSLAST_ENERGIVARE, HEATIG_RV_EKSTRALAST, EKSTRALAST_ENERGIVARE, DHW_TV, TAPPEVANN_ENERGIVARE,
-                   COOLING_KV, OTHER_SV, HEAT_PUMP, HP_ENERGY_SOURCE, 'kwh', 'gwh']]
+        return df[[TEK_SHARES, ADJUSTED_REQUIREMENT,
+                   HEATING_RV_GRUNNLAST, GRUNNLAST_ENERGIVARE, GRUNNLAST_VIRKNINGSGRAD,
+                   HEATING_RV_SPISSLAST, SPISSLAST_ENERGIVARE, SPISSLAST_VIRKNINGSGRAD,
+                   HEATIG_RV_EKSTRALAST, EKSTRALAST_ENERGIVARE, EKSTRALAST_VIRKNINGSGRAD,
+                   DHW_TV, TAPPEVANN_ENERGIVARE, COOLING_KV, OTHER_SV, HEAT_PUMP, HP_ENERGY_SOURCE, 'kwh', 'gwh']]
 
     def adjust_heat_pump(self, df):
         df[HP_ENERGY_SOURCE] = None

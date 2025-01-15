@@ -241,6 +241,15 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
     return merged
 
 
+def write_to_disk(df, constructed_floor_area, building_category):
+    if os.environ.get('EBM_WRITE_TO_DISK', 'False').upper() == 'TRUE':
+        df = result_to_horizontal_dataframe(constructed_floor_area)
+        df.index.name = building_category
+        df.to_excel(f'output/constructed_{building_category}.xlsx')
+
+
+
+
 def calculate_building_category_area_forecast(building_category: BuildingCategory,
                                               database_manager: DatabaseManager,
                                               start_year: int,
@@ -297,7 +306,7 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
         return flat
 
     df = forecast_to_dataframe()
-
+    write_to_disk(df, constructed_floor_area, building_category)
     return df
 
 

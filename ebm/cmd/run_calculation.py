@@ -290,7 +290,7 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
                                                                            demolition_floor_area,
                                                                            database_manager,
                                                                            period=years)
-    forecast: Dict[str, pd.Series] = area_forecast.calc_area(
+    forecast: Dict[str, Dict[BuildingCondition, pd.Series]] = area_forecast.calc_area(
         constructed_floor_area['accumulated_constructed_floor_area'])
 
     # Temporary method to convert series to list

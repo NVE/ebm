@@ -1,9 +1,9 @@
-pandas
+pandas==2.2.3
 openpyxl
 loguru
 python-dotenv
 ipython
 numpy
 rich
-pandera
+pandera==0.20.4
 pyperclip

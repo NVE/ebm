@@ -4,6 +4,8 @@ import typing
 from loguru import logger
 import pandas as pd
 
+from ebm.model.file_handler import FileHandler
+
 
 class EnergyRequirementCalibrationWriter:
 
@@ -60,14 +62,6 @@ def transform(heating_rv: pd.Series, heating_rv_factor=None) -> pd.Series:
     calibrated = heating_rv * heating_rv_factor
     calibrated.name = heating_rv.name
     return calibrated
-
-
-def default_calibrate_heating_rv():
-    df = pd.DataFrame({
-        'building_category': ['non_residential', 'residential'],
-        'purpose': ['heating_rv', 'heating_rv'],
-        'heating_rv_factor': [1.0, 1.0]})
-    return df
 
 
 def create_heating_rv(database_manager):

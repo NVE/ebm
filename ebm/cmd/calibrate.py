@@ -5,7 +5,8 @@ import pandas as pd
 
 from dotenv import load_dotenv
 
-from ebm.model import DatabaseManager, FileHandler
+from ebm.model.file_handler import FileHandler
+from ebm.model.database_manager import DatabaseManager
 from ebm.model.building_category import BEMA_ORDER as custom_building_category_order
 
 from ebm.model.calibrate_heating_systems import extract_area_forecast, extract_energy_requirements, \

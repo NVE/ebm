@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ebm.model import BuildingCategory
+from ebm.model.building_category import BuildingCategory
 from ebm.model.construction import ConstructionCalculator as ConCal
 from ebm.model.data_classes import YearRange
 

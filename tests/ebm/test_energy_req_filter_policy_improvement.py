@@ -5,8 +5,7 @@ import pytest
 
 import pandas as pd
 
-from ebm.model.database_manager import DatabaseManager
-from ebm.model import BuildingCategory
+from ebm.model.building_category import BuildingCategory
 from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.energy_requirement_filter import EnergyRequirementFilter

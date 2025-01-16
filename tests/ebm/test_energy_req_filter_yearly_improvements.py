@@ -5,7 +5,7 @@ import pytest
 
 import pandas as pd
 
-from ebm.model import BuildingCategory
+from ebm.model.building_category import BuildingCategory
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.energy_requirement_filter import EnergyRequirementFilter
 from ebm.model.exceptions import AmbiguousDataError

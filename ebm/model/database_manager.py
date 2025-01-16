@@ -2,6 +2,7 @@ import typing
 
 import pandas as pd
 
+from ebm.energy_consumption import calibrate_heating_systems
 from ebm.model.file_handler import FileHandler
 from ebm.model.building_category import BuildingCategory, expand_building_categories
 from ebm.model.data_classes import TEKParameters
@@ -296,8 +297,6 @@ class DatabaseManager:
         return True
 
     def get_heating_systems_shares_start_year(self):
-        # TODO Fix circular import issue
-        from ebm.energy_consumption import calibrate_heating_systems
         df = self.file_handler.get_heating_systems_shares_start_year()
         heating_systems_factor = self.get_calibrate_heating_systems()
         calibrated = calibrate_heating_systems(df, heating_systems_factor)

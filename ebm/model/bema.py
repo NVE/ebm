@@ -7,7 +7,8 @@ from loguru import logger
 from openpyxl.worksheet.worksheet import Worksheet
 
 from ebm.__main__ import calculate_building_category_area_forecast
-from ebm.model import BuildingCategory, DatabaseManager
+from ebm.model.building_category import BuildingCategory
+from ebm.model.database_manager import DatabaseManager
 from ebm.model.bema_validation import get_building_category_sheet
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange

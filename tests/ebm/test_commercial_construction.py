@@ -2,11 +2,11 @@ import pytest
 import pandas as pd
 
 from unittest.mock import Mock
-from loguru import logger
 
-from ebm.model import BuildingCategory, DatabaseManager
+from ebm.model.building_category import BuildingCategory
 from ebm.model.construction import ConstructionCalculator as ConCal
 from ebm.model.data_classes import YearRange
+from ebm.model.database_manager import DatabaseManager
 
 
 def test_calculate_construction_calls_commercial_construction():

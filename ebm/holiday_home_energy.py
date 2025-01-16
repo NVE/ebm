@@ -4,7 +4,7 @@ import typing
 import numpy as np
 import pandas as pd
 
-from ebm.model import DatabaseManager
+from ebm.model.database_manager import DatabaseManager
 from ebm.model.data_classes import YearRange
 
 

@@ -5,7 +5,9 @@ from unittest.mock import Mock
 import numpy as np
 import pandas as pd
 
-from ebm.model import DatabaseManager, FileHandler, BuildingCategory
+from ebm.model.building_category import BuildingCategory
+from ebm.model.database_manager import DatabaseManager
+from ebm.model.file_handler import FileHandler
 
 
 def test_get_area_per_person():

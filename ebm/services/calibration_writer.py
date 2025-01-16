@@ -25,7 +25,7 @@ class ComCalibrationReader:
         self.workbook_name = wb if workbook_name is None else workbook_name
         self.sheet_name = sh if sheet_name is None else sheet_name
 
-    def extract(self) -> pd.DataFrame:
+    def extract(self) -> typing.Tuple:
         sheet = access_excel_sheet(self.workbook_name, self.sheet_name)
         used_range = sheet.UsedRange
 

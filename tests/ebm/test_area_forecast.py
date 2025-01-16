@@ -3,10 +3,14 @@ import pathlib
 import pandas as pd
 import pytest
 
-from ebm.model import FileHandler, DatabaseManager, Buildings, BuildingCategory
+
 from ebm.model.area_forecast import AreaForecast
+from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
+from ebm.model.buildings import Buildings
 from ebm.model.data_classes import YearRange, TEKParameters
+from ebm.model.database_manager import DatabaseManager
+from ebm.model.file_handler import FileHandler
 
 
 @pytest.fixture

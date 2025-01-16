@@ -5,7 +5,7 @@ from loguru import logger
 import pandas as pd
 
 from ebm.model.file_handler import FileHandler
-
+from ebm.model.defaults import default_calibrate_heating_rv
 
 class EnergyRequirementCalibrationWriter:
 
@@ -15,7 +15,7 @@ class EnergyRequirementCalibrationWriter:
     def load(self, df: pd.DataFrame, to_file: typing.Union[str, pathlib.Path] = None):
         logger.debug(f'Save {to_file}')
         if to_file is None:
-            to_file = pathlib.Path('input/calibrate_heating_rv.xlsx')
+            to_file = pathlib.Path('input') / FileHandler.CALIBRATE_ENERGY_REQUIREMENT
         file_path: pathlib.Path = to_file if isinstance(to_file, pathlib.Path) else pathlib.Path(to_file)
         df = df[df['group'].isin(['energy_requirements', 'energy_requirement'])]
         df = df.rename(columns={'variable': 'purpose'})
@@ -66,7 +66,7 @@ def transform(heating_rv: pd.Series, heating_rv_factor=None) -> pd.Series:
 
 def create_heating_rv(database_manager):
     file_handler = database_manager.file_handler
-    heating_rv = file_handler.input_directory / 'calibrate_heating_rv.xlsx'
+    heating_rv = file_handler.input_directory / file_handler.CALIBRATE_ENERGY_REQUIREMENT
     if not heating_rv.is_file():
         logger.info(f'Creating {heating_rv}')
         df = default_calibrate_heating_rv()

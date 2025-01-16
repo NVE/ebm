@@ -39,11 +39,10 @@ def main():
     calibration_year = int(os.environ.get('EBM_CALIBRATION_YEAR', 2023))
     calibration_spreadsheet_name = os.environ.get("EBM_CALIBRATION_OUT", "Kalibreringsark.xlsx!Ut")
     calibration_sheet = os.environ.get("EBM_CALIBRATION_SHEET", "Kalibreringsark.xlsx!Kalibreringsfaktorer")
-
     energy_requirements_calibration_file = os.environ.get('EBM_CALIBRATION_ENERGY_REQUIREMENT',
-                                                          'kalibrering/calibrate_heating_rv.xlsx')
+                                                          f'kalibrering/{FileHandler.CALIBRATE_ENERGY_REQUIREMENT}')
     energy_consumption_calibration_file = os.environ.get('EBM_CALIBRATION_ENERGY_CONSUMPTION',
-                                                          'kalibrering/calibrate_energy_consumption.xlsx')
+                                                          f'kalibrering/{FileHandler.CALIBRATE_ENERGY_CONSUMPTION}')
 
     energy_source_target_cells = os.environ.get('EBM_CALIBRATION_ENERGY_SOURCE_USAGE', 'C64:E68')
     ebm_calibration_energy_heating_pump = os.environ.get('EBM_CALIBRATION_ENERGY_HEATING_PUMP', 'C72:E74')

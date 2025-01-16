@@ -8,7 +8,7 @@ from loguru import logger
 from pandera.errors import SchemaErrors, SchemaError
 
 import ebm.validators as validators
-from ebm.model.calibrate_energy_requirements import default_calibrate_heating_rv
+from ebm.model.defaults import default_calibrate_heating_rv, default_calibrate_energy_consumption
 
 
 class FileHandler:
@@ -36,6 +36,8 @@ class FileHandler:
     HS_SHARES_START_YEAR = 'heating_systems_shares_start_year.csv'
     HS_EFFICIENCIES = 'heating_systems_efficiencies.csv'
     HS_PROJECTION = 'heating_systems_projection.csv'
+    CALIBRATE_ENERGY_REQUIREMENT = 'calibrate_heating_rv.xlsx'
+    CALIBRATE_ENERGY_CONSUMPTION = 'calibrate_energy_consumption.xlsx'
 
     input_directory: pathlib.Path
 
@@ -248,22 +250,16 @@ class FileHandler:
         return self.get_file(self.AREA_PER_PERSON)
 
     def get_calibrate_heating_rv(self) -> pd.DataFrame:
-        calibrate_heating_rv = self.input_directory / 'calibrate_heating_rv.xlsx'
+        calibrate_heating_rv = self.input_directory / self.CALIBRATE_ENERGY_REQUIREMENT
         if calibrate_heating_rv.is_file():
             return self.get_file(calibrate_heating_rv.name)
         return default_calibrate_heating_rv()
 
     def get_calibrate_heating_systems(self) -> pd.DataFrame:
-        calibrate_energy_consumption = self.input_directory / 'calibrate_energy_consumption.xlsx'
+        calibrate_energy_consumption = self.input_directory / self.CALIBRATE_ENERGY_CONSUMPTION
         if calibrate_energy_consumption.is_file():
             return self.get_file(calibrate_energy_consumption.name)
-        df = pd.DataFrame({
-            'building_category': [],
-            'to': [],
-            'from': [],
-            'factor': []}
-        )
-        return df
+        return default_calibrate_energy_consumption()
 
     def get_heating_systems_shares_start_year(self) -> pd.DataFrame:
         """

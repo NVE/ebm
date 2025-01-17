@@ -22,7 +22,8 @@ class EnergyRequirement:
     def __init__(self,
                  tek_list: typing.List[str],
                  period: YearRange = YearRange(2010, 2050),
-                 calibration_year: int = 1999):
+                 calibration_year: int = 1999,
+                 database_manager = None):
         self.tek_list = tek_list
         self.period = period
         self.calibration_year = calibration_year
@@ -30,6 +31,8 @@ class EnergyRequirement:
             logger.trace(f'Calibration year {calibration_year} is same as start year {period.start}')
         elif calibration_year not in period.subset(1):
             logger.debug(f'Calibration year {calibration_year} is outside period {period.start}-{period.end}')
+
+        self.database_manager = database_manager
 
 
     def calculate_for_building_category(self,
@@ -51,6 +54,8 @@ class EnergyRequirement:
             column kwh_m2 representing energy requirement
 
         """
+        database_manager = database_manager if database_manager else self.database_manager
+
         er_filter = EnergyRequirementFilter.new_instance(building_category, database_manager)
         heating_rv_factor = database_manager.get_calibrate_heating_rv()
         
@@ -131,7 +136,9 @@ class EnergyRequirement:
         if period.start != 2010 and calibration_year != calibration_year:
             logger.warning(f'EnergyRequirements {period.start=} {calibration_year=}')
         dm = database_manager if isinstance(database_manager, DatabaseManager) else DatabaseManager()
-        return EnergyRequirement(tek_list=dm.get_tek_list(), period=period, calibration_year=calibration_year)
+        instance = EnergyRequirement(tek_list=dm.get_tek_list(), period=period, calibration_year=calibration_year,
+                                     database_manager=dm)
+        return instance
 
 
 def calculate_energy_requirement_reduction_by_condition(
@@ -303,8 +310,22 @@ def calculate_lighting_reduction(energy_requirement: pd.Series,
     return lighting
 
 
-if __name__ == '__main__':
+def main():
+    import sys
+    log_format = """
+    <blue>{elapsed}</blue> | <level>{level: <8}</level> | <cyan>{function: <20}</cyan>:<cyan>{line: <3}</cyan> - <level>{message}</level>
+    """.strip()
+    logger.remove()
+    logger.add(sys.stderr, format=log_format, level='WARNING')
+
     er = EnergyRequirement.new_instance(YearRange(2020, 2050), calibration_year=2020)
-    df = pd.concat([s for s in er.calculate_energy_requirements()])
-    print(df)
-    
+
+    df = pd.concat([s.to_frame() for s in er.calculate_energy_requirements()])
+
+    # df.to_excel('output/er.xlsx')
+    # df = pd.concat([s for s in er.calculate_energy_requirements()])
+    # print(df)
+    logger.error('DONE')
+
+if __name__ == '__main__':
+    main()

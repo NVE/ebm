@@ -264,7 +264,7 @@ class DatabaseManager:
     def get_calibrate_heating_rv(self) -> pd.Series:
         df = self.file_handler.get_calibrate_heating_rv()
         df = expand_building_categories(df, unique_columns=['building_category', 'purpose'])
-        return df.set_index(['building_category', 'purpose'])['heating_rv_factor']
+        return df[['building_category', 'purpose', 'heating_rv_factor']]
 
     def get_calibrate_heating_systems(self) -> pd.DataFrame:
         df = self.file_handler.get_calibrate_heating_systems()

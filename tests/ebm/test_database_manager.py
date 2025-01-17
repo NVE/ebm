@@ -39,10 +39,10 @@ def test_get_energy_req_original_condition():
     cal_df = pd.DataFrame({
         'building_category': ['apartment_block', 'culture', 'school'],
         'purpose': ['heating_rv'] * 3,
-        'heating_rv_factor': [0.5, 2.0, 3.0]}).set_index(['building_category', 'purpose'])
+        'heating_rv_factor': [0.5, 2.0, 3.0]})
 
     cal_mock = Mock()
-    cal_mock.return_value = cal_df.heating_rv_factor
+    cal_mock.return_value = cal_df
     dm.get_calibrate_heating_rv = cal_mock
 
     oc_df = pd.read_csv(io.StringIO("""building_category,TEK,purpose,kwh_m2
@@ -83,7 +83,7 @@ def test_get_calibrate_heating_rv():
     mock_fh.get_calibrate_heating_rv = Mock()
     mock_fh.get_calibrate_heating_rv.return_value = calibrated_heating_rv
 
-    result = dm.get_calibrate_heating_rv()
+    result = dm.get_calibrate_heating_rv().set_index(['building_category', 'purpose'], drop=True)
 
     residential = [BuildingCategory.HOUSE, BuildingCategory.APARTMENT_BLOCK]
     non_residential = [bc for bc in BuildingCategory if not bc.is_residential()]
@@ -92,9 +92,9 @@ def test_get_calibrate_heating_rv():
         'building_category': non_residential + residential,
         'heating_rv_factor': [1.2]*11 + [3.4] * 2,
 
-    }).set_index(['building_category', 'purpose']).heating_rv_factor
+    }).set_index(['building_category', 'purpose'])
 
-    pd.testing.assert_series_equal(result, expected, check_like=True)
+    pd.testing.assert_frame_equal(result, expected, check_like=True)
 
 
 

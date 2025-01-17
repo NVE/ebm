@@ -193,7 +193,12 @@ class DatabaseManager:
             per building category and purpose.
         """
         df = self.file_handler.get_energy_req_original_condition().set_index(['building_category', 'purpose', 'TEK'])
-        heating_rv_factor = self.get_calibrate_heating_rv()
+        if not 'behavior_factor' in df.columns:
+            df['behavior_factor'] = 1.0
+        df.loc[:, 'behavior_factor'] = df.loc[:, 'behavior_factor'].fillna(1.0)
+        df.loc[:, 'kwh_m2'] = df.loc[:, 'kwh_m2'] * df.loc[:, 'behavior_factor']
+
+        heating_rv_factor = self.get_calibrate_heating_rv().set_index(['building_category', 'purpose']).heating_rv_factor
 
         calibrated = heating_rv_factor * df.kwh_m2
         calibrated.name = 'kwh_m2'

@@ -10,7 +10,7 @@ from ebm.model.database_manager import DatabaseManager
 
 
 def test_calculate_construction_calls_commercial_construction():
-    bc = BuildingCategory.KINDERGARTEN
+    bc = BuildingCategory.STORAGE_REPAIRS
     demolition_floor_area = pd.Series([35_500, 35_500, 35_500, 35_500, 35_500,
                                        35_500, 35_500, 35_500],
                                       index=YearRange(2020, 2027).to_index())
@@ -49,7 +49,7 @@ def test_calculate_construction_calls_commercial_construction():
         database_manager=database_manager,
         period=period)
 
-    database_manager.get_area_per_person.assert_called_with(BuildingCategory.KINDERGARTEN)
+    database_manager.get_area_per_person.assert_called_with(BuildingCategory.STORAGE_REPAIRS)
     ConCal.calculate_commercial_construction.assert_called_once()
 
     # Unset mock on ConstructionCalculator so that any following test using

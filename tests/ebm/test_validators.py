@@ -172,7 +172,7 @@ def test_construction_building_category_yearly(ok_construction_building_category
 
 
 @pytest.mark.parametrize('building_category,row', itertools.product(
-    [b for b in [BuildingCategory.HOUSE, BuildingCategory.APARTMENT_BLOCK, BuildingCategory.STORAGE_REPAIRS]], 
+    [b for b in [BuildingCategory.HOUSE, BuildingCategory.APARTMENT_BLOCK]],
     [0, 1, 2, 3]))
 def test_construction_building_category_yearly_commercial_area(ok_construction_building_category_yearly,
                                                                building_category: BuildingCategory,
@@ -797,3 +797,7 @@ HP Central heating - Bio,HP Central heating,Bio,Ingen,Electricity,Bio,Ingen,0.0,
 """.strip()), skipinitialspace=True) 
     
     heating_systems_efficiencies.validate(efficiencies)
+
+
+if __name__ == "__main__":
+    pytest.main()

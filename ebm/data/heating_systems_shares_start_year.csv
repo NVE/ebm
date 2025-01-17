@@ -1023,3 +1023,91 @@ university,TEK97,HP - Electricity,2023,0.1632849356867121
 university,TEK97,HP Central heating - Bio,2023,0.00019362655741005704
 university,TEK97,HP Central heating - Electric boiler,2023,0.36404351190494705
 university,TEK97,HP Central heating - Gas,2023,7.196160696758601e-05
+storage_repairs,PRE_TEK49,DH,2023,0.31824535737637644
+storage_repairs,PRE_TEK49,DH - Bio,2023,0.000214225096904963
+storage_repairs,PRE_TEK49,Electric boiler,2023,0.05968451370903524
+storage_repairs,PRE_TEK49,Electric boiler - Solar,2023,0.0002493794096936836
+storage_repairs,PRE_TEK49,Electricity,2023,0.07068188961882116
+storage_repairs,PRE_TEK49,Electricity - Bio,2023,0.021674094557190902
+storage_repairs,PRE_TEK49,Gas,2023,0.001656504475940886
+storage_repairs,PRE_TEK49,HP - Electricity,2023,0.1632849356867121
+storage_repairs,PRE_TEK49,HP Central heating - Bio,2023,0.00019362655741005704
+storage_repairs,PRE_TEK49,HP Central heating - Electric boiler,2023,0.36404351190494705
+storage_repairs,PRE_TEK49,HP Central heating - Gas,2023,7.196160696758601e-05
+storage_repairs,TEK07,DH,2023,0.31824535737637644
+storage_repairs,TEK07,DH - Bio,2023,0.000214225096904963
+storage_repairs,TEK07,Electric boiler,2023,0.05968451370903524
+storage_repairs,TEK07,Electric boiler - Solar,2023,0.0002493794096936836
+storage_repairs,TEK07,Electricity,2023,0.07068188961882116
+storage_repairs,TEK07,Electricity - Bio,2023,0.021674094557190902
+storage_repairs,TEK07,Gas,2023,0.001656504475940886
+storage_repairs,TEK07,HP - Electricity,2023,0.1632849356867121
+storage_repairs,TEK07,HP Central heating - Bio,2023,0.00019362655741005704
+storage_repairs,TEK07,HP Central heating - Electric boiler,2023,0.36404351190494705
+storage_repairs,TEK07,HP Central heating - Gas,2023,7.196160696758601e-05
+storage_repairs,TEK10,DH,2023,0.31824535737637644
+storage_repairs,TEK10,DH - Bio,2023,0.000214225096904963
+storage_repairs,TEK10,Electric boiler,2023,0.05968451370903524
+storage_repairs,TEK10,Electric boiler - Solar,2023,0.0002493794096936836
+storage_repairs,TEK10,Electricity,2023,0.07068188961882116
+storage_repairs,TEK10,Electricity - Bio,2023,0.021674094557190902
+storage_repairs,TEK10,Gas,2023,0.001656504475940886
+storage_repairs,TEK10,HP - Electricity,2023,0.1632849356867121
+storage_repairs,TEK10,HP Central heating - Bio,2023,0.00019362655741005704
+storage_repairs,TEK10,HP Central heating - Electric boiler,2023,0.36404351190494705
+storage_repairs,TEK10,HP Central heating - Gas,2023,7.196160696758601e-05
+storage_repairs,TEK17,DH,2023,0.31824535737637644
+storage_repairs,TEK17,DH - Bio,2023,0.000214225096904963
+storage_repairs,TEK17,Electric boiler,2023,0.05968451370903524
+storage_repairs,TEK17,Electric boiler - Solar,2023,0.0002493794096936836
+storage_repairs,TEK17,Electricity,2023,0.07068188961882116
+storage_repairs,TEK17,Electricity - Bio,2023,0.021674094557190902
+storage_repairs,TEK17,Gas,2023,0.001656504475940886
+storage_repairs,TEK17,HP - Electricity,2023,0.1632849356867121
+storage_repairs,TEK17,HP Central heating - Bio,2023,0.00019362655741005704
+storage_repairs,TEK17,HP Central heating - Electric boiler,2023,0.36404351190494705
+storage_repairs,TEK17,HP Central heating - Gas,2023,7.196160696758601e-05
+storage_repairs,TEK49,DH,2023,0.31824535737637644
+storage_repairs,TEK49,DH - Bio,2023,0.000214225096904963
+storage_repairs,TEK49,Electric boiler,2023,0.05968451370903524
+storage_repairs,TEK49,Electric boiler - Solar,2023,0.0002493794096936836
+storage_repairs,TEK49,Electricity,2023,0.07068188961882116
+storage_repairs,TEK49,Electricity - Bio,2023,0.021674094557190902
+storage_repairs,TEK49,Gas,2023,0.001656504475940886
+storage_repairs,TEK49,HP - Electricity,2023,0.1632849356867121
+storage_repairs,TEK49,HP Central heating - Bio,2023,0.00019362655741005704
+storage_repairs,TEK49,HP Central heating - Electric boiler,2023,0.36404351190494705
+storage_repairs,TEK49,HP Central heating - Gas,2023,7.196160696758601e-05
+storage_repairs,TEK69,DH,2023,0.31824535737637644
+storage_repairs,TEK69,DH - Bio,2023,0.000214225096904963
+storage_repairs,TEK69,Electric boiler,2023,0.05968451370903524
+storage_repairs,TEK69,Electric boiler - Solar,2023,0.0002493794096936836
+storage_repairs,TEK69,Electricity,2023,0.07068188961882116
+storage_repairs,TEK69,Electricity - Bio,2023,0.021674094557190902
+storage_repairs,TEK69,Gas,2023,0.001656504475940886
+storage_repairs,TEK69,HP - Electricity,2023,0.1632849356867121
+storage_repairs,TEK69,HP Central heating - Bio,2023,0.00019362655741005704
+storage_repairs,TEK69,HP Central heating - Electric boiler,2023,0.36404351190494705
+storage_repairs,TEK69,HP Central heating - Gas,2023,7.196160696758601e-05
+storage_repairs,TEK87,DH,2023,0.31824535737637644
+storage_repairs,TEK87,DH - Bio,2023,0.000214225096904963
+storage_repairs,TEK87,Electric boiler,2023,0.05968451370903524
+storage_repairs,TEK87,Electric boiler - Solar,2023,0.0002493794096936836
+storage_repairs,TEK87,Electricity,2023,0.07068188961882116
+storage_repairs,TEK87,Electricity - Bio,2023,0.021674094557190902
+storage_repairs,TEK87,Gas,2023,0.001656504475940886
+storage_repairs,TEK87,HP - Electricity,2023,0.1632849356867121
+storage_repairs,TEK87,HP Central heating - Bio,2023,0.00019362655741005704
+storage_repairs,TEK87,HP Central heating - Electric boiler,2023,0.36404351190494705
+storage_repairs,TEK87,HP Central heating - Gas,2023,7.196160696758601e-05
+storage_repairs,TEK97,DH,2023,0.31824535737637644
+storage_repairs,TEK97,DH - Bio,2023,0.000214225096904963
+storage_repairs,TEK97,Electric boiler,2023,0.05968451370903524
+storage_repairs,TEK97,Electric boiler - Solar,2023,0.0002493794096936836
+storage_repairs,TEK97,Electricity,2023,0.07068188961882116
+storage_repairs,TEK97,Electricity - Bio,2023,0.021674094557190902
+storage_repairs,TEK97,Gas,2023,0.001656504475940886
+storage_repairs,TEK97,HP - Electricity,2023,0.1632849356867121
+storage_repairs,TEK97,HP Central heating - Bio,2023,0.00019362655741005704
+storage_repairs,TEK97,HP Central heating - Electric boiler,2023,0.36404351190494705
+storage_repairs,TEK97,HP Central heating - Gas,2023,7.196160696758601e-05

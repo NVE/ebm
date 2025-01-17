@@ -163,8 +163,6 @@ def write_horizontal_excel(output_file: pathlib.Path, model: pd.DataFrame):
 
 
 def extract_model(arguments, building_category, building_conditions, database_manager, step_choice):
-    if building_category == BuildingCategory.STORAGE_REPAIRS:
-        pass
     area_forecast_result = calculate_building_category_area_forecast(
         building_category=building_category,
         database_manager=database_manager,

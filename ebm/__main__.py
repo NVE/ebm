@@ -97,8 +97,6 @@ You can overwrite the {arguments.output_file}. by using --force: {program_name} 
 
     else:
         for building_category in building_categories:
-            if building_category == BuildingCategory.STORAGE_REPAIRS:
-                continue
             if arguments.step == 'energy-use':
                 output = calculate_energy_use()
                 break

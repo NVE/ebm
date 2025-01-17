@@ -292,8 +292,7 @@ construction_building_category_yearly = pa.DataFrameSchema(
     columns={
         'year': pa.Column(int),
         'house': pa.Column(pa.Float64, nullable=True, checks=create_residential_area_checks()),
-        'apartment_block': pa.Column(pa.Float64, nullable=True, checks=create_residential_area_checks()),
-        'storage_repairs': pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0.0)])
+        'apartment_block': pa.Column(pa.Float64, nullable=True, checks=create_residential_area_checks())
     },
     name='construction_building_category_yearly'
 )

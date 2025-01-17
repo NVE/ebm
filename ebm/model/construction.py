@@ -760,7 +760,7 @@ class ConstructionCalculator:
             demolition_floor_area = pd.Series(demolition_floor_area, index=period.range())
 
         new_buildings_population = database_manager.get_construction_population()[['population', 'household_size']]
-        if building_category.is_non_residential() and building_category != BuildingCategory.STORAGE_REPAIRS:
+        if building_category.is_non_residential():
             return ConstructionCalculator.calculate_commercial_construction(
                 building_category=building_category,
                 population=new_buildings_population['population'],

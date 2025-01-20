@@ -184,7 +184,7 @@ def extract_model(arguments, building_category, building_conditions, database_ma
             end_year=arguments.end_year)
         df = energy_requirements_result
 
-        if 'heating-systems' in step_choice and building_category != BuildingCategory.STORAGE_REPAIRS:
+        if 'heating-systems' in step_choice:
             df = calculate_heating_systems(energy_requirements=energy_requirements_result,
                                            database_manager=database_manager)
     return df

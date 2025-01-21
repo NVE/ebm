@@ -1,0 +1,32 @@
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12.7
+  - setuptools
+  - sphinx
+  - sphinx-autodoc-typehints
+  - sphinx-rtd-theme
+  - sphinxcontrib-napoleon
+  - sphinx-autobuild
+  - pandas=2.2.3
+  - openpyxl
+  - loguru
+  - python-dotenv
+  - ipython
+  - numpy
+  - rich
+  - pandera==0.20.4
+  - pyperclip
+  - pywin32
+
+# This is how you make a new environment with conda:
+
+## Create the environment "ebm". For the development environment use "ebm-dev":
+# conda env create -f path\to\environment.yml -n ebm
+
+## Activate the new environment
+# conda activate ebm
+
+
+

@@ -101,7 +101,7 @@ def write_tqdm_result(output_file, output, csv_delimiter=','):
         else:
             with pd.ExcelWriter(output_file, engine='xlsxwriter') as excel_writer:
                 for i in range(0, len(output), 100):  # Adjust the chunk size as needed
-                    building_category = output.iloc[i].name[0] if 'building_category' not in output.columns else output.building_category
+                    building_category = output.iloc[i].name[0] if 'building_category' not in output.columns else output.building_category.iloc[i]
                     pbar.set_description(f'Writing {building_category}')
                     output.iloc[i:i + 100].to_excel(excel_writer, startrow=i, header=(i == 0), merge_cells=False)
                     pbar.update(100)
@@ -137,4 +137,4 @@ class EbmDefaultHandler:
         return df
 
     def write_result(self, output_file, csv_delimiter, model):
-        write_tqdm_result(output_file, csv_delimiter, model)
+        write_tqdm_result(output_file, model, csv_delimiter)

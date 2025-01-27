@@ -116,36 +116,26 @@ def check_all_existing_building_conditions_present(df: pd.DataFrame):
 
 def check_energy_purpose(value: pd.Series) -> pd.Series:
     """
-    Makes sure that the value contain one of the values corresponding to purpose
-     - 'Cooling'
-     - 'Electrical equipment'
-     - 'Fans and pumps'
-     - 'HeatingDHW'
-     - 'HeatingRV'
-     - 'Lighting'
+    Makes sure that the value contains one of the valid purpose values: 'Cooling', 'Electrical equipment', 'Fans and pumps', 'HeatingDHW', 'HeatingRV', or 'Lighting'
 
-     Returns
-     -------
-     pd.Series of bool values
+    Args:
+        value: Input value to check against the valid purpose values
 
+    Returns:
+        pd.Series: Series of bool values indicating if each value matches a valid purpose
     """
     return value.isin(iter(EnergyPurpose))
 
 
 def check_default_energy_purpose(value: pd.Series) -> pd.Series:
     """
-    Makes sure that the value contain one of the values corresponding to 'default' or purpose 
-     - 'Cooling'
-     - 'Electrical equipment'
-     - 'Fans and pumps'
-     - 'HeatingDHW'
-     - 'HeatingRV'
-     - 'Lighting'
+    Makes sure that the value contains one of the default or purpose values: 'Cooling', 'Electrical equipment', 'Fans and pumps', 'HeatingDHW', 'HeatingRV', or 'Lighting'
 
-     Returns
-     -------
-     pd.Series of bool values
+    Args:
+        value: Input value to check against the valid purpose values
 
+    Returns:
+        pd.Series: Series of bool values indicating if each value matches a valid purpose
     """
     return value.isin(list(EnergyPurpose) + ['default'])
 
@@ -154,14 +144,11 @@ def check_tek(value: str) -> bool:
     """
     A crude check to determine if value is a 'TEK'
 
-    Parameters
-    ----------
-    value: str
-    Returns
-    -------
-    bool
-        True when the function thinks that value might be a TEK
+    Args:
+        value (str): A string to check if it's a TEK
 
+    Returns:
+        bool: True when the function thinks that value might be a TEK
     """
     return 'TEK' in value
 
@@ -170,14 +157,11 @@ def check_default_tek(value: str) -> bool:
     """
     A crude check to determine if value is a 'TEK' or default
 
-    Parameters
-    ----------
-    value: str
-    Returns
-    -------
-    bool
-        True when the function thinks that value might be a TEK
+    Args:
+        value (str): A string to check if it's a TEK or default
 
+    Returns:
+        bool: True when the function thinks that value might be a TEK
     """
     return check_tek(value) or value == 'default'
 
@@ -195,18 +179,16 @@ def check_overlapping_tek_periods(df: pd.DataFrame) -> pd.Series:
     checked_series = pd.Series(check.to_list() +[True])  
     return checked_series
 
+
 def check_building_category_share(values: pd.DataFrame) -> pd.Series:
     """
-   Make sure that the sum of values in values.new_house_share + values.new_apartment_block_share is 1.0
+    Makes sure that the sum of values in values.new_house_share + values.new_apartment_block_share is 1.0
 
-    Parameters
-    ----------
-    values: pd.DataFrame
-        A dataframe with new_house_share and new_apartment_block_share
-    -------
-    pd.Series
-        A series of bool with the truth value of new_house_share + new_apartment_block_share equals 1.0
+    Args:
+        values (pd.DataFrame): A dataframe with new_house_share and new_apartment_block_share
 
+    Returns:
+        pd.Series: A series of bool with the truth value of new_house_share + new_apartment_block_share equals 1.0
     """
     return values.new_house_share + values.new_apartment_block_share == 1.0
 

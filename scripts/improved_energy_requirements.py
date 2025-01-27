@@ -1,7 +1,7 @@
 #%%
-import pandas as pd
 import numpy as np
-
+import pandas as pd
+from loguru import logger
 #%%
 from ebm.model.building_category import BuildingCategory
 from ebm.model.energy_purpose import EnergyPurpose
@@ -9,6 +9,9 @@ from ebm.model.data_classes import YearRange
 from ebm.model.building_condition import BuildingCondition
 
 import time
+
+from ebm.services.files import make_unique_path
+
 #%% md
 # ## New functions
 #%%
@@ -49,33 +52,22 @@ print('total', len(all_building_categories) * len(all_teks) * len(all_purpose) *
 #%% md
 # ## Full frame
 #%%
+
 df_bc = pd.DataFrame(all_building_categories, columns=['building_category'])
-df_bc
-
 df_tek = pd.merge(df_bc, pd.DataFrame({'TEK': all_teks}), how='cross')
-df_tek
-
 df_purpose = pd.merge(df_tek, pd.DataFrame(all_purpose, columns=['purpose']), how='cross')
-df_purpose
-
 df_condition = pd.merge(df_purpose, pd.DataFrame({'building_condition': most_conditions}), how='cross')
-df_condition
-
 df_years = pd.merge(df_condition, pd.DataFrame({'year': model_years}), how='cross')
-df_years
-#%%
-all_teks
+
+print(df_years)
 #%% md
 # ## Energy requirements original condition
 #%%
 erq_oc = pd.read_csv('kalibrering/energy_requirement_original_condition.csv')
 erq_oc = erq_oc[erq_oc['TEK']!='TEK21']
 erq_oc['_src_erq_oc'] = 'src'
-erq_oc[erq_oc['TEK']=='default']
-#%%
 erq_oc = explode_column_alias(erq_oc, 'TEK', all_teks, 'default')
-erq_oc
-
+print(erq_oc)
 #%% md
 # ## Merge oc to energy_requirements
 #
@@ -83,31 +75,25 @@ erq_oc
 #%%
 erq_all_conditions = pd.merge(left=df_condition, right=erq_oc, how='left')
 erq_all_conditions['_src_erq_a_c'] = 'src'
-erq_all_conditions.sample(7)
-#%%
-erq_all_conditions
+
+print(erq_all_conditions.sample(7))
 #%% md
 # ### years
 #%%
 
 erq_all_years = pd.merge(left=df_years, right=erq_oc, how='left')
 erq_all_years['_erq_al_yrs'] = 'src'
-erq_all_years.sample(7)
+
+print(erq_all_years.sample(7))
+
 #%% md
-# ### Clean up energy_requirements
+# ### energy_requirements from energy requirement reduction by condigion and all years
+#
 #%%
 
 energy_requirements = erq_all_years.drop(columns=['index', 'level_0'], errors='ignore')
-energy_requirements
-#%%
-erq_all_conditions.sample(7)
-#%% md
-# ## Yearly improvements
-#%%
 
-#%%
-#yearly_improvements = pd.merge(left=df_years, right=y_i, how='left')
-#yearly_improvements
+print(energy_requirements)
 #%% md
 # ## Reduction share to reduction_condition
 #%%
@@ -118,51 +104,16 @@ r_s = explode_column_alias(df=r_s, column='TEK', values=all_teks, alias='default
 r_s = r_s[r_s['TEK']!='TEK21']
 r_s.loc[:, 'reduction_condition'] = r_s.loc[:, 'reduction_condition'].fillna(1.0)
 r_s['_src_r_s'] = 'src'
-r_s
-#r_s[(r_s.TEK=='TEK17') & (r_s.building_category=='kindergarten')]
-#%%
-r_s.set_index(['building_category', 'TEK', 'purpose', 'building_condition']).loc[('house','PRE_TEK49','heating_rv')]
+
 #%%
 r_s[r_s.duplicated(['building_category', 'TEK', 'purpose', 'building_condition'])]
 
-#%%
-r_s.query('building_category=="house" and TEK=="TEK17" and purpose=="heating_rv" and building_condition=="small_measure"')
 
-#%%
-r2 = pd.merge(r_s.copy(), pd.DataFrame({'year': model_years}), how='cross').set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year']).sort_index()
-df_years_idx = df_years.set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year']).sort_index()
-
-r2
-#%%
-df_years_idx.loc[:, 'reduction_condition'] = r2['reduction_condition']
-df_years_idx.loc[:, 'reduction_condition'] = df_years_idx.loc[:, 'reduction_condition'].fillna(1.0)
-df_years_idx
-#%% md
-# #### løs med merge
-#%%
-
-r2 = pd.merge(r_s.copy(), pd.DataFrame({'year': model_years}), how='cross')
-dy = df_years.copy()
-
-
-qq=pd.merge(left=dy, right=r2, left_on=['building_category', 'TEK', 'purpose', 'building_condition', 'year'], right_on=['building_category', 'TEK', 'purpose', 'building_condition', 'year'], how='left')
-qq
-#%%
-r2.set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year']).loc[('house','PRE_TEK49','heating_rv',slice(None),slice(None))]
-
-#%%
-## Hvorfor mangler small_measure
-r2[(r2.building_category == 'house') & (r2.TEK=='PRE_TEK49')]
 #%%
 reduction_condition = pd.merge(left=r_s, right=pd.DataFrame({'year': model_years}), how='cross')
 reduction_condition = pd.merge(df_years, reduction_condition)
-reduction_condition
-#reduction_condition[reduction_condition['reduction_condition'].isna()]
-#%%
-reduction_condition[~reduction_condition['reduction_share'].isna()].sample(7)
-reduction_condition[reduction_condition.duplicated(['building_category', 'TEK', 'purpose', 'building_condition', 'year'])]
-#%%
-reduction_condition.query('building_category=="house" and TEK=="TEK17" and purpose=="heating_rv" and building_condition=="small_measure" and year==2038')
+
+print(reduction_condition)
 #%% md
 # ## Policy improvement
 #%%
@@ -171,15 +122,12 @@ p_i = pd.read_csv('kalibrering/energy_requirement_policy_improvements.csv')
 p_i = explode_column_alias(p_i, 'building_category', all_building_categories, 'default')
 p_i = explode_column_alias(p_i, 'TEK', all_teks, 'default')
 p_i['_src_p_i'] = 'src'
-p_i
-#%%
-#policy_improvement = pd.merge(left=df_years, right=p_i, how='left')
+
 policy_improvement = pd.merge(right=pd.DataFrame({'year': model_years}), left=p_i, how='cross')
 
-
-policy_improvement
+print(policy_improvement)
 #%%
-# e_y = policy_improvement.copy()
+
 e_y = policy_improvement.copy()
 e_y.loc[:, 'year_no'] = e_y.loc[:, 'year'] - e_y.loc[:, 'period_start_year']
 e_y.loc[:, 'year_no'] = e_y.loc[:, 'year_no'].fillna(0)
@@ -190,21 +138,11 @@ e_y.loc[policy_improvement_slice, 'reduction_policy'] = e_y.loc[policy_improveme
 
 
 policy_improvement = e_y
-policy_improvement
-#%%
 
-
-
-
-#%%
-
+print(policy_improvement)
 #%% md
 # ## yearly improvements
-#
-#
-#%%
 
-#%%
 y_i = pd.read_csv('kalibrering/energy_requirement_yearly_improvements.csv')
 
 y_i = explode_column_alias(y_i, 'building_category', all_building_categories, 'default')
@@ -214,23 +152,15 @@ y_i = pd.merge(y_i, pd.DataFrame({'year': model_years}), how='cross')
 y_i.loc[:, 'reduce_efficiency_improvement'] = 1.0 - y_i.loc[:, 'yearly_efficiency_improvement']
 y_i.loc[:, 'year_efficiency'] = y_i.loc[:, 'year'] - y_i.loc[:, 'efficiency_start_year']
 y_i['_src_y_i'] = 'src'
-y_i
-
-#%%
-
-
 
 yearly_improvements = y_i
 
-yearly_improvements
-#%%
-# yearly_improvements = y_i
-#yearly_improvements.sample(11)
-#%%
+print(yearly_improvements)
 
 #%%
 yearly_improvements = pd.merge(y_i, policy_improvement, how='left')
-yearly_improvements
+
+print(yearly_improvements)
 #%%
 yearly_improvements[yearly_improvements.duplicated(['building_category', 'TEK', 'purpose', 'year'])]
 #%%
@@ -239,76 +169,37 @@ yearly_improvements['efficiency_start_year'] = yearly_improvements[['period_end_
 yearly_improvements.loc[:, 'year_efficiency'] = (yearly_improvements.loc[:, 'year'] - yearly_improvements.loc[:, 'efficiency_start_year']).clip(0)
 yearly_improvements.loc[:, 'reduction_yearly'] = (1.0-yearly_improvements.loc[:, 'yearly_efficiency_improvement'])**yearly_improvements.loc[:, 'year_efficiency']
 yearly_improvements.loc[:, 'year_efficiency'] = yearly_improvements.loc[:, 'year'] - yearly_improvements.loc[:, 'efficiency_start_year']
-yearly_improvements.sample(7)
 
-#%%
-yearly_improvements[yearly_improvements.purpose=='electrical_equipment']
-#%%
-yearly_improvements[yearly_improvements.purpose=='lighting']
-#%%
-
-
-
-#%%
-yearly_improvements
-#%%
+print(yearly_improvements.sample(7))
 
 #%% md
 # ## merge all
 #%%
 m_nrg_yi = pd.merge(left=energy_requirements.copy(), right=yearly_improvements.copy(), how='left')
 merged = pd.merge(left=m_nrg_yi.copy(), right=reduction_condition.copy(), on=['building_category', 'TEK', 'purpose', 'building_condition', 'year'], how='left')
-# merged = pd.merge(left=merged.copy(), right=erq_oc, on=['building_category', 'TEK', 'purpose']) # on=['building_category', 'TEK', 'purpose']
+
 merged.loc[:, 'reduction_yearly'] = merged.loc[:, 'reduction_yearly'].fillna(1.0)
 merged.loc[:, 'reduction_policy'] = merged.loc[:, 'reduction_policy'].fillna(1.0)
 merged.loc[:, 'reduction_share'] = merged.loc[:, 'reduction_share'].fillna(1.0)
 merged['reduction_condition'] = merged['reduction_condition'].fillna(1.0)
-# merged.loc[:, 'reduction_condition'] = merged.loc[:, 'reduction_condition'].fillna(1.0)
 
-
-#df = pd.merge(left=df, right=yearly_improvements, how='left')
-#df = pd.merge(left=df, right=yearly_improvements, how='left')
- #df = pd.
-
-# merged = merged.drop(columns=[c for c in merged.columns if c.startswith('_') or c.startswith('Unamed') or c.startswith('Index')])
 merged['reduced_kwh_m2'] = merged['kwh_m2'] * merged['reduction_condition'] * merged['reduction_yearly'] * merged['reduction_policy']
 merged['behavior_kwh_m2'] = merged['reduced_kwh_m2'] * merged['behavior_factor']
-merged
-#%%
-merged.columns
 
-print('time', time.time() - st, ' s')
+print(merged)
+#%% md
+# ## Write to disk
 #%%
-merged.to_excel('output/new_energy_requirements2.xlsx')
+print('time:', time.time() - st, ' s')
+uniq_path = make_unique_path('output/new_energy_requirements.xlsx')
+logger.info(f'Writing to {uniq_path}')
+merged.to_excel(uniq_path)
+logger.info(f'Wrote   to {uniq_path}')
 #%%
 
 #%% md
-# ### Check reduction condition
-#%%
-merged['reduced_kwh_m2'] = merged['kwh_m2'] * merged['reduction_condition']
-merged.query('purpose=="heating_rv" and building_condition!="original_condition"').sample(21)[['building_category', 'TEK', 'purpose', 'year', 'building_condition', 'reduction_condition', 'kwh_m2', 'reduced_kwh_m2']] # '_src_r_s',
+# ### Calculate reduced KWh/m2
 #%%
 df = merged
-df[df.duplicated(['building_category', 'TEK', 'purpose', 'building_condition', 'year'])]
-#%%
-
-df.query('building_category=="house" and TEK=="TEK17" and purpose=="heating_rv" and year==2020')
-#%%
-#display(df[df.purpose=='lighting'].sample(7))
-#display(df[df.purpose=='electrical_equipment'].sample(7))
-#display(df[df.purpose=='heating_rv'].sample(7))
-#display(df[df.purpose=='heating_dhw'].sample(7))
-#display(df[df.purpose=='cooling'].sample(7))
-
-df
-#%%
-
-#%%
-merged
-#%%
-
-#%%
-
-#%%
-
+print(df[df.duplicated(['building_category', 'TEK', 'purpose', 'building_condition', 'year'])])
 #%%

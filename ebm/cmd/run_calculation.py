@@ -225,11 +225,10 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
         database_manager=database_manager)
 
     series = []
-    for s in energy_requirement.calculate_for_building_category(
-            building_category=building_category, database_manager=database_manager):
-        series.append(s)
-    df = pd.concat(series).to_frame()
-    df.index.names = ['building_category', 'TEK', 'purpose', 'building_condition', 'year']
+    df = energy_requirement.calculate_for_building_category(building_category=building_category,
+                                                            database_manager=database_manager)
+
+    df = df.set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year'])
 
     q = area_forecast.reset_index()
 

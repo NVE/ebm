@@ -196,15 +196,15 @@ class DatabaseManager:
         if not 'behavior_factor' in df.columns:
             df['behavior_factor'] = 1.0
         df.loc[:, 'behavior_factor'] = df.loc[:, 'behavior_factor'].fillna(1.0)
-        df.loc[:, 'kwh_m2'] = df.loc[:, 'kwh_m2'] * df.loc[:, 'behavior_factor']
+        # df.loc[:, 'kwh_m2'] = df.loc[:, 'kwh_m2'] * df.loc[:, 'behavior_factor']
 
         heating_rv_factor = self.get_calibrate_heating_rv().set_index(['building_category', 'purpose']).heating_rv_factor
 
-        calibrated = heating_rv_factor * df.kwh_m2
-        calibrated.name = 'kwh_m2'
-        calibrated.loc[calibrated.isna()] = df.loc[calibrated.isna(), 'kwh_m2']
-        q = calibrated.to_frame().reset_index()
-        return q.loc[~q.kwh_m2.isna()]
+        df['uncalibrated_kwh_m2'] = df['kwh_m2']
+        df['calibrated_kwh_m2'] = heating_rv_factor * df.kwh_m2
+        df.loc[df.calibrated_kwh_m2.isna(), 'calibrated_kwh_m2'] = df.loc[df.calibrated_kwh_m2.isna(), 'kwh_m2']
+        df['kwh_m2'] = df['calibrated_kwh_m2']
+        return df.reset_index()
 
     def get_energy_req_reduction_per_condition(self) -> pd.DataFrame:
         """

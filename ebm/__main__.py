@@ -2,7 +2,6 @@ import os
 import pathlib
 import sys
 
-import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -13,7 +12,6 @@ from ebm.model.calibrate_energy_requirements import create_heating_rv
 from ebm.cmd.run_calculation import make_arguments, validate_years, calculate_energy_use, configure_loglevel
 
 from ebm.model.building_category import BuildingCategory
-from ebm.model.building_condition import BuildingCondition
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
 
@@ -39,7 +37,7 @@ def main() -> int:
     """
     load_dotenv(pathlib.Path('.env'))
 
-    configure_loglevel()
+    configure_loglevel(os.environ.get('LOG_FORMAT', None))
 
     logger.debug(f'Starting {sys.executable} {__file__}')
 
@@ -52,7 +50,6 @@ def main() -> int:
     building_categories = [BuildingCategory.from_string(b_c) for b_c in arguments.categories]
     if not building_categories:
         building_categories = list(BuildingCategory)
-    building_conditions = [BuildingCondition(condition) for condition in arguments.conditions]
 
     # `;` Will normally be interpreted as line end when typed in a shell. If the
     # delimiter is empty make the assumption that the user used ;. An empty delimiter is not valid anyway.
@@ -95,8 +92,6 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
         logger.error(f'{output_file} is not writable')
         return RETURN_CODE_FILE_NOT_ACCESSIBLE
 
-    logger.info('Loading area forecast')
-
     model = None
     calibration_year = arguments.calibration_year
     step_choice = arguments.step
@@ -115,12 +110,8 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
     elif step_choice == 'energy-use':
         model = calculate_energy_use()
     else:
-        for building_category in building_categories:
-            df = default_handler.extract_model(arguments, building_category, building_conditions, database_manager, step_choice)
-            if model is None:
-                model = df
-            else:
-                model = pd.concat([model, df])
+        model = default_handler.extract_model(arguments, building_categories, database_manager, step_choice)
+
 
     if transform_to_horizontal_years and step_choice == 'heating-systems':
         hz = transform_heating_systems_to_horizontal(model)
@@ -140,7 +131,7 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
         df = transform_model_to_horizontal(model)
         write_horizontal_excel(output_file, df, f'{sheet_name_prefix} category')
     else:
-        default_handler.write_result(output_file, csv_delimiter, model)
+        default_handler.write_result2(output_file, csv_delimiter, model)
 
 
     if arguments.open:

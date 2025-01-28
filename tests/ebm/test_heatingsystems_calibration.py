@@ -78,9 +78,9 @@ house,DH-Ingen,1.1,DH-Gas
 
     result = calibrate_heating_systems(df, cal).reset_index(drop=True)
     expected = pd.read_csv(io.StringIO("""building_category,TEK,year,heating_systems,TEK_shares
-house,TEK07,2023,DH-Ingen,0.6
 house,TEK07,2023,DH-Bio,0.2
 house,TEK07,2023,DH-Gas,0.2
+house,TEK07,2023,DH-Ingen,0.6
 """.strip()))
 
     # Alternative/correct non-parallel result:
@@ -157,10 +157,10 @@ house,DH-Ingen,1.1,DH-Bio
     # house,DH-Ingen,1.1,DH-Gas
     result = calibrate_heating_systems(df, cal).reset_index(drop=True)
     expected = pd.read_csv(io.StringIO("""building_category,TEK,year,heating_systems,TEK_shares
-house,TEK07,2023,DH-Ingen,0.55
 house,TEK07,2023,DH-Bio,0.2
-house,TEK10,2023,DH-Ingen,0.55
+house,TEK07,2023,DH-Ingen,0.55
 house,TEK10,2023,DH-Bio,0.2
+house,TEK10,2023,DH-Ingen,0.55
 house,TEK10,2024,DH-Bio,0.25
 """.strip()))
 
@@ -199,11 +199,11 @@ house,Electric boiler,Electricity,1.05"""))
     result = calibrate_heating_systems(df, cal)
     # assert df.sum().TEK_shares == 1.0
     expected = pd.read_csv(io.StringIO("""building_category,TEK,year,heating_systems,TEK_shares
-house,TEK07,2023,Electricity,0.05154599036503544
-house,TEK07,2023,Electric boiler,0.013702506623424622
 house,TEK07,2023,DH,0.02133
 house,TEK07,2023,DH - Bio,0.00766
+house,TEK07,2023,Electric boiler,0.013702506623424622
 house,TEK07,2023,Electric boiler - Solar,0.00030
+house,TEK07,2023,Electricity,0.05154599036503544
 house,TEK07,2023,Electricity - Bio,0.22473
 house,TEK07,2023,Gas,0.008896825922106484
 house,TEK07,2023,HP - Bio - Electricity,0.5649908788840202
@@ -233,10 +233,10 @@ apartment_block,Bio,1.0,Electricity
 
     result = calibrate_heating_systems(df, cal)
     expected = pd.read_csv(io.StringIO("""building_category,TEK,year,heating_systems,TEK_shares
+apartment_block,TEK07,2023,DH,4.0
 apartment_block,TEK07,2023,Electric boiler,1.5
 apartment_block,TEK07,2023,Electricity,1.5
 apartment_block,TEK07,2023,Gas,3.0
-apartment_block,TEK07,2023,DH,4.0
 """.strip()))
 
     pd.testing.assert_frame_equal(result, expected)

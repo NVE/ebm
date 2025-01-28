@@ -42,19 +42,14 @@ def extract_area_forecast(database_manager) -> pd.DataFrame:
 
 
 def extract_energy_requirements(area_forecast: pd.DataFrame, database_manager) -> pd.DataFrame:
-    all_requirement = []
+    en_req = calculate_building_category_energy_requirements(
+        building_category=list(BuildingCategory),
+        area_forecast=area_forecast,
+        database_manager=database_manager,
+        start_year=start_year,
+        end_year=end_year)
 
-    for building_category in BuildingCategory:
-        en_req = calculate_building_category_energy_requirements(
-            building_category=building_category,
-            area_forecast=area_forecast[area_forecast['building_category'] == building_category],
-            database_manager=database_manager,
-            start_year=start_year,
-            end_year=end_year)
-        all_requirement.append(en_req)
-
-    energy_requirement = pd.concat(all_requirement)
-    return energy_requirement
+    return en_req
 
 
 def extract_heating_systems(energy_requirements, database_manager) -> pd.DataFrame:

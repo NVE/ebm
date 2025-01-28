@@ -87,9 +87,9 @@ def write_tqdm_result(output_file, output, csv_delimiter=','):
         except ImportError:
             print(output.to_string())
             return
-    logger.info('reset index')
+
     output = output.reset_index()
-    logger.info('resat index')
+
     with tqdm(total=len(output), desc="Writing to spreadsheet") as pbar:
         if output_file.suffix == '.csv':
             for i in range(0, len(output), 100):  # Adjust the chunk size as needed
@@ -129,8 +129,9 @@ class EbmDefaultHandler:
 
         df = df.set_index(['building_category', 'TEK', 'building_condition', 'year'])
         if 'energy-requirements' in step_choice or 'heating-systems' in step_choice:
+            logger.debug('Extracting area energy requirements')
             energy_requirements_result = calculate_building_category_energy_requirements(
-                building_category=building_category,
+                building_category=building_categories,
                 area_forecast=df,
                 database_manager=database_manager,
                 start_year=arguments.start_year,
@@ -138,6 +139,7 @@ class EbmDefaultHandler:
             df = energy_requirements_result
 
             if 'heating-systems' in step_choice:
+                logger.debug('Extracting heating systems')
                 df = calculate_heating_systems(energy_requirements=energy_requirements_result,
                                                database_manager=database_manager)
         return df

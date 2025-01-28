@@ -229,6 +229,8 @@ def calibrate_heating_systems(df: pd.DataFrame, factor: pd.DataFrame, multiply=F
 
     # Calculate value to subtract
     df_to_subtract = df_from.set_index(['building_category', 'TEK', 'year', 'from', 'to'])
+
+    df_to_subtract = df_to_subtract.sort_index()
     df_to_subtract.loc[:, 'v'] = -df_to_add.reset_index().groupby(by=['building_category', 'TEK', 'year', 'from', 'to']).agg(
         {'v': 'sum'})
 
@@ -239,6 +241,7 @@ def calibrate_heating_systems(df: pd.DataFrame, factor: pd.DataFrame, multiply=F
         {'v': 'sum', 'heating_systems': 'first', 'TEK_shares': 'first', 'factor': 'first'})
 
     df_to_sum = original.set_index(['building_category', 'TEK', 'year', 'heating_systems'])
+    df_to_sum = df_to_sum.sort_index()
     df_to_sum.loc[:, 'add'] = addition_grouped.loc[:, 'v']
     df_to_sum.loc[:, 'sub'] = subtraction_grouped.loc[:, 'v'].fillna(0)
     df_to_sum.loc[:, 'sub'] = df_to_sum.loc[:, 'sub'].fillna(0)

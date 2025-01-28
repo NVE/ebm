@@ -94,8 +94,6 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
         logger.error(f'{output_file} is not writable')
         return RETURN_CODE_FILE_NOT_ACCESSIBLE
 
-    logger.info('Loading area forecast')
-
     model = None
     calibration_year = arguments.calibration_year
     step_choice = arguments.step

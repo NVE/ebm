@@ -2,7 +2,6 @@ import os
 import pathlib
 import sys
 
-import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -13,7 +12,6 @@ from ebm.model.calibrate_energy_requirements import create_heating_rv
 from ebm.cmd.run_calculation import make_arguments, validate_years, calculate_energy_use, configure_loglevel
 
 from ebm.model.building_category import BuildingCategory
-from ebm.model.building_condition import BuildingCondition
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
 

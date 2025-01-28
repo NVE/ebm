@@ -307,7 +307,7 @@ def calculate_heating_systems(energy_requirements, database_manager: DatabaseMan
     projection_period = YearRange(2023, 2050)
     hsp = HeatingSystemsProjection.new_instance(projection_period, database_manager)
     hf = hsp.calculate_projection()
-    hf = HeatingSystemsProjection.pad_projection(hf, YearRange(2020, 2022))
+    hf = hsp.pad_projection(hf, YearRange(2020, 2022))
     calculator = EnergyConsumption(hf)
     calculator.heating_systems_parameters = calculator.grouped_heating_systems()
     df = calculator.calculate(energy_requirements)

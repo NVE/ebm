@@ -140,7 +140,7 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
         df = transform_model_to_horizontal(model)
         write_horizontal_excel(output_file, df, f'{sheet_name_prefix} category')
     else:
-        default_handler.write_result(output_file, csv_delimiter, model)
+        default_handler.write_result2(output_file, csv_delimiter, model)
 
 
     if arguments.open:

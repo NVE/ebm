@@ -103,7 +103,12 @@ def write_tqdm_result(output_file, output, csv_delimiter=','):
                 for i in range(0, len(output), 100):  # Adjust the chunk size as needed
                     building_category = output.iloc[i].name[0] if 'building_category' not in output.columns else output.building_category.iloc[i]
                     pbar.set_description(f'Writing {building_category}')
-                    output.iloc[i:i + 100].to_excel(excel_writer, startrow=i, header=(i == 0), merge_cells=False)
+                    #logger.debug(f'{output.iloc[i+99][['building_condition', 'purpose']]} ++ {output.iloc[i+100][['building_condition', 'purpose']]}')
+                    start_row = 0 if i == 0 else i+1
+                    page_start = i
+                    page_end = min(i+100, len(output))
+                    logger.debug(f'{start_row=} {page_start=} {page_end=}')
+                    output.iloc[page_start:page_end].to_excel(excel_writer, startrow=start_row, header=(i == 0), merge_cells=False, index=False)
                     pbar.update(100)
                 pbar.set_description(f'Closing {output_file}')
 
@@ -136,5 +141,5 @@ class EbmDefaultHandler:
                                                database_manager=database_manager)
         return df
 
-    def write_result(self, output_file, csv_delimiter, model):
+    def write_result2(self, output_file, csv_delimiter, model):
         write_tqdm_result(output_file, model, csv_delimiter)

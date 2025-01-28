@@ -8,6 +8,7 @@ from ebm.cmd.run_calculation import calculate_building_category_area_forecast, \
 from ebm.model.calibrate_heating_systems import transform_heating_systems
 from ebm.model.building_condition import BEMA_ORDER as building_condition_order
 from ebm.model.building_category import BEMA_ORDER as building_category_order
+from ebm.model.data_classes import YearRange
 from ebm.model.tek import BEMA_ORDER as tek_order
 
 
@@ -28,6 +29,15 @@ def transform_model_to_horizontal(model):
 
     return hz
 
+
+def transform_holiday_homes_to_horizontal(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.reset_index()
+    df = df.rename(columns={'energy_type': 'energy_source'})
+    columns_to_keep = [y for y in YearRange(2020, 2050)] + ['building_category', 'energy_source']
+    df = df.drop(columns=[c for c in df.columns if c not in columns_to_keep])
+    df['energy_source'] = df['energy_source'].apply(lambda x: 'Elektrisitet' if x == 'electricity' else 'Bio' if x == 'fuelwood' else x)
+    df['building_category'] = 'Fritidsboliger'
+    return df
 
 def transform_heating_systems_to_horizontal(model: pd.DataFrame):
     hs2 = model

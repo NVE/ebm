@@ -89,6 +89,7 @@ class EnergyRequirement:
         df_purpose = pd.merge(df_tek, pd.DataFrame(all_purpose, columns=['purpose']), how='cross')
         df_condition = pd.merge(df_purpose, pd.DataFrame({'building_condition': most_conditions}), how='cross')
         df_years = pd.merge(df_condition, pd.DataFrame({'year': model_years}), how='cross')
+        df_years['_df_y_src'] = 'src'
 
         # erq_oc = database_manager.get_energy_req_original_condition()
         erq_oc = pd.read_csv('kalibrering/energy_requirement_original_condition.csv')

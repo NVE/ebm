@@ -103,30 +103,31 @@ def write_tqdm_result(output_file, output, csv_delimiter=','):
                 for i in range(0, len(output), 100):  # Adjust the chunk size as needed
                     building_category = output.iloc[i].name[0] if 'building_category' not in output.columns else output.building_category.iloc[i]
                     pbar.set_description(f'Writing {building_category}')
-                    #logger.debug(f'{output.iloc[i+99][['building_condition', 'purpose']]} ++ {output.iloc[i+100][['building_condition', 'purpose']]}')
                     start_row = 0 if i == 0 else i+1
                     page_start = i
                     page_end = min(i+100, len(output))
-                    logger.debug(f'{start_row=} {page_start=} {page_end=}')
+                    logger.trace(f'{start_row=} {page_start=} {page_end=}')
                     output.iloc[page_start:page_end].to_excel(excel_writer, startrow=start_row, header=(i == 0), merge_cells=False, index=False)
                     pbar.update(100)
                 pbar.set_description(f'Closing {output_file}')
 
 
 class EbmDefaultHandler:
-    def extract_model(self, arguments, building_category, building_conditions, database_manager, step_choice):
-        area_forecast_result = calculate_building_category_area_forecast(
-            building_category=building_category,
-            database_manager=database_manager,
-            start_year=arguments.start_year,
-            end_year=arguments.end_year)
-        df = area_forecast_result
+    def extract_model(self, arguments, building_categories, database_manager, step_choice):
+
+        area_forecast_results = []
+        logger.debug('Extracting area forecast')
+        for building_category in building_categories:
+            area_forecast = calculate_building_category_area_forecast(
+                building_category=building_category,
+                database_manager=database_manager,
+                start_year=arguments.start_year,
+                end_year=arguments.end_year)
+            area_forecast_results.append(area_forecast)
+
+        df = pd.concat(area_forecast_results)
+
         df = df.set_index(['building_category', 'TEK', 'building_condition', 'year'])
-        if building_conditions:
-            df = df.loc[:, :, [str(s) for s in building_conditions]]
-        if arguments.tek:
-            tek_in_index = [t for t in arguments.tek if any(df.index.isin([t], level=1))]
-            df = df.loc[:, tek_in_index, :]
         if 'energy-requirements' in step_choice or 'heating-systems' in step_choice:
             energy_requirements_result = calculate_building_category_energy_requirements(
                 building_category=building_category,

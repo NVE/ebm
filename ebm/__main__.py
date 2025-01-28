@@ -39,7 +39,7 @@ def main() -> int:
     """
     load_dotenv(pathlib.Path('.env'))
 
-    configure_loglevel()
+    configure_loglevel(os.environ.get('LOG_FORMAT', None))
 
     logger.debug(f'Starting {sys.executable} {__file__}')
 
@@ -52,7 +52,6 @@ def main() -> int:
     building_categories = [BuildingCategory.from_string(b_c) for b_c in arguments.categories]
     if not building_categories:
         building_categories = list(BuildingCategory)
-    building_conditions = [BuildingCondition(condition) for condition in arguments.conditions]
 
     # `;` Will normally be interpreted as line end when typed in a shell. If the
     # delimiter is empty make the assumption that the user used ;. An empty delimiter is not valid anyway.
@@ -115,12 +114,8 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
     elif step_choice == 'energy-use':
         model = calculate_energy_use()
     else:
-        for building_category in building_categories:
-            df = default_handler.extract_model(arguments, building_category, building_conditions, database_manager, step_choice)
-            if model is None:
-                model = df
-            else:
-                model = pd.concat([model, df])
+        model = default_handler.extract_model(arguments, building_categories, database_manager, step_choice)
+
 
     if transform_to_horizontal_years and step_choice == 'heating-systems':
         hz = transform_heating_systems_to_horizontal(model)

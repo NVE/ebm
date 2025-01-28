@@ -109,12 +109,6 @@ The calculation step you want to run. The steps are sequential. Any prerequisite
                             type=pathlib.Path,
                             default=pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input')),
                             help='path to the directory with input files')
-    arg_parser.add_argument('--conditions', '--building-conditions', '-n',
-                            nargs='*', type=str, default=default_building_conditions,
-                            help=argparse.SUPPRESS)
-    arg_parser.add_argument('--tek', '-t',
-                            nargs='*', type=str, default=default_tek,
-                            help=argparse.SUPPRESS)
     arg_parser.add_argument('--force', '-f', action='store_true',
                             help='Write to <filename> even if it already exists')
     arg_parser.add_argument('--open', '-o', action='store_true',

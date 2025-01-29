@@ -128,6 +128,8 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
         write_horizontal_excel(output_file, df, f'{sheet_name_prefix} condition')
 
         model = model.reset_index()
+        # Demolition should not be summed any further
+        model = model[model.building_condition!='demolition']
         model['building_condition'] = 'all'
         df = transform_model_to_horizontal(model)
         write_horizontal_excel(output_file, df, f'{sheet_name_prefix} TEK')

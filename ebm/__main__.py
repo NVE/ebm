@@ -2,13 +2,13 @@ import os
 import pathlib
 import sys
 
-import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
 from ebm.cmd.calibrate import run_calibration
 from ebm.cmd.result_handler import transform_heating_systems_to_horizontal, write_horizontal_excel, \
-    transform_model_to_horizontal, EbmDefaultHandler, transform_holiday_homes_to_horizontal
+    transform_model_to_horizontal, EbmDefaultHandler, transform_holiday_homes_to_horizontal, \
+    transform_to_sorted_heating_systems
 from ebm.model.calibrate_energy_requirements import create_heating_rv
 from ebm.cmd.run_calculation import make_arguments, validate_years, calculate_energy_use, configure_loglevel
 
@@ -118,8 +118,10 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
     if transform_to_horizontal_years and step_choice == 'heating-systems':
         holiday_homes = transform_holiday_homes_to_horizontal(calculate_energy_use())
         hz = transform_heating_systems_to_horizontal(model)
-        both = pd.concat([hz, holiday_homes]).reset_index(drop=True)
-        write_horizontal_excel(output_file, both, 'heating-systems')
+        heating_systems_hz = transform_to_sorted_heating_systems(hz, holiday_homes)
+        if output_file.name == '-':
+            print(heating_systems_hz)
+        write_horizontal_excel(output_file, heating_systems_hz, 'heating-systems')
     elif transform_to_horizontal_years and (step_choice in ['area-forecast', 'energy-requirements']) and output_file.suffix=='.xlsx':
         sheet_name_prefix = 'area' if step_choice == 'area-forecast' else 'energy'
 

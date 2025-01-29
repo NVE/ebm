@@ -29,6 +29,19 @@ def transform_model_to_horizontal(model):
 
     return hz
 
+def transform_to_sorted_heating_systems(df: pd.DataFrame, holiday_homes: pd.DataFrame) -> pd.DataFrame:
+    category_order = {'Bolig': 100, 'Fritidsboliger': 200, 'Yrkesbygg': 300}
+    energy_source = {'Elektrisitet': 10, 'Fjernvarme': 11,  'Bio': 12, 'Fossil': 13, 'Solar': 13,
+                     'Luft/luft': 24,  'Vannbåren varme': 25}
+
+    rs = pd.concat([df, holiday_homes]).reindex()
+    rs = rs.sort_values(by=['building_category', 'energy_source'],
+                   key=lambda x: x.map(category_order) if x.name == 'building_category' else x.map(
+                       energy_source) if x.name == 'energy_source' else x)
+
+    return pd.concat([rs[~rs.energy_source.isin(['Luft/luft', 'Vannbåren varme'])],
+                      rs[rs.energy_source.isin(['Luft/luft', 'Vannbåren varme'])]])
+
 
 def transform_holiday_homes_to_horizontal(df: pd.DataFrame) -> pd.DataFrame:
     df = df.reset_index()

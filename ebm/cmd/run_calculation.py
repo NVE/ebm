@@ -88,7 +88,7 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
                                      'energy-requirements',
                                      'heating-systems',
                                      'energy-use'],
-                            default='energy-requirements',
+                            default='heating-systems',
                             help="""
 The calculation step you want to run. The steps are sequential. Any prerequisite to the chosen step will run 
     automatically.""")
@@ -130,6 +130,7 @@ Create input directory containing all required files in the current working dire
 
     arg_parser.add_argument('--horizontal-years', '--horizontal', '--horisontal', action='store_true',
                             help='Show years horizontal (left to right)')
+
     arguments = arg_parser.parse_args()
     return arguments
 

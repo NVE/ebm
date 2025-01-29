@@ -114,7 +114,6 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
     else:
         model = default_handler.extract_model(arguments, building_categories, database_manager, step_choice)
 
-
     if transform_to_horizontal_years and step_choice == 'heating-systems':
         holiday_homes = transform_holiday_homes_to_horizontal(calculate_energy_use())
         hz = transform_heating_systems_to_horizontal(model)

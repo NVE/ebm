@@ -22,10 +22,16 @@ def access_excel_sheet(workbook_name: str, sheet_name: str) -> win32com.client.C
        The specified sheet object.
     """
     logging.debug(f'Opening sheet {sheet_name} in {workbook_name}')
-    excel = win32com.client.Dispatch("Excel.Application")
-
-    # Get the currently open workbooks
-    workbooks = excel.Workbooks
+    workbooks = []
+    try:
+        excel = win32com.client.Dispatch("Excel.Application")
+        # Get the currently open workbooks
+        workbooks = excel.Workbooks
+    except AttributeError as attr_err:
+        logger.exception(attr_err)
+        msg = f'Got an AttributeError while opening  {workbook_name} !{sheet_name}. Is the spreadsheet busy?'
+        raise IOError(msg)
+        # raise attr_err
 
     for workbook in workbooks:
         logger.debug(f"Found open Workbook: {workbook.Name}")

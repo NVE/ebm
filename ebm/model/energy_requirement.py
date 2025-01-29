@@ -177,7 +177,8 @@ class EnergyRequirement:
         merged = merged.rename(columns={'kwh_m2': 'original_kwh_m2'})
         merged['kwh_m2'] = merged['behavior_kwh_m2']
         return merged[['building_category', 'TEK', 'building_condition','year', 'purpose',
-                       'original_kwh_m2', 'reduced_kwh_m2', 'behavior_factor', 'kwh_m2']]
+                       'original_kwh_m2', 'reduction_yearly', 'reduction_policy', 'reduction_condition',
+                       'reduced_kwh_m2', 'behavior_factor', 'kwh_m2']]
 
 
     def calculate_energy_requirements(

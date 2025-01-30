@@ -249,7 +249,8 @@ def expand_building_category_tek(projection: pd.DataFrame,
                  (df2[original_tek] != 'default') * 1
 
     df2 = df2.sort_values(by=[score])
-    de_duped = df2.drop_duplicates(subset=['building_category', 'TEK'], keep='last')
+    de_duped = df2.drop_duplicates(subset=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS], keep='last')
+
     return de_duped.drop(columns=[score, original_building_category, original_tek])
 
 

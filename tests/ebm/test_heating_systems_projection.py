@@ -277,6 +277,30 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,NEW_HEATING_SYSTEMS,2021,2022] ,ski
     assert not invalid_categories
 
 
+def test_expand_drop_duplicates_when_heating_systems_are_different(tek_list):
+    """
+    There can be multiple unique combinations of heating_systems and new_heating_systems. This test makes sure
+    expand_building_category_tek does not drop unique combinations.
+
+    """
+    forecast = pd.read_csv(io.StringIO(""" 
+kindergarten,TEK97,DH,Gas,0.2,0.1    
+kindergarten,TEK97,Gas,DH,1.0,1.0    
+kindergarten,TEK97,Gas,Electric boiler,0.05,0.075    
+kindergarten,TEK97,Gas,DH,0.05,0.075    
+""".strip()), names=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021, 2022], skipinitialspace=True)
+    result = expand_building_category_tek(forecast, tek_list)
+
+    expected = pd.DataFrame(
+        data=[['kindergarten', 'TEK97', 'DH', 'Gas', 0.2, 0.1],
+              ['kindergarten', 'TEK97', 'Gas', 'Electric boiler', 0.05, 0.075],
+              ['kindergarten', 'TEK97', 'Gas', 'DH', 0.05, 0.075]],
+        columns=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021, 2022])
+
+    pd.testing.assert_frame_equal(result.reset_index(drop=True), expected)
+
+
+
 def test_project_heating_systems_ok():
 
     shares_start_year_all_systems = pd.read_csv(io.StringIO("""

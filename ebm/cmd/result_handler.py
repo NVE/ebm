@@ -1,11 +1,16 @@
-import itertools
+import math
 import pathlib
+import typing
 
+import numpy as np
 from loguru import logger
 import pandas as pd
+from openpyxl.cell import Cell
+from openpyxl.worksheet.errors import IgnoredError
 
-from ebm.cmd.run_calculation import calculate_building_category_area_forecast, \
-    calculate_building_category_energy_requirements, calculate_heating_systems
+from ebm.cmd.run_calculation import (calculate_building_category_area_forecast,
+                                     calculate_building_category_energy_requirements,
+                                     calculate_heating_systems)
 from ebm.model.calibrate_heating_systems import transform_heating_systems
 from ebm.model.building_condition import BEMA_ORDER as building_condition_order
 from ebm.model.building_category import BEMA_ORDER as building_category_order
@@ -86,37 +91,62 @@ def write_result(output_file, csv_delimiter, output, sheet_name='area forecast')
         excel_writer.close()
         logger.info(f'Wrote {output_file}')
 
-
 def write_horizontal_excel(output_file: pathlib.Path, model: pd.DataFrame, sheet_name='Sheet 1'):
-    from openpyxl.utils import get_column_letter
     more_options = {'mode': 'w'}
     if output_file.is_file():
         more_options = {'if_sheet_exists': 'replace', 'mode': 'a'}
 
     with pd.ExcelWriter(output_file, engine='openpyxl', **more_options) as writer:
-        model.to_excel(writer, sheet_name=sheet_name, index=False, startcol=2)
-        worksheet = writer.sheets[sheet_name]
-        worksheet.cell(7,7).number_format='#,##0.00000'
-        logger.debug(f'Apply formatting to {sheet_name}')
-        for col, row in itertools.product(range(6, 6 + 31 + 1), range(2, len(model)+ 1)):
-            logger.trace(f'Formatting {col=}, {row=}')
-            worksheet.cell(row, col).number_format='#,##0'
-        for col in worksheet.columns:
-            max_length = 0
-            column = col[0].column_letter  # Get the column name
-            for cell in col:
-                try:
-                    if cell.value is not None:
-                        cell_length = len(str(cell.value))
-                        if cell_length > max_length:
-                            max_length = cell_length
-                except:
-                    pass
-            adjusted_width = (max_length + 2)
-            worksheet.column_dimensions[column].width = adjusted_width
+        model.to_excel(writer, sheet_name=sheet_name, index=False)
+        sheet = writer.sheets[sheet_name]
+
+        columns = sheet.iter_cols(min_row=1, max_row=sheet.max_row, min_col=1, max_col=sheet.max_column)
+
+        logger.debug('Formatting cell')
+        for col, (col_name, col_values) in zip(columns, model.items()):
+            cell_format = detect_format_from_values(col_name, col_values, model)
+            if cell_format:
+                for row in col[1:]:
+                    row.number_format = cell_format
+
+        logger.debug('Adjust columns width')
+        for col in sheet.iter_cols(min_col=1):
+            adjusted_width = find_max_column_width(col)
+            sheet.column_dimensions[col[0].column_letter].width = adjusted_width
         logger.debug(f'Closing {output_file} {sheet_name}')
     logger.debug(f'Wrote {output_file} {sheet_name}')
 
+
+def detect_format_from_values(col_name, col_values, model):
+    cell_format = ''
+    if np.issubdtype(model[col_name].dtype, np.floating):
+        cell_format = '#,##0.00'
+        if col_values.max() > 1000.0:
+            cell_format = '#,##0'
+        elif 1.0 >= col_values.mean() >= -1.0:
+            cell_format = '0.00%'
+    elif np.issubdtype(model[col_name].dtype, np.integer):
+        cell_format = '#,##0'
+
+    return cell_format
+
+
+def find_max_column_width(col: typing.Tuple[Cell]):
+    max_length = 5
+    for cell in col:
+        try:
+            if cell.value is not None:
+                cell_length = len(str(cell.value)) + 1
+                if cell.data_type == 'n':
+                    thousands = math.floor(math.log(1_000_000_0000, 1000))
+                    cell_length = max(len(str(cell.value).split('.')[0]) + thousands, 2)
+                if cell_length > max_length:
+                    max_length = cell_length
+        except (AttributeError, KeyError, IgnoredError, ValueError) as ex:
+            logger.debug(f'Got error f{cell.column_letter}')
+            logger.error(ex)
+            pass
+    return max_length
 
 
 def write_tqdm_result(output_file, output, csv_delimiter=','):

@@ -91,8 +91,8 @@ class EnergyRequirement:
         df_years = pd.merge(df_condition, pd.DataFrame({'year': model_years}), how='cross')
         df_years['_df_y_src'] = 'src'
 
-        # erq_oc = database_manager.get_energy_req_original_condition()
-        erq_oc = pd.read_csv('kalibrering/energy_requirement_original_condition.csv')
+        erq_oc = database_manager.get_energy_req_original_condition()
+        #erq_oc = pd.read_csv('kalibrering/energy_requirement_original_condition.csv')
 
         erq_oc = erq_oc[erq_oc['TEK'] != 'TEK21']
         erq_oc['_src_erq_oc'] = 'src'
@@ -165,9 +165,8 @@ class EnergyRequirement:
         merged = pd.merge(left=m_nrg_yi.copy(), right=reduction_condition.copy(),
                           on=['building_category', 'TEK', 'purpose', 'building_condition', 'year'], how='left')
 
-        merged.loc[:, 'reduction_yearly'] = merged.loc[:, 'reduction_yearly']
+        merged.loc[:, 'reduction_yearly'] = merged.loc[:, 'reduction_yearly'].fillna(1.0)
         merged.loc[:, 'reduction_policy'] = merged.loc[:, 'reduction_policy'].fillna(1.0)
-        merged.loc[:, 'reduction_share'] = merged.loc[:, 'reduction_share'].fillna(1.0)
         merged['reduction_condition'] = merged['reduction_condition'].fillna(1.0)
 
         merged['reduced_kwh_m2'] = (merged['kwh_m2'] * merged['reduction_condition'].fillna(1.0) *

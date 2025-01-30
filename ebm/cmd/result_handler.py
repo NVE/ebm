@@ -1,3 +1,4 @@
+import itertools
 import pathlib
 
 from loguru import logger
@@ -87,12 +88,35 @@ def write_result(output_file, csv_delimiter, output, sheet_name='area forecast')
 
 
 def write_horizontal_excel(output_file: pathlib.Path, model: pd.DataFrame, sheet_name='Sheet 1'):
+    from openpyxl.utils import get_column_letter
     more_options = {'mode': 'w'}
     if output_file.is_file():
         more_options = {'if_sheet_exists': 'replace', 'mode': 'a'}
 
     with pd.ExcelWriter(output_file, engine='openpyxl', **more_options) as writer:
         model.to_excel(writer, sheet_name=sheet_name, index=False, startcol=2)
+        worksheet = writer.sheets[sheet_name]
+        worksheet.cell(7,7).number_format='#,##0.00000'
+        logger.debug(f'Apply formatting to {sheet_name}')
+        for col, row in itertools.product(range(6, 6 + 31 + 1), range(2, len(model)+ 1)):
+            logger.trace(f'Formatting {col=}, {row=}')
+            worksheet.cell(row, col).number_format='#,##0'
+        for col in worksheet.columns:
+            max_length = 0
+            column = col[0].column_letter  # Get the column name
+            for cell in col:
+                try:
+                    if cell.value is not None:
+                        cell_length = len(str(cell.value))
+                        if cell_length > max_length:
+                            max_length = cell_length
+                except:
+                    pass
+            adjusted_width = (max_length + 2)
+            worksheet.column_dimensions[column].width = adjusted_width
+        logger.debug(f'Closing {output_file} {sheet_name}')
+    logger.debug(f'Wrote {output_file} {sheet_name}')
+
 
 
 def write_tqdm_result(output_file, output, csv_delimiter=','):

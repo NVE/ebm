@@ -18,10 +18,12 @@ from ebm.model.data_classes import YearRange
 from ebm.model.tek import BEMA_ORDER as tek_order
 
 
-
 def transform_model_to_horizontal(model):
     hz = model.reset_index().copy()
-    value_column = 'energy_requirement' if 'energy_requirement' in hz.columns else 'm2'
+    value_column = 'm2'
+    if 'energy_requirement' in hz.columns:
+        value_column = 'GWh'
+        hz['GWh'] = hz['energy_requirement'] / 10**6
     hz = hz.groupby(by=['building_category', 'TEK', 'building_condition', 'year'], as_index=False).sum()[
         ['building_category', 'TEK', 'building_condition', 'year', value_column]]
     hz = hz.pivot(columns=['year'], index=['building_category', 'TEK', 'building_condition'], values=[
@@ -31,7 +33,8 @@ def transform_model_to_horizontal(model):
                         key=lambda x: x.map(building_category_order) if x.name == 'building_category' else x.map(
                             tek_order) if x.name == 'TEK' else x.map(
                             building_condition_order) if x.name == 'building_condition' else x)
-    hz.columns = ['building_category', 'TEK', 'building_condition'] + [y for y in range(2020, 2051)]
+    hz.insert(3, 'U', value_column)
+    hz.columns = ['building_category', 'TEK', 'building_condition', 'U'] + [y for y in range(2020, 2051)]
 
     return hz
 
@@ -90,6 +93,7 @@ def write_result(output_file, csv_delimiter, output, sheet_name='area forecast')
         output.to_excel(excel_writer, sheet_name=sheet_name, merge_cells=False, freeze_panes=(1, 3))
         excel_writer.close()
         logger.info(f'Wrote {output_file}')
+
 
 def write_horizontal_excel(output_file: pathlib.Path, model: pd.DataFrame, sheet_name='Sheet 1'):
     more_options = {'mode': 'w'}

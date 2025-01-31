@@ -48,8 +48,10 @@ def transform_to_sorted_heating_systems(df: pd.DataFrame, holiday_homes: pd.Data
                    key=lambda x: x.map(category_order) if x.name == 'building_category' else x.map(
                        energy_source) if x.name == 'energy_source' else x)
 
-    return pd.concat([rs[~rs.energy_source.isin(['Luft/luft', 'Vannbåren varme'])],
+    hz = pd.concat([rs[~rs.energy_source.isin(['Luft/luft', 'Vannbåren varme'])],
                       rs[rs.energy_source.isin(['Luft/luft', 'Vannbåren varme'])]])
+    hz.insert(2, 'U', 'GWh')
+    return hz
 
 
 def transform_holiday_homes_to_horizontal(df: pd.DataFrame) -> pd.DataFrame:

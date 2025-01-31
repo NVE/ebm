@@ -115,6 +115,7 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
         model = default_handler.extract_model(arguments, building_categories, database_manager, step_choice)
 
     if transform_to_horizontal_years and step_choice == 'heating-systems':
+        logger.debug('Transform heating systems')
         holiday_homes = transform_holiday_homes_to_horizontal(calculate_energy_use())
         hz = transform_heating_systems_to_horizontal(model)
         heating_systems_hz = transform_to_sorted_heating_systems(hz, holiday_homes)
@@ -123,6 +124,7 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
         write_horizontal_excel(output_file, heating_systems_hz, 'heating-systems')
     elif transform_to_horizontal_years and (step_choice in ['area-forecast', 'energy-requirements']) and output_file.suffix=='.xlsx':
         sheet_name_prefix = 'area' if step_choice == 'area-forecast' else 'energy'
+        logger.debug(f'Transform heating {step_choice}')
 
         df = transform_model_to_horizontal(model.reset_index())
         write_horizontal_excel(output_file, df, f'{sheet_name_prefix} condition')

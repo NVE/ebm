@@ -143,7 +143,7 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
         default_handler.write_result2(output_file, csv_delimiter, model)
 
 
-    if arguments.open:
+    if arguments.open or os.environ.get('EBM_ALWAYS_OPEN', 'FALSE').upper() == 'TRUE':
         os.startfile(output_file, 'open')
     sys.exit(RETURN_CODE_OK)
 

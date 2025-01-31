@@ -128,7 +128,7 @@ def detect_format_from_values(col_name, col_values, model):
     if np.issubdtype(model[col_name].dtype, np.floating):
         cell_format = '#,##0.00'
         if col_values.max() > 1000.0:
-            cell_format = '#,##0'
+            cell_format = '# ##0'
         elif 1.0 >= col_values.mean() >= -1.0:
             cell_format = '0.00%'
     elif np.issubdtype(model[col_name].dtype, np.integer):
@@ -197,7 +197,6 @@ def write_tqdm_result(output_file, output, csv_delimiter=','):
 
 class EbmDefaultHandler:
     def extract_model(self, arguments, building_categories, database_manager, step_choice):
-
         area_forecast_results = []
         logger.debug('Extracting area forecast')
         for building_category in building_categories:

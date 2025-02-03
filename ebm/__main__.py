@@ -1,7 +1,9 @@
 import os
 import pathlib
 import sys
+import typing
 
+import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
@@ -23,8 +25,9 @@ RETURN_CODE_FILE_EXISTS = 1
 RETURN_CODE_FILE_NOT_ACCESSIBLE = 2
 RETURN_CODE_MISSING_INPUT_FILES = 3
 
+df = None
 
-def main() -> int:
+def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
     """
     Main function to execute the script.
 
@@ -66,7 +69,7 @@ def main() -> int:
         database_manager.file_handler.create_missing_input_files()
         logger.info(f'Finished creating input files in {database_manager.file_handler.input_directory}')
         # Exit with 0 for success. The assumption is that the user would like to review the input before proceeding.
-        return RETURN_CODE_OK
+        return RETURN_CODE_OK, None
 
     # Make sure all required files exists
     missing_files = database_manager.file_handler.check_for_missing_files()
@@ -75,7 +78,7 @@ def main() -> int:
     Use {program_name} --create-input to create an input directory with default files in the current directory
     """.strip(),
               file=sys.stderr)
-        return RETURN_CODE_MISSING_INPUT_FILES
+        return RETURN_CODE_MISSING_INPUT_FILES, None
 
     database_manager.file_handler.validate_input_files()
     output_file = arguments.output_file
@@ -88,10 +91,10 @@ def main() -> int:
 You can overwrite the {output_file}. by using --force: {program_name} {' '.join(sys.argv[1:])} --force
 """.strip(),
               file=sys.stderr)
-        return RETURN_CODE_FILE_EXISTS
+        return RETURN_CODE_FILE_EXISTS, None
     if output_file.name != '-' and not file_is_writable(output_file):
         logger.error(f'{output_file} is not writable')
-        return RETURN_CODE_FILE_NOT_ACCESSIBLE
+        return RETURN_CODE_FILE_NOT_ACCESSIBLE, None
 
     model = None
     calibration_year = arguments.calibration_year
@@ -145,9 +148,10 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
 
     if arguments.open or os.environ.get('EBM_ALWAYS_OPEN', 'FALSE').upper() == 'TRUE':
         os.startfile(output_file, 'open')
-    sys.exit(RETURN_CODE_OK)
+
+    return RETURN_CODE_OK, model
 
 
 if __name__ == '__main__':
-    exit_code = main()
-    sys.exit(exit_code)
+    exit_code, result = main()
+    df = result

@@ -164,6 +164,7 @@ def write_tqdm_result(output_file, output, csv_delimiter=','):
         return
 
     logger.debug(f'Writing to {output_file}')
+
     if str(output_file) == '-':
         try:
             print(output.to_markdown())
@@ -172,27 +173,30 @@ def write_tqdm_result(output_file, output, csv_delimiter=','):
             return
 
     output = output.reset_index()
+    chunk_size = 2000
+    logger.debug(f'{chunk_size=}')
 
     with tqdm(total=len(output), desc="Writing to spreadsheet") as pbar:
         if output_file.suffix == '.csv':
-            for i in range(0, len(output), 100):  # Adjust the chunk size as needed
+            for i in range(0, len(output), chunk_size):  # Adjust the chunk size as needed
                 building_category = output.iloc[i].building_category
-                pbar.update(100)
-                output.iloc[i:i + 100].to_csv(output_file, mode='a', header=(i == 0), index=False, sep=csv_delimiter)
+                pbar.update(chunk_size)
+                output.iloc[i:i + chunk_size].to_csv(output_file, mode='a', header=(i == 0), index=False, sep=csv_delimiter)
                 pbar.display(f'Writing {building_category}')
             pbar.display(f'Wrote {output_file}')
         else:
             with pd.ExcelWriter(output_file, engine='xlsxwriter') as excel_writer:
-                for i in range(0, len(output), 100):  # Adjust the chunk size as needed
+                for i in range(0, len(output), chunk_size):  # Adjust the chunk size as needed
                     building_category = output.iloc[i].name[0] if 'building_category' not in output.columns else output.building_category.iloc[i]
                     pbar.set_description(f'Writing {building_category}')
                     start_row = 0 if i == 0 else i+1
                     page_start = i
-                    page_end = min(i+100, len(output))
+                    page_end = min(i + chunk_size, len(output))
                     logger.trace(f'{start_row=} {page_start=} {page_end=}')
                     output.iloc[page_start:page_end].to_excel(excel_writer, startrow=start_row, header=(i == 0), merge_cells=False, index=False)
-                    pbar.update(100)
+                    pbar.update(chunk_size)
                 pbar.set_description(f'Closing {output_file}')
+    logger.debug(f'Wrote {output_file}')
 
 
 class EbmDefaultHandler:

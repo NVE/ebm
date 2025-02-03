@@ -20,7 +20,15 @@ class SCurve:
 
     # TODO:
     # - add check to control that defined periods match building lifetime index in get_rates_per_year
-    
+
+    earliest_age: int = 0
+    average_age: int
+    last_age: int
+    rush_years: int
+    rush_share: float
+    never_share: float
+    building_lifetime: int = 130
+
     def __init__(self, 
                  earliest_age: int,
                  average_age: int,
@@ -195,3 +203,22 @@ class SCurve:
         rates_per_year = self.get_rates_per_year_over_building_lifetime() 
         scurve = rates_per_year.cumsum()
         return scurve
+
+
+def main():
+    import pathlib
+    logger.info('Calculate all scurves from data/scurve_parameters.csv')
+    area_parameters_path = pathlib.Path(__file__).parent.parent / 'data/scurve_parameters.csv'
+    df = pd.read_csv(area_parameters_path)
+    for r, v in df.iterrows():
+        scurve = SCurve(earliest_age=v.earliest_age_for_measure,
+                        average_age=v.average_age_for_measure,
+                        last_age=v.last_age_for_measure,
+                        rush_years=v.rush_period_years,
+                        never_share=v.never_share,
+                        rush_share=v.rush_share)
+        print(scurve.calc_scurve())
+    logger.info('done')
+
+if __name__ == '__main__':
+    main()

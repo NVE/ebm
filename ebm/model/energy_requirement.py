@@ -16,6 +16,28 @@ from ebm.model.filter_tek import FilterTek
 from ebm.services.files import make_unique_path
 
 
+def explode_column_alias(df, column, values=None, alias='default', de_dup_by=None):
+    values = values if values else [c for c in df[column].unique().tolist() if c != alias]
+    df.loc[:, '_explode_column_alias_default'] = df.loc[:, column] == alias
+    df.loc[df[df[column] == alias].index, column] = '+'.join(values)
+    df = df.assign(**{column: df[column].str.split('+')}).explode(column)
+    if de_dup_by:
+        df = df.sort_values(by='_explode_column_alias_default', ascending=True)
+        df = df.drop_duplicates(de_dup_by)
+    return df.drop(columns=['_explode_column_alias_default'], errors='ignore')
+
+
+def yearly_reduction(x):
+    if x.year < x.period_start_year:
+        return 1.0
+    if x.year > x.period_end_year:
+        return 1.0 - x.improvement_at_period_end
+    # year = int()
+    return np.linspace(1.0, 1.0 - x.improvement_at_period_end, int(x.period_end_year - x.period_start_year + 1.0))[
+        x.year_no]  # x.year_no.astype(int)
+
+
+
 class EnergyRequirement:
     """
     """
@@ -58,32 +80,21 @@ class EnergyRequirement:
         """
         database_manager = database_manager if database_manager else self.database_manager
 
-        # %%
-        def explode_column_alias(df, column, values=None, alias='default', de_dup_by=None):
-            values = values if values else [c for c in df[column].unique().tolist() if c != alias]
-            df['_explode_column_alias_default'] = df[column] == alias
-            df.loc[df[df[column] == alias].index, column] = '+'.join(values)
-            df = df.assign(**{column: df[column].str.split('+')}).explode(column)
-            if de_dup_by:
-                df = df.sort_values(by='_explode_column_alias_default', ascending=True)
-                df = df.drop_duplicates(de_dup_by)
-            return df.drop(columns=['_explode_column_alias_default'], errors='ignore')
-
-        def yearly_reduction(x):
-            if x.year < x.period_start_year:
-                return 1.0
-            if x.year > x.period_end_year:
-                return 1.0 - x.improvement_at_period_end
-            # year = int()
-            return np.linspace(1.0, 1.0 - x.improvement_at_period_end, int(x.period_end_year - x.period_start_year + 1.0))[
-                x.year_no]  # x.year_no.astype(int)
-
         all_teks = pd.read_csv('kalibrering/TEK_ID.csv').TEK.tolist()
         all_building_categories = list(BuildingCategory)
         all_purpose = list(EnergyPurpose)
         most_conditions = list(BuildingCondition.existing_conditions())
         model_years = YearRange(2020, 2050)
+        erq_oc = database_manager.get_energy_req_original_condition()
 
+        merged = self.calculate_energy_request2(all_building_categories, all_purpose, all_teks, erq_oc, model_years,
+                                                most_conditions, database_manager)
+        return merged[['building_category', 'TEK', 'building_condition','year', 'purpose',
+                       'original_kwh_m2', 'reduction_yearly', 'reduction_policy', 'reduction_condition',
+                       'reduced_kwh_m2', 'behavior_factor', 'kwh_m2']]
+
+    def calculate_energy_request2(self, all_building_categories, all_purpose, all_teks, erq_oc, model_years,
+                                  most_conditions, database_manager):
         df_bc = pd.DataFrame(all_building_categories, columns=['building_category'])
         df_tek = pd.merge(df_bc, pd.DataFrame({'TEK': all_teks}), how='cross')
         df_purpose = pd.merge(df_tek, pd.DataFrame(all_purpose, columns=['purpose']), how='cross')
@@ -91,21 +102,18 @@ class EnergyRequirement:
         df_years = pd.merge(df_condition, pd.DataFrame({'year': model_years}), how='cross')
         df_years['_df_y_src'] = 'src'
 
-        erq_oc = database_manager.get_energy_req_original_condition()
-        #erq_oc = pd.read_csv('kalibrering/energy_requirement_original_condition.csv')
-
+        erq_oc = erq_oc.copy()
         erq_oc = erq_oc[erq_oc['TEK'] != 'TEK21']
-        erq_oc['_src_erq_oc'] = 'src'
+        erq_oc.loc[:, '_src_erq_oc'] = 'src'
         erq_oc = explode_column_alias(erq_oc, 'TEK', all_teks, 'default')
         erq_all_conditions = pd.merge(left=df_condition, right=erq_oc, how='left')
         erq_all_conditions['_src_erq_a_c'] = 'src'
-
         erq_all_years = pd.merge(left=df_years, right=erq_oc, how='left')
         erq_all_years['_erq_al_yrs'] = 'src'
-
         energy_requirements = erq_all_years.drop(columns=['index', 'level_0'], errors='ignore')
 
-        r_s = pd.read_csv('kalibrering/energy_requirement_reduction_per_condition.csv')
+        r_s = database_manager.get_energy_req_reduction_per_condition()
+
         r_s['reduction_condition'] = 1.0 - r_s['reduction_share']
         r_s = explode_column_alias(r_s, 'building_category', all_building_categories, 'default')
         r_s = explode_column_alias(df=r_s, column='TEK', values=all_teks, alias='default',
@@ -113,33 +121,24 @@ class EnergyRequirement:
         r_s = r_s[r_s['TEK'] != 'TEK21']
         r_s.loc[:, 'reduction_condition'] = r_s.loc[:, 'reduction_condition'].fillna(1.0)
         r_s['_src_r_s'] = 'src'
-
         r_s[r_s.duplicated(['building_category', 'TEK', 'purpose', 'building_condition'])]
-
         reduction_condition = pd.merge(left=r_s, right=pd.DataFrame({'year': model_years}), how='cross')
         reduction_condition = pd.merge(df_years, reduction_condition)
-
         p_i = pd.read_csv('kalibrering/energy_requirement_policy_improvements.csv')
-
         p_i = explode_column_alias(p_i, 'building_category', all_building_categories, 'default')
         p_i = explode_column_alias(p_i, 'TEK', all_teks, 'default')
         p_i['_src_p_i'] = 'src'
-
         policy_improvement = pd.merge(right=pd.DataFrame({'year': model_years}), left=p_i, how='cross')
-
         e_y = policy_improvement.copy()
         e_y.loc[:, 'year_no'] = e_y.loc[:, 'year'] - e_y.loc[:, 'period_start_year']
         e_y.loc[:, 'year_no'] = e_y.loc[:, 'year_no'].fillna(0)
         e_y['_src_e_y'] = 'src'
-
         policy_improvement_slice = e_y[~e_y.year_no.isna()].index
         e_y.loc[policy_improvement_slice, 'reduction_policy'] = e_y.loc[policy_improvement_slice].apply(
             yearly_reduction, axis=1)
-
         policy_improvement = e_y
 
-        y_i = pd.read_csv('kalibrering/energy_requirement_yearly_improvements.csv')
-
+        y_i = database_manager.get_energy_req_yearly_improvements()
         y_i = explode_column_alias(y_i, 'building_category', all_building_categories, 'default')
         y_i = explode_column_alias(y_i, 'TEK', all_teks, 'default')
         y_i.loc[:, 'efficiency_start_year'] = 2020
@@ -147,38 +146,29 @@ class EnergyRequirement:
         y_i.loc[:, 'reduce_efficiency_improvement'] = 1.0 - y_i.loc[:, 'yearly_efficiency_improvement']
         y_i.loc[:, 'year_efficiency'] = y_i.loc[:, 'year'] - y_i.loc[:, 'efficiency_start_year']
         y_i['_src_y_i'] = 'src'
-
         yearly_improvements = pd.merge(y_i, policy_improvement, how='left')
-
         yearly_improvements['efficiency_start_year'] = yearly_improvements[
             ['period_end_year', 'efficiency_start_year']].max(axis=1).astype(int)
         yearly_improvements.loc[:, 'year_efficiency'] = (
-                    yearly_improvements.loc[:, 'year'] - yearly_improvements.loc[:, 'efficiency_start_year']).clip(0)
+                yearly_improvements.loc[:, 'year'] - yearly_improvements.loc[:, 'efficiency_start_year']).clip(0)
         yearly_improvements.loc[:, 'reduction_yearly'] = (1.0 - yearly_improvements.loc[:,
                                                                 'yearly_efficiency_improvement']) ** yearly_improvements.loc[
                                                                                                      :,
                                                                                                      'year_efficiency']
         yearly_improvements.loc[:, 'year_efficiency'] = yearly_improvements.loc[:, 'year'] - yearly_improvements.loc[:,
                                                                                              'efficiency_start_year']
-
         m_nrg_yi = pd.merge(left=energy_requirements.copy(), right=yearly_improvements.copy(), how='left')
         merged = pd.merge(left=m_nrg_yi.copy(), right=reduction_condition.copy(),
                           on=['building_category', 'TEK', 'purpose', 'building_condition', 'year'], how='left')
-
         merged.loc[:, 'reduction_yearly'] = merged.loc[:, 'reduction_yearly'].fillna(1.0)
         merged.loc[:, 'reduction_policy'] = merged.loc[:, 'reduction_policy'].fillna(1.0)
         merged['reduction_condition'] = merged['reduction_condition'].fillna(1.0)
-
         merged['reduced_kwh_m2'] = (merged['kwh_m2'] * merged['reduction_condition'].fillna(1.0) *
                                     merged['reduction_yearly'].fillna(1.0) * merged['reduction_policy'].fillna(1.0))
         merged['behavior_kwh_m2'] = merged['reduced_kwh_m2'] * merged['behavior_factor']
-
         merged = merged.rename(columns={'kwh_m2': 'original_kwh_m2'})
         merged['kwh_m2'] = merged['behavior_kwh_m2']
-        return merged[['building_category', 'TEK', 'building_condition','year', 'purpose',
-                       'original_kwh_m2', 'reduction_yearly', 'reduction_policy', 'reduction_condition',
-                       'reduced_kwh_m2', 'behavior_factor', 'kwh_m2']]
-
+        return merged
 
     def calculate_energy_requirements(
             self,

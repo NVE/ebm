@@ -43,7 +43,7 @@ def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
 
     configure_loglevel(os.environ.get('LOG_FORMAT', None))
 
-    logger.debug(f'Starting {sys.executable} {__file__}')
+    logger.info(f'Starting {sys.executable} {__file__}')
 
     program_name = 'calc-area-forecast'
     default_path = pathlib.Path('output/ebm_output.xlsx')

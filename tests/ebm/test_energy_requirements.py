@@ -15,17 +15,17 @@ def test_calculate_reduction_with_policy_improvement():
     dm = DatabaseManager()
 
     dm.get_energy_req_yearly_improvements = Mock(return_value=pd.DataFrame(
-        data=[['default', 'default', 'lighting', 0.1]],
+        data=[['house', 'TEK01', 'lighting', 0.1]],
         columns=['building_category', 'TEK', 'purpose', 'yearly_efficiency_improvement']))
 
     dm.get_energy_req_policy_improvements = Mock(return_value=pd.DataFrame(
-        data=[['default', 'default', 'lighting',
+        data=[['house', 'TEK01', 'lighting',
                2011, 2015, 0.8]],
         columns=['building_category','TEK','purpose',
                  'period_start_year','period_end_year','improvement_at_period_end']))
 
     dm.get_energy_req_reduction_per_condition = Mock(return_value=pd.DataFrame(
-        data=[['default', 'default', 'heating_rv', 'original_condition', 0.0]],
+        data=[['house', 'TEK01', 'heating_rv', 'original_condition', 0.0]],
         columns=['building_category','TEK','purpose','building_condition','reduction_share']
     ))
 
@@ -37,7 +37,7 @@ def test_calculate_reduction_with_policy_improvement():
 
     buildings = [BuildingCategory.HOUSE]
     erq_oc = pd.DataFrame(
-        data=[['house', 'default', 'lighting', 50.0, 1.0]],
+        data=[['house', 'TEK01', 'lighting', 50.0, 1.0]],
         columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behavior_factor'])
 
     purpose = pd.DataFrame(data=[[EnergyPurpose.LIGHTING]], columns=['purpose'])
@@ -65,16 +65,16 @@ def test_calculate_reduction_with_yearly_reduction():
     dm = DatabaseManager()
 
     dm.get_energy_req_yearly_improvements = Mock(return_value=pd.DataFrame(
-        data=[['default', 'default', 'electrical_equipment', 0.1]],
+        data=[['house', 'TEK01', 'electrical_equipment', 0.1]],
         columns=['building_category', 'TEK', 'purpose', 'yearly_efficiency_improvement']))
 
     dm.get_energy_req_policy_improvements = Mock(return_value=pd.DataFrame(
-        data=[['default', 'default', 'lighting', 2010, 2020, 0.6]],
+        data=[['house', 'TEK01', 'lighting', 2010, 2020, 0.6]],
         columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year',
                  'improvement_at_period_end']))
 
     dm.get_energy_req_reduction_per_condition = Mock(return_value=pd.DataFrame(
-        data=[['default', 'default', 'heating_rv', 'original_condition', 0.0]],
+        data=[['house', 'TEK01', 'heating_rv', 'original_condition', 0.0]],
         columns=['building_category','TEK','purpose','building_condition','reduction_share']
     ))
 
@@ -86,7 +86,7 @@ def test_calculate_reduction_with_yearly_reduction():
 
     buildings = [BuildingCategory.HOUSE]
     erq_oc = pd.DataFrame(
-        data=[['house', 'default', 'electrical_equipment', 100, 1.0]],
+        data=[['house', 'TEK01', 'electrical_equipment', 100, 1.0]],
         columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behavior_factor'])
 
     purpose = pd.DataFrame(data=[[EnergyPurpose.ELECTRICAL_EQUIPMENT]], columns=['purpose'])
@@ -116,11 +116,11 @@ def test_calculate_reduction_by_condition():
     dm = DatabaseManager()
 
     dm.get_energy_req_yearly_improvements = Mock(
-        return_value=pd.DataFrame(data=[['default', 'default', EnergyPurpose.ELECTRICAL_EQUIPMENT, 0.1]],
+        return_value=pd.DataFrame(data=[['house', 'TEK01', EnergyPurpose.ELECTRICAL_EQUIPMENT, 0.1]],
             columns=['building_category', 'TEK', 'purpose', 'yearly_efficiency_improvement']))
 
     dm.get_energy_req_policy_improvements = Mock(
-        return_value=pd.DataFrame(data=[['default', 'default', 'lighting', 2020, 2024, 0.1]],
+        return_value=pd.DataFrame(data=[['house', 'TEK01', 'lighting', 2020, 2024, 0.1]],
             columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year',
                      'improvement_at_period_end']))
 
@@ -128,17 +128,17 @@ def test_calculate_reduction_by_condition():
     en_req = EnergyRequirement(tek_list=tek_list, period=period, calibration_year=2023, database_manager=dm)
 
     buildings = [BuildingCategory.HOUSE]
-    erq_oc = pd.DataFrame(data=[['house', 'default', EnergyPurpose.HEATING_RV, 100.0, 100.0, 100.0, 1.0]],
+    erq_oc = pd.DataFrame(data=[['house', 'TEK01', EnergyPurpose.HEATING_RV, 100.0, 100.0, 100.0, 1.0]],
         columns=['building_category', 'TEK', 'purpose',
                  'uncalibrated_kwh_m2', 'calibrated_kwh_m2', 'kwh_m2', 'behavior_factor'])
 
     purpose = pd.DataFrame(data=[[EnergyPurpose.HEATING_RV]], columns=['purpose'])
 
     dm.get_energy_req_reduction_per_condition = Mock(return_value=pd.DataFrame(
-        data=[['default', 'default', 'heating_rv', BuildingCondition.ORIGINAL_CONDITION, 0.0],
-            ['default', 'default', 'heating_rv', BuildingCondition.SMALL_MEASURE, 0.1],
-            ['default', 'default', 'heating_rv', BuildingCondition.RENOVATION, 0.2],
-            ['default', 'default', 'heating_rv', BuildingCondition.RENOVATION_AND_SMALL_MEASURE, 0.3]],
+        data=[['house', 'TEK01', 'heating_rv', BuildingCondition.ORIGINAL_CONDITION, 0.0],
+            ['house', 'TEK01', 'heating_rv', BuildingCondition.SMALL_MEASURE, 0.1],
+            ['house', 'TEK01', 'heating_rv', BuildingCondition.RENOVATION, 0.2],
+            ['house', 'TEK01', 'heating_rv', BuildingCondition.RENOVATION_AND_SMALL_MEASURE, 0.3]],
         columns=['building_category', 'TEK', 'purpose', 'building_condition', 'reduction_share']))
 
     df = en_req.calculate_energy_requirement(
@@ -168,11 +168,11 @@ def test_calculate_reduction_by_behavior():
     dm = DatabaseManager()
 
     dm.get_energy_req_yearly_improvements = Mock(
-        return_value=pd.DataFrame(data=[['default', 'default', EnergyPurpose.ELECTRICAL_EQUIPMENT, 0.1]],
+        return_value=pd.DataFrame(data=[['house', 'TEK01', EnergyPurpose.ELECTRICAL_EQUIPMENT, 0.1]],
             columns=['building_category', 'TEK', 'purpose', 'yearly_efficiency_improvement']))
 
     dm.get_energy_req_policy_improvements = Mock(
-        return_value=pd.DataFrame(data=[['default', 'default', 'lighting', 2020, 2024, 0.1]],
+        return_value=pd.DataFrame(data=[['house', 'TEK01', 'lighting', 2020, 2024, 0.1]],
             columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year',
                      'improvement_at_period_end']))
 
@@ -180,15 +180,15 @@ def test_calculate_reduction_by_behavior():
     en_req = EnergyRequirement(tek_list=tek_list, period=period, calibration_year=2023, database_manager=dm)
 
     buildings = [BuildingCategory.HOUSE]
-    erq_oc = pd.DataFrame(data=[['house', 'default', EnergyPurpose.HEATING_RV, 120.0, 100.0, 100.0, 0.8]],
+    erq_oc = pd.DataFrame(data=[['house', 'TEK01', EnergyPurpose.HEATING_RV, 120.0, 100.0, 100.0, 0.8]],
         columns=['building_category', 'TEK', 'purpose',
                  'uncalibrated_kwh_m2', 'calibrated_kwh_m2', 'kwh_m2', 'behavior_factor'])
 
     purpose = pd.DataFrame(data=[[EnergyPurpose.HEATING_RV]], columns=['purpose'])
 
     dm.get_energy_req_reduction_per_condition = Mock(return_value=pd.DataFrame(
-        data=[['default', 'default', 'heating_rv', BuildingCondition.ORIGINAL_CONDITION, 0.0],
-              ['default', 'default', 'heating_rv', BuildingCondition.RENOVATION, 0.3]],
+        data=[['house', 'TEK01', 'heating_rv', BuildingCondition.ORIGINAL_CONDITION, 0.0],
+              ['house', 'TEK01', 'heating_rv', BuildingCondition.RENOVATION, 0.3]],
         columns=['building_category', 'TEK', 'purpose', 'building_condition', 'reduction_share']))
 
     df = en_req.calculate_energy_requirement(all_building_categories=buildings, all_purpose=purpose, all_teks=tek_list,
@@ -214,21 +214,21 @@ def test_calculate_energy_requirements():
     energy_requirements_original_condition = pd.DataFrame(
         data=[
          ['house', 'TEK01', EnergyPurpose.HEATING_RV, 200.0, 1.0],
-         ['house', 'default', EnergyPurpose.HEATING_DHW, 100.0, 0.8],
-         ['default', 'TEK01', EnergyPurpose.ELECTRICAL_EQUIPMENT, 50.0, 0.6],
-         ['default', 'default', EnergyPurpose.LIGHTING, 100.0, 0.5]
+         ['house', 'TEK01', EnergyPurpose.HEATING_DHW, 100.0, 0.8],
+         ['house', 'TEK01', EnergyPurpose.ELECTRICAL_EQUIPMENT, 50.0, 0.6],
+         ['house', 'TEK01', EnergyPurpose.LIGHTING, 100.0, 0.5]
     ], columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behavior_factor'])
 
 
     dm.get_energy_req_yearly_improvements = Mock(
         return_value=pd.DataFrame(data=[
-            ['default', 'default', EnergyPurpose.ELECTRICAL_EQUIPMENT, 0.2],
-            ['default', 'default', EnergyPurpose.LIGHTING, 0.1]
+            ['house', 'TEK01', EnergyPurpose.ELECTRICAL_EQUIPMENT, 0.2],
+            ['house', 'TEK01', EnergyPurpose.LIGHTING, 0.1]
         ],
             columns=['building_category', 'TEK', 'purpose', 'yearly_efficiency_improvement']))
 
     dm.get_energy_req_policy_improvements = Mock(
-        return_value=pd.DataFrame(data=[['default', 'default', 'lighting', 2021, 2023, 0.5]],
+        return_value=pd.DataFrame(data=[['house', 'TEK01', 'lighting', 2021, 2023, 0.5]],
             columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year',
                      'improvement_at_period_end']))
 
@@ -243,10 +243,10 @@ def test_calculate_energy_requirements():
                                  EnergyPurpose.LIGHTING], columns=['purpose'])
 
     dm.get_energy_req_reduction_per_condition = Mock(return_value=pd.DataFrame(
-        data=[['default', 'default', 'heating_rv', BuildingCondition.ORIGINAL_CONDITION, 0.0],
-              ['default', 'default', 'heating_rv', BuildingCondition.SMALL_MEASURE, 0.1],
-              ['default', 'default', 'heating_rv', BuildingCondition.RENOVATION, 0.2],
-              ['default', 'default', 'heating_rv', BuildingCondition.RENOVATION_AND_SMALL_MEASURE, 0.3],
+        data=[['house', 'TEK01', 'heating_rv', BuildingCondition.ORIGINAL_CONDITION, 0.0],
+              ['house', 'TEK01', 'heating_rv', BuildingCondition.SMALL_MEASURE, 0.1],
+              ['house', 'TEK01', 'heating_rv', BuildingCondition.RENOVATION, 0.2],
+              ['house', 'TEK01', 'heating_rv', BuildingCondition.RENOVATION_AND_SMALL_MEASURE, 0.3],
               ],
         columns=['building_category', 'TEK', 'purpose', 'building_condition', 'reduction_share']))
 
@@ -310,10 +310,10 @@ def test_calculate_energy_requirements_with_multiple_teks():
          ['house', 'TEK02', EnergyPurpose.HEATING_RV, 200.0, 1.1],
          ['house', 'TEK01', EnergyPurpose.HEATING_DHW, 210.0, 0.8],
          ['house', 'TEK02', EnergyPurpose.HEATING_DHW, 100.0, 0.9],
-         ['default', 'TEK01', EnergyPurpose.ELECTRICAL_EQUIPMENT, 10.0, 0.2],
-         ['default', 'TEK02', EnergyPurpose.ELECTRICAL_EQUIPMENT, 20.0, 0.4],
-         ['default', 'TEK01', EnergyPurpose.LIGHTING, 100.0, 0.5],
-         ['default', 'TEK02', EnergyPurpose.LIGHTING, 100.0, 0.6]
+         ['house', 'TEK01', EnergyPurpose.ELECTRICAL_EQUIPMENT, 10.0, 0.2],
+         ['house', 'TEK02', EnergyPurpose.ELECTRICAL_EQUIPMENT, 20.0, 0.4],
+         ['house', 'TEK01', EnergyPurpose.LIGHTING, 100.0, 0.5],
+         ['house', 'TEK02', EnergyPurpose.LIGHTING, 100.0, 0.6]
     ], columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behavior_factor'])
 
 
@@ -327,7 +327,10 @@ def test_calculate_energy_requirements_with_multiple_teks():
             columns=['building_category', 'TEK', 'purpose', 'yearly_efficiency_improvement']))
 
     dm.get_energy_req_policy_improvements = Mock(
-        return_value=pd.DataFrame(data=[['default', 'default', 'lighting', 2021, 2023, 0.5]],
+        return_value=pd.DataFrame(data=[
+            ['house', 'TEK01', 'lighting', 2021, 2023, 0.5],
+            ['house', 'TEK02', 'lighting', 2021, 2023, 0.5]
+        ],
             columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year',
                      'improvement_at_period_end']))
 
@@ -342,10 +345,14 @@ def test_calculate_energy_requirements_with_multiple_teks():
                                  EnergyPurpose.LIGHTING], columns=['purpose'])
 
     dm.get_energy_req_reduction_per_condition = Mock(return_value=pd.DataFrame(
-        data=[['default', 'default', 'heating_rv', BuildingCondition.ORIGINAL_CONDITION, 0.0],
-              ['default', 'default', 'heating_rv', BuildingCondition.SMALL_MEASURE, 0.1],
-              ['default', 'default', 'heating_rv', BuildingCondition.RENOVATION, 0.2],
-              ['default', 'default', 'heating_rv', BuildingCondition.RENOVATION_AND_SMALL_MEASURE, 0.3],
+        data=[['house', 'TEK01', 'heating_rv', BuildingCondition.ORIGINAL_CONDITION, 0.0],
+              ['house', 'TEK01', 'heating_rv', BuildingCondition.SMALL_MEASURE, 0.1],
+              ['house', 'TEK01', 'heating_rv', BuildingCondition.RENOVATION, 0.2],
+              ['house', 'TEK01', 'heating_rv', BuildingCondition.RENOVATION_AND_SMALL_MEASURE, 0.3],
+              ['house', 'TEK02', 'heating_rv', BuildingCondition.ORIGINAL_CONDITION, 0.0],
+              ['house', 'TEK02', 'heating_rv', BuildingCondition.SMALL_MEASURE, 0.1],
+              ['house', 'TEK02', 'heating_rv', BuildingCondition.RENOVATION, 0.2],
+              ['house', 'TEK02', 'heating_rv', BuildingCondition.RENOVATION_AND_SMALL_MEASURE, 0.3],
               ],
         columns=['building_category', 'TEK', 'purpose', 'building_condition', 'reduction_share']))
 

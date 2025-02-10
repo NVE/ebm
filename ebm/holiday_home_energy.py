@@ -59,9 +59,12 @@ class HolidayHomeEnergy:
 
         # 04 Ved i fritidsboliger statistikk (GWh)
         fuelwood_usage_stats = dm.get_holiday_home_fuelwood_consumption()
+        
+        # 06 Fossilt brensel i fritidsboliger statistikk (GWh)
+        fossil_fuel_usage_stats = dm.get_holiday_home_fossilfuel_consumption()
 
-        logging.warning('Loading fossil_fuel_usage_stats from hard coded data')
-        fossil_fuel_usage_stats = pd.Series(data=[100], index=YearRange(2006, 2006).to_index(), name='kwh')
+        # logging.warning('Loading fossil_fuel_usage_stats from hard coded data')
+        # fossil_fuel_usage_stats = pd.Series(data=[100], index=YearRange(2006, 2006).to_index(), name='kwh')
 
         population = dm.file_handler.get_file(dm.file_handler.CONSTRUCTION_POPULATION).set_index('year').population
 

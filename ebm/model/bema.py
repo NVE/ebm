@@ -6,16 +6,13 @@ import pandas as pd
 from loguru import logger
 from openpyxl.worksheet.worksheet import Worksheet
 
-from ebm.__main__ import calculate_building_category_area_forecast
 from ebm.model.building_category import BuildingCategory
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.bema_validation import get_building_category_sheet
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
 from ebm.model.data_classes import YearRange
-from ebm.model.energy_requirement import (calculate_energy_requirement_reduction_by_condition,
-                                          calculate_energy_requirement_reduction,
-                                          calculate_lighting_reduction)
+
 from ebm.services.spreadsheet import iter_cells
 
 START_ROWS_CONSTRUCTION_BUILDING_CATEGORY = {
@@ -36,14 +33,15 @@ START_ROWS_CONSTRUCTION_BUILDING_CATEGORY = {
 
 
 def load_row_series(worksheet: Worksheet, row: int = 104) -> pd.Series:
-    """ Load a row starting from column E and continue for 40 columns (2010 - 2050)
+    """
+        Load a row starting from column E and continue for 40 columns (2010 - 2050)
         series title is read from column D
-               Args:
+
+        Args:
                    worksheet (Worksheet) the worksheet to retrieve
                    row (int) row number to read
 
-               Returns:
-                     row_series (pd.Series)
+        Returns: row_series (pd.Series)
     """
     logger.debug(f'loading {row=}')
     title = worksheet[f'D{row}'].value

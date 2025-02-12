@@ -23,6 +23,7 @@ documentation for details.
    basic_concepts
    calculations
    limitations
+   heating_systems
 
 .. toctree::
    :maxdepth: 1

@@ -4,16 +4,18 @@ Introduction
 Overview
 --------
 
-This model framework is designed to ...
+This model framework is designed to forecast the energy use in the Norwegian building stock. 
 
 Features
 --------
 
-- Feature 1
-- Feature 2
-- Feature 3
+- Småhus
+- Boligblokk
+- Yrkesbygg
+- Lager
+- Barnehage
 
 Target Audience
 ---------------
 
-This framework is intended for ...
+This framework is intended for analysts in the energy sector. 

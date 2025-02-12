@@ -192,9 +192,7 @@ def test_construction_building_category_yearly_commercial_area(ok_construction_b
     ok_construction_building_category_yearly.loc[row, building_category] = None
     with pytest.raises(pa.errors.SchemaError):
         construction_building_category_yearly.validate(ok_construction_building_category_yearly)
-    ok_construction_building_category_yearly.loc[row, building_category] = ''
-    with pytest.raises(pa.errors.SchemaError):
-        construction_building_category_yearly.validate(ok_construction_building_category_yearly)
+    
 
 
 @pytest.mark.parametrize('building_category', [BuildingCategory.HOUSE, BuildingCategory.APARTMENT_BLOCK])

@@ -258,6 +258,10 @@ class DatabaseManager:
     def get_holiday_home_fuelwood_consumption(self) -> pd.Series:
         df = self.file_handler.get_holiday_home_energy_consumption().set_index('year')["fuelwood"]
         return df
+    
+    def get_holiday_home_fossilfuel_consumption(self) -> pd.Series:
+        df = self.file_handler.get_holiday_home_energy_consumption().set_index('year')["fossilfuel"]
+        return df
 
     def get_holiday_home_electricity_consumption(self) -> pd.Series:
         df = self.file_handler.get_holiday_home_energy_consumption().set_index('year')["electricity"]

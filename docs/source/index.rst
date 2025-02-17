@@ -15,12 +15,14 @@ documentation for details.
    user_guide
    advanced_usage
 
+
 .. toctree::
    :maxdepth: 1
    :titlesonly:
    :caption: Model Functionality
 
    basic_concepts
+   model-description
    calculations
    limitations
    heating_systems

@@ -290,8 +290,8 @@ def test_calculate_energy_requirements():
     assert heating_dhw_original_condition.kwh_m2.to_list() == [80.0] * 24
 
     electrical_equipment = df[df.purpose=='electrical_equipment'].set_index(['building_condition', 'year'])
-    assert electrical_equipment.kwh_m2.to_list() == [30.0, 24.0, 19.200000000000003, 15.360000000000003,
-                                                     12.288000000000002, 9.830400000000003] * len(purpose)
+    assert electrical_equipment.kwh_m2.round(4).to_list() == [30.0, 24.0, 19.2, 15.36,
+                                                     12.288, 9.8304] * len(purpose)
 
     lighting = df[df.purpose == 'lighting'].set_index(['building_condition', 'year'])
     assert lighting.reduction_policy.to_list() == [1.0, 1.0, 0.75, 0.5, 0.5, 0.5] * 4

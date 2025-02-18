@@ -4,9 +4,11 @@ from unittest.mock import Mock
 
 import numpy as np
 import pandas as pd
+import pytest
 
 from ebm.model.building_category import BuildingCategory
 from ebm.model.database_manager import DatabaseManager
+from ebm.model.defaults import default_calibrate_heating_rv
 from ebm.model.file_handler import FileHandler
 
 
@@ -73,6 +75,62 @@ culture,PRE_TEK49,heating_rv,400"""))
     assert not result['kwh_m2'].isna().any()
 
 
+def test_get_get_energy_req_original_condition_expand_unique_columns():
+    mock_file_handler = Mock(spec=FileHandler)
+    mock_file_handler.get_energy_req_original_condition = Mock(
+        return_value=pd.DataFrame(data=[
+            ['residential', 'default', 'lighting', 100.0, 1.1],
+            ['house', 'TEK03', 'lighting', 300.0, 1.3]
+        ],
+                                  columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behavior_factor']))
+    mock_file_handler.get_calibrate_heating_rv = Mock(return_value=default_calibrate_heating_rv())
+
+    dm = DatabaseManager(file_handler=mock_file_handler)
+    dm.get_tek_list = Mock(return_value=pd.DataFrame(['TEK01', 'TEK02', 'TEK03'], columns=['TEK']).TEK.unique())
+
+    df = dm.get_energy_req_original_condition()
+    expected = pd.DataFrame(data=[
+        ['house', 'lighting', 'TEK03', 300.0, 1.3, 300.0, 300.0],
+        ['house', 'lighting', 'TEK01', 100.0, 1.1, 100.0, 100.0],
+        ['apartment_block', 'lighting', 'TEK01', 100.0, 1.1, 100.0, 100.0],
+        ['house', 'lighting', 'TEK02', 100.0, 1.1, 100.0, 100.0],
+        ['apartment_block', 'lighting', 'TEK02', 100.0, 1.1, 100.0, 100.0],
+        ['apartment_block', 'lighting', 'TEK03', 100.0, 1.1, 100.0, 100.0],
+    ],
+                            columns=['building_category', 'purpose', 'TEK', 'kwh_m2', 'behavior_factor', 'uncalibrated_kwh_m2', 'calibrated_kwh_m2'])
+
+    pd.testing.assert_frame_equal(df, expected)
+
+
+@pytest.mark.parametrize('simple_get,unique_columns',[
+    ('get_energy_req_policy_improvements', ('building_category', 'TEK', 'purpose')),
+    ('get_energy_req_yearly_improvements', ('building_category', 'TEK', 'purpose')),
+    ('get_energy_req_reduction_per_condition', ('building_category', 'TEK', 'purpose', 'building_condition'))])
+def test_method_use_and_return_through_expand_unique_columns(simple_get, unique_columns):
+    file_handler_df = pd.DataFrame(data=[['default', 'default', 'lighting', 2010, 2040, 0.6], ],
+        columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year',
+                 'improvement_at_period_end'])
+    exploded_df = pd.DataFrame(data=[['house', 'TEK01', 'lighting', 2010, 2040, 0.6],
+        ['kindergarten', 'TEK01', 'lighting', 2010, 2040, 0.6], ],
+        columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year',
+                 'improvement_at_period_end'])
+
+    def call_explode_unique_columns(df, columns):
+        if tuple(columns) == unique_columns:
+            return exploded_df
+        return df
+
+    mock_file_handler = Mock(spec=FileHandler)
+    setattr(mock_file_handler, simple_get, Mock(return_value=file_handler_df))
+    mock_file_handler.get_calibrate_heating_rv = Mock(return_value=default_calibrate_heating_rv())
+
+    dm = DatabaseManager(file_handler=mock_file_handler)
+    dm.explode_unique_columns = call_explode_unique_columns
+
+    df = getattr(dm, simple_get)()
+
+    pd.testing.assert_frame_equal(df, exploded_df)
+
 def test_get_calibrate_heating_rv():
     mock_fh = Mock()
     dm = DatabaseManager(mock_fh)
@@ -97,4 +155,63 @@ def test_get_calibrate_heating_rv():
     pd.testing.assert_frame_equal(result, expected, check_like=True)
 
 
+def test_expand_unique_columns_building_category_and_tek():
+    residential = pd.DataFrame(data=[
+        ['residential', 'default', 'lighting', 'residential-default-lighting'],
+        ['house', 'TEK03', 'lighting', 'house-tek03-lighting'],
+        ['house', 'TEK01+TEK02', 'lighting', 'house-tek01+tek02-lighting'],
+        ['apartment_block', 'TEK01', 'lighting', 'apartment_block-tek01-lighting'],
+        ['residential', 'default', 'lighting', 'residential-default-lighting-2'],
+    ],
+        columns=['building_category', 'TEK', 'purpose', 'v'])
+    dm = DatabaseManager(Mock())
+    dm.get_tek_list = Mock(return_value=pd.DataFrame(['TEK01', 'TEK02', 'TEK03'], columns=['TEK']).TEK.unique())
 
+    result = dm.explode_unique_columns(residential, unique_columns=['building_category', 'TEK', 'purpose'])
+    r = result.set_index(['building_category', 'TEK', 'purpose'])
+
+    assert r.loc[('house', 'TEK01', 'lighting'), 'v'] == 'house-tek01+tek02-lighting'
+    assert r.loc[('house', 'TEK02', 'lighting'), 'v'] == 'house-tek01+tek02-lighting'
+    assert r.loc[('house', 'TEK03', 'lighting'), 'v'] == 'house-tek03-lighting'
+    assert r.loc[('apartment_block', 'TEK01', 'lighting'), 'v'] == 'apartment_block-tek01-lighting'
+    assert r.loc[('apartment_block', 'TEK02', 'lighting'), 'v'] == 'residential-default-lighting'
+    assert r.loc[('apartment_block', 'TEK03', 'lighting'), 'v'] == 'residential-default-lighting'
+    assert len(r) == 6
+
+
+def test_expand_building_category_column_default_and_groups():
+    residential = pd.DataFrame(data=[
+        ['residential', 'TEK01', 'residential-tek01'],
+        ['non_residential', 'TEK01', 'non_residential-tek01'],
+        ['default', 'TEK02', 'default-tek02'],
+        ['house+hotel', 'TEK03', 'house+hotel-tek03']
+    ],
+        columns=['building_category', 'TEK', 'v'])
+    dm = DatabaseManager(Mock())
+
+    # explode_tek_column does not change the dataframe
+    dm.explode_tek_column = lambda df,c: df
+    result = dm.explode_unique_columns(residential, unique_columns=['building_category', 'TEK'])
+    r = result.set_index(['building_category', 'TEK'])
+
+    assert r.loc[(BuildingCategory.HOUSE, 'TEK01'), 'v'] == 'residential-tek01'
+    assert r.loc[(BuildingCategory.APARTMENT_BLOCK, 'TEK01'), 'v'] == 'residential-tek01'
+    assert r.loc[(BuildingCategory.KINDERGARTEN, 'TEK01'), 'v'] == 'non_residential-tek01'
+    assert r.loc[(BuildingCategory.SCHOOL, 'TEK01'), 'v'] == 'non_residential-tek01'
+    assert r.loc[(BuildingCategory.UNIVERSITY, 'TEK01'), 'v'] == 'non_residential-tek01'
+    assert r.loc[(BuildingCategory.OFFICE, 'TEK01'), 'v'] == 'non_residential-tek01'
+    assert r.loc[(BuildingCategory.RETAIL, 'TEK01'), 'v'] == 'non_residential-tek01'
+    assert r.loc[(BuildingCategory.HOTEL, 'TEK01'), 'v'] == 'non_residential-tek01'
+    assert r.loc[(BuildingCategory.HOSPITAL, 'TEK01'), 'v'] == 'non_residential-tek01'
+    assert r.loc[(BuildingCategory.NURSING_HOME, 'TEK01'), 'v'] == 'non_residential-tek01'
+    assert r.loc[(BuildingCategory.CULTURE, 'TEK01'), 'v'] == 'non_residential-tek01'
+    assert r.loc[(BuildingCategory.SPORTS, 'TEK01'), 'v'] == 'non_residential-tek01'
+    assert r.loc[(BuildingCategory.STORAGE_REPAIRS, 'TEK01'), 'v'] == 'non_residential-tek01'
+
+    for bc in BuildingCategory:
+        assert r.loc[(bc, 'TEK02'), 'v'] == 'default-tek02'
+
+    assert r.loc[(BuildingCategory.HOUSE, 'TEK03'), 'v'] == 'house+hotel-tek03'
+    assert r.loc[(BuildingCategory.HOTEL, 'TEK03'), 'v'] == 'house+hotel-tek03'
+
+    assert len(r) == 28

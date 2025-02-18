@@ -61,7 +61,7 @@ class EnergyRequirement:
         """
         database_manager = database_manager if database_manager else self.database_manager
 
-        all_teks = pd.read_csv('kalibrering/TEK_ID.csv').TEK.tolist()
+        all_teks = database_manager.get_tek_list().tolist()
         all_building_categories = list(BuildingCategory)
         all_purpose = list(EnergyPurpose)
         most_conditions = list(BuildingCondition.existing_conditions())

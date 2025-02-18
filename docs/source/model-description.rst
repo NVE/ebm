@@ -6,9 +6,9 @@ This is a bottom-up model that estimates area, energy requirement and energy use
 The model calculates area, energy requirement and energy use for the building categories used in the Norwegian building codes (TEK). 
 
 
------------------------------
+
 The Four Steps of the Model
-=============================
+===========================
 
 Each building category is treated individually, and there are four steps in the calculations for each building category:
 
@@ -87,9 +87,9 @@ renovated by 2024 and therefore is assigned energy requirement with a 15 % reduc
 requirement of building in its original condition.
 
 
--------------------------
+----------------------
 4. Forecast Energy Use
--------------------------
+----------------------
 
 Finally, heating systems are allocated to the area. This can be done for each building category and each age group, or it can be done on 
 an aggregated level, like treating all non-residental area the same way. We allocate a composition of different heating solutions 
@@ -102,9 +102,8 @@ composition of heating solutions, their efficiencies and which energy carrier th
 different energy carriers. The energy carriers included in the model are electricity, wood, district heating and fossil fuel.  
 
 
-------------------
 Key Assumptions
-==================
+===============
 
 The key assumptions in this model are rates for new construction, renovation, small measures and demolition, as well as 
 energy requirement per area (kWh/m²) for different building categories of different ages with different conditions.
@@ -113,8 +112,8 @@ Different assumptions are made for all rates for all building categories. Since 
 for 57 % of the total area in the building stock, it is reasonable to say that the rates concerning houses will have a 
 greater impact on total energy use than the other rates.
 
-The new construction rates for all building categories are directly linked to SSB's population projections, and this has a
-significant impact on the result. It is assumed that the area distributed by the number of inhabitants in Norway (m²/person) 
+The new construction rates for all building categories are directly linked to `SSB's population projections <https://www.ssb.no/befolkning/befolkningsframskrivinger/statistikk/nasjonale-befolkningsframskrivinger>`_,
+and this has a significant impact on the result. It is assumed that the area distributed by the number of inhabitants in Norway (m²/person)
 for each categories of non-residential buildings will remain constant throughout the period. For example, in 2024 
 it is calculated that there are 5.8 m² of office area per person in Norway, and 1.3 m² of nursing home per person. These 
 numbers are assumed to be constant during the forecast period, so the area will grow according to population change.
@@ -142,3 +141,4 @@ heating solutions is very important. It decides which energy carrier is used, an
 For instance, both air-to-air heat pumps and electric radiators use electricity to heat the space. But heat pumps use
 less electricity than the electric radiators the achieve the same indoor temperature. The assumptions about efficiency
 are essential in the energy use forecast.
+

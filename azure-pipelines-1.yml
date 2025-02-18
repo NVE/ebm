@@ -4,8 +4,11 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
 trigger:
-- sprint17
-
+- 'sprint17'
+pr:
+  branches:
+    include:
+      - 'sprint17'
 jobs:
 - job: PytestUbuntu
   displayName: 'Run pytest on Ubuntu'

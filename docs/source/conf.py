@@ -42,6 +42,10 @@ html_css_files = [
     'custom.css',
 ]
 
+html_css_files = [
+    'css/custom.css',
+]
+
 autodoc_default_options = {
     "members": True,
     "member-order": "bysource",
@@ -53,6 +57,6 @@ autodoc_default_options = {
 # Konfigurasjon for Napoleon
 napoleon_google_docstring = True
 napoleon_numpy_docstring = False
-
 add_module_names = False
 modindex_common_prefix = ["src."]
+

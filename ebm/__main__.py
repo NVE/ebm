@@ -112,19 +112,16 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
         calibration_manager.file_handler.create_missing_input_files()
         create_heating_rv(calibration_manager)
     elif step_choice == 'energy-use':
-        model = calculate_energy_use()
-        model = transform_holiday_homes_to_horizontal(model)
-    else:
         model = default_handler.extract_model(arguments, building_categories, database_manager, step_choice)
-
-    if transform_to_horizontal_years and step_choice == 'heating-systems':
         logger.debug('Transform heating systems')
         holiday_homes = transform_holiday_homes_to_horizontal(calculate_energy_use())
         hz = transform_heating_systems_to_horizontal(model)
         heating_systems_hz = transform_to_sorted_heating_systems(hz, holiday_homes)
+        
+
         if output_file.name == '-':
             print(heating_systems_hz.to_markdown(index=False)) # tablefmt='grid',
-        write_horizontal_excel(output_file, heating_systems_hz, 'heating-systems')
+        write_horizontal_excel(output_file, heating_systems_hz, 'energy-use')
     elif transform_to_horizontal_years and (step_choice in ['area-forecast', 'energy-requirements']) and output_file.suffix=='.xlsx':
         sheet_name_prefix = 'area' if step_choice == 'area-forecast' else 'energy'
         logger.debug(f'Transform heating {step_choice}')

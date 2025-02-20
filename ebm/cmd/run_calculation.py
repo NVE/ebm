@@ -88,7 +88,7 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
                                      'energy-requirements',
                                      'heating-systems',
                                      'energy-use'],
-                            default='heating-systems',
+                            default='energy-use',
                             help="""
 The calculation step you want to run. The steps are sequential. Any prerequisite to the chosen step will run 
     automatically.""")

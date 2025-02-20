@@ -27,6 +27,7 @@ Submodules
    ebm.model.filter_scurve_params
    ebm.model.filter_tek
    ebm.model.heating_systems
+   ebm.model.legg_til_kolonne_fossil_oppvarming
    ebm.model.scurve
    ebm.model.scurve_processor
    ebm.model.shares_per_condition

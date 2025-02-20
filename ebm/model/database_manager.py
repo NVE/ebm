@@ -11,6 +11,16 @@ from ebm.model.data_classes import TEKParameters
 # TODO:
 # - add method to change all strings to lower case and underscore instead of space
 # - change column strings used in methods to constants 
+def explode_column_alias(df, column, values=None, alias='default', de_dup_by=None):
+    values = values if values is not None else [c for c in df[column].unique().tolist() if c != alias]
+    df.loc[:, '_explode_column_alias_default'] = df.loc[:, column] == alias
+    df.loc[df[df[column] == alias].index, column] = '+'.join(values)
+    df = df.assign(**{column: df[column].str.split('+')}).explode(column)
+    if de_dup_by:
+        df = df.sort_values(by='_explode_column_alias_default', ascending=True)
+        df = df.drop_duplicates(de_dup_by)
+    return df.drop(columns=['_explode_column_alias_default'], errors='ignore')
+
 
 class DatabaseManager:
     """
@@ -33,6 +43,7 @@ class DatabaseManager:
 
     def __init__(self, file_handler: FileHandler = None):
         # Create default FileHandler if file_hander is None
+
         self.file_handler = file_handler if file_handler is not None else FileHandler()
     
     def get_tek_list(self):
@@ -192,11 +203,13 @@ class DatabaseManager:
             Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
             per building category and purpose.
         """
-        df = self.file_handler.get_energy_req_original_condition().set_index(['building_category', 'purpose', 'TEK'])
+        ff = self.file_handler.get_energy_req_original_condition()
+        df = self.explode_unique_columns(ff, ['building_category', 'TEK', 'purpose'])
+        df = df.set_index(['building_category', 'purpose', 'TEK'])
+
         if not 'behavior_factor' in df.columns:
             df['behavior_factor'] = 1.0
         df.loc[:, 'behavior_factor'] = df.loc[:, 'behavior_factor'].fillna(1.0)
-        # df.loc[:, 'kwh_m2'] = df.loc[:, 'kwh_m2'] * df.loc[:, 'behavior_factor']
 
         heating_rv_factor = self.get_calibrate_heating_rv().set_index(['building_category', 'purpose']).heating_rv_factor
 
@@ -206,9 +219,11 @@ class DatabaseManager:
         df['kwh_m2'] = df['calibrated_kwh_m2']
         return df.reset_index()
 
+
     def get_energy_req_reduction_per_condition(self) -> pd.DataFrame:
         """
-        Get dataframe with shares for reducing the energy requirement of the different building conditions.
+        Get dataframe with shares for reducing the energy requirement of the different building conditions. This
+        function calls explode_unique_columns to expand building_category and TEK as necessary.
 
         Returns
         -------
@@ -216,11 +231,14 @@ class DatabaseManager:
             Dataframe containing energy requirement reduction shares for the different building conditions, 
             per building category, TEK and purpose.        
         """
-        return self.file_handler.get_energy_req_reduction_per_condition()
+        reduction_per_condition = self.file_handler.get_energy_req_reduction_per_condition()
+        return self.explode_unique_columns(reduction_per_condition,
+                                           ['building_category', 'TEK', 'purpose', 'building_condition'])
     
     def get_energy_req_yearly_improvements(self) -> pd.DataFrame:
         """
-        Get dataframe with yearly efficiency rates for energy requirement improvements.
+        Get dataframe with yearly efficiency rates for energy requirement improvements. This
+        function calls explode_unique_columns to expand building_category and TEK as necessary.
 
         Returns
         -------
@@ -228,11 +246,13 @@ class DatabaseManager:
             Dataframe containing yearly efficiency rates (%) for energy requirement improvements,
             per building category, tek and purpose.        
         """
-        return self.file_handler.get_energy_req_yearly_improvements()
+        yearly_improvements = self.file_handler.get_energy_req_yearly_improvements()
+        return self.explode_unique_columns(yearly_improvements, ['building_category', 'TEK', 'purpose'])
     
     def get_energy_req_policy_improvements(self) -> pd.DataFrame:
         """
-        Get dataframe with total energy requirement improvement in a period related to a policy.
+        Get dataframe with total energy requirement improvement in a period related to a policy. This
+        function calls explode_unique_columns to expand building_category and TEK as necessary.
 
         Returns
         -------
@@ -240,13 +260,16 @@ class DatabaseManager:
             Dataframe containing total energy requirement improvement (%) in a policy period,
             per building category, tek and purpose.        
         """
-        return self.file_handler.get_energy_req_policy_improvements()
+        policy_improvements = self.file_handler.get_energy_req_policy_improvements()
+        return self.explode_unique_columns(policy_improvements,
+                                           ['building_category', 'TEK', 'purpose'])
 
     def get_tekandeler(self) -> pd.DataFrame:
         """
         Load input dataframe for "TEK-andeler"
 
         Rename this to something more appropriate, i.e get_heating_systems
+
         Returns
         -------
         pd.DataFrame
@@ -318,10 +341,35 @@ class DatabaseManager:
     def get_heating_systems_projection(self):
         return self.file_handler.get_heating_systems_projection()
 
+    def explode_unique_columns(self, df, unique_columns):
+        df = self.explode_tek_column(df, unique_columns)
+        df = self.explode_building_category_column(df, unique_columns)
+        return df
+
+    def explode_building_category_column(self, df, unique_columns):
+        df = explode_column_alias(df=df, column='building_category',
+                                  values=[bc for bc in BuildingCategory if bc.is_residential()],
+                                  alias='residential',
+                                  de_dup_by=unique_columns)
+        df = explode_column_alias(df=df, column='building_category',
+                                  values=[bc for bc in BuildingCategory if not bc.is_residential()],
+                                  alias='non_residential',
+                                  de_dup_by=unique_columns)
+        df = explode_column_alias(df=df, column='building_category',
+                                  values=[bc for bc in BuildingCategory],
+                                  alias='default',
+                                  de_dup_by=unique_columns)
+        return df
+
+    def explode_tek_column(self, ff, unique_columns):
+        df = explode_column_alias(df=ff, column='TEK', values=self.get_tek_list(),
+                                  de_dup_by=unique_columns)
+        return df
+
 
 if __name__ == '__main__':
     db = DatabaseManager()
     building_category = BuildingCategory.HOUSE
 
-    a = db.get_energy_req_policy_improvements(building_category)
+    a = db.get_energy_req_policy_improvements()
     print(a)

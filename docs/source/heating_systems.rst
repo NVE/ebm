@@ -30,7 +30,7 @@ About 130 000 certificates do not have this information. For certificates missin
 corresponding technology for the different loads and hot tap water. 
 
 .. csv-table:: Heating systems overview
-  :file: X:\NAS\Brukere\jktu\EBM_Documentation\Energibruksmodell\docs\tables\heating_systems_efficiencies_table.csv
+  :file: tables\heating_systems_efficiencies_table.csv
   :widths: 15, 15, 15, 15, 15
   :header-rows: 1
 
@@ -38,7 +38,7 @@ corresponding technology for the different loads and hot tap water.
 After calibration the resulting heating systems shares are:
 
 .. raw:: html
-  :file: X:\NAS\Brukere\jktu\EBM_Documentation\Energibruksmodell\docs\images\Hus.html
+  :file: images\Hus.html
 
 Forecasting
 ----------

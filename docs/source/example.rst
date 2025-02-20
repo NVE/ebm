@@ -2,8 +2,11 @@
 Hovedoverskrift
 ===============
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque molestie arcu non erat vulputate faucibus. Suspendisse tincidunt feugiat aliquet. Praesent eget felis velit. In rutrum dui eu suscipit accumsan. Etiam tellus velit, tincidunt sit amet enim vitae, consectetur egestas sapien. In consequat commodo neque in dapibus.
-
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque molestie arcu non erat vulputate faucibus.
+**This text is bold**. Suspendisse tincidunt feugiat aliquet. Praesent eget felis velit. *This text is italic*
+In rutrum dui eu suscipit accumsan. ``This text is monospaced`` Etiam tellus velit, tincidunt sit amet enim vitae,
+consectetur egestas sapien. `Link med tekst <https://www.jeffquast.com/post/technical_writing_with_sphinx/>`_, In
+consequat commodo neque in dapibus.
 
 .. contents:: Table of Contents
    :depth: 2
@@ -13,7 +16,11 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque molestie a
 Seksjonsoverskrift 1
 ====================
 
-Duis ac dignissim purus. Integer tempor sem et porttitor egestas. Interdum et malesuada fames ac ante ipsum primis in faucibus. Proin molestie iaculis gravida. Praesent sollicitudin a enim non efficitur. Cras euismod mi eros, cursus ornare odio accumsan eu. Etiam quis purus in lacus molestie venenatis. Vestibulum feugiat non lorem non tristique. In nec viverra augue. `Link med tekst <https://www.jeffquast.com/post/technical_writing_with_sphinx/>`_,
+Duis ac dignissim purus. Integer tempor sem et porttitor egestas. Interdum et malesuada fames ac ante ipsum primis in
+faucibus. Proin molestie iaculis gravida. Praesent sollicitudin a enim non efficitur. Cras
+euismod mi eros, cursus ornare odio accumsan eu.
+
+Etiam quis purus in lacus molestie venenatis. Vestibulum feugiat non lorem non tristique. In nec viverra augue.
 
 
 
@@ -61,26 +68,6 @@ Tabeller
    Legg merge til tomme linjer og innrykk (2 space).
 
 
-Inline CSV-tabell
------------------
-.. csv-table:: Construction by building category and TEK
-
-   :header: building_category,TEK,area
-    building_category,TEK,area
-    apartment_block,PRE_TEK49_RES_1950,11444245
-    apartment_block,TEK49_RES,7133096
-    apartment_block,TEK69_RES_1976,6739001
-
-
-CSV-tabell fra fil
-------------------
-
-.. csv-table:: Construction by building category and TEK
-   :file: ../../ebm/data/construction_building_category_yearly.csv
-   :header-rows: 1
-
-
-
 Tabell med tekst «simple»
 -------------------------
 
@@ -110,6 +97,26 @@ Tabell med tekst
   +------------------------+------------+----------+----------+
   | body row 2             | ...        | ...      |          |
   +------------------------+------------+----------+----------+
+
+
+Inline CSV-tabell
+-----------------
+.. csv-table:: Construction by building category and TEK
+
+   :header: building_category,TEK,area
+    building_category,TEK,area
+    apartment_block,PRE_TEK49_RES_1950,11444245
+    apartment_block,TEK49_RES,7133096
+    apartment_block,TEK69_RES_1976,6739001
+
+
+CSV-tabell fra fil
+------------------
+
+.. csv-table:: Construction by building category and TEK
+   :file: ../../ebm/data/construction_building_category_yearly.csv
+   :header-rows: 1
+
 
 
 Definisjonsliste

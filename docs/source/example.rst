@@ -44,6 +44,15 @@ Tekstendringer
 - kvadratmeter: m\ :sup:`2`
 
 
+Bilde
+=====
+
+.. image:: _static/kjetil_lund.jpg
+   :alt: Kjetil Lund, Director General of NVE
+   :width: 300px
+   :align: center
+
+
 Tabeller
 ========
 
@@ -64,7 +73,7 @@ Inline CSV-tabell
 
 
 CSV-tabell fra fil
------------
+------------------
 
 .. csv-table:: Construction by building category and TEK
    :file: ../../ebm/data/construction_building_category_yearly.csv

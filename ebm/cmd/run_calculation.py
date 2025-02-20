@@ -125,8 +125,6 @@ Create input directory containing all required files in the current working dire
     arg_parser.add_argument('--end-year', nargs='?', type=int,
                             default=os.environ.get('EBM_END_YEAR', 2050),
                             help=argparse.SUPPRESS)
-    arg_parser.add_argument('--calibration-year', nargs='?', type=int,
-                            default=None)
 
     arg_parser.add_argument('--horizontal-years', '--horizontal', '--horisontal', action='store_true',
                             help='Show years horizontal (left to right)')

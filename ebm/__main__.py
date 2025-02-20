@@ -7,11 +7,9 @@ import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
-from ebm.cmd.calibrate import run_calibration
 from ebm.cmd.result_handler import transform_heating_systems_to_horizontal, write_horizontal_excel, \
     transform_model_to_horizontal, EbmDefaultHandler, transform_holiday_homes_to_horizontal, \
     transform_to_sorted_heating_systems
-from ebm.model.calibrate_energy_requirements import create_heating_rv
 from ebm.cmd.run_calculation import make_arguments, validate_years, calculate_energy_use, configure_loglevel
 
 from ebm.model.building_category import BuildingCategory
@@ -96,21 +94,10 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
         logger.error(f'{output_file} is not writable')
         return RETURN_CODE_FILE_NOT_ACCESSIBLE, None
 
-    model = None
-    calibration_year = arguments.calibration_year
     step_choice = arguments.step
     transform_to_horizontal_years = arguments.horizontal_years
 
     default_handler = EbmDefaultHandler()
-
-    if calibration_year:
-        model = run_calibration(database_manager, calibration_year)
-        calibration_directory = pathlib.Path('kalibrering')
-        if not calibration_directory.is_dir():
-            calibration_directory.mkdir()
-        calibration_manager = DatabaseManager(FileHandler(directory=calibration_directory))
-        calibration_manager.file_handler.create_missing_input_files()
-        create_heating_rv(calibration_manager)
 
     model = default_handler.extract_model(arguments, building_categories, database_manager, step_choice)
     if step_choice == 'energy-use':

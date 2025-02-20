@@ -214,7 +214,7 @@ class EbmDefaultHandler:
         df = pd.concat(area_forecast_results)
 
         df = df.set_index(['building_category', 'TEK', 'building_condition', 'year'])
-        if 'energy-requirements' in step_choice or 'heating-systems' in step_choice:
+        if 'energy-requirements' in step_choice or 'heating-systems' in step_choice or 'energy-use' in step_choice:
             logger.debug('Extracting area energy requirements')
             energy_requirements_result = calculate_building_category_energy_requirements(
                 building_category=building_categories,
@@ -224,7 +224,7 @@ class EbmDefaultHandler:
                 end_year=arguments.end_year)
             df = energy_requirements_result
 
-            if 'heating-systems' in step_choice:
+            if 'heating-systems' in step_choice or 'energy-use' in step_choice:
                 logger.debug('Extracting heating systems')
                 df = calculate_heating_systems(energy_requirements=energy_requirements_result,
                                                database_manager=database_manager)

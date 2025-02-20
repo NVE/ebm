@@ -1,3 +1,4 @@
+:orphan:
 ===============
 Hovedoverskrift
 ===============
@@ -51,8 +52,8 @@ Tekstendringer
 - kvadratmeter: m\ :sup:`2`
 
 
-Bilde
-=====
+Bilde 🖼️
+========
 
 .. image:: _static/kjetil_lund.jpg
    :alt: Kjetil Lund, Director General of NVE
@@ -87,6 +88,10 @@ Tabell med tekst «simple»
 Tabell med tekst
 ----------------
 
+Legge merke til tommelinjer og innrykk ➡️➡️. Bruken av mellomrom må være konsekvent.
+
+⬇️ Det er tom linje mellom denne paragrafen og ``.. table::``
+
 .. table::
 
   +------------------------+------------+----------+----------+
@@ -97,6 +102,29 @@ Tabell med tekst
   +------------------------+------------+----------+----------+
   | body row 2             | ...        | ...      |          |
   +------------------------+------------+----------+----------+
+
+⬆️ Det er tom linje mellom denne paragrafen og siste innhold i tabellen ``+-- … --+``.
+
+
+
+Inline CSV-tabell
+-----------------
+.. csv-table:: Construction by building category and TEK
+
+   :header: building_category,TEK,area
+    building_category,TEK,area
+    apartment_block,PRE_TEK49_RES_1950,11444245
+    apartment_block,TEK49_RES,7133096
+    apartment_block,TEK69_RES_1976,6739001
+
+
+CSV-tabell fra fil
+------------------
+
+.. csv-table:: Construction by building category and TEK
+   :file: ../../ebm/data/construction_building_category_yearly.csv
+   :header-rows: 1
+
 
 
 Inline CSV-tabell
@@ -144,7 +172,7 @@ term 4 : classifier one : classifier two
 Kode-eksempel
 ==============
 
-python
+python 🐍
 ------
 .. code-block:: python
 
@@ -160,7 +188,7 @@ python
 
    print(df)
 
-powershell
+powershell 🐚
 ----------
 
 .. code-block:: powershell

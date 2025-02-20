@@ -111,14 +111,13 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
         calibration_manager = DatabaseManager(FileHandler(directory=calibration_directory))
         calibration_manager.file_handler.create_missing_input_files()
         create_heating_rv(calibration_manager)
-    elif step_choice == 'energy-use':
-        model = default_handler.extract_model(arguments, building_categories, database_manager, step_choice)
+
+    model = default_handler.extract_model(arguments, building_categories, database_manager, step_choice)
+    if step_choice == 'energy-use':
         logger.debug('Transform heating systems')
         holiday_homes = transform_holiday_homes_to_horizontal(calculate_energy_use())
         hz = transform_heating_systems_to_horizontal(model)
         heating_systems_hz = transform_to_sorted_heating_systems(hz, holiday_homes)
-        
-
         if output_file.name == '-':
             print(heating_systems_hz.to_markdown(index=False)) # tablefmt='grid',
         write_horizontal_excel(output_file, heating_systems_hz, 'energy-use')

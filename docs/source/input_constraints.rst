@@ -1,68 +1,359 @@
+Input constraints
+=================
 
-AreaParameters
-==============
-
-.. csv-table:: AreaParameters schema
-   :header: "Field", "Type", "Description"
-
-   "Filename", "area_parameters.csv", ""
-
-DataFrameModel for area parameters.
+.. contents:: Table of Contents
+   :depth: 2
+   :local:
 
 
-Attributes
+area_parameters
+----------------
+
+``building_category``
+ - required
+ - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
+
+``TEK``
+ - required
+ - values: Any string containing ``TEK``
+
+``area``
+ - required
+ - float using a decimal point ('.') as the separator
+ - **≥** 0.0
+
+tek_parameters
+--------------
+
+``TEK``
+ - required
+ - values: Any string containing ``TEK``
+
+``building_year``
+ - required
+ - integer value
+ - **≥** 1940
+ - **≤** 2070
+
+``period_start_year``
+ - required
+ - integer value
+ - **≥** 0
+ - **≤** 2070
+ - < period_end_year
+ - = previous period_end_year + 1
+
+``period_end_year``
+ - required
+ - integer value
+ - **≥** 0
+ - **≤** 2070
+ - > period_start_year
+ - = next period_start_year -1
+
+must cover all years within lowest period_start_year to highest period_end_year
+
+construction_building_category_yearly
+-------------------------------------
+
+``year``
+ - required
+ - integer
+ - Values outside of model start year and model start year +1 might not be supported (2020, 2021)
+
+``house``
+ - required
+ - float using a decimal point ('.') as the separator
+ - **≥** 0.0
+
+``apartment_block``
+ - required
+ - float using a decimal point ('.') as the separator
+ - **≥** 0.0
+
+new_buildings_house_share
+-------------------------
+
+``year``
+ - required
+ - integer value
+ - **≥** 0
+ - **≤** 2070
+
+``new_house_share``
+ - required
+ - float using a decimal point ('.') as the separator
+ - **≥** 0.0
+ - **≤** 1.0
+
+``new_apartment_block_share``
+ - required
+ - float using a decimal point ('.') as the separator
+ - 0.0 **≤** value **≤** 1.0
+
+``floor_area_new_house``
+ - required
+ - Integer
+ - 0 **≤** value **≤** 1000
+
+``flood_area_new_apartment_block``
+ - required
+ - Integer
+ - 0 **≤** value **≤** 1000
+
+population
 ----------
-building_category : Series[str]
-     building category with a custom3 check
-      * Require a known building category (house, apartment_block, kindergarten, office, hotel, school, nuring_home, hospital, university, �)
-      * or a known building group (non-commercial, commercial)
-      * or default
-TEK : Series[str]
-    TEK values with a custom2 check.
-     * A string
-     * The value must contain the text TEK.
-area : Series[float]
-    The area of of a certain building_category and TEK in the model start year. Usually in m�
-     * A float using a decimal point ('.') as the separator
-     * Area values that must be equal to or greater than 0.
 
-Fields
-------
+``year``
+ - required
+ - Integer value
+ - 1900 **≤** year **≤** 2070
 
-.. csv-table:: Fields in AreaParameters
-   :header: "Field", "Type", "Description"
+``population``
+ - Required
+ - Integer value
+ - population **≥** 0
 
-   "building_category", "pandera.typing.pandas.Series[str]", "str(object='') -> str
-str(bytes_or_buffer[, encoding[, errors]]) -> str
+``household_size``
+ - required
+ - value **≥** 0
+ - float using a decimal point ('.') as the separator
 
-Create a new string object from the given object. If encoding or
-errors is specified, then the object must expose a data buffer
-that will be decoded using the given encoding and error handler.
-Otherwise, returns the result of object.__str__() (if defined)
-or repr(object).
-encoding defaults to sys.getdefaultencoding().
-errors defaults to 'strict'."
-   "TEK", "pandera.typing.pandas.Series[str]", "str(object='') -> str
-str(bytes_or_buffer[, encoding[, errors]]) -> str
+scurve_parameters
+-----------------
 
-Create a new string object from the given object. If encoding or
-errors is specified, then the object must expose a data buffer
-that will be decoded using the given encoding and error handler.
-Otherwise, returns the result of object.__str__() (if defined)
-or repr(object).
-encoding defaults to sys.getdefaultencoding().
-errors defaults to 'strict'."
-   "area", "pandera.typing.pandas.Series[float]", "str(object='') -> str
-str(bytes_or_buffer[, encoding[, errors]]) -> str
+``building_category``
+ - required
+ - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
 
-Create a new string object from the given object. If encoding or
-errors is specified, then the object must expose a data buffer
-that will be decoded using the given encoding and error handler.
-Otherwise, returns the result of object.__str__() (if defined)
-or repr(object).
-encoding defaults to sys.getdefaultencoding().
-errors defaults to 'strict'."
+``condition``
+ - required
+ - values: original_condition, small_measure, renovation, renovation_and_small_measure, demolition
 
-Checks and Requirements
------------------------
+``earliest_age_for_measure``
+ - required
+ - value **≥** 0.0
 
+``average_age_for_measure``
+ - required
+ - value **≥** 0.0
+
+``rush_period_years``
+ - required
+ - integer
+ - value **≥** 0.0
+
+``last_age_for_measure``
+ - required
+ - integer
+ - value **≥** 0.0
+
+``rush_share``
+ - required
+ - float using a decimal point ('.') as the separator
+ - **0.0** < value ≤ **1.0** (not including zero)
+
+``never_share``
+ - required
+ - float using a decimal point ('.') as the separator
+ - **0.0** < value ≤ **1.0** (not including zero)
+
+energy_requirement_original_condition
+-------------------------------------
+
+``building_category``
+ - required
+ - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
+
+``TEK``
+ - required
+ - values: Any string containing ``TEK``
+
+``purpose``
+ - required
+ - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling'
+
+``kwh_m2``
+ - required
+ - float using a decimal point ('.') as the separator
+ - value **≥** 0.0
+
+energy_requirement_reduction_per_condition
+------------------------------------------
+
+``building_category``
+ - required
+ - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
+
+``TEK``
+ - required
+ - values: Any string containing ``TEK``
+
+``purpose``
+ - required
+ - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling'
+
+``condition``
+ - required
+ - values: original_condition, small_measure, renovation, renovation_and_small_measure, demolition
+
+``reduction_share``
+ - required
+ - float using a decimal point ('.') as the separator
+ - **0.0** ≤ value ≤ **1.0**
+
+energy_requirement_yearly_improvements
+--------------------------------------
+
+``building_category``
+ - required
+ - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
+
+``TEK``
+ - required
+ - values: Any string containing ``TEK``
+
+``purpose``
+ - required
+ - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling'
+
+``yearly_efficiency_improvement``
+ - required
+ - float using a decimal point ('.') as the separator
+ - **0.0** ≤ value ≤ **1.0**
+
+energy_requirement_policy_improvements
+--------------------------------------
+
+``building_category``
+ - required
+ - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
+
+``TEK``
+ - required
+ - values: Any string containing ``TEK``
+
+``purpose``
+ - required
+ - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling'
+
+``period_start_year``
+ - required
+ - integer value
+ - value **≥** 0
+
+``period_end_year``
+ - required
+ - integer value
+ - value **≥** 0
+
+``improvement_at_period_end``
+ - required
+ - float using a decimal point ('.') as the separator
+ - **0.0** ≤ value ≤ **1.0**
+
+heating_systems
+---------------
+
+``building_category``
+ - required
+ - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
+
+``TEK``
+ - required
+ - values: Any string containing ``TEK``
+
+``Oppvarmingstyper``
+ - required
+ - string
+
+``tek_share``
+ - required
+ - float using a decimal point ('.') as the separator
+
+``Ekstralast andel``
+ - required
+ - float using a decimal point ('.') as the separator
+
+``Ekstralast virkningsgrad``
+ - required
+ - float using a decimal point ('.') as the separator
+
+``Grunnlast andel``
+ - required
+ - float using a decimal point ('.') as the separator
+
+``Grunnlast virkningsgrad``
+ - required
+ - float using a decimal point ('.') as the separator
+
+``Spisslast andel``
+ - required
+ - float using a decimal point ('.') as the separator
+
+``Spisslast virkningsgrad``
+ - required
+ - float using a decimal point ('.') as the separator
+
+``Tappevann virkningsgrad``
+ - required
+ - float using a decimal point ('.') as the separator
+
+``Kjoling virkningsgrad``
+ - required
+ - float using a decimal point ('.') as the separator
+
+``Spesifikt elforbruk``
+ - required
+ - float using a decimal point ('.') as the separator
+
+holiday_home_by_year
+--------------------
+
+``year``
+ - required
+ - integer
+
+``Existing buildings Chalet, summerhouses and other holiday house``
+ - required
+ - integer
+
+``Existing buildings Detached houses and farmhouses used as holiday houses``
+ - required
+ - integer
+
+holiday_home_energy_consumption
+-------------------------------
+
+``year``
+ - required
+ - integer
+
+``electricity``
+ - integer
+
+``fuelwood``
+ - integer or empty
+
+``fossil``
+ - integer or empty
+
+heating_systems_shares_start_year
+---------------------------------
+
+``building_category``
+ - required
+ - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
+
+``TEK``
+ - required
+ - values: Any string containing ``TEK``
+
+``year``
+ - required
+ - integer
+
+``heating_systems``
+ - required
+ - string
+ - value: 'Electricity', 'Electricity - Bio', 'Electric boiler', 'Electric boiler - Solar', 'Gas', 'DH', 'DH - Bio

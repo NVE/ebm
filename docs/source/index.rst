@@ -34,6 +34,7 @@ documentation for details.
 
    model_setup
    configuration
+   input_constraints
    developer_guide
    api_reference
    code_reference

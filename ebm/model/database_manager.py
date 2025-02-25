@@ -205,7 +205,7 @@ class DatabaseManager:
         """
         ff = self.file_handler.get_energy_req_original_condition()
         df = self.explode_unique_columns(ff, ['building_category', 'TEK', 'purpose'])
-        df = df.set_index(['building_category', 'purpose', 'TEK'])
+        df = df.set_index(['building_category', 'purpose', 'TEK']).sort_index()
 
         if not 'behavior_factor' in df.columns:
             df['behavior_factor'] = 1.0

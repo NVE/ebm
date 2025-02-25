@@ -29,13 +29,15 @@ Documentation = "https://dev.azure.com/NVE-devops/Energibruksmodell/_wiki/wikis"
 Repository = "https://NVE-devops@dev.azure.com/NVE-devops/Energibruksmodell/_git/Energibruksmodell"
 
 [tool.setuptools]
-packages = ['ebm', 'ebm.model', 'ebm.services', 'ebm.cmd']
+packages = ['ebm', 'ebm.model', 'ebm.services', 'ebm.cmd', 'ebm.data']
+include-package-data = true
 [project.scripts]
 ebm = "ebm.__main__:main"
 ebm-calibrate = "ebm.cmd.calibrate_excel_com_io:main"
 [tool.setuptools.dynamic]
 version = {attr = "ebm.__version__.version"}
+
 [tool.setuptools.package-data]
-mypackage = ["data/*.csv"]
+mypackage = ["*.csv"]
 [tool.pytest.ini_options]
 pythonpath = "."

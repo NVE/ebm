@@ -15,6 +15,7 @@ from ebm.model.calibrate_heating_systems import transform_heating_systems
 from ebm.model.building_condition import BEMA_ORDER as building_condition_order
 from ebm.model.building_category import BEMA_ORDER as building_category_order
 from ebm.model.data_classes import YearRange
+from ebm.model.database_manager import DatabaseManager
 from ebm.model.tek import BEMA_ORDER as tek_order
 
 
@@ -201,34 +202,52 @@ def write_tqdm_result(output_file, output, csv_delimiter=','):
 
 class EbmDefaultHandler:
     def extract_model(self, arguments, building_categories, database_manager, step_choice):
+        year_range = YearRange(arguments.start_year, arguments.end_year)
+        area_forecast = self.extract_area_forecast(building_categories, database_manager, period=year_range)
+        area_forecast = area_forecast.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+        df = area_forecast
+
+        if 'energy-requirements' in step_choice or 'heating-systems' in step_choice or 'energy-use' in step_choice:
+            logger.debug('Extracting area energy requirements')
+            energy_requirements_result = self.extract_energy_requirements(building_categories,
+                                                                          database_manager, area_forecast, period=year_range)
+            df = energy_requirements_result
+
+            if 'heating-systems' in step_choice or 'energy-use' in step_choice:
+                logger.debug('Extracting heating systems')
+                df = calculate_heating_systems(energy_requirements=energy_requirements_result, database_manager=database_manager)
+        return df
+
+    @staticmethod
+    def extract_energy_requirements(building_categories,
+                                    database_manager: DatabaseManager,
+                                    df: pd.DataFrame,
+                                    period: YearRange) -> pd.DataFrame:
+        energy_requirements_result = calculate_building_category_energy_requirements(
+            building_category=building_categories,
+            area_forecast=df,
+            database_manager=database_manager,
+            start_year=period.start,
+            end_year=period.end)
+        return energy_requirements_result
+
+
+    @staticmethod
+    def extract_area_forecast(building_categories,
+                              database_manager: DatabaseManager,
+                              period: YearRange) -> pd.DataFrame:
         area_forecast_results = []
         logger.debug('Extracting area forecast')
         for building_category in building_categories:
             area_forecast = calculate_building_category_area_forecast(
                 building_category=building_category,
                 database_manager=database_manager,
-                start_year=arguments.start_year,
-                end_year=arguments.end_year)
+                start_year=period.start,
+                end_year=period.end)
             area_forecast_results.append(area_forecast)
-
         df = pd.concat(area_forecast_results)
-
-        df = df.set_index(['building_category', 'TEK', 'building_condition', 'year'])
-        if 'energy-requirements' in step_choice or 'heating-systems' in step_choice or 'energy-use' in step_choice:
-            logger.debug('Extracting area energy requirements')
-            energy_requirements_result = calculate_building_category_energy_requirements(
-                building_category=building_categories,
-                area_forecast=df,
-                database_manager=database_manager,
-                start_year=arguments.start_year,
-                end_year=arguments.end_year)
-            df = energy_requirements_result
-
-            if 'heating-systems' in step_choice or 'energy-use' in step_choice:
-                logger.debug('Extracting heating systems')
-                df = calculate_heating_systems(energy_requirements=energy_requirements_result,
-                                               database_manager=database_manager)
         return df
 
-    def write_result2(self, output_file, csv_delimiter, model):
+    @staticmethod
+    def write_result2(output_file, csv_delimiter, model):
         write_tqdm_result(output_file, model, csv_delimiter)

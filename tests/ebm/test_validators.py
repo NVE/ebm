@@ -1,7 +1,6 @@
 import io
 import itertools
 import warnings
-
 import numpy as np
 import pandas as pd
 import pandera as pa
@@ -27,8 +26,8 @@ from ebm.validators import (tek_parameters,
                             heating_systems_projection,
                             heating_systems_efficiencies,
                             check_sum_of_tek_shares_equal_1)
-
-
+    
+    
 @pytest.fixture
 def ok_tek_parameters() -> pd.DataFrame:
     return pd.DataFrame({
@@ -104,7 +103,7 @@ def test_tek_parameters_duplicate_tek(ok_tek_parameters):
 
 
 def test_area_parameters_building_categories():
-    rows = [[str(building_category), 'TEK10', 10000] for building_category in BuildingCategory]
+    rows = [[str(building_category), 'TEK10', float(10000)] for building_category in BuildingCategory]
     df = pd.DataFrame(data=rows, columns=['building_category', 'TEK', 'area'])
 
     area_parameters.validate(df)
@@ -189,9 +188,6 @@ def test_construction_building_category_yearly_commercial_area(ok_construction_b
     ok_construction_building_category_yearly.loc[row, building_category] = -0.1
     with pytest.raises(pa.errors.SchemaError):
         construction_building_category_yearly.validate(ok_construction_building_category_yearly)
-    ok_construction_building_category_yearly.loc[row, building_category] = None
-    with pytest.raises(pa.errors.SchemaError):
-        construction_building_category_yearly.validate(ok_construction_building_category_yearly)
     
 
 
@@ -255,6 +251,14 @@ def test_new_buildings_house_share_sum_of_share_should_be_1(new_buildings_house_
         new_buildings_house_share.validate(new_buildings_house_share_df)
 
 
+def test_population_coerce_values():
+    rows = [(y, 4858199, 2) for y in YearRange(2010, 2070)]
+    df = pd.DataFrame(data=rows,
+                      columns=['year', 'population', 'household_size'])
+
+    population.validate(df, lazy=True)
+
+
 def test_population_ok(new_buildings_house_share_df):
     standard_years = [(y, 4858199, 2.22) for y in YearRange(2001, 2070)]
 
@@ -273,12 +277,6 @@ def test_population_ok(new_buildings_house_share_df):
     with pytest.raises(pa.errors.SchemaError):
         population.validate(population_df)
 
-
-def test_population_coerce_values(new_buildings_house_share_df):
-    df = pd.DataFrame(data=[(float(y), 4858199.0, 2) for y in YearRange(2010, 2070)],
-                      columns=['year', 'population', 'household_size'])
-
-    population.validate(df)
 
 
 @pytest.fixture

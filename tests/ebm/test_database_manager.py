@@ -90,12 +90,12 @@ def test_get_get_energy_req_original_condition_expand_unique_columns():
 
     df = dm.get_energy_req_original_condition()
     expected = pd.DataFrame(data=[
-        ['house', 'lighting', 'TEK03', 300.0, 1.3, 300.0, 300.0],
-        ['house', 'lighting', 'TEK01', 100.0, 1.1, 100.0, 100.0],
         ['apartment_block', 'lighting', 'TEK01', 100.0, 1.1, 100.0, 100.0],
-        ['house', 'lighting', 'TEK02', 100.0, 1.1, 100.0, 100.0],
         ['apartment_block', 'lighting', 'TEK02', 100.0, 1.1, 100.0, 100.0],
         ['apartment_block', 'lighting', 'TEK03', 100.0, 1.1, 100.0, 100.0],
+        ['house', 'lighting', 'TEK01', 100.0, 1.1, 100.0, 100.0],
+        ['house', 'lighting', 'TEK02', 100.0, 1.1, 100.0, 100.0],
+        ['house', 'lighting', 'TEK03', 300.0, 1.3, 300.0, 300.0],
     ],
                             columns=['building_category', 'purpose', 'TEK', 'kwh_m2', 'behavior_factor', 'uncalibrated_kwh_m2', 'calibrated_kwh_m2'])
 

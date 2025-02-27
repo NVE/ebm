@@ -11,6 +11,7 @@ from ebm.cmd.result_handler import transform_heating_systems_to_horizontal, writ
     transform_model_to_horizontal, EbmDefaultHandler, transform_holiday_homes_to_horizontal, \
     transform_to_sorted_heating_systems
 from ebm.cmd.run_calculation import make_arguments, validate_years, calculate_energy_use, configure_loglevel
+from ebm.cmd.initialize import create_input, create_output_directory
 
 from ebm.model.building_category import BuildingCategory
 from ebm.model.database_manager import DatabaseManager
@@ -43,7 +44,7 @@ def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
 
     logger.debug(f'Starting {sys.executable} {__file__}')
 
-    program_name = 'calc-area-forecast'
+    program_name = 'ebm'
     default_path = pathlib.Path('output/ebm_output.xlsx')
 
     arguments = make_arguments(program_name, default_path)
@@ -64,10 +65,10 @@ def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
 
     # Create input directory if requested
     if arguments.create_input:
-        database_manager.file_handler.create_missing_input_files()
-        logger.info(f'Finished creating input files in {database_manager.file_handler.input_directory}')
+        if create_input(database_manager.file_handler):
+            return RETURN_CODE_OK, None
         # Exit with 0 for success. The assumption is that the user would like to review the input before proceeding.
-        return RETURN_CODE_OK, None
+        return RETURN_CODE_MISSING_INPUT_FILES, None
 
     # Make sure all required files exists
     missing_files = database_manager.file_handler.check_for_missing_files()
@@ -79,8 +80,9 @@ def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
         return RETURN_CODE_MISSING_INPUT_FILES, None
 
     database_manager.file_handler.validate_input_files()
+    
     output_file = arguments.output_file
-    database_manager.file_handler.make_output_directory(output_file.parent)
+    create_output_directory(filename=output_file)
 
     if output_file.is_file() and output_file != default_path and not arguments.force:
         # If the file already exists and is not the default, display error and exit unless --force was used.

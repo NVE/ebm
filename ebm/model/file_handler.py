@@ -351,8 +351,6 @@ class FileHandler:
 
         if not source.is_dir():
             raise NotADirectoryError(f'{self.input_directory} is not a directory')
-        elif self.input_directory.is_file():
-            raise NotADirectoryError(f'{self.input_directory} is a file')
         if not self.input_directory.is_dir():
             logger.info(f'Creating directory {self.input_directory}')
             self.input_directory.mkdir()
@@ -375,7 +373,7 @@ class FileHandler:
 
     def validate_input_files(self):
         """
-        Validates the input files for correct formatting.
+        Validates the input files for correct formatting and content using the validators module
 
         Raises
         ------
@@ -394,25 +392,3 @@ class FileHandler:
             except (SchemaErrors, SchemaError):
                 logger.error(f'Got error while validating {file_to_validate}')
                 raise
-
-    def make_output_directory(self, output_directory: pathlib.Path) -> None:
-        """
-        Creates the output directory if it does not exist.
-
-        Parameters
-        ----------
-        output_directory : pathlib.Path
-            The path to the output directory.
-        Raises
-        -------
-        IOError
-            The output_directory exists, but it is a file.
-        Returns
-        -------
-        None
-        """
-        if output_directory.is_file():
-            raise IOError(f'{output_directory} is a file')
-        if not output_directory.is_dir():
-            logger.debug(f'Creating output directory {output_directory}')
-            output_directory.mkdir()

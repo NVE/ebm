@@ -63,6 +63,28 @@ class FileHandler:
                                self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_BY_YEAR,
                                self.AREA_PER_PERSON, self.HS_SHARES_START_YEAR, self.HS_EFFICIENCIES, self.HS_PROJECTION]
 
+    def __repr__(self):
+        return f'FileHandler(input_directory="{self.input_directory}")'
+
+    def __str__(self):
+        return repr(self)
+
+    @staticmethod
+    def default_data_directory() -> pathlib.Path:
+        """
+        Returns the path for ebm default data. The function is used when content is needed for a new input directory.
+        Not to be confused with FileHandler.input_directory.
+
+        Returns
+        -------
+        pathlib.Path
+
+        See Also
+        --------
+        create_missing_input_files
+        """
+        return pathlib.Path(__file__).parent.parent / 'data'
+
     def get_file(self, file_name: str) -> pd.DataFrame:
         """
         Finds and returns a file by searching in the folder defined by self.input_folder.
@@ -307,33 +329,49 @@ class FileHandler:
                 logger.error(f'Could not find {f}')
         return missing_files
 
-    def create_missing_input_files(self) -> None:
+
+    def create_missing_input_files(self, source_directory: (pathlib.Path | None)=None) -> None:
         """
-        Creates any input files missing in self.input_directory
+        Creates any input files missing in self.input_directory. When source is omitted FileHandler
+
+        Parameters
+        ----------
+        source_directory : pathlib.Path, optional
+                           Optional directory for sourcing files to copy.
 
         Returns
         -------
         None
+
+        See Also
+        --------
+        default_data_directory : default source for data files
         """
-        if self.input_directory.is_file():
+        source = FileHandler.default_data_directory() if not source_directory else source_directory
+
+        if not source.is_dir():
+            raise NotADirectoryError(f'{self.input_directory} is not a directory')
+        elif self.input_directory.is_file():
             raise NotADirectoryError(f'{self.input_directory} is a file')
         if not self.input_directory.is_dir():
-            logger.debug(f'Creating directory: {self.input_directory}')
+            logger.info(f'Creating directory {self.input_directory}')
             self.input_directory.mkdir()
         for file in self.files_to_check:
             logger.debug(f'Create input file {file}')
-            self.create_input_file(file)
+            self.create_input_file(file, source_directory=source)
 
-    def create_input_file(self, file):
+    def create_input_file(self, file, source_directory=None):
+        source_directory = FileHandler.default_data_directory() if not source_directory else source_directory
+
+        source_file = source_directory / file
         target_file = self.input_directory / file
-        source_file = pathlib.Path(__file__).parent.parent / 'data' / file
         if target_file.is_file():
-            logger.warning(f'Skipping existing file {target_file}')
+            logger.debug(f'Skipping existing file {target_file}')
         elif not source_file.is_file():
             logger.error(f'Source file {source_file} does not exist!')
         else:
             shutil.copy(source_file, target_file)
-            logger.info(f'Created {target_file}')
+            logger.info( f'Creating missing file  {target_file}')
 
     def validate_input_files(self):
         """

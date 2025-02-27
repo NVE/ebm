@@ -11,7 +11,7 @@ authors = [
     { name = "Lars Petrusson", email = "lfep@nve.no" },
     { name = "Ketil Nordstad", email = "kenord@nve.no" }
 ]
-requires-python = ">= 3.8"
+requires-python = ">= 3.11"
 dependencies = [
     "loguru", 
     "numpy", 

@@ -74,6 +74,13 @@ Ordet BBB…BBB mangler SHY
 BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
 
 
+Bindestrek deler automatisk, lavstrek gjør ikke det
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+area-parameters-area-parameters-area-parameters-area-parameters-area-parameters-area-parameters-area-parameters-area-parameters-area-parameters
+
+area_parameters_area_parameters_area_parameters_Area_parameters_area_­Barameters_area_parameters_area_parameters_area_parameters_area_parameters
+
 
 Bilde 🖼️
 ========

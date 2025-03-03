@@ -63,6 +63,7 @@ def copy_available_calibration_files(source: pathlib.Path, file_handler: FileHan
     for calibration_file in [source / FileHandler.CALIBRATE_ENERGY_REQUIREMENT,
                              source / FileHandler.CALIBRATE_ENERGY_CONSUMPTION]:
         if calibration_file.is_file():
+            logger.debug(f'Creating calibration file {file_handler.input_directory / calibration_file.name}')
             shutil.copy(calibration_file, file_handler.input_directory)
 
 
@@ -142,7 +143,8 @@ def main() -> int:
 
     arguments = ap.parse_args()
 
-    create_input(FileHandler(directory=arguments.input), source_directory=arguments.source)
+    init(FileHandler(directory=arguments.input))
+    # create_input(FileHandler(directory=arguments.input), source_directory=arguments.source)
     return 0
 
 if __name__ == '__main__':

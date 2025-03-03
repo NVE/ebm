@@ -66,6 +66,7 @@ def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
     # Create input directory if requested
     if arguments.create_input:
         if create_input(database_manager.file_handler):
+            logger.info(f'Finished creating input files in {database_manager.file_handler.input_directory}')
             return RETURN_CODE_OK, None
         # Exit with 0 for success. The assumption is that the user would like to review the input before proceeding.
         return RETURN_CODE_MISSING_INPUT_FILES, None

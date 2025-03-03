@@ -6,6 +6,35 @@ from ebm.cmd import initialize
 from ebm.model.file_handler import FileHandler
 
 
+def test_init_return_input_directory(tmp_path: pathlib.Path):
+    assert initialize.init(FileHandler(directory=tmp_path)) == tmp_path
+
+
+def test_init_call_create_input(tmp_path: pathlib.Path):
+    fh = FileHandler(directory=tmp_path)
+    fh.default_data_directory = lambda: pathlib.Path('data_dir')
+    with patch('ebm.cmd.initialize.create_input') as create_input_mock:
+        initialize.init(fh)
+        create_input_mock.assert_called_with(fh, source_directory=pathlib.Path('data_dir'))
+
+
+def test_init_call_create_input_using_default_override_if_exists(tmp_path: pathlib.Path):
+    # Keep default input override so that it can be reset later
+    old = initialize.DEFAULT_INPUT_OVERRIDE
+    fh = FileHandler(directory=tmp_path)
+
+    override_path = tmp_path / 'load_from_here'
+    override_path.mkdir()
+
+    initialize.DEFAULT_INPUT_OVERRIDE = override_path
+    with patch('ebm.cmd.initialize.create_input') as create_input_mock:
+        initialize.init(fh)
+        create_input_mock.assert_called_with(fh, source_directory=override_path)
+
+    # Reset default input override
+    initialize.DEFAULT_INPUT_OVERRIDE = old
+
+
 def test_create_input_with_default_data_source():
     mock_file_handler = MagicMock(spec=FileHandler)
     mock_file_handler.input_directory = pathlib.Path('input-test')
@@ -102,6 +131,10 @@ def test_create_output_directory_raises_io_error_when_output_directory_is_a_file
 def test_create_output_raises_value_error_on_empty_arguments():
     with pytest.raises(ValueError):
         initialize.create_output_directory(output_directory=None, filename=None)
+
+
+def test_default_input_override():
+    assert initialize.DEFAULT_INPUT_OVERRIDE == pathlib.Path('X:\\NAS\\Data\\ebm\\kalibrert')
 
 
 if __name__ == "__main__":

@@ -19,7 +19,8 @@ dependencies = [
     "pandas", 
     "python-dotenv", 
     "rich",
-    "pandera"
+    "pandera",
+    "pywin32 ; platform_system == 'Windows'"
 ]
 [project.optional-dependencies]
 testing = ["pytest"]

@@ -38,19 +38,19 @@ def test_init_call_create_input(tmp_cwd: pathlib.Path):
 
 def test_init_call_create_input_using_default_override_if_exists(tmp_cwd: pathlib.Path):
     # Keep default input override so that it can be reset later
-    old = initialize.DEFAULT_INPUT_OVERRIDE
+    old = initialize.DEFAULT_INPUT
     fh = FileHandler(directory=tmp_cwd)
 
     override_path = tmp_cwd / 'load_from_here'
     override_path.mkdir()
 
-    initialize.DEFAULT_INPUT_OVERRIDE = override_path
+    initialize.DEFAULT_INPUT = override_path
     with patch('ebm.cmd.initialize.create_input') as create_input_mock:
         initialize.init(fh)
         create_input_mock.assert_called_with(fh, source_directory=override_path)
 
     # Reset default input override
-    initialize.DEFAULT_INPUT_OVERRIDE = old
+    initialize.DEFAULT_INPUT = old
 
 
 @patch('ebm.cmd.initialize.create_input')
@@ -169,7 +169,7 @@ def test_create_output_raises_value_error_on_empty_arguments():
 
 
 def test_default_input_override():
-    assert initialize.DEFAULT_INPUT_OVERRIDE == pathlib.Path('X:\\NAS\\Data\\ebm\\kalibrert')
+    assert initialize.DEFAULT_INPUT == pathlib.Path('X:\\NAS\\Data\\ebm\\kalibrert')
 
 
 if __name__ == "__main__":

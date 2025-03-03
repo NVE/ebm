@@ -8,7 +8,7 @@ import typing
 from loguru import logger
 
 from ebm.model.file_handler import FileHandler
-DEFAULT_INPUT_OVERRIDE = pathlib.Path('X:\\NAS\\Data\\ebm\\kalibrert\\')
+DEFAULT_INPUT = pathlib.Path('X:\\NAS\\Data\\ebm\\kalibrert\\')
 
 
 def create_input(file_handler: FileHandler,
@@ -121,7 +121,7 @@ def init(file_handler: FileHandler, source_directory: pathlib.Path|None = None) 
     pathlib.Path
     """
     if source_directory is None:
-        default_input_override = pathlib.Path(os.environ.get('EBM_DEFAULT_INPUT_OVERRIDE', DEFAULT_INPUT_OVERRIDE))
+        default_input_override = pathlib.Path(os.environ.get('EBM_DEFAULT_INPUT', DEFAULT_INPUT))
         if default_input_override.is_dir():
             logger.debug(f'{default_input_override} exists')
             source_directory = default_input_override

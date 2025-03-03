@@ -3,6 +3,7 @@ import pathlib
 import sys
 import typing
 
+import dotenv
 import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
@@ -38,7 +39,12 @@ def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
     exit code : int
         zero when the program exits gracefully
     """
-    load_dotenv(pathlib.Path('.env'))
+    env_file = pathlib.Path(dotenv.find_dotenv(usecwd=True))
+    if env_file.is_file():
+        logger.debug(f'Using {env_file}')
+        load_dotenv(pathlib.Path('.env').absolute())
+    else:
+        logger.debug(f'{env_file.absolute()} not found')
 
     configure_loglevel(os.environ.get('LOG_FORMAT', None))
 

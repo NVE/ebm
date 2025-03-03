@@ -101,7 +101,7 @@ def create_output_directory(output_directory: typing.Optional[pathlib.Path]=None
         return output_directory
     elif filename and not filename.is_file():
         logger.debug(f'Creating output directory {filename.parent}')
-        filename.parent.mkdir()
+        filename.parent.mkdir(exist_ok=True)
         return filename.parent
 
 

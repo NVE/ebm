@@ -141,6 +141,7 @@ def test_create_output_directory(tmp_cwd: pathlib.Path):
     assert result.is_dir()
 
     output_file = tmp_cwd / 'putout' / 'ebm_output.txt'
+    initialize.create_output_directory(filename=output_file)
     filename_result = initialize.create_output_directory(filename=output_file)
     assert filename_result == output_file.parent
     assert filename_result.is_dir()

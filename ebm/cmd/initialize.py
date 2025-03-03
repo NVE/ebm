@@ -1,5 +1,6 @@
 """Module for setting up input, output and managing default data"""
 import argparse
+import os
 import pathlib
 import shutil
 import typing
@@ -43,14 +44,14 @@ def create_input(file_handler: FileHandler,
     return True
 
 
-def copy_available_calibration_files(source: pathlib.Path, file_handler: FileHandler):
+def copy_available_calibration_files(file_handler: FileHandler, source_directory: pathlib.Path):
     """
 
     Copies calibration file from source to file_handler
 
     Parameters
     ----------
-    source : pathlib.Path
+    source_directory : pathlib.Path
     file_handler : FileHandler
 
     Returns
@@ -59,9 +60,9 @@ def copy_available_calibration_files(source: pathlib.Path, file_handler: FileHan
 
     """
 
-    logger.debug(f'Copy calibration files from {source}')
-    for calibration_file in [source / FileHandler.CALIBRATE_ENERGY_REQUIREMENT,
-                             source / FileHandler.CALIBRATE_ENERGY_CONSUMPTION]:
+    logger.debug(f'Copy calibration files from {source_directory}')
+    for calibration_file in [source_directory / FileHandler.CALIBRATE_ENERGY_REQUIREMENT,
+                             source_directory / FileHandler.CALIBRATE_ENERGY_CONSUMPTION]:
         if calibration_file.is_file():
             logger.debug(f'Creating calibration file {file_handler.input_directory / calibration_file.name}')
             shutil.copy(calibration_file, file_handler.input_directory)
@@ -104,24 +105,36 @@ def create_output_directory(output_directory: typing.Optional[pathlib.Path]=None
         return filename.parent
 
 
-def init(file_handler: FileHandler) -> pathlib.Path:
+def init(file_handler: FileHandler, source_directory: pathlib.Path|None = None) -> pathlib.Path:
     """
     Initialize file_handler with input data from ebm.data or DEFAULT_INPUT_OVERRIDE.
+    Create output directory in current working directory if missing
 
     Parameters
     ----------
     file_handler : FileHandler
+    source_directory : pathlib.Path, optional
+        Where location of input data
 
     Returns
     -------
     pathlib.Path
     """
-    source_directory = file_handler.default_data_directory()
-    if DEFAULT_INPUT_OVERRIDE.exists():
-        source_directory = DEFAULT_INPUT_OVERRIDE
+    if source_directory is None:
+        default_input_override = pathlib.Path(os.environ.get('EBM_DEFAULT_INPUT_OVERRIDE', DEFAULT_INPUT_OVERRIDE))
+        if default_input_override.is_dir():
+            logger.debug(f'{default_input_override} exists')
+            source_directory = default_input_override
+        else:
+            logger.debug(f'{default_input_override} does not exist.')
+            source_directory = file_handler.default_data_directory()
+    elif not source_directory.is_dir():
+        raise NotADirectoryError(f'{source_directory} is not a directory')
 
+    logger.info(f'Copy input from {source_directory}')
     create_input(file_handler, source_directory=source_directory)
-    copy_available_calibration_files(source_directory, file_handler)
+    copy_available_calibration_files(file_handler, source_directory=source_directory)
+    create_output_directory(pathlib.Path('output'))
     return file_handler.input_directory
 
 
@@ -143,7 +156,7 @@ def main() -> int:
 
     arguments = ap.parse_args()
 
-    init(FileHandler(directory=arguments.input))
+    init(FileHandler(directory=arguments.input), source_directory=arguments.source)
     # create_input(FileHandler(directory=arguments.input), source_directory=arguments.source)
     return 0
 

@@ -11,7 +11,7 @@ from ebm.cmd.result_handler import transform_heating_systems_to_horizontal, writ
     transform_model_to_horizontal, EbmDefaultHandler, transform_holiday_homes_to_horizontal, \
     transform_to_sorted_heating_systems
 from ebm.cmd.run_calculation import make_arguments, validate_years, calculate_energy_use, configure_loglevel
-from ebm.cmd.initialize import create_input, create_output_directory
+from ebm.cmd.initialize import init, create_output_directory
 
 from ebm.model.building_category import BuildingCategory
 from ebm.model.database_manager import DatabaseManager
@@ -65,7 +65,7 @@ def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
 
     # Create input directory if requested
     if arguments.create_input:
-        if create_input(database_manager.file_handler):
+        if init(database_manager.file_handler):
             logger.info(f'Finished creating input files in {database_manager.file_handler.input_directory}')
             return RETURN_CODE_OK, None
         # Exit with 0 for success. The assumption is that the user would like to review the input before proceeding.
@@ -98,6 +98,7 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
         return RETURN_CODE_FILE_NOT_ACCESSIBLE, None
 
     step_choice = arguments.step
+
     transform_to_horizontal_years = arguments.horizontal_years
 
     default_handler = EbmDefaultHandler()

@@ -77,10 +77,10 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
     default_tek = TEK
 
     arg_parser = argparse.ArgumentParser(prog=program_name,
-                                         description=f'Calculate EBM area forecast v{version}',
+                                         description=f'Calculate EBM energy use {version}',
                                          formatter_class=argparse.RawTextHelpFormatter
                                          )
-    arg_parser.add_argument('--version', '-v', action='version', version=f'calculate-area-forcast {version}')
+    arg_parser.add_argument('--version', '-v', action='version', version=f'{program_name} {version}')
     arg_parser.add_argument('--debug', action='store_true',
                             help='Run in debug mode. (Extra information written to stdout)')
     arg_parser.add_argument('step', type=str, nargs='?',

@@ -40,6 +40,7 @@ def test_init_call_create_input(tmp_cwd: pathlib.Path):
 
 def test_init_call_create_input_using_default_override_if_exists(tmp_cwd: pathlib.Path):
     # Keep default input override so that it can be reset later
+    #  It might be better to change tmp_cwd fixture to handle the reset
     old = initialize.DEFAULT_INPUT
     fh = FileHandler(directory=tmp_cwd)
 

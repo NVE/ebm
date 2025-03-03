@@ -8,7 +8,7 @@ import typing
 from loguru import logger
 
 from ebm.model.file_handler import FileHandler
-DEFAULT_INPUT = pathlib.Path('X:\\NAS\\Data\\ebm\\kalibrert\\')
+DEFAULT_INPUT = pathlib.WindowsPath('X:\\NAS\\Data\\ebm\\kalibrert\\')
 
 
 def create_input(file_handler: FileHandler,

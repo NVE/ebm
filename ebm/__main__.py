@@ -1,3 +1,4 @@
+"""EBM start from where when running as a script or module"""
 import os
 import pathlib
 import sys
@@ -8,7 +9,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
-from ebm.cmd.result_handler import transform_heating_systems_to_horizontal, write_horizontal_excel, \
+from ebm.cmd.result_handler import transform_heating_systems_to_horizontal, append_result, \
     transform_model_to_horizontal, EbmDefaultHandler, transform_holiday_homes_to_horizontal, \
     transform_to_sorted_heating_systems
 from ebm.cmd.run_calculation import validate_years, calculate_energy_use, configure_loglevel
@@ -87,20 +88,19 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
     output_file = arguments.output_file
     create_output_directory(filename=output_file)
 
-    output_file_status: ReturnCode = prepare_main.check_output_file_status(output_file,
-                                                                           arguments.force,
-                                                                           default_path,
-                                                                           program_name)
-    if output_file_status!= ReturnCode.OK:
-        return output_file_status, None
+    output_file_return_code = prepare_main.check_output_file_status(output_file, arguments.force, default_path,
+                                                                    program_name)
+    if output_file_return_code!= ReturnCode.OK:
+        return output_file_return_code, None
 
     step_choice = arguments.step
 
-    transform_to_horizontal_years = arguments.horizontal_years
+    convert_result_to_horizontal: bool = arguments.horizontal_years
 
     default_handler = EbmDefaultHandler()
 
     model = default_handler.extract_model(arguments, building_categories, database_manager, step_choice)
+
     if step_choice == 'energy-use':
         logger.debug('Transform heating systems')
         holiday_homes = transform_holiday_homes_to_horizontal(calculate_energy_use())
@@ -108,26 +108,26 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
         heating_systems_hz = transform_to_sorted_heating_systems(hz, holiday_homes)
         if output_file.name == '-':
             print(heating_systems_hz.to_markdown(index=False))
-        write_horizontal_excel(output_file, heating_systems_hz, 'energy-use')
-    elif transform_to_horizontal_years and (step_choice in ['area-forecast', 'energy-requirements']) and output_file.suffix=='.xlsx':
+        append_result(output_file, heating_systems_hz, 'energy-use')
+    elif convert_result_to_horizontal and (step_choice in ['area-forecast', 'energy-requirements']) and output_file.suffix=='.xlsx':
         sheet_name_prefix = 'area' if step_choice == 'area-forecast' else 'energy'
         logger.debug(f'Transform heating {step_choice}')
 
         df = transform_model_to_horizontal(model.reset_index())
-        write_horizontal_excel(output_file, df, f'{sheet_name_prefix} condition')
+        append_result(output_file, df, f'{sheet_name_prefix} condition')
 
         model = model.reset_index()
         # Demolition should not be summed any further
         model = model[model.building_condition!='demolition']
         model['building_condition'] = 'all'
         df = transform_model_to_horizontal(model)
-        write_horizontal_excel(output_file, df, f'{sheet_name_prefix} TEK')
+        append_result(output_file, df, f'{sheet_name_prefix} TEK')
 
         model['TEK'] = 'all'
         df = transform_model_to_horizontal(model)
-        write_horizontal_excel(output_file, df, f'{sheet_name_prefix} category')
+        append_result(output_file, df, f'{sheet_name_prefix} category')
     else:
-        default_handler.write_result2(output_file, csv_delimiter, model)
+        default_handler.write_tqdm_result(output_file, model, csv_delimiter)
 
 
     if arguments.open or os.environ.get('EBM_ALWAYS_OPEN', 'FALSE').upper() == 'TRUE':

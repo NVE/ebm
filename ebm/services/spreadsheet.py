@@ -1,10 +1,15 @@
 import dataclasses
 import itertools
+import math
 import typing
 import string
 from dataclasses import dataclass
 
+import numpy as np
+from loguru import logger
+from openpyxl.cell import Cell
 from openpyxl.utils.cell import cols_from_range, coordinate_to_tuple, get_column_letter
+from openpyxl.worksheet.errors import IgnoredError
 
 
 @dataclass
@@ -164,3 +169,35 @@ def iter_cells(first_column: str = 'E', left_padding: str = '') -> typing.Genera
         yield f'{left_padding}{cell}'
     for a, b in itertools.product(string.ascii_uppercase, repeat=2):
         yield a+b
+
+
+def detect_format_from_values(col_name, col_values, model):
+    cell_format = ''
+    if np.issubdtype(model[col_name].dtype, np.floating):
+        cell_format = '#,##0.00'
+        if col_values.max() > 1000.0:
+            cell_format = '# ##0'
+        elif 1.0 >= col_values.mean() >= -1.0:
+            cell_format = '0.00%'
+    elif np.issubdtype(model[col_name].dtype, np.integer):
+        cell_format = '#,##0'
+
+    return cell_format
+
+
+def find_max_column_width(col: typing.Tuple[Cell]):
+    max_length = 5
+    for cell in col:
+        try:
+            if cell.value is not None:
+                cell_length = len(str(cell.value)) + 1
+                if cell.data_type == 'n':
+                    thousands = math.floor(math.log(1_000_000_0000, 1000))
+                    cell_length = max(len(str(cell.value).split('.')[0]) + thousands, 2)
+                if cell_length > max_length:
+                    max_length = cell_length
+        except (AttributeError, KeyError, IgnoredError, ValueError) as ex:
+            logger.debug(f'Got error f{cell.column_letter}')
+            logger.error(ex)
+            pass
+    return max_length

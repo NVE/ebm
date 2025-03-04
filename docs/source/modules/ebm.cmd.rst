@@ -1,6 +1,8 @@
 ebm.cmd package
 ===============
 
+say what?
+
 Submodules
 ----------
 
@@ -11,6 +13,7 @@ Submodules
    ebm.cmd.calibrate_excel_com_io
    ebm.cmd.heating_systems_by_year
    ebm.cmd.result_handler
+   ebm.cmd.prepare_main
    ebm.cmd.run_calculation
 
 Module contents

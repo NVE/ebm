@@ -11,21 +11,18 @@ from loguru import logger
 from ebm.cmd.result_handler import transform_heating_systems_to_horizontal, write_horizontal_excel, \
     transform_model_to_horizontal, EbmDefaultHandler, transform_holiday_homes_to_horizontal, \
     transform_to_sorted_heating_systems
-from ebm.cmd.run_calculation import make_arguments, validate_years, calculate_energy_use, configure_loglevel
+from ebm.cmd.run_calculation import validate_years, calculate_energy_use, configure_loglevel
+from ebm.cmd import prepare_main
 from ebm.cmd.initialize import init, create_output_directory
 
 from ebm.model.building_category import BuildingCategory
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
 
-from ebm.services.files import file_is_writable
-
-RETURN_CODE_OK = 0
-RETURN_CODE_FILE_EXISTS = 1
-RETURN_CODE_FILE_NOT_ACCESSIBLE = 2
 RETURN_CODE_MISSING_INPUT_FILES = 3
 
 df = None
+
 
 def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
     """
@@ -53,7 +50,7 @@ def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
     program_name = 'ebm'
     default_path = pathlib.Path('output/ebm_output.xlsx')
 
-    arguments = make_arguments(program_name, default_path)
+    arguments = prepare_main.make_arguments(program_name, default_path)
 
     # Make local variable from arguments for clarity
     building_categories = [BuildingCategory.from_string(b_c) for b_c in arguments.categories]
@@ -73,7 +70,7 @@ def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
     if arguments.create_input:
         if init(database_manager.file_handler):
             logger.info(f'Finished creating input files in {database_manager.file_handler.input_directory}')
-            return RETURN_CODE_OK, None
+            return prepare_main.RETURN_CODE_OK, None
         # Exit with 0 for success. The assumption is that the user would like to review the input before proceeding.
         return RETURN_CODE_MISSING_INPUT_FILES, None
 
@@ -91,17 +88,9 @@ def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
     output_file = arguments.output_file
     create_output_directory(filename=output_file)
 
-    if output_file.is_file() and output_file != default_path and not arguments.force:
-        # If the file already exists and is not the default, display error and exit unless --force was used.
-        logger.error(f'{output_file}. already exists.')
-        print(f"""
-You can overwrite the {output_file}. by using --force: {program_name} {' '.join(sys.argv[1:])} --force
-""".strip(),
-              file=sys.stderr)
-        return RETURN_CODE_FILE_EXISTS, None
-    if output_file.name != '-' and not file_is_writable(output_file):
-        logger.error(f'{output_file} is not writable')
-        return RETURN_CODE_FILE_NOT_ACCESSIBLE, None
+    output_file_status = prepare_main.check_output_file_status(output_file, arguments.force, default_path, program_name)
+    if output_file_status!= prepare_main.RETURN_CODE_OK:
+        return output_file_status, None
 
     step_choice = arguments.step
 
@@ -142,7 +131,7 @@ You can overwrite the {output_file}. by using --force: {program_name} {' '.join(
     if arguments.open or os.environ.get('EBM_ALWAYS_OPEN', 'FALSE').upper() == 'TRUE':
         os.startfile(output_file, 'open')
 
-    return RETURN_CODE_OK, model
+    return prepare_main.RETURN_CODE_OK, model
 
 
 if __name__ == '__main__':

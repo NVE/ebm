@@ -103,7 +103,7 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
 
     if step_choice == 'energy-use':
         logger.debug('Transform heating systems')
-        holiday_homes = transform_holiday_homes_to_horizontal(calculate_energy_use())
+        holiday_homes = transform_holiday_homes_to_horizontal(calculate_energy_use(database_manager))
         hz = transform_heating_systems_to_horizontal(model)
         heating_systems_hz = transform_to_sorted_heating_systems(hz, holiday_homes)
         if output_file.name == '-':

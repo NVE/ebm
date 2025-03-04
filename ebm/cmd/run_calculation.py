@@ -227,15 +227,19 @@ def calculate_heating_systems(energy_requirements, database_manager: DatabaseMan
     return df
 
 
-def calculate_energy_use() -> pd.DataFrame:
+def calculate_energy_use(database_manager: DatabaseManager) -> pd.DataFrame:
     """
     Calculates holiday home energy use by from HolidayHomeEnergy.calculate_energy_usage()
+
+    Parameters
+    ----------
+    database_manager : DatabaseManager
 
     Returns
     -------
     pd.DataFrame
     """
-    holiday_home_energy = HolidayHomeEnergy.new_instance()
+    holiday_home_energy = HolidayHomeEnergy.new_instance(database_manager=database_manager)
     el, wood, fossil = [e_u for e_u in holiday_home_energy.calculate_energy_usage()]
     df = pd.DataFrame(data=[el, wood, fossil])
     df.insert(0, 'building_category', 'holiday_home')

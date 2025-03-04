@@ -17,14 +17,13 @@ from ebm.cmd.initialize import init, create_output_directory
 
 from ebm.model.building_category import BuildingCategory
 from ebm.model.database_manager import DatabaseManager
+from ebm.model.enums import ReturnCode
 from ebm.model.file_handler import FileHandler
-
-RETURN_CODE_MISSING_INPUT_FILES = 3
 
 df = None
 
 
-def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
+def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
     """
     Main function to execute the script.
 
@@ -70,9 +69,9 @@ def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
     if arguments.create_input:
         if init(database_manager.file_handler):
             logger.info(f'Finished creating input files in {database_manager.file_handler.input_directory}')
-            return prepare_main.RETURN_CODE_OK, None
+            return ReturnCode.OK, None
         # Exit with 0 for success. The assumption is that the user would like to review the input before proceeding.
-        return RETURN_CODE_MISSING_INPUT_FILES, None
+        return ReturnCode.MISSING_INPUT_FILES, None
 
     # Make sure all required files exists
     missing_files = database_manager.file_handler.check_for_missing_files()
@@ -81,15 +80,18 @@ def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
     Use {program_name} --create-input to create an input directory with default files in the current directory
     """.strip(),
               file=sys.stderr)
-        return RETURN_CODE_MISSING_INPUT_FILES, None
+        return ReturnCode.MISSING_INPUT_FILES, None
 
     database_manager.file_handler.validate_input_files()
     
     output_file = arguments.output_file
     create_output_directory(filename=output_file)
 
-    output_file_status = prepare_main.check_output_file_status(output_file, arguments.force, default_path, program_name)
-    if output_file_status!= prepare_main.RETURN_CODE_OK:
+    output_file_status: ReturnCode = prepare_main.check_output_file_status(output_file,
+                                                                           arguments.force,
+                                                                           default_path,
+                                                                           program_name)
+    if output_file_status!= ReturnCode.OK:
         return output_file_status, None
 
     step_choice = arguments.step
@@ -105,7 +107,7 @@ def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
         hz = transform_heating_systems_to_horizontal(model)
         heating_systems_hz = transform_to_sorted_heating_systems(hz, holiday_homes)
         if output_file.name == '-':
-            print(heating_systems_hz.to_markdown(index=False)) # tablefmt='grid',
+            print(heating_systems_hz.to_markdown(index=False))
         write_horizontal_excel(output_file, heating_systems_hz, 'energy-use')
     elif transform_to_horizontal_years and (step_choice in ['area-forecast', 'energy-requirements']) and output_file.suffix=='.xlsx':
         sheet_name_prefix = 'area' if step_choice == 'area-forecast' else 'energy'
@@ -131,7 +133,7 @@ def main() -> typing.Tuple[int, typing.Union[pd.DataFrame, None]]:
     if arguments.open or os.environ.get('EBM_ALWAYS_OPEN', 'FALSE').upper() == 'TRUE':
         os.startfile(output_file, 'open')
 
-    return prepare_main.RETURN_CODE_OK, model
+    return ReturnCode.OK, model
 
 
 if __name__ == '__main__':

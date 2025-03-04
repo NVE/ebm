@@ -1,4 +1,4 @@
-"""Functions used to make __main__ run"""
+"""Utility functions for __main__"""
 import argparse
 import os
 import pathlib
@@ -15,6 +15,7 @@ from ebm.__version__ import version
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
+from ebm.model.enums import ReturnCode
 from ebm.services.files import file_is_writable
 
 TEK = """PRE_TEK49
@@ -127,15 +128,10 @@ Create input directory containing all required files in the current working dire
     return arguments
 
 
-RETURN_CODE_OK = 0
-RETURN_CODE_FILE_EXISTS = 1
-RETURN_CODE_FILE_NOT_ACCESSIBLE = 2
-
-
 def check_output_file_status(output_file: pathlib.Path,
                              force: bool=False,
                              default_path: pathlib.Path = None,
-                             program_name: str='ebm') -> int:
+                             program_name: str='ebm') -> ReturnCode:
     """
     Checks if the output file exists and that it is writable. If force is true the output_file will be opened for
     appending. A permission denied at that point is an indication that the file is already open by another process.
@@ -154,7 +150,7 @@ def check_output_file_status(output_file: pathlib.Path,
 
     Returns
     -------
-    int
+    ReturnCode
     """
     default_path = default_path if default_path else pathlib.Path('output/ebm_output.xlsx')
 
@@ -165,8 +161,8 @@ def check_output_file_status(output_file: pathlib.Path,
     You can overwrite the {output_file}. by using --force: {program_name} {' '.join(sys.argv[1:])} --force
     """.strip(),
               file=sys.stderr)
-        return RETURN_CODE_FILE_EXISTS
+        return ReturnCode.FILE_EXISTS
     if output_file.name != '-' and not file_is_writable(output_file):
         # logger.error(f'{output_file} is not writable')
-        return RETURN_CODE_FILE_NOT_ACCESSIBLE
-    return RETURN_CODE_OK
+        return ReturnCode.FILE_NOT_ACCESSIBLE
+    return ReturnCode.OK

@@ -38,10 +38,10 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
     """
     env_file = pathlib.Path(dotenv.find_dotenv(usecwd=True))
     if env_file.is_file():
-        logger.debug(f'Using {env_file}')
+        logger.debug(f'Loading environment from {env_file}')
         load_dotenv(pathlib.Path('.env').absolute())
     else:
-        logger.debug(f'{env_file.absolute()} not found')
+        logger.debug(f'.env not found in {env_file.absolute()}')
 
     configure_loglevel(os.environ.get('LOG_FORMAT', None))
 
@@ -64,7 +64,9 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
     # Make sure everything is working as expected
     validate_years(end_year=arguments.end_year, start_year=arguments.start_year)
 
-    database_manager = DatabaseManager(file_handler=FileHandler(directory=arguments.input))
+    input_directory = arguments.input
+    logger.debug(f'Loading input from {input_directory}')
+    database_manager = DatabaseManager(file_handler=FileHandler(directory=input_directory))
 
     # Create input directory if requested
     if arguments.create_input:

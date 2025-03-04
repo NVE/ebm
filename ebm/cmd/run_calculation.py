@@ -95,13 +95,27 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
                                                     database_manager: DatabaseManager,
                                                     start_year: int,
                                                     end_year: int,
-                                                    calibration_year: int = 2019):
+                                                    calibration_year: int = 2019) -> pd.DataFrame:
+    """
+    Calculate energy need by building_category, TEK, building_condition and purpose.
+
+    Parameters
+    ----------
+    building_category : BuildingCategory
+    area_forecast : pd.DataFrame
+    database_manager : DatabaseManager
+    start_year : int
+    end_year : int
+    calibration_year : int, optional
+
+    Returns
+    -------
+    pd.DataFrame
+    """
     energy_requirement = EnergyRequirement.new_instance(
         period=YearRange(start_year, end_year),
         calibration_year=calibration_year if calibration_year > start_year else start_year,
         database_manager=database_manager)
-
-    series = []
     df = energy_requirement.calculate_for_building_category(building_category=building_category,
                                                             database_manager=database_manager)
 
@@ -118,6 +132,7 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
 
 
 def write_to_disk(df, constructed_floor_area, building_category: BuildingCategory):
+    """Writes constructed_floor_area to disk if the environment variable EBM_WRITE_TO_DISK is True"""
     if os.environ.get('EBM_WRITE_TO_DISK', 'False').upper() == 'TRUE':
         df = result_to_horizontal_dataframe(constructed_floor_area)
         df.index.name = building_category
@@ -186,7 +201,21 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
     return df
 
 
-def calculate_heating_systems(energy_requirements, database_manager: DatabaseManager):
+def calculate_heating_systems(energy_requirements, database_manager: DatabaseManager) -> pd.DataFrame:
+    """
+    Calculate heating systems projection, efficiencies and multiplies by energy_requirements for total energy use
+    by building_category, TEK, building_condition, purpose and heating_system.
+
+    Parameters
+    ----------
+    energy_requirements : pd.DataFrame
+    database_manager : DatabaseManager
+
+    Returns
+    -------
+    pd.DataFrame
+
+    """
     projection_period = YearRange(2023, 2050)
     hsp = HeatingSystemsProjection.new_instance(projection_period, database_manager)
     hf = hsp.calculate_projection()
@@ -198,7 +227,14 @@ def calculate_heating_systems(energy_requirements, database_manager: DatabaseMan
     return df
 
 
-def calculate_energy_use():
+def calculate_energy_use() -> pd.DataFrame:
+    """
+    Calculates holiday home energy use by from HolidayHomeEnergy.calculate_energy_usage()
+
+    Returns
+    -------
+    pd.DataFrame
+    """
     holiday_home_energy = HolidayHomeEnergy.new_instance()
     el, wood, fossil = [e_u for e_u in holiday_home_energy.calculate_energy_usage()]
     df = pd.DataFrame(data=[el, wood, fossil])
@@ -211,15 +247,16 @@ def calculate_energy_use():
     return output
 
 
-def configure_loglevel(format: str = None):
+def configure_loglevel(log_format: str = None):
     """
     Sets loguru loglevel to INFO unless ebm is called with parameter --debug and the environment variable DEBUG is not
     equal to True
+
     """
     logger.remove()
     options = {'level': 'INFO'}
-    if format:
-        options['format'] = format
+    if log_format:
+        options['format'] = log_format
 
     if '--debug' in sys.argv or os.environ.get('DEBUG', '').upper() == 'TRUE':
         options['level'] = 'DEBUG'

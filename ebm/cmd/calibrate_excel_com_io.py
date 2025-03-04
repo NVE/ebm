@@ -33,7 +33,7 @@ def heatpump_filter(df):
 def main():
     start_time = time.time()
     load_dotenv(pathlib.Path('.env'))
-    configure_loglevel(format=LOG_FORMAT)
+    configure_loglevel(log_format=LOG_FORMAT)
 
     write_to_disk = os.environ.get('EBM_WRITE_TO_DISK', 'False').upper() == 'TRUE'
     calibration_year = int(os.environ.get('EBM_CALIBRATION_YEAR', 2023))

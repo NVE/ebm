@@ -43,6 +43,9 @@ Unummerert liste
 Tekstendringer
 ==============
 
+Forskjellige eksempler
+----------------------
+
 - **This text is bold**
 - *This text is italic*
 - ``This text is monospaced``
@@ -50,6 +53,33 @@ Tekstendringer
 - :sub:`subscript text`
 - :sup:`superscript text`
 - kvadratmeter: m\ :sup:`2`
+
+
+Ordbryting
+----------
+
+For å fortelle sphinx hvor man vil dele veldig lange ord kan man bruke unicode-tegnet U+00AD for myk bindestrek (`Soft Hypen <https://en.wikipedia.org/wiki/Soft_hyphen>`_) forkortet til SHY.
+
+Hvordan skrive SHY med Windows?
+    Holde nede venstre [ALT] og tast inn 0173 med de numeriske tastene til høyre på tastaturet.
+
+Ordet AAA…AAA har SHY
+^^^^^^^^^^^^^^^^^^^^^
+
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA­AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA­AAAAAAAAAAAAAA
+
+
+Ordet BBB…BBB mangler SHY
+^^^^^^^^^^^^^^^^^^^^^^^^^
+BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+
+
+Bindestrek deler automatisk, lavstrek gjør ikke det
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+area-parameters-area-parameters-area-parameters-area-parameters-area-parameters-area-parameters-area-parameters-area-parameters-area-parameters
+
+area_parameters_area_parameters_area_parameters_Area_parameters_area_­Barameters_area_parameters_area_parameters_area_parameters_area_parameters
 
 
 Bilde 🖼️

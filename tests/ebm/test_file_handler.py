@@ -123,6 +123,35 @@ def test_filehandler_create_missing_input_files(tmp_path):
     assert (input_directory / 'heating_systems_projection.csv').is_file()
 
 
+def test_filehandler_create_missing_input_files_from_source_directory(tmp_path):
+    """
+    FileHAndler.create_missing_input must create required files in FileHandler.input_directory sourced
+    from source_directory
+    """
+    os.chdir(tmp_path)
+
+    input_directory = tmp_path / 'target' / 'input'
+    input_directory.mkdir(parents=True)
+
+    source_directory = tmp_path / 'source'
+    source_directory.mkdir()
+
+    fh = FileHandler(input_directory)
+
+    for input_file in fh.files_to_check:
+        (source_directory / input_file).write_text(input_file + ' from ' + str(source_directory))
+
+    fh.create_missing_input_files(source_directory=source_directory)
+
+    for file_to_check in fh.files_to_check:
+        assert (input_directory / file_to_check).is_file(), f'{file_to_check} is not a file in {source_directory}'
+        actual_text = (input_directory / file_to_check).read_text()
+        expected_text = file_to_check + ' from ' + str(source_directory)
+        assert actual_text == expected_text, f'{file_to_check} does not contain {expected_text}'
+
+
+
+
 def test_filehandler_validate_created_input_file(tmp_file_handler):
     tmp_file_handler.validate_input_files()
 

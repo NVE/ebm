@@ -78,8 +78,7 @@ def write_dataframe(df, name='dataframe', sheet_name='Sheet1'):
 
 
 def main():
-    transformed = run_calibration(DatabaseManager(FileHandler(directory='kalibrering')), calibration_year=2023)
-    tabbed = transformed.round(1).to_csv(sep='\t', header=False, index_label=None).replace('.', ',')
+    raise NotImplementedError('Running calibrate as a script is not supported')
 
 
 if __name__ == '__main__':

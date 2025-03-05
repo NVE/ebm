@@ -209,7 +209,7 @@ def calculate_heating_systems(energy_requirements, database_manager: DatabaseMan
     Parameters
     ----------
     energy_requirements : pd.DataFrame
-    database_manager : DatabaseManager
+    database_manager : ebm.model.database_manager.DatabaseManager
 
     Returns
     -------

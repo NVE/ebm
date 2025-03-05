@@ -167,23 +167,41 @@ class EbmDefaultHandler:
 
         if 'energy-requirements' in step_choice or 'heating-systems' in step_choice or 'energy-use' in step_choice:
             logger.debug('Extracting area energy requirements')
-            energy_requirements_result = self.extract_energy_requirements(building_categories,
-                                                                          database_manager, area_forecast, period=year_range)
+            energy_requirements_result = self.extract_energy_requirements(b_c,
+                                                                          database_manager,
+                                                                          area_forecast,
+                                                                          period=year_range)
             df = energy_requirements_result
 
             if 'heating-systems' in step_choice or 'energy-use' in step_choice:
                 logger.debug('Extracting heating systems')
-                df = calculate_heating_systems(energy_requirements=energy_requirements_result, database_manager=database_manager)
+                df = calculate_heating_systems(energy_requirements=energy_requirements_result,
+                                               database_manager=database_manager)
         return df
 
     @staticmethod
     def extract_energy_requirements(building_categories,
                                     database_manager: DatabaseManager,
-                                    df: pd.DataFrame,
+                                    area_forecast: pd.DataFrame,
                                     period: YearRange) -> pd.DataFrame:
+        """
+        Extracts energy needs for building_categories and period
+
+        Parameters
+        ----------
+        building_categories : list[BuildingCategory]
+        database_manager : ebm.model.database_manager.DatabaseManager
+        area_forecast : pd.DataFrame
+        period :ebm.model.dataclasses.YearRange
+
+        Returns
+        -------
+        pd.DataFrame
+
+        """
         energy_requirements_result = calculate_building_category_energy_requirements(
             building_category=building_categories,
-            area_forecast=df,
+            area_forecast=area_forecast,
             database_manager=database_manager,
             start_year=period.start,
             end_year=period.end)

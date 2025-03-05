@@ -17,6 +17,7 @@ from ebm.cmd import prepare_main
 from ebm.cmd.initialize import init, create_output_directory
 
 from ebm.model.building_category import BuildingCategory
+from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.enums import ReturnCode
 from ebm.model.file_handler import FileHandler
@@ -26,14 +27,14 @@ df = None
 
 def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
     """
-    Main function to execute the script.
+    Main function to execute the EBM module as a script.
 
     This function serves as the entry point for the script. It handles argument parsing,
     initializes necessary components, and orchestrates the main workflow of the script.
 
     Returns
     -------
-    exit code : int
+    exit code : tuple[ReturnCode, pd.DataFrame]
         zero when the program exits gracefully
     """
     env_file = pathlib.Path(dotenv.find_dotenv(usecwd=True))

@@ -96,6 +96,8 @@ def create_output_directory(output_directory: typing.Optional[pathlib.Path]=None
         raise IOError(f'{output_directory} is a file')
 
     if output_directory:
+        if output_directory.is_dir():
+            return output_directory
         logger.debug(f'Creating output directory {output_directory}')
         output_directory.mkdir(exist_ok=True)
         return output_directory

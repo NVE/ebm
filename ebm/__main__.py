@@ -101,7 +101,8 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
 
     default_handler = EbmDefaultHandler()
 
-    model = default_handler.extract_model(arguments, building_categories, database_manager, step_choice)
+    year_range = YearRange(arguments.start_year, arguments.end_year)
+    model = default_handler.extract_model(year_range, building_categories, database_manager, step_choice)
 
     if step_choice == 'energy-use':
         logger.debug('Transform heating systems')

@@ -8,7 +8,7 @@ from ebm.cmd.run_calculation import (calculate_building_category_area_forecast,
                                      calculate_heating_systems)
 from ebm.model.calibrate_heating_systems import transform_heating_systems
 from ebm.model.building_condition import BEMA_ORDER as building_condition_order
-from ebm.model.building_category import BEMA_ORDER as building_category_order
+from ebm.model.building_category import BEMA_ORDER as building_category_order, BuildingCategory
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.tek import BEMA_ORDER as tek_order
@@ -137,9 +137,31 @@ def append_result(output_file: pathlib.Path, df: pd.DataFrame, sheet_name='Sheet
 
 
 class EbmDefaultHandler:
-    def extract_model(self, arguments, building_categories, database_manager, step_choice):
-        year_range = YearRange(arguments.start_year, arguments.end_year)
-        area_forecast = self.extract_area_forecast(building_categories, database_manager, period=year_range)
+    def extract_model(self,
+                      year_range: YearRange,
+                      building_categories: list[BuildingCategory] | None,
+                      database_manager: DatabaseManager,
+                      step_choice: str='energy-use') -> pd.DataFrame:
+        """
+        Extract dataframe for a certain step in the ebm model.
+
+        Possible steps are energy_use (default), heating-systems, energy-use, area-forecast
+
+        Parameters
+        ----------
+        year_range : ebm.model.dataclasses.YearRange
+        building_categories : list[BuildingCategory]
+        database_manager : ebm.model.database_manager.DatabaseManager
+        step_choice : str, optional
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        b_c = building_categories if building_categories else [e for e in BuildingCategory]
+        area_forecast = self.extract_area_forecast(b_c,
+                                                   database_manager,
+                                                   period=year_range)
         area_forecast = area_forecast.set_index(['building_category', 'TEK', 'building_condition', 'year'])
         df = area_forecast
 

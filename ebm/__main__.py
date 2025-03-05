@@ -66,7 +66,7 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
     validate_years(end_year=arguments.end_year, start_year=arguments.start_year)
 
     input_directory = arguments.input
-    logger.debug(f'Loading input from {input_directory}')
+    logger.info(f'Using data from "{input_directory}"')
     database_manager = DatabaseManager(file_handler=FileHandler(directory=input_directory))
 
     # Create input directory if requested

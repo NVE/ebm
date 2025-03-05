@@ -1,0 +1,10 @@
+building_category,TEK,heating_systems,year,TEK_shares
+house,PRE_TEK49,DH,2023,0.021
+house,PRE_TEK49,DH - Bio,2023,0.007
+house,PRE_TEK49,Electric boiler,2023,0.025
+house,PRE_TEK49,Electric boiler - Solar,2023,0.0003
+house,PRE_TEK49,Electricity,2023,0.052
+house,PRE_TEK49,Electricity - Bio,2023,0.224
+house,PRE_TEK49,HP - Bio - Electricity,2023,0.564
+house,PRE_TEK49,HP - Electricity,2023,0.0992
+house,PRE_TEK49,HP Central heating - Electric boiler,2023,0.003

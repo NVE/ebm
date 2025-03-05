@@ -174,7 +174,7 @@ def test_create_output_raises_value_error_on_empty_arguments():
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Test only runs on Windows")
 def test_default_input_override():
-    assert initialize.DEFAULT_INPUT == pathlib.Path('X:\\NAS\\Data\\ebm\\kalibrert')
+    assert initialize.DEFAULT_INPUT == pathlib.Path('X:\\NAS\\Data\\ebm\\default-input')
 
 
 if __name__ == "__main__":

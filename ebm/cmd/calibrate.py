@@ -5,8 +5,6 @@ import pandas as pd
 
 from dotenv import load_dotenv
 
-from ebm.model.file_handler import FileHandler
-from ebm.model.database_manager import DatabaseManager
 from ebm.model.building_category import BEMA_ORDER as custom_building_category_order
 
 from ebm.model.calibrate_heating_systems import extract_area_forecast, extract_energy_requirements, \
@@ -78,8 +76,7 @@ def write_dataframe(df, name='dataframe', sheet_name='Sheet1'):
 
 
 def main():
-    transformed = run_calibration(DatabaseManager(FileHandler(directory='kalibrering')), calibration_year=2023)
-    tabbed = transformed.round(1).to_csv(sep='\t', header=False, index_label=None).replace('.', ',')
+    raise NotImplementedError('Running calibrate as a script is not supported')
 
 
 if __name__ == '__main__':

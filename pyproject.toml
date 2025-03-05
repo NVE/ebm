@@ -19,10 +19,15 @@ dependencies = [
     "pandas", 
     "python-dotenv", 
     "rich",
-    "pandera"
+    "pandera",
+    "pywin32 ; platform_system == 'Windows'"
 ]
 [project.optional-dependencies]
-testing = ["pytest"]
+test = ["pytest"]
+build = ["build"]
+dev = ["energibruksmodell[test]", "energibruksmodell[build]"]
+docs = ['sphinx', 'sphinx-rtd-theme', 'sphinx-autodoc-typehints', 'numpydoc']
+tqdm = ['tqdm', 'XlsxWriter']
 [project.urls]
 Homepage = "https://www.nve.no/"
 Documentation = "https://dev.azure.com/NVE-devops/Energibruksmodell/_wiki/wikis"

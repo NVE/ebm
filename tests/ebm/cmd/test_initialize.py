@@ -40,6 +40,7 @@ def test_init_call_create_input(tmp_cwd: pathlib.Path):
 
 def test_init_call_create_input_using_default_override_if_exists(tmp_cwd: pathlib.Path):
     # Keep default input override so that it can be reset later
+    #  It might be better to change tmp_cwd fixture to handle the reset
     old = initialize.DEFAULT_INPUT
     fh = FileHandler(directory=tmp_cwd)
 
@@ -173,7 +174,7 @@ def test_create_output_raises_value_error_on_empty_arguments():
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Test only runs on Windows")
 def test_default_input_override():
-    assert initialize.DEFAULT_INPUT == pathlib.Path('X:\\NAS\\Data\\ebm\\kalibrert')
+    assert initialize.DEFAULT_INPUT == pathlib.Path('X:\\NAS\\Data\\ebm\\default-input')
 
 
 if __name__ == "__main__":

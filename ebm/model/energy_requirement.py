@@ -97,7 +97,7 @@ class EnergyRequirement:
                                                reduction_per_condition, yearly_improvement)
 
     def calculate_energy_reduction(self, energy_requirements, model_years, policy_improvement, reduction_per_condition,
-                                   y_i):
+                                   yearly_improvement):
         reduction_per_condition = self.calculate_reduction_condition(reduction_per_condition)
         condition_factor = pd.merge(left=energy_requirements, right=reduction_per_condition,
                                     on=['building_category', 'TEK', 'building_condition', 'purpose'],
@@ -106,9 +106,9 @@ class EnergyRequirement:
         policy_improvement = pd.merge(right=pd.DataFrame({'year': model_years}), left=policy_improvement, how='cross')
         policy_improvement = self.calculate_reduction_policy(policy_improvement)
 
-        y_i.loc[:, 'efficiency_start_year'] = model_years.start
-        y_i = pd.merge(y_i, pd.DataFrame({'year': model_years}), how='cross')
-        yearly_improvements = self.calculate_reduction_yearly(policy_improvement, y_i)
+        yearly_improvement.loc[:, 'efficiency_start_year'] = model_years.start
+        yearly_improvement = pd.merge(yearly_improvement, pd.DataFrame({'year': model_years}), how='cross')
+        yearly_improvements = self.calculate_reduction_yearly(policy_improvement, yearly_improvement)
 
         merged = self.merge_energy_requirement_reductions(condition_factor, yearly_improvements)
         return merged

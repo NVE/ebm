@@ -108,9 +108,46 @@ class EnergyRequirement:
 
         y_i.loc[:, 'efficiency_start_year'] = model_years.start
         y_i = pd.merge(y_i, pd.DataFrame({'year': model_years}), how='cross')
-        yearly_improvements = pd.merge(y_i, policy_improvement, how='left')
+        yearly_improvements = self.calculate_reduction_yearly(policy_improvement, y_i)
+
+        m_nrg_yi = pd.merge(left=condition_factor, right=yearly_improvements.copy(), how='left')
+
+        merged = m_nrg_yi.copy()
+        merged.loc[:, 'reduction_yearly'] = merged.loc[:, 'reduction_yearly'].fillna(1.0)
+        merged.loc[:, 'reduction_policy'] = merged.loc[:, 'reduction_policy'].fillna(1.0)
+        merged['reduction_condition'] = merged['reduction_condition'].fillna(1.0)
+        merged['reduced_kwh_m2'] = (merged['kwh_m2'] * merged['reduction_condition'].fillna(1.0) *
+                                    merged['reduction_yearly'].fillna(1.0) * merged['reduction_policy'].fillna(1.0))
+        merged['behavior_kwh_m2'] = merged['reduced_kwh_m2'] * merged['behavior_factor'].fillna(1.0)
+        merged = merged.rename(columns={'kwh_m2': 'original_kwh_m2'})
+        merged['kwh_m2'] = merged['behavior_kwh_m2']
+        return merged
+
+
+    def calculate_reduction_yearly(self,
+                                   policy_improvement: pd.DataFrame, yearly_improvement: pd.DataFrame) -> pd.DataFrame:
+        """
+        Calculate the yearly reduction for each entry in the DataFrame.
+
+        This method merges the yearly improvement data with the policy improvement data, adjusts the
+        efficiency start year if the period end year is greater, and calculates the yearly reduction
+        based on the yearly efficiency improvement.
+
+        Parameters
+        ----------
+        policy_improvement : pd.DataFrame
+            DataFrame containing policy improvement information. Must include columns 'period_end_year' and 'efficiency_start_year'.
+        yearly_improvement : pd.DataFrame
+            DataFrame containing yearly improvement information. Must include columns 'year', 'yearly_efficiency_improvement', and 'efficiency_start_year'.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame with the calculated 'reduction_yearly' column and updated entries.
+        """
+        yearly_improvements = pd.merge(yearly_improvement, policy_improvement, how='left')
         period_end_gt_start_year = (
-        yearly_improvements[yearly_improvements.period_end_year > yearly_improvements.efficiency_start_year]).index
+            yearly_improvements[yearly_improvements.period_end_year > yearly_improvements.efficiency_start_year]).index
         yearly_improvements.loc[period_end_gt_start_year, 'efficiency_start_year'] = yearly_improvements.loc[
             period_end_gt_start_year, 'period_end_year']
         yearly_improvements.loc[:, 'reduce_efficiency_improvement'] = 1.0 - yearly_improvements.loc[:,
@@ -125,19 +162,7 @@ class EnergyRequirement:
                                                                                                      'year_efficiency']
         yearly_improvements.loc[:, 'year_efficiency'] = yearly_improvements.loc[:, 'year'] - yearly_improvements.loc[:,
                                                                                              'efficiency_start_year']
-
-        m_nrg_yi = pd.merge(left=condition_factor, right=yearly_improvements.copy(), how='left')
-
-        merged = m_nrg_yi.copy()
-        merged.loc[:, 'reduction_yearly'] = merged.loc[:, 'reduction_yearly'].fillna(1.0)
-        merged.loc[:, 'reduction_policy'] = merged.loc[:, 'reduction_policy'].fillna(1.0)
-        merged['reduction_condition'] = merged['reduction_condition'].fillna(1.0)
-        merged['reduced_kwh_m2'] = (merged['kwh_m2'] * merged['reduction_condition'].fillna(1.0) *
-                                    merged['reduction_yearly'].fillna(1.0) * merged['reduction_policy'].fillna(1.0))
-        merged['behavior_kwh_m2'] = merged['reduced_kwh_m2'] * merged['behavior_factor'].fillna(1.0)
-        merged = merged.rename(columns={'kwh_m2': 'original_kwh_m2'})
-        merged['kwh_m2'] = merged['behavior_kwh_m2']
-        return merged
+        return yearly_improvements
 
     def calculate_reduction_policy(self, policy_improvement: pd.DataFrame) -> pd.DataFrame:
         """

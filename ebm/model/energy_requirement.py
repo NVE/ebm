@@ -96,8 +96,26 @@ class EnergyRequirement:
         return self.calculate_energy_reduction(energy_requirements, model_years, policy_improvement,
                                                reduction_per_condition, yearly_improvement)
 
-    def calculate_energy_reduction(self, energy_requirements, model_years, policy_improvement, reduction_per_condition,
-                                   yearly_improvement):
+    def calculate_energy_reduction(self, energy_requirements: pd.DataFrame,
+                                   model_years: YearRange,
+                                   policy_improvement: pd.DataFrame,
+                                   reduction_per_condition: pd.DataFrame,
+                                   yearly_improvement: pd.DataFrame) -> pd.DataFrame:
+        """
+        Calculate and combine all reduction factors for energy needs into a single Dataframe.
+
+        Parameters
+        ----------
+        energy_requirements : pd.DataFrame
+        model_years : YearRange
+        policy_improvement : pd.DataFrame
+        reduction_per_condition : pd.DataFrame
+        yearly_improvement : pd.DataFrame
+
+        Returns
+        -------
+        pd.DataFrame
+        """
         reduction_per_condition = self.calculate_reduction_condition(reduction_per_condition)
         condition_factor = pd.merge(left=energy_requirements, right=reduction_per_condition,
                                     on=['building_category', 'TEK', 'building_condition', 'purpose'],

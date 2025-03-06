@@ -110,8 +110,11 @@ class EnergyRequirement:
         y_i = pd.merge(y_i, pd.DataFrame({'year': model_years}), how='cross')
         yearly_improvements = self.calculate_reduction_yearly(policy_improvement, y_i)
 
-        m_nrg_yi = pd.merge(left=condition_factor, right=yearly_improvements.copy(), how='left')
+        merged = self.merge_energy_requirement_reductions(condition_factor, yearly_improvements)
+        return merged
 
+    def merge_energy_requirement_reductions(self, condition_factor, yearly_improvements):
+        m_nrg_yi = pd.merge(left=condition_factor, right=yearly_improvements.copy(), how='left')
         merged = m_nrg_yi.copy()
         merged.loc[:, 'reduction_yearly'] = merged.loc[:, 'reduction_yearly'].fillna(1.0)
         merged.loc[:, 'reduction_policy'] = merged.loc[:, 'reduction_policy'].fillna(1.0)
@@ -122,7 +125,6 @@ class EnergyRequirement:
         merged = merged.rename(columns={'kwh_m2': 'original_kwh_m2'})
         merged['kwh_m2'] = merged['behavior_kwh_m2']
         return merged
-
 
     def calculate_reduction_yearly(self,
                                    policy_improvement: pd.DataFrame, yearly_improvement: pd.DataFrame) -> pd.DataFrame:

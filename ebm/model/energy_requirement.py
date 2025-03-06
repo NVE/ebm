@@ -74,7 +74,7 @@ class EnergyRequirement:
                        'original_kwh_m2', 'reduction_yearly', 'reduction_policy', 'reduction_condition',
                        'reduced_kwh_m2', 'behavior_factor', 'kwh_m2']]
 
-    def calculate_energy_requirement(self, all_building_categories, all_purpose, all_teks, erq_oc, model_years,
+    def calculate_energy_requirement(self, all_building_categories, all_purpose, all_teks, energy_requirement_original_condition, model_years,
                                      most_conditions, database_manager) -> pd.DataFrame:
         df_bc = pd.DataFrame(all_building_categories, columns=['building_category'])
         df_tek = pd.merge(df_bc, pd.DataFrame({'TEK': all_teks}), how='cross')
@@ -82,10 +82,11 @@ class EnergyRequirement:
         df_condition = pd.merge(df_purpose, pd.DataFrame({'building_condition': most_conditions}), how='cross')
         df_years = pd.merge(df_condition, pd.DataFrame({'year': model_years}), how='cross')
 
-        erq_oc = erq_oc.copy()
-        erq_oc = erq_oc[erq_oc['TEK'] != 'TEK21']
+        energy_requirement_original_condition = energy_requirement_original_condition.copy()
+        energy_requirement_original_condition = energy_requirement_original_condition[
+            energy_requirement_original_condition['TEK'] != 'TEK21']
 
-        erq_all_years = pd.merge(left=df_years, right=erq_oc, how='left')
+        erq_all_years = pd.merge(left=df_years, right=energy_requirement_original_condition, how='left')
         energy_requirements = erq_all_years.drop(columns=['index', 'level_0'], errors='ignore')
 
         reduction_per_condition = database_manager.get_energy_req_reduction_per_condition()

@@ -46,7 +46,7 @@ def test_calculate_reduction_with_policy_improvement():
         all_building_categories=buildings,
         all_purpose=purpose,
         all_teks = tek_list,
-        erq_oc=erq_oc,
+        energy_requirement_original_condition=erq_oc,
         model_years=period,
         most_conditions=[BuildingCondition.ORIGINAL_CONDITION],
         database_manager=dm
@@ -95,7 +95,7 @@ def test_calculate_reduction_with_yearly_reduction():
         all_building_categories=buildings,
         all_purpose=purpose,
         all_teks=tek_list,
-        erq_oc=erq_oc,
+        energy_requirement_original_condition=erq_oc,
         model_years=period,
         most_conditions=[BuildingCondition.ORIGINAL_CONDITION],
         database_manager=dm
@@ -142,7 +142,9 @@ def test_calculate_reduction_by_condition():
         columns=['building_category', 'TEK', 'purpose', 'building_condition', 'reduction_share']))
 
     df = en_req.calculate_energy_requirement(
-        all_building_categories=buildings, all_purpose=purpose, all_teks=tek_list, erq_oc=erq_oc, model_years=period,
+        all_building_categories=buildings, all_purpose=purpose, all_teks=tek_list,
+        energy_requirement_original_condition=erq_oc,
+        model_years=period,
         most_conditions=[BuildingCondition.ORIGINAL_CONDITION, BuildingCondition.SMALL_MEASURE,
                          BuildingCondition.RENOVATION, BuildingCondition.RENOVATION_AND_SMALL_MEASURE],
         database_manager=dm)
@@ -192,7 +194,7 @@ def test_calculate_reduction_by_behavior():
         columns=['building_category', 'TEK', 'purpose', 'building_condition', 'reduction_share']))
 
     df = en_req.calculate_energy_requirement(all_building_categories=buildings, all_purpose=purpose, all_teks=tek_list,
-                                             erq_oc=erq_oc, model_years=period,
+                                             energy_requirement_original_condition=erq_oc, model_years=period,
                                              most_conditions=[BuildingCondition.ORIGINAL_CONDITION, BuildingCondition.RENOVATION],
                                              database_manager=dm)
 
@@ -251,7 +253,8 @@ def test_calculate_energy_requirements():
         columns=['building_category', 'TEK', 'purpose', 'building_condition', 'reduction_share']))
 
     df = en_req.calculate_energy_requirement(all_building_categories=buildings, all_purpose=purpose, all_teks=tek_list,
-                                             erq_oc=energy_requirements_original_condition, model_years=period,
+                                             energy_requirement_original_condition=energy_requirements_original_condition,
+                                             model_years=period,
                                              most_conditions=[BuildingCondition.ORIGINAL_CONDITION,
                          BuildingCondition.SMALL_MEASURE,
                          BuildingCondition.RENOVATION,
@@ -357,7 +360,7 @@ def test_calculate_energy_requirements_with_multiple_teks():
         columns=['building_category', 'TEK', 'purpose', 'building_condition', 'reduction_share']))
 
     df = en_req.calculate_energy_requirement(all_building_categories=buildings, all_purpose=purpose, all_teks=tek_list,
-                                             erq_oc=erq_oc, model_years=period,
+                                             energy_requirement_original_condition=erq_oc, model_years=period,
                                              most_conditions=[BuildingCondition.ORIGINAL_CONDITION,
                                                               BuildingCondition.SMALL_MEASURE,
                                                               BuildingCondition.RENOVATION,

@@ -98,10 +98,7 @@ class EnergyRequirement:
 
     def calculate_energy_reduction(self, energy_requirements, model_years, policy_improvement, reduction_per_condition,
                                    y_i):
-        reduction_per_condition['reduction_condition'] = 1.0 - reduction_per_condition['reduction_share']
-        reduction_per_condition = reduction_per_condition[reduction_per_condition['TEK'] != 'TEK21']
-        reduction_per_condition.loc[:, 'reduction_condition'] = reduction_per_condition.loc[:,
-                                                                'reduction_condition'].fillna(1.0)
+        reduction_per_condition = self.calculate_reduction_condition(reduction_per_condition)
         condition_factor = pd.merge(left=energy_requirements, right=reduction_per_condition,
                                     on=['building_category', 'TEK', 'building_condition', 'purpose'],
                                     how='left')
@@ -146,6 +143,29 @@ class EnergyRequirement:
         merged = merged.rename(columns={'kwh_m2': 'original_kwh_m2'})
         merged['kwh_m2'] = merged['behavior_kwh_m2']
         return merged
+
+    def calculate_reduction_condition(self, reduction_per_condition: pd.DataFrame) -> pd.DataFrame:
+        """
+        Calculate the reduction condition for each entry in the DataFrame.
+
+        This method computes the reduction condition by subtracting the reduction share from 1.0.
+        It also fills any NaN values in the 'reduction_condition' column with 1.0.
+
+        Parameters
+        ----------
+        reduction_per_condition : pd.DataFrame
+            DataFrame containing the reduction share information. Must include columns 'reduction_share' and 'TEK'.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame with the calculated 'reduction_condition' column and filtered entries.
+        """
+        reduction_per_condition['reduction_condition'] = 1.0 - reduction_per_condition['reduction_share']
+        reduction_per_condition = reduction_per_condition[reduction_per_condition['TEK'] != 'TEK21']
+        reduction_per_condition.loc[:, 'reduction_condition'] = reduction_per_condition.loc[:,
+                                                                'reduction_condition'].fillna(1.0)
+        return reduction_per_condition
 
     def calculate_energy_requirements(
             self,

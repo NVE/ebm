@@ -104,13 +104,8 @@ class EnergyRequirement:
                                     how='left')
 
         policy_improvement = pd.merge(right=pd.DataFrame({'year': model_years}), left=policy_improvement, how='cross')
-        policy_improvement.loc[:, 'year_no'] = policy_improvement.loc[:, 'year'] - policy_improvement.loc[:,
-                                                                                   'period_start_year']
-        policy_improvement.loc[:, 'year_no'] = policy_improvement.loc[:, 'year_no'].fillna(0)
-        policy_improvement_slice = policy_improvement[~policy_improvement.year_no.isna()].index
-        policy_improvement.loc[policy_improvement_slice, 'reduction_policy'] = policy_improvement.loc[
-            policy_improvement_slice].apply(
-            yearly_reduction, axis=1)
+        policy_improvement = self.calculate_reduction_policy(policy_improvement)
+
         y_i.loc[:, 'efficiency_start_year'] = model_years.start
         y_i = pd.merge(y_i, pd.DataFrame({'year': model_years}), how='cross')
         yearly_improvements = pd.merge(y_i, policy_improvement, how='left')
@@ -143,6 +138,33 @@ class EnergyRequirement:
         merged = merged.rename(columns={'kwh_m2': 'original_kwh_m2'})
         merged['kwh_m2'] = merged['behavior_kwh_m2']
         return merged
+
+    def calculate_reduction_policy(self, policy_improvement: pd.DataFrame) -> pd.DataFrame:
+        """
+        Calculate the reduction policy for each entry in the DataFrame.
+
+        This method computes the reduction policy by first calculating the number of years since the
+        start of the period. It then applies the `yearly_reduction` function to each relevant entry
+        to determine the reduction policy.
+
+        Parameters
+        ----------
+        policy_improvement : pd.DataFrame
+            DataFrame containing policy improvement information. Must include columns 'year' and 'period_start_year'.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame with the calculated 'reduction_policy' column and updated entries.
+        """
+        policy_improvement.loc[:, 'year_no'] = policy_improvement.loc[:, 'year'] - policy_improvement.loc[:,
+                                                                                   'period_start_year']
+        policy_improvement.loc[:, 'year_no'] = policy_improvement.loc[:, 'year_no'].fillna(0)
+        policy_improvement_slice = policy_improvement[~policy_improvement.year_no.isna()].index
+        policy_improvement.loc[policy_improvement_slice, 'reduction_policy'] = policy_improvement.loc[
+            policy_improvement_slice].apply(
+            yearly_reduction, axis=1)
+        return policy_improvement
 
     def calculate_reduction_condition(self, reduction_per_condition: pd.DataFrame) -> pd.DataFrame:
         """

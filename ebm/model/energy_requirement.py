@@ -80,8 +80,6 @@ class EnergyRequirement:
         df_years = pd.merge(df_condition, pd.DataFrame({'year': model_years}), how='cross')
 
         energy_requirement_original_condition = energy_requirement_original_condition.copy()
-        energy_requirement_original_condition = energy_requirement_original_condition[
-            energy_requirement_original_condition['TEK'] != 'TEK21']
 
         erq_all_years = pd.merge(left=df_years, right=energy_requirement_original_condition, how='left')
         energy_requirements = erq_all_years.drop(columns=['index', 'level_0'], errors='ignore')
@@ -226,7 +224,6 @@ class EnergyRequirement:
             DataFrame with the calculated 'reduction_condition' column and filtered entries.
         """
         reduction_per_condition['reduction_condition'] = 1.0 - reduction_per_condition['reduction_share']
-        reduction_per_condition = reduction_per_condition[reduction_per_condition['TEK'] != 'TEK21']
         reduction_per_condition.loc[:, 'reduction_condition'] = reduction_per_condition.loc[:,
                                                                 'reduction_condition'].fillna(1.0)
         return reduction_per_condition

@@ -40,15 +40,12 @@ class EnergyRequirement:
         self.database_manager = database_manager
 
 
-    def calculate_for_building_category(self,
-                                        building_category: BuildingCategory,
-                                        database_manager: DatabaseManager = None) -> pd.DataFrame:
+    def calculate_for_building_category(self, database_manager: DatabaseManager = None) -> pd.DataFrame:
         """
         Calculates energy requirements for a single building category
 
         Parameters
         ----------
-        building_category : BuildingCategory
         database_manager: DatabaseManager
             optional database_manager used to load input parameters
 
@@ -254,7 +251,7 @@ class EnergyRequirement:
         """
         building_categories = building_categories if building_categories else iter(BuildingCategory)
 
-        return self.calculate_for_building_category(building_categories, self.database_manager)
+        return self.calculate_for_building_category(self.database_manager)
 
     @staticmethod
     def new_instance(period, calibration_year, database_manager=None):

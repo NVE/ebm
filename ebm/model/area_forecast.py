@@ -28,7 +28,10 @@ class AreaForecast():
         self.tek_params = tek_params                                  
         self.shares_per_condition = shares_per_condtion  
         self.period = period
-    
+
+    def __repr__(self):
+        return f'AreaForecast(building_category="{self.building_category}", period={self.period})'
+
     def calc_area_pre_construction(self, tek: str, building_condition: BuildingCondition) -> pd.Series:
         """
         Calculates the floor area over the model period for a given building condition and TEK used prior to construction.
@@ -239,7 +242,7 @@ class AreaForecast():
 
         return area_per_tek
 
-    def calc_area(self, accumulated_constructed_floor_area: pd.Series) -> typing.Dict[str, typing.Dict[BuildingCondition, pd.Series]]:
+    def calc_area_dict(self, accumulated_constructed_floor_area: pd.Series) -> typing.Dict[str, typing.Dict[BuildingCondition, pd.Series]]:
         """
         Calculates the floor area per building condition over the model period for all TEK's in 'self.tek_list'.
 
@@ -266,4 +269,5 @@ class AreaForecast():
             area[tek] = area_with_construction[tek]
         
         return area
-    
+
+

@@ -180,23 +180,11 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
                                                                            demolition_floor_area,
                                                                            database_manager,
                                                                            period=years)
-    forecast: pd.DataFrame = area_forecast.calc_area_dict(constructed_floor_area['accumulated_constructed_floor_area'])
+    forecast: pd.DataFrame = area_forecast.calc_area(constructed_floor_area['accumulated_constructed_floor_area'])
+    forecast['building_category'] = building_category
 
-    # Temporary method to convert series to list
-    def forecast_to_dataframe():
-        def flatten_forecast():
-            for tek, conditions in forecast.items():
-                for condition, floor_area in conditions.items():
-                    for year, value in floor_area.items():
-                        yield building_category, tek, condition, year, value,
-
-        flat = pd.DataFrame(flatten_forecast(),
-                            columns=['building_category', 'TEK', 'building_condition', 'year', 'm2'])
-        return flat
-
-    df = forecast_to_dataframe()
-    write_to_disk(df, constructed_floor_area, building_category)
-    return df
+    write_to_disk(forecast, constructed_floor_area, building_category)
+    return forecast
 
 
 def calculate_heating_systems(energy_requirements, database_manager: DatabaseManager) -> pd.DataFrame:

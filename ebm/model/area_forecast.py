@@ -271,3 +271,33 @@ class AreaForecast():
         return area
 
 
+    def calc_area(self, accumulated_constructed_floor_area: pd.Series) -> pd.DataFrame:
+        """
+        Calculates the floor area per building condition over the model period for all TEK's in 'self.tek_list'.
+
+        Parameters
+        ----------
+        accumulated_constructed_floor_area : pandas.Series
+           A series representing the accumulated constructed floor area up to each year in the model period.
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        # Temporary method to convert series to list
+        forecast = self.calc_area_dict(accumulated_constructed_floor_area)
+
+        def forecast_to_dataframe():
+            def flatten_forecast():
+                for tek, conditions in forecast.items():
+                    for condition, floor_area in conditions.items():
+                        for year, value in floor_area.items():
+                            yield tek, condition, year, value,
+
+            flat = pd.DataFrame(flatten_forecast(),
+                                columns=['TEK', 'building_condition', 'year', 'm2'])
+            return flat
+
+        df = forecast_to_dataframe()
+        return df
+

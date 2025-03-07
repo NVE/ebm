@@ -1,3 +1,4 @@
+import logging
 import typing
 
 import pandas as pd
@@ -205,6 +206,8 @@ class DatabaseManager:
         """
         ff = self.file_handler.get_energy_req_original_condition()
         df = self.explode_unique_columns(ff, ['building_category', 'TEK', 'purpose'])
+        if len(df[df.TEK=='TEK21']) > 0:
+            logging.warning(f'Detected TEK21 in energy_requirement_original_condition')
         df = df.set_index(['building_category', 'purpose', 'TEK']).sort_index()
 
         if not 'behavior_factor' in df.columns:
@@ -232,6 +235,9 @@ class DatabaseManager:
             per building category, TEK and purpose.        
         """
         reduction_per_condition = self.file_handler.get_energy_req_reduction_per_condition()
+        if len(reduction_per_condition[reduction_per_condition.TEK=='TEK21']) > 0:
+            logging.warning(f'Detected TEK21 in energy_requirement_reduction_per_condition')
+
         return self.explode_unique_columns(reduction_per_condition,
                                            ['building_category', 'TEK', 'purpose', 'building_condition'])
     
@@ -275,7 +281,8 @@ class DatabaseManager:
         pd.DataFrame
         """
         df = self.file_handler.get_file(self.file_handler.TEKANDELER)
-
+        if len(df[df.TEK=='TEK21']) > 0:
+            logging.warning(f'Detected TEK21 in heating-systems.csv')
         return df
 
     def get_holiday_home_fuelwood_consumption(self) -> pd.Series:

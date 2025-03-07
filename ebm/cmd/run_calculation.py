@@ -116,8 +116,7 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
         period=YearRange(start_year, end_year),
         calibration_year=calibration_year if calibration_year > start_year else start_year,
         database_manager=database_manager)
-    df = energy_requirement.calculate_for_building_category(building_category=building_category,
-                                                            database_manager=database_manager)
+    df = energy_requirement.calculate_for_building_category(database_manager=database_manager)
 
     df = df.set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year'])
 

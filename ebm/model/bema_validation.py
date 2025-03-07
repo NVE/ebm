@@ -247,7 +247,7 @@ def get_ebm_area(building_category: BuildingCategory, database_manager: Database
                                                                           demolition_floor_area,
                                                                           database_manager,
                                                                           modelyears).accumulated_constructed_floor_area
-    area = area_forecast.calc_area(constructed_floor_area)
+    area = area_forecast.calc_area_dict(constructed_floor_area)
 
     df_list = []  
     for tek in building.tek_list:

@@ -122,13 +122,13 @@ class EnergyRequirement:
                                     how='left')
 
         policy_improvement = pd.merge(right=pd.DataFrame({'year': model_years}), left=policy_improvement, how='cross')
-        policy_improvement = self.calculate_reduction_policy(policy_improvement)
+        policy_improvement_factor = self.calculate_reduction_policy(policy_improvement)
 
         yearly_improvement.loc[:, 'efficiency_start_year'] = model_years.start
         yearly_improvement = pd.merge(yearly_improvement, pd.DataFrame({'year': model_years}), how='cross')
-        yearly_improvements = self.calculate_reduction_yearly(policy_improvement, yearly_improvement)
+        yearly_reduction_factor = self.calculate_reduction_yearly(policy_improvement_factor, yearly_improvement)
 
-        merged = self.merge_energy_requirement_reductions(condition_factor, yearly_improvements)
+        merged = self.merge_energy_requirement_reductions(condition_factor, yearly_reduction_factor)
         return merged
 
     def merge_energy_requirement_reductions(self, condition_factor, yearly_improvements):

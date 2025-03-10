@@ -99,9 +99,11 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
     """
     Calculate energy need by building_category, TEK, building_condition and purpose.
 
+    The parameter building_category is not used and should be removed.
+
     Parameters
     ----------
-    building_category : BuildingCategory
+    building_category : BuildingCategory, unused
     area_forecast : pd.DataFrame
     database_manager : DatabaseManager
     start_year : int

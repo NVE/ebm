@@ -1,6 +1,6 @@
 import pandas as pd
 
-from ebm.model.calibrate_heating_systems import transform_heating_systems
+from ebm.model.calibrate_heating_systems import group_heating_systems_by_energy_carrier
 from ebm.model.data_classes import YearRange
 
 
@@ -9,7 +9,7 @@ def group_heating_systems_energy_source_by_year(hs: pd.DataFrame, year_range: Ye
     df = hs.set_index(['building_category', 'building_condition', 'purpose', 'TEK', 'year', 'heating_systems'])
     d = []
     for year in years:
-        energy_source_by_building_group = transform_heating_systems(df, year)
+        energy_source_by_building_group = group_heating_systems_by_energy_carrier(df, year)
         energy_source_by_building_group['year'] = year
         d.append(energy_source_by_building_group)
 

@@ -76,7 +76,7 @@ def transform_by_energy_source(df, energy_class_column, energy_source_column):
     return rv_gl
 
 
-def transform_heating_systems(df: pd.DataFrame, calibration_year) -> pd.DataFrame:
+def group_heating_systems_by_energy_carrier(df: pd.DataFrame, calibration_year) -> pd.DataFrame:
     df = df.reindex()
     df = df.sort_index()
     df['building_group'] = 'yrkesbygg'

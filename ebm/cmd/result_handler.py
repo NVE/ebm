@@ -6,7 +6,7 @@ import pandas as pd
 from ebm.cmd.run_calculation import (calculate_building_category_area_forecast,
                                      calculate_building_category_energy_requirements,
                                      calculate_heating_systems)
-from ebm.model.calibrate_heating_systems import transform_heating_systems
+from ebm.model.calibrate_heating_systems import group_heating_systems_by_energy_carrier
 from ebm.model.building_condition import BEMA_ORDER as building_condition_order
 from ebm.model.building_category import BEMA_ORDER as building_category_order, BuildingCategory
 from ebm.model.data_classes import YearRange
@@ -66,7 +66,7 @@ def transform_heating_systems_to_horizontal(model: pd.DataFrame):
     hs2 = model
     d = []
     for year in range(2020, 2051):
-        energy_source_by_building_group = transform_heating_systems(hs2, year)
+        energy_source_by_building_group = group_heating_systems_by_energy_carrier(hs2, year)
         energy_source_by_building_group['year'] = year
         d.append(energy_source_by_building_group)
     r = pd.concat(d)

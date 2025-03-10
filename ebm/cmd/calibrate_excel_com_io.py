@@ -12,7 +12,7 @@ from ebm.model.file_handler import FileHandler
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.calibrate_energy_requirements import EnergyRequirementCalibrationWriter, \
     EnergyConsumptionCalibrationWriter
-from ebm.model.calibrate_heating_systems import DistributionOfHeatingSystems, transform_heating_systems
+from ebm.model.calibrate_heating_systems import DistributionOfHeatingSystems, group_heating_systems_by_energy_carrier
 from ebm.services.calibration_writer import ComCalibrationReader, ExcelComCalibrationResultWriter
 
 LOG_FORMAT = """
@@ -83,7 +83,7 @@ def main():
 
     logger.info('Transform heating systems')
 
-    energy_source_by_building_group = transform_heating_systems(df, calibration_year)
+    energy_source_by_building_group = group_heating_systems_by_energy_carrier(df, calibration_year)
 
     if write_to_disk:
         if not output_directory.is_dir():

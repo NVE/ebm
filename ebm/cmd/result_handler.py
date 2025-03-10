@@ -64,13 +64,9 @@ def transform_to_sorted_heating_systems(df: pd.DataFrame, holiday_homes: pd.Data
 
 def transform_heating_systems_to_horizontal(model: pd.DataFrame):
     hs2 = model
-    d = []
-    for year in range(2020, 2051):
-        energy_source_by_building_group = group_heating_systems_by_energy_carrier(hs2, year)
-        energy_source_by_building_group['year'] = year
-        d.append(energy_source_by_building_group)
-    r = pd.concat(d)
-    r2 = r.reset_index()[['building_category', 'energy_source', 'year', 'energy_use']]
+    energy_carrier_by_building_group = group_heating_systems_by_energy_carrier(hs2)
+
+    r2 = energy_carrier_by_building_group.reset_index()[['building_category', 'energy_source', 'year', 'energy_use']]
     hz = r2.pivot(columns=['year'], index=['building_category', 'energy_source'],
                   values=['energy_use']).reset_index()
 

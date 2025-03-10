@@ -76,7 +76,7 @@ def transform_by_energy_source(df, energy_class_column, energy_source_column):
     return rv_gl
 
 
-def group_heating_systems_by_energy_carrier(df: pd.DataFrame, calibration_year) -> pd.DataFrame:
+def group_heating_systems_by_energy_carrier(df: pd.DataFrame) -> pd.DataFrame:
     df = df.reindex()
     df = df.sort_index()
     df['building_group'] = 'yrkesbygg'
@@ -104,9 +104,7 @@ def group_heating_systems_by_energy_carrier(df: pd.DataFrame, calibration_year) 
 
     energy_use = pd.concat([rv_gl, rv_sl, rv_el, cooling, spesifikt_elforbruk, tappevann, rv_hp])
 
-    energy_use = energy_use.xs(calibration_year, level='year')
-
-    sums = energy_use.groupby(by=['building_group', 'energy_source']).sum() / (10**6)
+    sums = energy_use.groupby(by=['building_group', 'energy_source', 'year']).sum() / (10**6)
     df = sums.reset_index()
     df = df.rename(columns={'building_group': 'building_category'})
     try:
@@ -125,7 +123,7 @@ def group_heating_systems_by_energy_carrier(df: pd.DataFrame, calibration_year) 
         df.loc[df.building_category == 'yrkesbygg', 'building_category'] = 'Yrkesbygg'
     except KeyError as ex:
         logger.exception(ex)
-    return df.set_index(['building_category', 'energy_source'])
+    return df.set_index(['building_category', 'energy_source', 'year'])
 
 
 def transform_pumps(df: pd.DataFrame, calibration_year) -> pd.DataFrame:

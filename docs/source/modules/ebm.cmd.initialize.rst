@@ -1,7 +1,7 @@
-ebm.services.files module
+ebm.cmd.initialize module
 =========================
 
-.. automodule:: ebm.services.files
+.. automodule:: ebm.cmd.initialize
    :members:
    :show-inheritance:
    :undoc-members:

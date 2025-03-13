@@ -21,6 +21,15 @@
             "console": "integratedTerminal",
             "cwd": "${workspaceFolder}",
             "args": ["heating-systems"]
+        },
+        {
+            "name": "Python Debugger: area-forecast",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "cwd": "${workspaceFolder}",
+            "args": ["area-forecast"]
         }
     ]
 }

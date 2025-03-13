@@ -1,167 +1,201 @@
 ===============
-Getting Started
+Getting started
 ===============
-
+This page is a quick guide to get you started with the Energibruksmodell (EBM) framework. The framework is designed to calculate energy use in buildings. The framework is developed by the Norwegian Water Resources and Energy Directorate (NVE).
 
 Installation
 ------------
 
 To install the framework, run:
 
-.. code-block:: bash
-
-   pip install energibruksmodell
+.. code-block:: python
+  
+  python -m pip install energibruksmodell
 
 
 Quick Start Guide
 -----------------
-
-Here is a quick example of how to run your first model: test
+To know which EBM version you have installed, type:
 
 .. code-block:: python
 
-   import ebm
+   ebm --version
 
-...
+First of all, you need to create a directory with the necessary input files. To do this, run:
 
+.. code-block:: python
 
-Running from the command line
------------------------------
-For å kjøre kommandoene under lokalt eller gjennom IDE er det nødvendig å starte som modul i stedet for program.
-
-Eksempel:
-    `ebm heating-systems`
-blir til
-    `python -m ebm heating-systems`
+  ebm --create-input
 
 
---------------------
-Frivilige argumenter
---------------------
-
-`ebm <--switch> <step> <output filename>`
-
-Alle parametre listet over er frivilige. Standardvalg for `step` er `heating-systems` (endres muligens til energy-use). Standardvalg for `output filename` er `output/ebm_output.xlsx`
-
-`ebm --help` gir en liste de fleste parametre.
 
 
-----------
-Kommandoer
-----------
+.. Here is a quick example of how to run your first model: test
 
-Help
-^^^^
+.. .. code-block:: python
 
-.. code:: bash
+..    import ebm
 
-  python -m ebm --help
-
-  usage: ebm [-h] [--version] [--debug] [--categories [CATEGORIES ...]] [--input [INPUT]] [--force] [--open] [--csv-delimiter CSV_DELIMITER] [--create-input] [--calibration-year [CALIBRATION_YEAR]] [--horizontal-years]
-                          [{area-forecast,energy-requirements,heating-systems,energy-use}] [output_file]
-
-  C  alculate EBM area forecast v0.17.2
-
-  positional arguments:
-    {area-forecast,energy-requirements,heating-systems,energy-use}
-
-                        The calculation step you want to run. The steps are sequential. Any prerequisite to the chosen step will run
-                            automatically.
-  output_file           The location of the file you want to be written. default: output\ebm_output.xlsx
-                            If the file already exists the program will terminate without overwriting.
-                            Use "-" to output to the console instead
-
-  options:
-    -h, --help            show this help message and exit
-    --version, -v         show program's version number and exit
-    --debug               Run in debug mode. (Extra information written to stdout)
-    --categories [CATEGORIES ...], --building-categories [CATEGORIES ...], -c [CATEGORIES ...]
-
-                          One or more of the following building categories:
-                              house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs.
-                              The default is to use all categories.
-    --input [INPUT], --input-directory [INPUT], -i [INPUT]
-                        path to the directory with input files
-    --force, -f           Write to <filename> even if it already exists
-    --open, -o            Open <filename> with default application after writing. (Usually Excel)
-    --csv-delimiter CSV_DELIMITER, --delimiter CSV_DELIMITER, -e CSV_DELIMITER
-                        A single character to be used for separating columns when writing csv. Default: "," Special characters like ; should be quoted ";"
-    --create-input
-                        Create input directory containing all required files in the current working directory
-    --calibration-year [CALIBRATION_YEAR]
-    --horizontal-years, --horizontal, --horisontal
-                        Show years horizontal (left to right)
+.. ...
 
 
-Beregne arealframskriving
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-Hvor mye areal trenger oppvarming per år `=areal`
+.. Running from the command line
+.. -----------------------------
+.. For the commands to be excuted locally or in an IDE, it must be launched as a module rather than a program.
 
-.. math::
-
-  areal = areal startår - revet areal + bygget areal
-
-
-.. code:: bash
-
-  ebm area-forecast output/area-forecast-vertical.xlsx
-
-.. code:: bash
-
-  ebm --horizontal area-forecast output/area-forecast.xlsx
+.. Example:
+..     `ebm heating-systems`
+.. should be excuted like:
+..     `python -m ebm heating-systems`
 
 
-Beregne energibehov
-^^^^^^^^^^^^^^^^^^^
+.. --------------------
+.. Additional arguments
+.. --------------------
 
-Hva er oppvarmingsbehovet per kvadratmeter `=energibruk per m2 * areal`
+.. `ebm <--switch> <step> <output filename>`
 
-
-.. math::
-
-  redusert energibehov =  grunnbehov * adferdsfaktor * årligeffektivitetsfaktor * tilstandsfaktor
-
-.. math::
-
-  totalt energibehov = redusert energibehov * areal
+.. The parameters listed above are optional. The default choice for the `step` parameter is `energy-use`, and the default output filename is `output/ebm_output.xlsx`.
+.. `ebm --help` gir en liste de fleste parametre.
 
 
-.. code:: bash
+.. ------------------------------------------------------
+.. The following are different commands that can be used
+.. ------------------------------------------------------
 
-  ebm energy-requirements output/energy-requirements-vertical.xlsx
+.. Help
+.. ^^^^
 
-.. code:: bash
+.. .. code:: bash
 
-  ebm --horizontal energy-requirements output/energy-requirements.xlsx
+..   ebm --help
+
+..   usage: ebm [-h] [--version] [--debug] [--categories [CATEGORIES ...]] [--input [INPUT]] [--force] [--open] [--csv-delimiter CSV_DELIMITER]
+..            [--create-input] [--horizontal-years][{area-forecast,energy-requirements,heating-systems,energy-use}] [output_file]
+
+..   Calculate EBM energy use 1.0.0
+
+..   positional arguments:
+..     {area-forecast,energy-requirements,heating-systems,energy-use}
+
+..                         The calculation step you want to run. The steps are sequential. Any prerequisite to the chosen step will run
+..                             automatically.
+..   output_file           The location of the file you want to be written. default: output\ebm_output.xlsx
+..                             If the file already exists the program will terminate without overwriting.
+..                             Use "-" to output to the console instead
+
+..   options:
+..     -h, --help            show this help message and exit
+..     --version, -v         show program's version number and exit
+..     --debug               Run in debug mode. (Extra information written to stdout)
+..     --categories [CATEGORIES ...], --building-categories [CATEGORIES ...], -c [CATEGORIES ...]
+
+..                           One or more of the following building categories:
+..                               house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs.
+..                               The default is to use all categories.
+..     --input [INPUT], --input-directory [INPUT], -i [INPUT]
+..                         path to the directory with input files
+..     --force, -f           Write to <filename> even if it already exists
+..     --open, -o            Open <filename> with default application after writing. (Usually Excel)
+..     --csv-delimiter CSV_DELIMITER, --delimiter CSV_DELIMITER, -e CSV_DELIMITER
+..                         A single character to be used for separating columns when writing csv. Default: "," Special characters like ; should be quoted ";"
+..     --create-input      Create input directory containing all required files in the current working directory
+..     --calibration-year [CALIBRATION_YEAR]
+..     --horizontal-years, --horizontal, --horisontal
+..                         Show years horizontal (left to right)
 
 
-Energibruk
-^^^^^^^^^^
+.. .. ----------
+.. .. Kommandoer
+.. .. ----------
 
-Hvor mye energi er nødvendig per år `energibehov * effektivitetsgrad`
+.. .. Calculate area projection
+.. Calculate the projected annual area requiring heating
+.. ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. .. 
+..   Hvor mye areal trenger oppvarming per år `=areal`
 
-.. math::
+.. .. .. .. math::
 
-  Energibruk = energibehov * effektivitetsgrad
-
-.. code:: bash
-
-  ebm --horizontal heating-systems output/heating-systems-vertical.xlsx
-
-.. code:: bash
-
-  ebm --horizontal heating-systems output/heating-systems.xlsx
+.. ..   
+..   areal = areal startår - revet areal + bygget areal
 
 
-Energibruk fritidsboliger
-^^^^^^^^^^^^^^^^^^^^^^^^^
+.. .. code:: bash
 
-.. code:: bash
+..   # This is the default cammand, where the output file is area-forecast-vertical.xlsx located 
+..   # in the output directory
+..   # The output file will be written in vertical format
+..   ebm area-forecast output/area-forecast-vertical.xlsx
+  
+  
+..   # This command will write the output file in horizontal format with the name area-forecast.xlsx
+..   ebm --horizontal area-forecast output/area-forecast.xlsx
 
-  ebm --horizontal energy-use output/energy-use.xlsx` (holiday homes)
+
+.. .. Beregne energibehov
+.. Calculate energy-requirements
+.. ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. The energy-requirements is calculated by multiplying the heating demand per square meter by the area.
+
+.. .. Hva er oppvarmingsbehovet per kvadratmeter `=energibruk per m2 * areal`
 
 
-.. math::
+.. .. .. math::
 
-  α_t(i) = P(O_1, O_2, … O_t, q_t = S_i λ)
+.. ..   redusert energibehov =  grunnbehov * adferdsfaktor * årligeffektivitetsfaktor * tilstandsfaktor
+
+.. .. .. math::
+
+.. ..   totalt energibehov = redusert energibehov * areal
+
+
+.. .. code:: bash
+
+..   # This is the default cammand, where the output file is energy-requirements-vertical.xlsx located
+..   # in the output directory
+..   ebm energy-requirements output/energy-requirements-vertical.xlsx
+
+
+..   # This command will write the output file in horizontal format with the name energy-requirements.xlsx
+..   ebm --horizontal energy-requirements output/energy-requirements.xlsx
+
+
+.. Energy consumption
+.. ^^^^^^^^^^^^^^^^^^^	
+
+.. The energy consumption is calculated by multiplying the energy requirements by the efficiency factor.
+
+.. .. Hvor mye energi er nødvendig per år `energibehov * effektivitetsgrad`
+
+.. .. .. math::
+
+.. ..   Energibruk = energibehov * effektivitetsgrad
+
+
+.. .. code:: bash
+
+..   # This is the default cammand, where the output file is energy-use-vertical.xlsx located
+..   # in the output directory
+..   ebm --horizontal heating-systems output/heating-systems-vertical.xlsx
+
+..   # This command will write the output file in horizontal format with the name heating-systems.xlsx
+..   ebm --horizontal heating-systems output/heating-systems.xlsx
+
+
+.. .. Energibruk fritidsboliger
+.. Holiday homes energy consumption
+.. ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. .. code:: bash
+
+..   # This is the default cammand, where the output file is energy-use-vertical.xlsx located
+..   # in the output directory
+..   ebm --horizontal energy-use output/energy-use.xlsx` 
+
+
+.. .. .. math::
+
+..   .. α_t(i) = P(O_1, O_2, … O_t, q_t = S_i λ)
 

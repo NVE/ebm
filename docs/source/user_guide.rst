@@ -25,18 +25,32 @@ This is a step-by-step guide on how to set up your first model using the EBM fra
 For the commands to be excuted locally or in an IDE, it must be launched as a module rather than a program.
 
 Example:
-    `ebm heating-systems`
+
+.. code-block:: python
+
+    ebm heating-systems
+
 should be excuted like:
-    `python -m ebm heating-systems`
+
+.. code-block:: python
+
+    python -m ebm heating-systems
 
 
 --------------------
 2. Additional arguments
 --------------------
+.. code-block:: python
+    
+    ebm <--switch> <step> <output filename>
 
-`ebm <--switch> <step> <output filename>`
+The parameters listed above are optional. The default choice for the ``step`` parameter is ``energy-use``, and the default output filename is ``output/ebm_output.xlsx``.
 
-The parameters listed above are optional. The default choice for the `step` parameter is `energy-use`, and the default output filename is `output/ebm_output.xlsx`.
+
+.. csv-table:: Difference between switch and step
+  :file: tables\diff_switch_step.csv
+  :widths: 3, 20
+  :header-rows: 1
 
 .. `ebm --help` gir en liste de fleste parametre.
 
@@ -162,7 +176,7 @@ The energy consumption is calculated by multiplying the energy requirements from
 
   # This is the default cammand, where the output file is heating-systems-vertical.xlsx located
   # in the output directory
-  ebm --horizontal heating-systems output/heating-systems-vertical.xlsx
+  ebm heating-systems output/heating-systems-vertical.xlsx
 
   # This command will write the output file in horizontal format with the name heating-systems.xlsx
   ebm --horizontal heating-systems output/heating-systems.xlsx
@@ -170,16 +184,29 @@ The energy consumption is calculated by multiplying the energy requirements from
 
 .. Energibruk fritidsboliger
 7. Holiday homes energy consumption
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code:: bash
 
   # This is the default cammand, where the output file is energy-use-vertical.xlsx located
   # in the output directory
-  ebm --horizontal energy-use output/energy-use.xlsx` 
+  ebm energy-use output/energy-use-vertical.xlsx`
+
+  # This command will write the output file in horizontal format with the name energy-use.xlsx
+  ebm --horizontal energy-use output/energy-use.xlsx
 
 
 .. .. math::
 
   .. α_t(i) = P(O_1, O_2, … O_t, q_t = S_i λ)
 
+
+8. Example case
+^^^^^^^^^^^^^^^
+
+If the user wants to run the program with input files located in another directory, for instance the "kalibrering" directory, the user can use the following command:
+
+.. code:: bash
+  
+  # This command will run the program with input files located in the "kalibrering" directory
+  ebm --input kalibrering energy-use output/energy-use.xlsx

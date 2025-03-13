@@ -1,0 +1,3 @@
+Option,Description
+switch,"Always preceded by ``--``. Used to ensure different running options a user may want to use. Examples include: ``--help``, ``--version``, ``--debug`` and ``--open``. A more detailed explanation of the options can be found using the ``--help`` switch."
+step,"Represents the calculation step you want to run. The steps are sequential. Any prerequisite to the chosen step will run automatically. The four steps available are: ``area-forecast``, ``energy-requirements``, ``heating-systems`` and ``energy-use``."

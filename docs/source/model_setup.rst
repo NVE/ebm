@@ -17,3 +17,5 @@ The configuration is defined in a `config.yaml` file:
 
    parameter_1: value
    parameter_2: value
+
+Version: |version|.

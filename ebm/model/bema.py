@@ -28,7 +28,7 @@ START_ROWS_CONSTRUCTION_BUILDING_CATEGORY = {
     BuildingCategory.NURSING_HOME: 139,
     BuildingCategory.CULTURE: 153,
     BuildingCategory.SPORTS: 167,
-    BuildingCategory.STORAGE_REPAIRS: 182
+    BuildingCategory.STORAGE: 182
 }
 
 

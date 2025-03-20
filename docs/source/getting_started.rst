@@ -30,6 +30,9 @@ First of all, you need to create a directory with the necessary input files. To 
 
 
 
+Version: |version|.
+
+
 .. Here is a quick example of how to run your first model: test
 
 .. .. code-block:: python

@@ -142,3 +142,5 @@ For instance, both air-to-air heat pumps and electric radiators use electricity 
 less electricity than the electric radiators the achieve the same indoor temperature. The assumptions about efficiency
 are essential in the energy use forecast.
 
+
+Version: |version|.

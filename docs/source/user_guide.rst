@@ -210,3 +210,6 @@ If the user wants to run the program with input files located in another directo
   
   # This command will run the program with input files located in the "kalibrering" directory
   ebm --input kalibrering energy-use output/energy-use.xlsx
+
+
+Version: |version|.

@@ -403,7 +403,7 @@ class ConstructionCalculator:
             period=period)
 
         # STORAGE_REPAIRS has constant floor area
-        if building_category == BuildingCategory.STORAGE_REPAIRS:
+        if building_category == BuildingCategory.STORAGE:
             total_floor_area.loc[period.start:period.end + 1] = total_floor_area.loc[period.start]
 
         constructed_floor_area = ConstructionCalculator.calculate_constructed_floor_area(

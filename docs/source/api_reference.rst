@@ -8,3 +8,6 @@ Description of the APIs provided by the Core including the events it emits
 
 
 ...
+
+
+Version: |version|.

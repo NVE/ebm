@@ -108,3 +108,4 @@ After calibration and forecasting the resulting heating system fractions for hou
   :file: images\Hus.html
 
 
+Version: |version|.

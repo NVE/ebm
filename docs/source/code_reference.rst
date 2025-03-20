@@ -18,3 +18,5 @@ Here is the full, generated documentation of the code:
   :maxdepth: 1
   
   modules/ebm
+
+Version: |version|.

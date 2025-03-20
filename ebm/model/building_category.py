@@ -27,7 +27,7 @@ class BuildingCategory(StrEnum, metaclass=MyEnumType):
     NURSING_HOME = 'nursing_home'
     CULTURE = 'culture'
     SPORTS = 'sports'
-    STORAGE_REPAIRS = 'storage_repairs'
+    STORAGE = 'storage_repairs'
 
     def __repr__(self):
         return f'{self.__class__.__name__}.{self.name}'
@@ -153,4 +153,4 @@ BEMA_ORDER = {
     BuildingCategory.OFFICE: 4, BuildingCategory.KINDERGARTEN: 5, BuildingCategory.SCHOOL: 6,
     BuildingCategory.UNIVERSITY: 7, BuildingCategory.HOSPITAL: 8, BuildingCategory.NURSING_HOME: 9,
     BuildingCategory.HOTEL: 10, BuildingCategory.SPORTS: 11, BuildingCategory.CULTURE: 12,
-    BuildingCategory.STORAGE_REPAIRS: 13}
+    BuildingCategory.STORAGE: 13}

@@ -1,9 +1,7 @@
-ebm.cmd.prepare_main module
-===========================
+ebm.cmd.prepare\_main module
+============================
 
 .. automodule:: ebm.cmd.prepare_main
-    :members:
-    :exclude-members: EbmArguments
-
-
-
+   :members:
+   :show-inheritance:
+   :undoc-members:

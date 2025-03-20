@@ -21,3 +21,5 @@ Here is a quick example of how to run your first model:
 
    import modelframework
    ...
+
+Version: |version|.

@@ -1,14 +1,16 @@
 import io
 import pathlib
-from unittest.mock import Mock
+from unittest.mock import Mock, MagicMock
 
 import numpy as np
 import pandas as pd
 import pytest
 
 from ebm.model.building_category import BuildingCategory
+from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.defaults import default_calibrate_heating_rv
+from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.file_handler import FileHandler
 
 
@@ -215,3 +217,56 @@ def test_expand_building_category_column_default_and_groups():
     assert r.loc[(BuildingCategory.HOTEL, 'TEK03'), 'v'] == 'house+hotel-tek03'
 
     assert len(r) == 28
+
+
+def test_make_building_purpose_with_year():
+    mock_fh = MagicMock(spec=FileHandler)
+
+    all_teks = ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17']
+    mock_fh.get_tek_id = lambda: pd.DataFrame(data=all_teks, columns=['TEK'])
+    dm = DatabaseManager(file_handler=mock_fh)
+
+    year_range = YearRange(2020, 2030)
+    result = dm.make_building_purpose(years=year_range)
+    expected_conditions = ['original_condition']
+
+    assert isinstance(result, pd.DataFrame)
+    assert result.columns.to_list() == ['building_category', 'TEK', 'building_condition', 'purpose', 'year']
+
+    for bc in BuildingCategory:
+        assert bc in result['building_category'].unique(), f'{bc} missing from make_building_purpose()'
+    for tek in all_teks:
+        assert tek in result['TEK'].unique(), f'{tek} missing from make_building_purpose()'
+    for condition in expected_conditions:
+        assert condition in result['building_condition'].unique(), f'{condition} missing from make_building_purpose()'
+    for purpose in EnergyPurpose:
+        assert purpose in result['purpose'].unique(), f'{purpose} missing from make_building_purpose()'
+    for year in year_range:
+        assert year in result['year'].unique(), f'{year} missing from make_building_purpose()'
+
+    assert len(result) == len(BuildingCategory) * len(all_teks) * len(expected_conditions) * len(EnergyPurpose) * len(year_range)
+
+
+def test_make_building_purpose():
+    mock_fh = MagicMock(spec=FileHandler)
+
+    all_teks = ['PRE_TEK49', 'TEK49']
+    mock_fh.get_tek_id = lambda: pd.DataFrame(data=all_teks, columns=['TEK'])
+    dm = DatabaseManager(file_handler=mock_fh)
+
+    result = dm.make_building_purpose()
+    expected_conditions = ['original_condition']
+
+    assert isinstance(result, pd.DataFrame)
+    assert result.columns.to_list() == ['building_category', 'TEK', 'building_condition', 'purpose']
+
+    for bc in BuildingCategory:
+        assert bc in result['building_category'].unique(), f'{bc} missing from make_building_purpose()'
+    for tek in all_teks:
+        assert tek in result['TEK'].unique(), f'{tek} missing from make_building_purpose()'
+    for condition in expected_conditions:
+        assert condition in result['building_condition'].unique(), f'{condition} missing from make_building_purpose()'
+    for purpose in EnergyPurpose:
+        assert purpose in result['purpose'].unique(), f'{purpose} missing from make_building_purpose()'
+
+    assert len(result) == len(BuildingCategory) * len(all_teks) * len(expected_conditions) * len(EnergyPurpose)

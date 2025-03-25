@@ -1,12 +1,14 @@
+import itertools
 import logging
 import typing
 
 import pandas as pd
 
 from ebm.energy_consumption import calibrate_heating_systems
+from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.file_handler import FileHandler
 from ebm.model.building_category import BuildingCategory, expand_building_categories
-from ebm.model.data_classes import TEKParameters
+from ebm.model.data_classes import TEKParameters, YearRange
 
 
 # TODO:
@@ -57,7 +59,35 @@ class DatabaseManager:
         tek_id = self.file_handler.get_tek_id()
         tek_list = tek_id[self.COL_TEK].unique()
         return tek_list
-    
+
+    def make_building_purpose(self, years: YearRange | None = None) -> pd.DataFrame:
+        """
+        Returns a dataframe of all combinations building_categories, teks, original_condition, purposes
+        and optionally years.
+
+        Parameters
+        ----------
+        years : YearRange, optional
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        data = []
+        columns = [list(BuildingCategory), self.get_tek_list().tolist(), EnergyPurpose]
+        column_headers = ['building_category', 'TEK', 'building_condition', 'purpose']
+        if years:
+            columns.append(years)
+            column_headers.append('year')
+
+        for bc, tek, purpose, *year in itertools.product(*columns):
+            row = [bc, tek, 'original_condition', purpose]
+            if years:
+                row.append(year[0])
+            data.append(row)
+
+        return pd.DataFrame(data=data, columns=column_headers)
+
     def get_tek_params(self, tek_list: typing.List[str]):
         """
         Retrieve TEK parameters for a list of TEK IDs.

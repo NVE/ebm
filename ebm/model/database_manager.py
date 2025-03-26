@@ -6,6 +6,8 @@ import typing
 import pandas as pd
 
 from ebm.energy_consumption import calibrate_heating_systems
+from ebm.model.column_operations import explode_column_alias, explode_building_category_column, explode_tek_column, \
+    explode_unique_columns
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.file_handler import FileHandler
 from ebm.model.building_category import BuildingCategory, expand_building_categories
@@ -14,16 +16,7 @@ from ebm.model.data_classes import TEKParameters, YearRange
 
 # TODO:
 # - add method to change all strings to lower case and underscore instead of space
-# - change column strings used in methods to constants 
-def explode_column_alias(df, column, values=None, alias='default', de_dup_by=None):
-    values = values if values is not None else [c for c in df[column].unique().tolist() if c != alias]
-    df.loc[:, '_explode_column_alias_default'] = df.loc[:, column] == alias
-    df.loc[df[df[column] == alias].index, column] = '+'.join(values)
-    df = df.assign(**{column: df[column].str.split('+')}).explode(column)
-    if de_dup_by:
-        df = df.sort_values(by='_explode_column_alias_default', ascending=True)
-        df = df.drop_duplicates(de_dup_by)
-    return df.drop(columns=['_explode_column_alias_default'], errors='ignore')
+# - change column strings used in methods to constants
 
 
 class DatabaseManager:
@@ -234,7 +227,7 @@ class DatabaseManager:
 
         # df = self.file_handler.get_energy_req_original_condition().drop('kwh_m2')
         df = explode_column_alias(df, column='purpose', values=[p for p in EnergyPurpose], alias='default',
-                                     de_dup_by=['building_category', 'TEK', 'purpose'])
+                                  de_dup_by=['building_category', 'TEK', 'purpose'])
         df.sort_values(['building_category', 'TEK', 'purpose'])
 
         return df
@@ -395,29 +388,13 @@ class DatabaseManager:
         return self.file_handler.get_heating_systems_projection()
 
     def explode_unique_columns(self, df, unique_columns):
-        df = self.explode_tek_column(df, unique_columns)
-        df = self.explode_building_category_column(df, unique_columns)
-        return df
+        return explode_unique_columns(df, unique_columns, default_tek=self.get_tek_list())
 
     def explode_building_category_column(self, df, unique_columns):
-        df = explode_column_alias(df=df, column='building_category',
-                                  values=[bc for bc in BuildingCategory if bc.is_residential()],
-                                  alias='residential',
-                                  de_dup_by=unique_columns)
-        df = explode_column_alias(df=df, column='building_category',
-                                  values=[bc for bc in BuildingCategory if not bc.is_residential()],
-                                  alias='non_residential',
-                                  de_dup_by=unique_columns)
-        df = explode_column_alias(df=df, column='building_category',
-                                  values=[bc for bc in BuildingCategory],
-                                  alias='default',
-                                  de_dup_by=unique_columns)
-        return df
+        return explode_building_category_column(df, unique_columns)
 
     def explode_tek_column(self, ff, unique_columns):
-        df = explode_column_alias(df=ff, column='TEK', values=self.get_tek_list(),
-                                  de_dup_by=unique_columns)
-        return df
+        return explode_tek_column(ff, unique_columns, default_tek=self.get_tek_list())
 
 
 if __name__ == '__main__':

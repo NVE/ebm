@@ -58,9 +58,13 @@ apartment_block,TEK97,heating_dhw,29.76
 apartment_block,TEK97,heating_rv,200
 culture,PRE_TEK49,heating_rv,400"""))
 
-    original_condition = Mock()
-    original_condition.return_value = oc_df
-    fh.get_energy_req_original_condition = original_condition
+    get_original_condition = Mock()
+    get_original_condition.return_value = oc_df
+    fh.get_energy_req_original_condition = get_original_condition
+
+    dm.get_behaviour_factor = Mock(return_value=pd.DataFrame(
+        data=[['default', 'default', 'default', 1.0]],
+        columns='building_category,TEK,purpose,behavior_factor'.split(',')))
 
     result = dm.get_energy_req_original_condition()
 
@@ -89,6 +93,14 @@ def test_get_get_energy_req_original_condition_expand_unique_columns():
 
     dm = DatabaseManager(file_handler=mock_file_handler)
     dm.get_tek_list = Mock(return_value=pd.DataFrame(['TEK01', 'TEK02', 'TEK03'], columns=['TEK']).TEK.unique())
+    dm.get_behaviour_factor = Mock(return_value=pd.DataFrame(data=[['apartment_block', 'TEK01', 'lighting', 1.1],
+                                                                   ['apartment_block', 'TEK02', 'lighting', 1.1],
+                                                                   ['apartment_block', 'TEK03', 'lighting', 1.1],
+                                                                   ['house', 'TEK01', 'lighting', 1.1],
+                                                                   ['house', 'TEK02', 'lighting', 1.1],
+                                                                   ['house', 'TEK03', 'lighting', 1.3]],
+                                       columns='building_category,TEK,purpose,behavior_factor'.split(',')))
+
 
     df = dm.get_energy_req_original_condition()
     expected = pd.DataFrame(data=[
@@ -191,6 +203,7 @@ def test_expand_building_category_column_default_and_groups():
         columns=['building_category', 'TEK', 'v'])
     dm = DatabaseManager(Mock())
 
+    dm.get_tek_list = Mock(return_value=['TEK01', 'TEK02', 'TEK03'])
     # explode_tek_column does not change the dataframe
     dm.explode_tek_column = lambda df,c: df
     result = dm.explode_unique_columns(residential, unique_columns=['building_category', 'TEK'])

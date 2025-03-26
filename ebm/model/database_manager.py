@@ -1,13 +1,12 @@
-import io
 import itertools
 import logging
 import typing
 
 import pandas as pd
 
+from ebm import validators
 from ebm.energy_consumption import calibrate_heating_systems
-from ebm.model.column_operations import explode_column_alias, explode_building_category_column, explode_tek_column, \
-    explode_unique_columns
+from ebm.model.column_operations import explode_building_category_column, explode_tek_column, explode_unique_columns
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.file_handler import FileHandler
 from ebm.model.building_category import BuildingCategory, expand_building_categories
@@ -218,19 +217,9 @@ class DatabaseManager:
         return area_dict
 
     def get_behaviour_factor(self) -> pd.DataFrame:
-        csv_text = """building_category,TEK,purpose,behaviour_factor
-        residential,default,default,1.0
-        house,PRE_TEK49+TEK69+TEK87+TEK49+TEK97,default,0.85
-        non_residential,default,default,1.15
-        retail,default,electrical_equipment,2.0"""
-        df = self.explode_unique_columns(pd.read_csv(io.StringIO(csv_text)), ['building_category', 'TEK', 'purpose'])
+        f = self.file_handler.get_file(self.file_handler.BEHAVIOUR_FACTOR)
+        return validators.energy_requirement_behaviour_factor.validate(f)
 
-        # df = self.file_handler.get_energy_req_original_condition().drop('kwh_m2')
-        df = explode_column_alias(df, column='purpose', values=[p for p in EnergyPurpose], alias='default',
-                                  de_dup_by=['building_category', 'TEK', 'purpose'])
-        df.sort_values(['building_category', 'TEK', 'purpose'])
-
-        return df
 
     def get_energy_req_original_condition(self) -> pd.DataFrame:
         """
@@ -243,15 +232,14 @@ class DatabaseManager:
             Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
             per building category and purpose.
         """
-        ff = self.file_handler.get_energy_req_original_condition()
+        ff = self.file_handler.get_energy_req_original_condition()[['building_category', 'TEK', 'purpose', 'kwh_m2']]
         df = self.explode_unique_columns(ff, ['building_category', 'TEK', 'purpose'])
         if len(df[df.TEK=='TEK21']) > 0:
             logging.warning(f'Detected TEK21 in energy_requirement_original_condition')
         df = df.set_index(['building_category', 'purpose', 'TEK']).sort_index()
 
-        if not 'behavior_factor' in df.columns:
-            df['behavior_factor'] = 1.0
-        df.loc[:, 'behavior_factor'] = df.loc[:, 'behavior_factor'].fillna(1.0)
+        behaviour_factor = self.get_behaviour_factor().set_index(['building_category', 'purpose', 'TEK'])
+        df = df.join(behaviour_factor)
 
         heating_rv_factor = self.get_calibrate_heating_rv().set_index(['building_category', 'purpose']).heating_rv_factor
 

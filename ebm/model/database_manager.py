@@ -1,3 +1,4 @@
+import io
 import itertools
 import logging
 import typing
@@ -222,6 +223,21 @@ class DatabaseManager:
             area_dict[BuildingCategory.from_string(building_category)] = area_series
 
         return area_dict
+
+    def get_behaviour_factor(self) -> pd.DataFrame:
+        csv_text = """building_category,TEK,purpose,behaviour_factor
+        residential,default,default,1.0
+        house,PRE_TEK49+TEK69+TEK87+TEK49+TEK97,default,0.85
+        non_residential,default,default,1.15
+        retail,default,electrical_equipment,2.0"""
+        df = self.explode_unique_columns(pd.read_csv(io.StringIO(csv_text)), ['building_category', 'TEK', 'purpose'])
+
+        # df = self.file_handler.get_energy_req_original_condition().drop('kwh_m2')
+        df = explode_column_alias(df, column='purpose', values=[p for p in EnergyPurpose], alias='default',
+                                     de_dup_by=['building_category', 'TEK', 'purpose'])
+        df.sort_values(['building_category', 'TEK', 'purpose'])
+
+        return df
 
     def get_energy_req_original_condition(self) -> pd.DataFrame:
         """

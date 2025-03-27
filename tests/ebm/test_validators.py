@@ -840,5 +840,31 @@ non_residential,default,default,4.2,2024,noop,2042,""".strip()))
     assert (outside_range.behaviour_factor == 1.0).all()
 
 
+def test_behaviour_factor_validate_and_parse_with_empty_start_year_or_end_year():
+    df = pd.read_csv(io.StringIO("""
+building_category,TEK,purpose,behaviour_factor,start_year,function,end_year,parameter
+residential,default,default,2.4,2021,noop,,
+non_residential,default,default,4.2,,noop,2049,
+non_residential,default,default,0.99,2050,noop,2050,
+residential,default,default,0.98,2020,noop,2020
+""".strip()))
+
+    res = energy_need_behaviour_factor.validate(df)
+
+    residential_after_2021 = res.query('building_category in ["house", "apartment_block"] and year >= 2021')
+    assert (residential_after_2021.behaviour_factor == 2.4).all()
+
+    non_residential_before_2050 = res.query('building_category not in ["house", "apartment_block"] and year <= 2049')
+    assert (non_residential_before_2050.behaviour_factor == 4.2).all()
+
+    residential_in_2020 = res.query('building_category in ["house", "apartment_block"] and year==2020')
+    assert (residential_in_2020.behaviour_factor == 0.98).all()
+
+    non_residential_in_2050 = res.query('building_category not in ["house", "apartment_block"] and year==2050')
+    assert (non_residential_in_2050.behaviour_factor == 0.99).all()
+
+
+
+
 if __name__ == "__main__":
     pytest.main()

@@ -279,24 +279,30 @@ def make_building_purpose(years: YearRange | None = None) -> pd.DataFrame:
 
 def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
     model_years = YearRange(2020, 2050)
-    building_purpose = make_building_purpose(years=model_years)
+    all_combinations = make_building_purpose(years=model_years)
 
-    bf = explode_unique_columns(df, ['building_category', 'TEK', 'purpose'])
-    bf = explode_column_alias(bf,
+    behaviour_factor = explode_unique_columns(df,
+                                              unique_columns=['building_category', 'TEK', 'purpose', 'start_year', 'end_year'])
+
+    behaviour_factor = explode_column_alias(behaviour_factor,
                        column='purpose',
                        values=[p for p in EnergyPurpose],
                        alias='default',
-                       de_dup_by=['building_category', 'TEK', 'purpose'])
-    # bf['year'] = df.apply(lambda row: list(range(row['start_year'], row['end_year'] + 1)), axis=1)
+                       de_dup_by=['building_category', 'TEK', 'purpose', 'start_year', 'end_year'])
 
-    bf['year'] = bf.apply(lambda row: range(row.start_year, row.end_year+1), axis=1)
-    bf = bf.explode('year')
-    bf['year'] = bf['year'].astype(int)
-    bf.sort_values(['building_category', 'TEK', 'purpose', 'year'])
-    bf=bf.set_index(['building_category', 'TEK', 'purpose', 'year'], drop=True)
-    building_purpose=building_purpose.set_index(['building_category', 'TEK', 'purpose', 'year'], drop=True)
+    behaviour_factor['start_year'] = behaviour_factor.start_year.fillna(model_years.start).astype(int)
+    behaviour_factor['end_year'] = behaviour_factor.end_year.fillna(model_years.end).astype(int)
 
-    joined = building_purpose.join(bf, how='left')
+
+    behaviour_factor['year'] = behaviour_factor.apply(lambda row: range(row.start_year, row.end_year+1), axis=1)
+    behaviour_factor = behaviour_factor.explode('year')
+    behaviour_factor['year'] = behaviour_factor['year'].astype(int)
+    behaviour_factor.sort_values(['building_category', 'TEK', 'purpose', 'year'])
+
+    behaviour_factor=behaviour_factor.set_index(['building_category', 'TEK', 'purpose', 'year'], drop=True)
+    all_combinations=all_combinations.set_index(['building_category', 'TEK', 'purpose', 'year'], drop=True)
+
+    joined = all_combinations.join(behaviour_factor, how='left')
     joined.behaviour_factor = joined.behaviour_factor.fillna(1.0)
     return joined.reset_index()
 

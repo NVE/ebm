@@ -254,7 +254,7 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
     return bf
 
 
-energy_requirement_behaviour_factor = pa.DataFrameSchema(
+energy_need_behaviour_factor = pa.DataFrameSchema(
     parsers=pa.Parser(behaviour_factor_parser),
     columns={
         "building_category": pa.Column(str),

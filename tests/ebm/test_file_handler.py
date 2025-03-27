@@ -36,7 +36,7 @@ def test_check_for_missing_files_return_list(tmp_path):
     assert 'new_buildings_house_share.csv' in missing_files
     assert 'construction_building_category_yearly.csv' in missing_files
     assert 'area_parameters.csv' in missing_files
-    assert 'energy_requirement_behaviour_factor.csv' in missing_files
+    assert 'energy_need_behaviour_factor.csv' in missing_files
     assert 'energy_requirement_original_condition.csv' in missing_files
     assert 'energy_requirement_reduction_per_condition.csv' in missing_files
     assert 'energy_requirement_yearly_improvements.csv' in missing_files

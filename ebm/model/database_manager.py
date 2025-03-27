@@ -218,7 +218,7 @@ class DatabaseManager:
 
     def get_behaviour_factor(self) -> pd.DataFrame:
         f = self.file_handler.get_file(self.file_handler.BEHAVIOUR_FACTOR)
-        return validators.energy_requirement_behaviour_factor.validate(f)
+        return validators.energy_need_behaviour_factor.validate(f)
 
 
     def get_energy_req_original_condition(self) -> pd.DataFrame:

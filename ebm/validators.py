@@ -282,13 +282,13 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
     all_combinations = make_building_purpose(years=model_years)
 
     if 'start_year' not in df.columns:
-        df['start_year'] = model_years.start
+        df=df.assign(**{'start_year': model_years.start})
     if 'end_year' not in df.columns:
-        df['end_year'] = model_years.end
+        df=df.assign(**{'end_year': model_years.end})
     if 'function' not in df.columns:
-        df['function'] = 'noop'
+        df=df.assign(function='noop')
     if 'parameter' not in df.columns:
-        df['parameter'] = 'noop'
+        df=df.assign(parameter=0.0)
     unique_columns = ['building_category', 'TEK', 'purpose', 'start_year', 'end_year']
     behaviour_factor = explode_unique_columns(df,
                                               unique_columns=unique_columns)

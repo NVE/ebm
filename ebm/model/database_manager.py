@@ -1,26 +1,21 @@
+import itertools
 import logging
 import typing
 
 import pandas as pd
 
+from ebm import validators
 from ebm.energy_consumption import calibrate_heating_systems
+from ebm.model.column_operations import explode_building_category_column, explode_tek_column, explode_unique_columns
+from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.file_handler import FileHandler
 from ebm.model.building_category import BuildingCategory, expand_building_categories
-from ebm.model.data_classes import TEKParameters
+from ebm.model.data_classes import TEKParameters, YearRange
 
 
 # TODO:
 # - add method to change all strings to lower case and underscore instead of space
-# - change column strings used in methods to constants 
-def explode_column_alias(df, column, values=None, alias='default', de_dup_by=None):
-    values = values if values is not None else [c for c in df[column].unique().tolist() if c != alias]
-    df.loc[:, '_explode_column_alias_default'] = df.loc[:, column] == alias
-    df.loc[df[df[column] == alias].index, column] = '+'.join(values)
-    df = df.assign(**{column: df[column].str.split('+')}).explode(column)
-    if de_dup_by:
-        df = df.sort_values(by='_explode_column_alias_default', ascending=True)
-        df = df.drop_duplicates(de_dup_by)
-    return df.drop(columns=['_explode_column_alias_default'], errors='ignore')
+# - change column strings used in methods to constants
 
 
 class DatabaseManager:
@@ -57,7 +52,35 @@ class DatabaseManager:
         tek_id = self.file_handler.get_tek_id()
         tek_list = tek_id[self.COL_TEK].unique()
         return tek_list
-    
+
+    def make_building_purpose(self, years: YearRange | None = None) -> pd.DataFrame:
+        """
+        Returns a dataframe of all combinations building_categories, teks, original_condition, purposes
+        and optionally years.
+
+        Parameters
+        ----------
+        years : YearRange, optional
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        data = []
+        columns = [list(BuildingCategory), self.get_tek_list().tolist(), EnergyPurpose]
+        column_headers = ['building_category', 'TEK', 'building_condition', 'purpose']
+        if years:
+            columns.append(years)
+            column_headers.append('year')
+
+        for bc, tek, purpose, *year in itertools.product(*columns):
+            row = [bc, tek, 'original_condition', purpose]
+            if years:
+                row.append(year[0])
+            data.append(row)
+
+        return pd.DataFrame(data=data, columns=column_headers)
+
     def get_tek_params(self, tek_list: typing.List[str]):
         """
         Retrieve TEK parameters for a list of TEK IDs.
@@ -193,6 +216,11 @@ class DatabaseManager:
 
         return area_dict
 
+    def get_behaviour_factor(self) -> pd.DataFrame:
+        f = self.file_handler.get_file(self.file_handler.BEHAVIOUR_FACTOR)
+        return validators.energy_requirement_behaviour_factor.validate(f)
+
+
     def get_energy_req_original_condition(self) -> pd.DataFrame:
         """
         Get dataframe with energy requirement (kWh/m^2) for floor area in original condition. The result will be
@@ -204,15 +232,14 @@ class DatabaseManager:
             Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
             per building category and purpose.
         """
-        ff = self.file_handler.get_energy_req_original_condition()
+        ff = self.file_handler.get_energy_req_original_condition()[['building_category', 'TEK', 'purpose', 'kwh_m2']]
         df = self.explode_unique_columns(ff, ['building_category', 'TEK', 'purpose'])
         if len(df[df.TEK=='TEK21']) > 0:
             logging.warning(f'Detected TEK21 in energy_requirement_original_condition')
         df = df.set_index(['building_category', 'purpose', 'TEK']).sort_index()
 
-        if not 'behavior_factor' in df.columns:
-            df['behavior_factor'] = 1.0
-        df.loc[:, 'behavior_factor'] = df.loc[:, 'behavior_factor'].fillna(1.0)
+        behaviour_factor = self.get_behaviour_factor().set_index(['building_category', 'purpose', 'TEK'])
+        df = df.join(behaviour_factor)
 
         heating_rv_factor = self.get_calibrate_heating_rv().set_index(['building_category', 'purpose']).heating_rv_factor
 
@@ -349,29 +376,13 @@ class DatabaseManager:
         return self.file_handler.get_heating_systems_projection()
 
     def explode_unique_columns(self, df, unique_columns):
-        df = self.explode_tek_column(df, unique_columns)
-        df = self.explode_building_category_column(df, unique_columns)
-        return df
+        return explode_unique_columns(df, unique_columns, default_tek=self.get_tek_list())
 
     def explode_building_category_column(self, df, unique_columns):
-        df = explode_column_alias(df=df, column='building_category',
-                                  values=[bc for bc in BuildingCategory if bc.is_residential()],
-                                  alias='residential',
-                                  de_dup_by=unique_columns)
-        df = explode_column_alias(df=df, column='building_category',
-                                  values=[bc for bc in BuildingCategory if not bc.is_residential()],
-                                  alias='non_residential',
-                                  de_dup_by=unique_columns)
-        df = explode_column_alias(df=df, column='building_category',
-                                  values=[bc for bc in BuildingCategory],
-                                  alias='default',
-                                  de_dup_by=unique_columns)
-        return df
+        return explode_building_category_column(df, unique_columns)
 
     def explode_tek_column(self, ff, unique_columns):
-        df = explode_column_alias(df=ff, column='TEK', values=self.get_tek_list(),
-                                  de_dup_by=unique_columns)
-        return df
+        return explode_tek_column(ff, unique_columns, default_tek=self.get_tek_list())
 
 
 if __name__ == '__main__':

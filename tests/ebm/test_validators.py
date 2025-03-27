@@ -864,6 +864,22 @@ residential,default,default,0.98,2020,noop,2020
     assert (non_residential_in_2050.behaviour_factor == 0.99).all()
 
 
+def test_behaviour_factor_validate_and_parse_missing_years():
+    df = pd.read_csv(io.StringIO("""
+building_category,TEK,purpose,behaviour_factor
+residential,default,default,2.4
+non_residential,default,default,4.2""".strip()))
+
+    res = energy_need_behaviour_factor.validate(df)
+
+    house_lighting = res.query('building_category in ["house", "apartment_block"]')
+    assert (house_lighting.behaviour_factor == 2.4).all()
+
+    non_residential = res.query('building_category not in ["house", "apartment_block"]')
+    assert (non_residential.behaviour_factor == 4.2).all()
+
+
+
 
 
 if __name__ == "__main__":

@@ -281,14 +281,18 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
     model_years = YearRange(2020, 2050)
     all_combinations = make_building_purpose(years=model_years)
 
+    if 'start_year' not in df.columns:
+        df['start_year'] = model_years.start
+
+    unique_columns = ['building_category', 'TEK', 'purpose', 'start_year', 'end_year']
     behaviour_factor = explode_unique_columns(df,
-                                              unique_columns=['building_category', 'TEK', 'purpose', 'start_year', 'end_year'])
+                                              unique_columns=unique_columns)
 
     behaviour_factor = explode_column_alias(behaviour_factor,
                        column='purpose',
                        values=[p for p in EnergyPurpose],
                        alias='default',
-                       de_dup_by=['building_category', 'TEK', 'purpose', 'start_year', 'end_year'])
+                       de_dup_by=unique_columns)
 
     behaviour_factor['start_year'] = behaviour_factor.start_year.fillna(model_years.start).astype(int)
     behaviour_factor['end_year'] = behaviour_factor.end_year.fillna(model_years.end).astype(int)

@@ -69,7 +69,7 @@ class EnergyRequirement:
                                                    most_conditions, database_manager)
         return merged[['building_category', 'TEK', 'building_condition','year', 'purpose',
                        'original_kwh_m2', 'reduction_yearly', 'reduction_policy', 'reduction_condition',
-                       'reduced_kwh_m2', 'behavior_factor', 'kwh_m2']]
+                       'reduced_kwh_m2', 'behaviour_factor', 'kwh_m2']]
 
     def calculate_energy_requirement(self, all_building_categories, all_purpose, all_teks, energy_requirement_original_condition, model_years,
                                      most_conditions, database_manager) -> pd.DataFrame:
@@ -134,7 +134,7 @@ class EnergyRequirement:
         merged['reduction_condition'] = merged['reduction_condition'].fillna(1.0)
         merged['reduced_kwh_m2'] = (merged['kwh_m2'] * merged['reduction_condition'].fillna(1.0) *
                                     merged['reduction_yearly'].fillna(1.0) * merged['reduction_policy'].fillna(1.0))
-        merged['behavior_kwh_m2'] = merged['reduced_kwh_m2'] * merged['behavior_factor'].fillna(1.0)
+        merged['behavior_kwh_m2'] = merged['reduced_kwh_m2'] * merged['behaviour_factor'].fillna(1.0)
         merged = merged.rename(columns={'kwh_m2': 'original_kwh_m2'})
         merged['kwh_m2'] = merged['behavior_kwh_m2']
         return merged

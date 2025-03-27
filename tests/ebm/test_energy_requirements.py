@@ -38,7 +38,7 @@ def test_calculate_reduction_with_policy_improvement():
     buildings = [BuildingCategory.HOUSE]
     erq_oc = pd.DataFrame(
         data=[['house', 'TEK01', 'lighting', 50.0, 1.0]],
-        columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behavior_factor'])
+        columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behaviour_factor'])
 
     purpose = pd.DataFrame(data=[[EnergyPurpose.LIGHTING]], columns=['purpose'])
 
@@ -87,7 +87,7 @@ def test_calculate_reduction_with_yearly_reduction():
     buildings = [BuildingCategory.HOUSE]
     erq_oc = pd.DataFrame(
         data=[['house', 'TEK01', 'electrical_equipment', 100, 1.0]],
-        columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behavior_factor'])
+        columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behaviour_factor'])
 
     purpose = pd.DataFrame(data=[[EnergyPurpose.ELECTRICAL_EQUIPMENT]], columns=['purpose'])
 
@@ -130,7 +130,7 @@ def test_calculate_reduction_by_condition():
     buildings = [BuildingCategory.HOUSE]
     erq_oc = pd.DataFrame(data=[['house', 'TEK01', EnergyPurpose.HEATING_RV, 100.0, 100.0, 100.0, 1.0]],
         columns=['building_category', 'TEK', 'purpose',
-                 'uncalibrated_kwh_m2', 'calibrated_kwh_m2', 'kwh_m2', 'behavior_factor'])
+                 'uncalibrated_kwh_m2', 'calibrated_kwh_m2', 'kwh_m2', 'behaviour_factor'])
 
     purpose = pd.DataFrame(data=[[EnergyPurpose.HEATING_RV]], columns=['purpose'])
 
@@ -184,7 +184,7 @@ def test_calculate_reduction_by_behavior():
     buildings = [BuildingCategory.HOUSE]
     erq_oc = pd.DataFrame(data=[['house', 'TEK01', EnergyPurpose.HEATING_RV, 120.0, 100.0, 100.0, 0.8]],
         columns=['building_category', 'TEK', 'purpose',
-                 'uncalibrated_kwh_m2', 'calibrated_kwh_m2', 'kwh_m2', 'behavior_factor'])
+                 'uncalibrated_kwh_m2', 'calibrated_kwh_m2', 'kwh_m2', 'behaviour_factor'])
 
     purpose = pd.DataFrame(data=[[EnergyPurpose.HEATING_RV]], columns=['purpose'])
 
@@ -219,7 +219,7 @@ def test_calculate_energy_requirements():
          ['house', 'TEK01', EnergyPurpose.HEATING_DHW, 100.0, 0.8],
          ['house', 'TEK01', EnergyPurpose.ELECTRICAL_EQUIPMENT, 50.0, 0.6],
          ['house', 'TEK01', EnergyPurpose.LIGHTING, 100.0, 0.5]
-    ], columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behavior_factor'])
+    ], columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behaviour_factor'])
 
 
     dm.get_energy_req_yearly_improvements = Mock(
@@ -263,15 +263,15 @@ def test_calculate_energy_requirements():
 
     assert len(df) == 96
 
-    assert df[df.purpose == 'heating_rv'].behavior_factor.to_list() == [1.0] * 24
-    assert df[df.purpose == 'heating_dhw'].behavior_factor.to_list() == [0.8] * 24
-    assert df[df.purpose == 'electrical_equipment'].behavior_factor.to_list() == [0.6] * 24
-    assert df[df.purpose == 'lighting'].behavior_factor.to_list() == [0.5] * 24
+    assert df[df.purpose == 'heating_rv'].behaviour_factor.to_list() == [1.0] * 24
+    assert df[df.purpose == 'heating_dhw'].behaviour_factor.to_list() == [0.8] * 24
+    assert df[df.purpose == 'electrical_equipment'].behaviour_factor.to_list() == [0.6] * 24
+    assert df[df.purpose == 'lighting'].behaviour_factor.to_list() == [0.5] * 24
 
     heating_rv_original_condition = df[(df.purpose == 'heating_rv') & (df.building_condition == 'original_condition')]
     assert heating_rv_original_condition.kwh_m2.to_list() == [200.0] * 6
     assert heating_rv_original_condition.reduction_condition.to_list() == [1.0] * 6
-    assert heating_rv_original_condition.behavior_factor.to_list() == [1.0] * 6
+    assert heating_rv_original_condition.behaviour_factor.to_list() == [1.0] * 6
 
     heating_rv_small_measure = df[(df.purpose == 'heating_rv') & (df.building_condition == 'small_measure')]
     assert heating_rv_small_measure.kwh_m2.to_list() == [180.0] * 6
@@ -317,7 +317,7 @@ def test_calculate_energy_requirements_with_multiple_teks():
          ['house', 'TEK02', EnergyPurpose.ELECTRICAL_EQUIPMENT, 20.0, 0.4],
          ['house', 'TEK01', EnergyPurpose.LIGHTING, 100.0, 0.5],
          ['house', 'TEK02', EnergyPurpose.LIGHTING, 100.0, 0.6]
-    ], columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behavior_factor'])
+    ], columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behaviour_factor'])
 
 
     dm.get_energy_req_yearly_improvements = Mock(
@@ -369,10 +369,10 @@ def test_calculate_energy_requirements_with_multiple_teks():
     tek01 = df[(df.TEK=='TEK01')].set_index(['purpose', 'building_condition', 'year'])
     tek02 = df[(df.TEK=='TEK02')].set_index(['purpose', 'building_condition', 'year'])
 
-    assert (tek01.loc['heating_rv', 'behavior_factor'] == 1.0).all()
-    assert (tek02.loc['heating_rv'].behavior_factor == 1.1).all()
+    assert (tek01.loc['heating_rv', 'behaviour_factor'] == 1.0).all()
+    assert (tek02.loc['heating_rv'].behaviour_factor == 1.1).all()
 
-    assert (tek01.loc['heating_rv'].behavior_factor == 1.0).all()
+    assert (tek01.loc['heating_rv'].behaviour_factor == 1.0).all()
     assert (tek01.loc[('heating_rv', 'original_condition')].reduction_condition == 1.0).all()
     assert (tek01.loc[('heating_rv', 'small_measure')].reduction_condition == 0.9).all()
     assert (tek01.loc[('heating_rv', 'renovation')].reduction_condition == 0.8).all()
@@ -380,7 +380,7 @@ def test_calculate_energy_requirements_with_multiple_teks():
     assert tek01.loc[('lighting', 'original_condition', 2024)].reduction_yearly == 0.9
     assert tek01.loc[('electrical_equipment', 'original_condition', 2021)].reduction_yearly == 0.99
 
-    assert (tek02.loc['heating_rv'].behavior_factor == 1.1).all()
+    assert (tek02.loc['heating_rv'].behaviour_factor == 1.1).all()
     assert (tek02.loc[('heating_rv', 'original_condition')].reduction_condition == 1.0).all()
     assert (tek02.loc[('heating_rv', 'small_measure')].reduction_condition == 0.9).all()
     assert (tek02.loc[('heating_rv', 'renovation')].reduction_condition == 0.8).all()

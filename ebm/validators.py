@@ -278,6 +278,11 @@ def make_building_purpose(years: YearRange | None = None) -> pd.DataFrame:
 
 
 def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
+    def compute(s):
+        if s.function == 'yearly_reduction':
+            reduction_factor = s.behaviour_factor * ((1.0 - s.parameter) ** (s.year - s.start_year))
+            return reduction_factor
+        return s.behaviour_factor
     model_years = YearRange(2020, 2050)
     all_combinations = make_building_purpose(years=model_years)
 
@@ -285,6 +290,8 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
         df['start_year'] = model_years.start
     if 'end_year' not in df.columns:
         df['end_year'] = model_years.end
+    if 'function' not in df.columns:
+        df['function'] = 'noop'
     unique_columns = ['building_category', 'TEK', 'purpose', 'start_year', 'end_year']
     behaviour_factor = explode_unique_columns(df,
                                               unique_columns=unique_columns)
@@ -300,9 +307,12 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
 
 
     behaviour_factor['year'] = behaviour_factor.apply(lambda row: range(row.start_year, row.end_year+1), axis=1)
+
     behaviour_factor = behaviour_factor.explode('year')
     behaviour_factor['year'] = behaviour_factor['year'].astype(int)
     behaviour_factor.sort_values(['building_category', 'TEK', 'purpose', 'year'])
+
+    behaviour_factor['behaviour_factor'] = behaviour_factor.apply(compute, axis=1)
 
     behaviour_factor=behaviour_factor.set_index(['building_category', 'TEK', 'purpose', 'year'], drop=True)
     all_combinations=all_combinations.set_index(['building_category', 'TEK', 'purpose', 'year'], drop=True)

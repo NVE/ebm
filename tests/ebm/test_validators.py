@@ -879,7 +879,27 @@ non_residential,default,default,4.2""".strip()))
     assert (non_residential.behaviour_factor == 4.2).all()
 
 
+def test_behaviour_factor_validate_and_parse_calculate_yearly_reduction():
+        df = pd.read_csv(io.StringIO("""
+building_category,TEK,purpose,behaviour_factor,start_year,function,end_year,parameter
+residential,default,lighting,1.0,2031,yearly_reduction,2050,0.02""".strip()))
 
+        res = energy_need_behaviour_factor.validate(df)
+
+        house_lighting = res.query('building_category=="house" and TEK=="TEK07" and purpose=="lighting"').set_index([
+            'year'
+        ])
+
+        expected = pd.Series([1.0] * 11 +
+                             [1.0, 0.98, 0.9603999999999999, 0.9411919999999999, 0.9223681599999999, 0.9039207967999999,
+                              0.8858423808639999, 0.8681255332467199, 0.8507630225817855, 0.8337477621301498,
+                              0.8170728068875467, 0.8007313507497958, 0.7847167237347998, 0.7690223892601038,
+                              0.7536419414749017, 0.7385691026454038, 0.7237977205924956, 0.7093217661806457,
+                              0.6951353308570327, 0.6812326242398921],
+                             index=YearRange(2020, 2050).to_index(), name='behaviour_factor')
+
+
+        pd.testing.assert_series_equal(house_lighting.behaviour_factor, expected)
 
 
 if __name__ == "__main__":

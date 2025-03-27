@@ -278,11 +278,6 @@ def make_building_purpose(years: YearRange | None = None) -> pd.DataFrame:
 
 
 def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
-    def compute(s):
-        if s.function == 'yearly_reduction':
-            reduction_factor = s.behaviour_factor * ((1.0 - s.parameter) ** (s.year - s.start_year))
-            return reduction_factor
-        return s.behaviour_factor
     model_years = YearRange(2020, 2050)
     all_combinations = make_building_purpose(years=model_years)
 

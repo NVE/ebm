@@ -25,7 +25,7 @@ from ebm.validators import (tek_parameters,
                             heating_systems_shares_start_year,
                             heating_systems_projection,
                             heating_systems_efficiencies,
-                            check_sum_of_tek_shares_equal_1, energy_need_behaviour_factor)
+                            energy_need_behaviour_factor)
     
     
 @pytest.fixture

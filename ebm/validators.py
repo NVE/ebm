@@ -292,6 +292,8 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
         df['end_year'] = model_years.end
     if 'function' not in df.columns:
         df['function'] = 'noop'
+    if 'parameter' not in df.columns:
+        df['parameter'] = 'noop'
     unique_columns = ['building_category', 'TEK', 'purpose', 'start_year', 'end_year']
     behaviour_factor = explode_unique_columns(df,
                                               unique_columns=unique_columns)
@@ -305,14 +307,15 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
     behaviour_factor['start_year'] = behaviour_factor.start_year.fillna(model_years.start).astype(int)
     behaviour_factor['end_year'] = behaviour_factor.end_year.fillna(model_years.end).astype(int)
 
-
     behaviour_factor['year'] = behaviour_factor.apply(lambda row: range(row.start_year, row.end_year+1), axis=1)
 
     behaviour_factor = behaviour_factor.explode('year')
     behaviour_factor['year'] = behaviour_factor['year'].astype(int)
     behaviour_factor.sort_values(['building_category', 'TEK', 'purpose', 'year'])
 
-    behaviour_factor['behaviour_factor'] = behaviour_factor.apply(compute, axis=1)
+    reduction_slice = behaviour_factor[behaviour_factor['function']=='yearly_reduction'].index
+    behaviour_factor.loc[reduction_slice, 'behaviour_factor'] = behaviour_factor.loc[reduction_slice]['behaviour_factor'] * ((1.0 - behaviour_factor.loc[reduction_slice].parameter) ** (behaviour_factor.loc[reduction_slice].year - behaviour_factor.loc[reduction_slice].start_year))
+
 
     behaviour_factor=behaviour_factor.set_index(['building_category', 'TEK', 'purpose', 'year'], drop=True)
     all_combinations=all_combinations.set_index(['building_category', 'TEK', 'purpose', 'year'], drop=True)
@@ -584,3 +587,4 @@ __all__ = [area_parameters,
            scurve_parameters,
            new_buildings_house_share,
            energy_requirement_reduction_per_condition]
+

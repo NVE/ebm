@@ -17,7 +17,6 @@ from ebm.cmd import prepare_main
 from ebm.cmd.initialize import init, create_output_directory
 
 from ebm.model.building_category import BuildingCategory
-from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.enums import ReturnCode
 from ebm.model.file_handler import FileHandler
@@ -63,7 +62,7 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
     csv_delimiter = arguments.csv_delimiter if arguments.csv_delimiter else ';'
 
     # Make sure everything is working as expected
-    validate_years(end_year=arguments.end_year, start_year=arguments.start_year)
+    model_years = validate_years(start_year=arguments.start_year, end_year=arguments.end_year)
 
     input_directory = arguments.input
     logger.info(f'Using data from "{input_directory}"')
@@ -102,8 +101,7 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
 
     default_handler = EbmDefaultHandler()
 
-    year_range = YearRange(arguments.start_year, arguments.end_year)
-    model = default_handler.extract_model(year_range, building_categories, database_manager, step_choice)
+    model = default_handler.extract_model(model_years, building_categories, database_manager, step_choice)
 
     if step_choice == 'energy-use':
         logger.debug('Transform heating systems')

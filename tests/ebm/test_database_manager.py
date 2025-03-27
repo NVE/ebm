@@ -37,7 +37,7 @@ def test_get_area_per_person():
 
 
 def test_get_energy_req_original_condition():
-    fh = FileHandler(directory=pathlib.Path(__file__).parent / 'data' / 'bema')
+    fh = FileHandler(directory=pathlib.Path(__file__).parent / 'data' / 'ebm')
     dm = DatabaseManager(fh)
 
     cal_df = pd.DataFrame({
@@ -48,6 +48,7 @@ def test_get_energy_req_original_condition():
     cal_mock = Mock()
     cal_mock.return_value = cal_df
     dm.get_calibrate_heating_rv = cal_mock
+    dm.get_tek_list = Mock(return_value=pd.Series(['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17'], name='TEK'))
 
     oc_df = pd.read_csv(io.StringIO("""building_category,TEK,purpose,kwh_m2
 apartment_block,TEK87,heating_rv,100
@@ -64,21 +65,23 @@ culture,PRE_TEK49,heating_rv,400"""))
 
     dm.get_behaviour_factor = Mock(return_value=pd.DataFrame(
         data=[['default', 'default', 'default', 1.0]],
-        columns='building_category,TEK,purpose,behavior_factor'.split(',')))
+        columns='building_category,TEK,purpose,behaviour_factor'.split(',')))
 
     result = dm.get_energy_req_original_condition()
 
+    apartment_block = result.query('building_category=="apartment_block"')
+    culture = result.query('building_category=="culture"')
     # Check heating_rv
-    assert result[(result['TEK'] == 'TEK87') & (result['purpose'] == 'heating_rv')].iloc[0].kwh_m2 == 50
-    assert result[(result['TEK'] == 'TEK97') & (result['purpose'] == 'heating_rv')].iloc[0].kwh_m2 == 100
-    assert result[(result['TEK'] == 'PRE_TEK49') & (result['purpose'] == 'heating_rv')].iloc[0].kwh_m2 == 800
+    assert apartment_block.query("TEK=='TEK87' and purpose=='heating_rv' and year==2020").iloc[0].kwh_m2 == 50
+    assert apartment_block.query("TEK=='TEK97' and purpose=='heating_rv' and year==2020").iloc[0].kwh_m2 == 100
+    assert culture.query("TEK=='PRE_TEK49' and purpose=='heating_rv' and year==2020").iloc[0].kwh_m2 == 800
 
     # Check non-heating_rv
-    assert result[(result['TEK'] == 'TEK97') & (result['purpose'] == 'heating_dhw')].iloc[0].kwh_m2 == 29.76
-    assert result[(result['TEK'] == 'TEK97') & (result['purpose'] == 'fans_and_pumps')].iloc[0].kwh_m2 == 0.43
+    assert apartment_block[(apartment_block['TEK'] == 'TEK97') & (apartment_block['purpose'] == 'heating_dhw')].iloc[0].kwh_m2 == 29.76
+    assert apartment_block[(apartment_block['TEK'] == 'TEK97') & (apartment_block['purpose'] == 'fans_and_pumps')].iloc[0].kwh_m2 == 0.43
 
-    # There should not be any NaNs
-    assert not result['kwh_m2'].isna().any()
+    # Any non apartment_block+culture should be NaNs
+    assert result.query('building_category not in ["apartment_block", "culture"]')['kwh_m2'].isna().any()
 
 
 def test_get_get_energy_req_original_condition_expand_unique_columns():
@@ -88,7 +91,7 @@ def test_get_get_energy_req_original_condition_expand_unique_columns():
             ['residential', 'default', 'lighting', 100.0, 1.1],
             ['house', 'TEK03', 'lighting', 300.0, 1.3]
         ],
-                                  columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behavior_factor']))
+                                  columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behaviour_factor']))
     mock_file_handler.get_calibrate_heating_rv = Mock(return_value=default_calibrate_heating_rv())
 
     dm = DatabaseManager(file_handler=mock_file_handler)
@@ -99,21 +102,24 @@ def test_get_get_energy_req_original_condition_expand_unique_columns():
                                                                    ['house', 'TEK01', 'lighting', 1.1],
                                                                    ['house', 'TEK02', 'lighting', 1.1],
                                                                    ['house', 'TEK03', 'lighting', 1.3]],
-                                       columns='building_category,TEK,purpose,behavior_factor'.split(',')))
+                                       columns='building_category,TEK,purpose,behaviour_factor'.split(',')))
 
 
     df = dm.get_energy_req_original_condition()
-    expected = pd.DataFrame(data=[
-        ['apartment_block', 'lighting', 'TEK01', 100.0, 1.1, 100.0, 100.0],
-        ['apartment_block', 'lighting', 'TEK02', 100.0, 1.1, 100.0, 100.0],
-        ['apartment_block', 'lighting', 'TEK03', 100.0, 1.1, 100.0, 100.0],
-        ['house', 'lighting', 'TEK01', 100.0, 1.1, 100.0, 100.0],
-        ['house', 'lighting', 'TEK02', 100.0, 1.1, 100.0, 100.0],
-        ['house', 'lighting', 'TEK03', 300.0, 1.3, 300.0, 300.0],
-    ],
-                            columns=['building_category', 'purpose', 'TEK', 'kwh_m2', 'behavior_factor', 'uncalibrated_kwh_m2', 'calibrated_kwh_m2'])
+    result = df.query('building_category in ["house", "apartment_block"] and purpose=="lighting" and year==2020')
+    result = result.sort_values(by=['building_category', 'TEK', 'purpose', 'year']).reset_index(drop=True)
 
-    pd.testing.assert_frame_equal(df, expected)
+    expected = pd.DataFrame(
+        data=[
+            ['apartment_block', 'lighting', 'TEK01', 2020, 100.0, 1.1, 100.0, 100.0],
+            ['apartment_block', 'lighting', 'TEK02', 2020, 100.0, 1.1, 100.0, 100.0],
+            ['apartment_block', 'lighting', 'TEK03', 2020, 100.0, 1.1, 100.0, 100.0],
+            ['house', 'lighting', 'TEK01', 2020, 100.0, 1.1, 100.0, 100.0],
+            ['house', 'lighting', 'TEK02', 2020, 100.0, 1.1, 100.0, 100.0],
+            ['house', 'lighting', 'TEK03', 2020, 300.0, 1.3, 300.0, 300.0],],
+        columns=['building_category', 'purpose', 'TEK', 'year', 'kwh_m2', 'behaviour_factor', 'uncalibrated_kwh_m2', 'calibrated_kwh_m2'])
+
+    pd.testing.assert_frame_equal(result, expected, check_like=True)
 
 
 @pytest.mark.parametrize('simple_get,unique_columns',[

@@ -25,6 +25,7 @@ class FileHandler:
     CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'new_buildings_house_share.csv'
     CONSTRUCTION_BUILDING_CATEGORY_AREA = 'construction_building_category_yearly.csv'
     AREA_PARAMETERS = 'area_parameters.csv'
+    BEHAVIOUR_FACTOR = 'energy_requirement_behaviour_factor.csv'
     ENERGY_REQ_ORIGINAL_CONDITION = 'energy_requirement_original_condition.csv'
     ENERGY_REQ_REDUCTION_CONDITION = 'energy_requirement_reduction_per_condition.csv'
     ENERGY_REQ_YEARLY_IMPROVEMENTS = 'energy_requirement_yearly_improvements.csv'
@@ -58,8 +59,9 @@ class FileHandler:
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
         self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
                                self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
-                               self.AREA_PARAMETERS, self.ENERGY_REQ_ORIGINAL_CONDITION, self.ENERGY_REQ_REDUCTION_CONDITION, 
-                               self.ENERGY_REQ_YEARLY_IMPROVEMENTS, self.ENERGY_REQ_POLICY_IMPROVEMENTS, self.TEKANDELER,
+                               self.AREA_PARAMETERS, self.BEHAVIOUR_FACTOR, self.ENERGY_REQ_ORIGINAL_CONDITION,
+                               self.ENERGY_REQ_REDUCTION_CONDITION, self.ENERGY_REQ_YEARLY_IMPROVEMENTS,
+                               self.ENERGY_REQ_POLICY_IMPROVEMENTS, self.TEKANDELER,
                                self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_BY_YEAR,
                                self.AREA_PER_PERSON, self.HS_SHARES_START_YEAR, self.HS_EFFICIENCIES, self.HS_PROJECTION]
 

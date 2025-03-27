@@ -1,12 +1,15 @@
 """
 Pandera validators for ebm input files.
 """
+import itertools
+
 import pandas as pd
 import pandera as pa
 
 from ebm.model.building_category import BuildingCategory, RESIDENTIAL, NON_RESIDENTIAL
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.column_operations import explode_unique_columns, explode_column_alias
+from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.heating_systems import HeatingSystems
 
@@ -242,16 +245,60 @@ def check_sum_of_tek_shares_equal_1(df: pd.DataFrame):
     return return_series
 
 
+def make_building_purpose(years: YearRange | None = None) -> pd.DataFrame:
+    """
+    Returns a dataframe of all combinations building_categories, teks, original_condition, purposes
+    and optionally years.
+
+    Parameters
+    ----------
+    years : YearRange, optional
+
+    Returns
+    -------
+    pd.DataFrame
+    """
+    data = []
+    columns = [list(BuildingCategory),
+               ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17'],
+               EnergyPurpose]
+
+    column_headers = ['building_category', 'TEK', 'building_condition', 'purpose']
+    if years:
+        columns.append(years)
+        column_headers.append('year')
+
+    for bc, tek, purpose, *year in itertools.product(*columns):
+        row = [bc, tek, 'original_condition', purpose]
+        if years:
+            row.append(year[0])
+        data.append(row)
+
+    return pd.DataFrame(data=data, columns=column_headers)
+
+
 def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
+    model_years = YearRange(2020, 2050)
+    building_purpose = make_building_purpose(years=model_years)
+
     bf = explode_unique_columns(df, ['building_category', 'TEK', 'purpose'])
     bf = explode_column_alias(bf,
                        column='purpose',
                        values=[p for p in EnergyPurpose],
                        alias='default',
                        de_dup_by=['building_category', 'TEK', 'purpose'])
+    # bf['year'] = df.apply(lambda row: list(range(row['start_year'], row['end_year'] + 1)), axis=1)
 
-    bf.sort_values(['building_category', 'TEK', 'purpose'])
-    return bf
+    bf['year'] = bf.apply(lambda row: range(row.start_year, row.end_year+1), axis=1)
+    bf = bf.explode('year')
+    bf['year'] = bf['year'].astype(int)
+    bf.sort_values(['building_category', 'TEK', 'purpose', 'year'])
+    bf=bf.set_index(['building_category', 'TEK', 'purpose', 'year'], drop=True)
+    building_purpose=building_purpose.set_index(['building_category', 'TEK', 'purpose', 'year'], drop=True)
+
+    joined = building_purpose.join(bf, how='left')
+    joined.behaviour_factor = joined.behaviour_factor.fillna(1.0)
+    return joined.reset_index()
 
 
 energy_need_behaviour_factor = pa.DataFrameSchema(
@@ -259,7 +306,8 @@ energy_need_behaviour_factor = pa.DataFrameSchema(
     columns={
         "building_category": pa.Column(str),
         "TEK": pa.Column(str), #
-        "purpose": pa.Column(str), #  parsers=pa.Parser(lambda s: s + 1)
+        "purpose": pa.Column(str),
+        'year': pa.Column(int, required=False),
         'behaviour_factor': pa.Column(float)
     }
 )

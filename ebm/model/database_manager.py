@@ -218,7 +218,8 @@ class DatabaseManager:
 
     def get_behaviour_factor(self) -> pd.DataFrame:
         f = self.file_handler.get_file(self.file_handler.BEHAVIOUR_FACTOR)
-        return validators.energy_need_behaviour_factor.validate(f)
+        behaviour_factor = validators.energy_need_behaviour_factor.validate(f)
+        return  behaviour_factor.query('year==2020')[['building_category', 'TEK', 'purpose', 'behaviour_factor']]
 
 
     def get_energy_req_original_condition(self) -> pd.DataFrame:

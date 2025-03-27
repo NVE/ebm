@@ -796,7 +796,7 @@ HP Central heating - Bio,HP Central heating,Bio,Ingen,Electricity,Bio,Ingen,0.0,
 
 def test_behaviour_factor_validate_and_parse():
     df = pd.read_csv(io.StringIO("""
-building_category,TEK,purpose,behaviour_factor, start_year,function,end_year,parameter
+building_category,TEK,purpose,behaviour_factor,start_year,function,end_year,parameter
 residential,default,default,1.0,,,,
 house,PRE_TEK49+TEK69+TEK87+TEK49+TEK97,default,0.85,,,,
 house,default,lighting,0.85,,,,
@@ -820,6 +820,24 @@ retail,default,electrical_equipment,2.0,,,,""".strip()))
     non_residential_non_electrical_equipment = res.query(
         'building_category not in ["house", "apartment_block"] and purpose!="electrical_equipment"')
     assert (non_residential_non_electrical_equipment['behaviour_factor'] == 1.15).all()
+
+
+def test_behaviour_factor_validate_and_parse_add_year():
+    df = pd.read_csv(io.StringIO("""
+building_category,TEK,purpose,behaviour_factor,start_year,function,end_year,parameter
+residential,default,default,2.4,2024,noop,2042,
+non_residential,default,default,4.2,2024,noop,2042,""".strip()))
+
+    res = energy_need_behaviour_factor.validate(df)
+
+    house_lighting = res.query('building_category in ["house", "apartment_block"] and 2024 <= year <=2042')
+    assert (house_lighting.behaviour_factor == 2.4).all()
+
+    non_residential = res.query('building_category not in ["house", "apartment_block"] and 2024 <= year <=2042')
+    assert (non_residential.behaviour_factor == 4.2).all()
+
+    outside_range = res.query('year < 2024 and year < 2042')
+    assert (outside_range.behaviour_factor == 1.0).all()
 
 
 if __name__ == "__main__":

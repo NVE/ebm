@@ -283,7 +283,8 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
 
     if 'start_year' not in df.columns:
         df['start_year'] = model_years.start
-
+    if 'end_year' not in df.columns:
+        df['end_year'] = model_years.end
     unique_columns = ['building_category', 'TEK', 'purpose', 'start_year', 'end_year']
     behaviour_factor = explode_unique_columns(df,
                                               unique_columns=unique_columns)

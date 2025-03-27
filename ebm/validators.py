@@ -313,9 +313,7 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
     behaviour_factor['year'] = behaviour_factor['year'].astype(int)
     behaviour_factor.sort_values(['building_category', 'TEK', 'purpose', 'year'])
 
-    reduction_slice = behaviour_factor[behaviour_factor['function']=='yearly_reduction'].index
-    behaviour_factor.loc[reduction_slice, 'behaviour_factor'] = behaviour_factor.loc[reduction_slice]['behaviour_factor'] * ((1.0 - behaviour_factor.loc[reduction_slice].parameter) ** (behaviour_factor.loc[reduction_slice].year - behaviour_factor.loc[reduction_slice].start_year))
-
+    behaviour_factor = calculate_yearly_reduction(behaviour_factor)
 
     behaviour_factor=behaviour_factor.set_index(['building_category', 'TEK', 'purpose', 'year'], drop=True)
     all_combinations=all_combinations.set_index(['building_category', 'TEK', 'purpose', 'year'], drop=True)
@@ -323,6 +321,13 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
     joined = all_combinations.join(behaviour_factor, how='left')
     joined.behaviour_factor = joined.behaviour_factor.fillna(1.0)
     return joined.reset_index()
+
+
+def calculate_yearly_reduction(df):
+    reduction_slice = df[df['function'] == 'yearly_reduction'].index
+    df.loc[reduction_slice, 'behaviour_factor'] = df.loc[reduction_slice].behaviour_factor * ((1.0 - df.loc[
+        reduction_slice].parameter) ** (df.loc[reduction_slice].year - df.loc[reduction_slice].start_year))
+    return df
 
 
 energy_need_behaviour_factor = pa.DataFrameSchema(

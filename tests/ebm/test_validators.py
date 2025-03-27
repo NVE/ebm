@@ -19,13 +19,13 @@ from ebm.validators import (tek_parameters,
                             energy_requirement_reduction_per_condition,
                             energy_requirement_yearly_improvements,
                             heating_systems,
-                            energy_requirement_policy_improvements, 
+                            energy_requirement_policy_improvements,
                             area_per_person,
                             check_overlapping_tek_periods,
                             heating_systems_shares_start_year,
                             heating_systems_projection,
                             heating_systems_efficiencies,
-                            check_sum_of_tek_shares_equal_1)
+                            check_sum_of_tek_shares_equal_1, energy_need_behaviour_factor)
     
     
 @pytest.fixture
@@ -793,6 +793,33 @@ HP Central heating - Bio,HP Central heating,Bio,Ingen,Electricity,Bio,Ingen,0.0,
 """.strip()), skipinitialspace=True) 
     
     heating_systems_efficiencies.validate(efficiencies)
+
+def test_behaviour_factor_validate_and_parse():
+    df = pd.read_csv(io.StringIO("""
+building_category,TEK,purpose,behaviour_factor, start_year,function,end_year,parameter
+residential,default,default,1.0,,,,
+house,PRE_TEK49+TEK69+TEK87+TEK49+TEK97,default,0.85,,,,
+house,default,lighting,0.85,,,,
+non_residential,default,default,1.15,,,,
+retail,default,electrical_equipment,2.0,,,,""".strip()))
+
+    res = energy_need_behaviour_factor.validate(df)
+
+    house_lighting = res.query('building_category=="house" and purpose=="lighting"')
+    assert (house_lighting['behaviour_factor'] == 0.85).all()
+
+    old_house = res.query('building_category=="house" and TEK in ["PRE_TEK49","TEK69","TEK87","TEK49","TEK97"]')
+    assert (old_house['behaviour_factor'] == 0.85).all()
+
+    new_house = res.query('building_category=="house" and TEK in ["TEK07","TEK10","TEK17"] and purpose!="lighting"')
+    assert (new_house['behaviour_factor'] == 1.0).all()
+
+    retail_electrical_equipment = res.query('building_category=="retail" and purpose=="electrical_equipment"')
+    assert (retail_electrical_equipment['behaviour_factor'] == 2.0).all()
+
+    non_residential_non_electrical_equipment = res.query(
+        'building_category not in ["house", "apartment_block"] and purpose!="electrical_equipment"')
+    assert (non_residential_non_electrical_equipment['behaviour_factor'] == 1.15).all()
 
 
 if __name__ == "__main__":

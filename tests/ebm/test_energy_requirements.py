@@ -128,8 +128,9 @@ def test_calculate_reduction_by_condition():
     en_req = EnergyRequirement(tek_list=tek_list, period=period, calibration_year=2023, database_manager=dm)
 
     buildings = [BuildingCategory.HOUSE]
-    erq_oc = pd.DataFrame(data=[['house', 'TEK01', EnergyPurpose.HEATING_RV, 100.0, 100.0, 100.0, 1.0]],
-        columns=['building_category', 'TEK', 'purpose',
+
+    erq_oc = pd.DataFrame(data=[['house', 'TEK01', EnergyPurpose.HEATING_RV, y, 100.0, 100.0, 100.0, 1.0] for y in period],
+                          columns=['building_category', 'TEK', 'purpose', 'year',
                  'uncalibrated_kwh_m2', 'calibrated_kwh_m2', 'kwh_m2', 'behaviour_factor'])
 
     purpose = pd.DataFrame(data=[[EnergyPurpose.HEATING_RV]], columns=['purpose'])

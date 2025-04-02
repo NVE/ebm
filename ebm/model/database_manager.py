@@ -219,6 +219,7 @@ class DatabaseManager:
     def get_behaviour_factor(self) -> pd.DataFrame:
         f = self.file_handler.get_file(self.file_handler.BEHAVIOUR_FACTOR)
         behaviour_factor = validators.energy_need_behaviour_factor.validate(f)
+        return behaviour_factor
         return  behaviour_factor.query('year==2020')[['building_category', 'TEK', 'purpose', 'behaviour_factor']]
 
 
@@ -246,8 +247,9 @@ class DatabaseManager:
 
         df = building_purpose.join(df, how='left')
 
-        behaviour_factor = self.get_behaviour_factor().set_index(['building_category', 'TEK', 'purpose'])
-        df = df.join(behaviour_factor)
+        behaviour_factor = self.get_behaviour_factor().set_index(['building_category', 'TEK', 'purpose', 'year'])
+        logging.warning(f'=={len(behaviour_factor)=}')
+        df = df.join(behaviour_factor, how='left')
 
         heating_rv_factor = self.get_calibrate_heating_rv().set_index(['building_category', 'purpose']).heating_rv_factor
 

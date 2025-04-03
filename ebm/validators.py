@@ -288,8 +288,14 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
         df=df.assign(**{'end_year': model_years.end})
     if 'function' not in df.columns:
         df=df.assign(function='noop')
+    else:
+        df['function'] = df.function.fillna('noop')
     if 'parameter' not in df.columns:
         df=df.assign(parameter=0.0)
+
+    df['start_year'] = df.start_year.fillna(model_years.start).astype(int)
+    df['end_year'] = df.end_year.fillna(model_years.end).astype(int)
+
     unique_columns = ['building_category', 'TEK', 'purpose', 'start_year', 'end_year']
     behaviour_factor = explode_unique_columns(df,
                                               unique_columns=unique_columns)
@@ -299,9 +305,6 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
                        values=[p for p in EnergyPurpose],
                        alias='default',
                        de_dup_by=unique_columns)
-
-    behaviour_factor['start_year'] = behaviour_factor.start_year.fillna(model_years.start).astype(int)
-    behaviour_factor['end_year'] = behaviour_factor.end_year.fillna(model_years.end).astype(int)
 
     behaviour_factor['year'] = behaviour_factor.apply(
         lambda row: range(row.start_year, row.end_year+1), axis=1)

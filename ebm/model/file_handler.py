@@ -33,7 +33,6 @@ class FileHandler:
     HOLIDAY_HOME_BY_YEAR = 'holiday_home_by_year.csv'
     HOLIDAY_HOME_ENERGY_CONSUMPTION = 'holiday_home_energy_consumption.csv'
     AREA_PER_PERSON = 'area_per_person.csv'
-    TEKANDELER = 'heating_systems.csv'
     HS_SHARES_START_YEAR = 'heating_systems_shares_start_year.csv'
     HS_EFFICIENCIES = 'heating_systems_efficiencies.csv'
     HS_PROJECTION = 'heating_systems_projection.csv'
@@ -61,7 +60,7 @@ class FileHandler:
                                self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
                                self.AREA_PARAMETERS, self.BEHAVIOUR_FACTOR, self.ENERGY_REQ_ORIGINAL_CONDITION,
                                self.ENERGY_REQ_REDUCTION_CONDITION, self.ENERGY_REQ_YEARLY_IMPROVEMENTS,
-                               self.ENERGY_REQ_POLICY_IMPROVEMENTS, self.TEKANDELER,
+                               self.ENERGY_REQ_POLICY_IMPROVEMENTS,
                                self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_BY_YEAR,
                                self.AREA_PER_PERSON, self.HS_SHARES_START_YEAR, self.HS_EFFICIENCIES, self.HS_PROJECTION]
 

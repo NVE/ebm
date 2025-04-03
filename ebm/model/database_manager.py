@@ -308,21 +308,6 @@ class DatabaseManager:
         return self.explode_unique_columns(policy_improvements,
                                            ['building_category', 'TEK', 'purpose'])
 
-    def get_tekandeler(self) -> pd.DataFrame:
-        """
-        Load input dataframe for "TEK-andeler"
-
-        Rename this to something more appropriate, i.e get_heating_systems
-
-        Returns
-        -------
-        pd.DataFrame
-        """
-        df = self.file_handler.get_file(self.file_handler.TEKANDELER)
-        if len(df[df.TEK=='TEK21']) > 0:
-            logging.warning(f'Detected TEK21 in heating-systems.csv')
-        return df
-
     def get_holiday_home_fuelwood_consumption(self) -> pd.Series:
         df = self.file_handler.get_holiday_home_energy_consumption().set_index('year')["fuelwood"]
         return df

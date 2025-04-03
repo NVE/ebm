@@ -482,24 +482,6 @@ energy_requirement_policy_improvements = pa.DataFrameSchema(
 )
 
 
-heating_systems = pa.DataFrameSchema(
-    columns={
-        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
-        'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
-        'Oppvarmingstyper': pa.Column(str),
-        'tek_share': pa.Column(float, coerce=True),
-        'Ekstralast andel': pa.Column(float, coerce=True),
-        'Ekstralast virkningsgrad': pa.Column(float, coerce=True),
-        'Grunnlast andel': pa.Column(float, coerce=True),
-        'Grunnlast virkningsgrad': pa.Column(float, coerce=True),
-        'Spisslast andel': pa.Column(float, coerce=True),
-        'Spisslast virkningsgrad': pa.Column(float, coerce=True),
-        'Tappevann virkningsgrad': pa.Column(float, coerce=True),
-        'Kjoling virkningsgrad': pa.Column(float, coerce=True),
-        'Spesifikt elforbruk': pa.Column(float, coerce=True)
-    }
-)
-
 holiday_home_by_year = pa.DataFrameSchema(
     columns={
         'year': pa.Column(int),
@@ -507,6 +489,8 @@ holiday_home_by_year = pa.DataFrameSchema(
         'Existing buildings Detached houses and farmhouses used as holiday houses': pa.Column(int)
     }
 )
+
+
 holiday_home_energy_consumption = pa.DataFrameSchema(
     columns={
         'year': pa.Column(int),

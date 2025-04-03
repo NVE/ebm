@@ -18,7 +18,6 @@ from ebm.validators import (tek_parameters,
                             energy_requirement_original_condition,
                             energy_requirement_reduction_per_condition,
                             energy_requirement_yearly_improvements,
-                            heating_systems,
                             energy_requirement_policy_improvements,
                             area_per_person,
                             check_overlapping_tek_periods,
@@ -634,14 +633,6 @@ def test_energy_req_policy_improvements_require_unique_rows():
               ['default', 'default', 'lighting', 2018, 2030, 0.1]])
     with pytest.raises(pa.errors.SchemaError):
         energy_requirement_policy_improvements(duplicate_df)
-
-
-def test_heating_systems_ok():
-    heating_systems_csv = """building_category,TEK,Oppvarmingstyper,tek_share,Ekstralast andel,Grunnlast andel,Spisslast andel,Grunnlast virkningsgrad,Spisslast virkningsgrad,Ekstralast virkningsgrad,Tappevann virkningsgrad,Spesifikt elforbruk,Kjoling virkningsgrad
-apartment_block,TEK07,Electricity,0.0,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4
-retail,TEK97,Electricity,0.08158166937579898,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4
-retail,PRE_TEK49,Electricity,0.07593898514970877,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4"""
-    heating_systems.validate(pd.read_csv(io.StringIO(heating_systems_csv)))
 
 
 def test_area_per_person_ok():

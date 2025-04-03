@@ -3,6 +3,7 @@ Pandera validators for ebm input files.
 """
 import itertools
 
+import numpy as np
 import pandas as pd
 import pandera as pa
 
@@ -302,10 +303,19 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
     behaviour_factor['start_year'] = behaviour_factor.start_year.fillna(model_years.start).astype(int)
     behaviour_factor['end_year'] = behaviour_factor.end_year.fillna(model_years.end).astype(int)
 
-    behaviour_factor['year'] = behaviour_factor.apply(lambda row: range(row.start_year, row.end_year+1), axis=1)
+    behaviour_factor['year'] = behaviour_factor.apply(
+        lambda row: range(row.start_year, row.end_year+1), axis=1)
+    behaviour_factor['interpolation'] = behaviour_factor.apply(
+        lambda row: np.linspace(row.behaviour_factor, row.parameter, num=row.end_year+1-row.start_year), axis=1)
 
-    behaviour_factor = behaviour_factor.explode('year')
+    behaviour_factor = behaviour_factor.explode(['year', 'interpolation'])
+
     behaviour_factor['year'] = behaviour_factor['year'].astype(int)
+
+    interpolation_slice = (behaviour_factor.function == 'improvement_at_end_year') & (~behaviour_factor.interpolation.isna())
+    behaviour_factor.loc[interpolation_slice, 'behaviour_factor'] = behaviour_factor.loc[
+        interpolation_slice, 'interpolation']
+
     behaviour_factor.sort_values(['building_category', 'TEK', 'purpose', 'year'])
 
     behaviour_factor = calculate_yearly_reduction(behaviour_factor)

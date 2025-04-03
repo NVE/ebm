@@ -882,7 +882,8 @@ non_residential,default,default,4.2""".strip()))
 def test_behaviour_factor_validate_and_parse_calculate_yearly_reduction():
         df = pd.read_csv(io.StringIO("""
 building_category,TEK,purpose,behaviour_factor,start_year,function,end_year,parameter
-residential,default,lighting,1.0,2031,yearly_reduction,2050,0.02""".strip()))
+residential,default,lighting,1.0,2031,yearly_reduction,2050,0.02
+""".strip()))
 
         res = energy_need_behaviour_factor.validate(df)
 
@@ -900,6 +901,37 @@ residential,default,lighting,1.0,2031,yearly_reduction,2050,0.02""".strip()))
 
 
         pd.testing.assert_series_equal(house_lighting.behaviour_factor, expected)
+
+
+def test_behaviour_factor_validate_and_parse_calculate_interpolate():
+    df = pd.read_csv(io.StringIO("""
+building_category,TEK,purpose,behaviour_factor,start_year,function,end_year,parameter
+residential,default,lighting,1.0,2041,improvement_at_end_year,2050,2.0
+retail,TEK17,electrical_equipment,1.0,2020,improvement_at_end_year,2050,0.5
+""".strip()))
+
+    res = energy_need_behaviour_factor.validate(df)
+
+    house_lighting = res.query('building_category=="house" and TEK=="TEK07" and purpose=="lighting"').set_index(
+        ['year'])
+
+    expected = pd.Series(
+        [1.0] * 21 + [1.0, 1.1111111111111112, 1.2222222222222223, 1.3333333333333333, 1.4444444444444444,
+                      1.5555555555555556, 1.6666666666666665, 1.7777777777777777, 1.8888888888888888, 2.0],
+        index=YearRange(2020, 2050).to_index(), name='behaviour_factor')
+
+    pd.testing.assert_series_equal(house_lighting.behaviour_factor, expected)
+
+    retail_electrical = res.query(
+        'building_category=="retail" and TEK=="TEK17" and purpose=="electrical_equipment"').set_index(['year'])
+
+    expected = pd.Series(
+        [1., 0.98333333, 0.96666667, 0.95, 0.93333333, 0.91666667, 0.9, 0.88333333, 0.86666667, 0.85, 0.83333333,
+         0.81666667, 0.8, 0.78333333, 0.76666667, 0.75, 0.73333333, 0.71666667, 0.7, 0.68333333, 0.66666667, 0.65,
+         0.63333333, 0.61666667, 0.6, 0.58333333, 0.56666667, 0.55, 0.53333333, 0.51666667, 0.5],
+        index=YearRange(2020, 2050).to_index(), name='behaviour_factor')
+
+    pd.testing.assert_series_equal(retail_electrical.behaviour_factor, expected)
 
 
 if __name__ == "__main__":

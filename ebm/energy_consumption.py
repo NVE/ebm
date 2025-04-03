@@ -88,7 +88,7 @@ class EnergyConsumption:
         df = self._merge_energy_requirement_and_heating_systems(energy_requirements)
 
         # Make column eq_ts for tek_share adjusted energy requirement
-        df[ADJUSTED_REQUIREMENT] = df.energy_requirement * df[TEK_SHARES]
+        df[ADJUSTED_REQUIREMENT] = (df.energy_requirement * df[TEK_SHARES]).astype(float)
 
         # Zero fill columns before calculating to prevent NaN from messing up sums
         df.loc[:, [HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HEATIG_RV_EKSTRALAST, DHW_TV, COOLING_KV, OTHER_SV,

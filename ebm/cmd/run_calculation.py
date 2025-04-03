@@ -61,9 +61,9 @@ def result_to_horizontal_dataframe(result: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def validate_years(end_year: int, start_year: int):
+def validate_years(start_year: int, end_year: int) -> YearRange:
     """
-    Validates the start and end year arguments.
+    Validates the start and end year arguments and returns a YearRange
 
     Parameters
     ----------
@@ -71,6 +71,11 @@ def validate_years(end_year: int, start_year: int):
         The end year to validate.
     start_year : int
         The start year to validate.
+
+    Returns
+    -------
+    YearRange
+        from start_year to end_year
 
     Raises
     ------
@@ -88,6 +93,7 @@ def validate_years(end_year: int, start_year: int):
     if end_year > 2070:
         msg = f'Unexpected end_year={end_year}. Max end_year year is 2070'
         raise ValueError(msg)
+    return YearRange(start_year, end_year)
 
 
 def calculate_building_category_energy_requirements(building_category: BuildingCategory,

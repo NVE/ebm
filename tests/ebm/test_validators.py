@@ -19,13 +19,13 @@ from ebm.validators import (tek_parameters,
                             energy_requirement_reduction_per_condition,
                             energy_requirement_yearly_improvements,
                             heating_systems,
-                            energy_requirement_policy_improvements, 
+                            energy_requirement_policy_improvements,
                             area_per_person,
                             check_overlapping_tek_periods,
                             heating_systems_shares_start_year,
                             heating_systems_projection,
                             heating_systems_efficiencies,
-                            check_sum_of_tek_shares_equal_1)
+                            energy_need_behaviour_factor)
     
     
 @pytest.fixture
@@ -793,6 +793,145 @@ HP Central heating - Bio,HP Central heating,Bio,Ingen,Electricity,Bio,Ingen,0.0,
 """.strip()), skipinitialspace=True) 
     
     heating_systems_efficiencies.validate(efficiencies)
+
+def test_behaviour_factor_validate_and_parse():
+    df = pd.read_csv(io.StringIO("""
+building_category,TEK,purpose,behaviour_factor,start_year,function,end_year,parameter
+residential,default,default,1.0,,,,
+house,PRE_TEK49+TEK69+TEK87+TEK49+TEK97,default,0.85,,,,
+house,default,lighting,0.85,,,,
+non_residential,default,default,1.15,,,,
+retail,default,electrical_equipment,2.0,,,,""".strip()))
+
+    res = energy_need_behaviour_factor.validate(df)
+
+    house_lighting = res.query('building_category=="house" and purpose=="lighting"')
+    assert (house_lighting['behaviour_factor'] == 0.85).all()
+
+    old_house = res.query('building_category=="house" and TEK in ["PRE_TEK49","TEK69","TEK87","TEK49","TEK97"]')
+    assert (old_house['behaviour_factor'] == 0.85).all()
+
+    new_house = res.query('building_category=="house" and TEK in ["TEK07","TEK10","TEK17"] and purpose!="lighting"')
+    assert (new_house['behaviour_factor'] == 1.0).all()
+
+    retail_electrical_equipment = res.query('building_category=="retail" and purpose=="electrical_equipment"')
+    assert (retail_electrical_equipment['behaviour_factor'] == 2.0).all()
+
+    non_residential_non_electrical_equipment = res.query(
+        'building_category not in ["house", "apartment_block"] and purpose!="electrical_equipment"')
+    assert (non_residential_non_electrical_equipment['behaviour_factor'] == 1.15).all()
+
+
+def test_behaviour_factor_validate_and_parse_add_year():
+    df = pd.read_csv(io.StringIO("""
+building_category,TEK,purpose,behaviour_factor,start_year,function,end_year,parameter
+residential,default,default,2.4,2024,noop,2042,
+non_residential,default,default,4.2,2024,noop,2042,""".strip()))
+
+    res = energy_need_behaviour_factor.validate(df)
+
+    house_lighting = res.query('building_category in ["house", "apartment_block"] and 2024 <= year <=2042')
+    assert (house_lighting.behaviour_factor == 2.4).all()
+
+    non_residential = res.query('building_category not in ["house", "apartment_block"] and 2024 <= year <=2042')
+    assert (non_residential.behaviour_factor == 4.2).all()
+
+    outside_range = res.query('year < 2024 and year < 2042')
+    assert (outside_range.behaviour_factor == 1.0).all()
+
+
+def test_behaviour_factor_validate_and_parse_with_empty_start_year_or_end_year():
+    df = pd.read_csv(io.StringIO("""
+building_category,TEK,purpose,behaviour_factor,start_year,function,end_year,parameter
+residential,default,default,2.4,2021,noop,,
+non_residential,default,default,4.2,,noop,2049,
+non_residential,default,default,0.99,2050,noop,2050,
+residential,default,default,0.98,2020,noop,2020
+""".strip()))
+
+    res = energy_need_behaviour_factor.validate(df)
+
+    residential_after_2021 = res.query('building_category in ["house", "apartment_block"] and year >= 2021')
+    assert (residential_after_2021.behaviour_factor == 2.4).all()
+
+    non_residential_before_2050 = res.query('building_category not in ["house", "apartment_block"] and year <= 2049')
+    assert (non_residential_before_2050.behaviour_factor == 4.2).all()
+
+    residential_in_2020 = res.query('building_category in ["house", "apartment_block"] and year==2020')
+    assert (residential_in_2020.behaviour_factor == 0.98).all()
+
+    non_residential_in_2050 = res.query('building_category not in ["house", "apartment_block"] and year==2050')
+    assert (non_residential_in_2050.behaviour_factor == 0.99).all()
+
+
+def test_behaviour_factor_validate_and_parse_missing_years():
+    df = pd.read_csv(io.StringIO("""
+building_category,TEK,purpose,behaviour_factor
+residential,default,default,2.4
+non_residential,default,default,4.2""".strip()))
+
+    res = energy_need_behaviour_factor.validate(df)
+
+    house_lighting = res.query('building_category in ["house", "apartment_block"]')
+    assert (house_lighting.behaviour_factor == 2.4).all()
+
+    non_residential = res.query('building_category not in ["house", "apartment_block"]')
+    assert (non_residential.behaviour_factor == 4.2).all()
+
+
+def test_behaviour_factor_validate_and_parse_calculate_yearly_reduction():
+        df = pd.read_csv(io.StringIO("""
+building_category,TEK,purpose,behaviour_factor,start_year,function,end_year,parameter
+residential,default,lighting,1.0,2031,yearly_reduction,2050,0.02
+""".strip()))
+
+        res = energy_need_behaviour_factor.validate(df)
+
+        house_lighting = res.query('building_category=="house" and TEK=="TEK07" and purpose=="lighting"').set_index([
+            'year'
+        ])
+
+        expected = pd.Series([1.0] * 11 +
+                             [1.0, 0.98, 0.9603999999999999, 0.9411919999999999, 0.9223681599999999, 0.9039207967999999,
+                              0.8858423808639999, 0.8681255332467199, 0.8507630225817855, 0.8337477621301498,
+                              0.8170728068875467, 0.8007313507497958, 0.7847167237347998, 0.7690223892601038,
+                              0.7536419414749017, 0.7385691026454038, 0.7237977205924956, 0.7093217661806457,
+                              0.6951353308570327, 0.6812326242398921],
+                             index=YearRange(2020, 2050).to_index(), name='behaviour_factor')
+
+
+        pd.testing.assert_series_equal(house_lighting.behaviour_factor, expected)
+
+
+def test_behaviour_factor_validate_and_parse_calculate_interpolate():
+    df = pd.read_csv(io.StringIO("""
+building_category,TEK,purpose,behaviour_factor,start_year,function,end_year,parameter
+residential,default,lighting,1.0,2041,improvement_at_end_year,2050,2.0
+retail,TEK17,electrical_equipment,1.0,2020,improvement_at_end_year,2050,0.5
+""".strip()))
+
+    res = energy_need_behaviour_factor.validate(df)
+
+    house_lighting = res.query('building_category=="house" and TEK=="TEK07" and purpose=="lighting"').set_index(
+        ['year'])
+
+    expected = pd.Series(
+        [1.0] * 21 + [1.0, 1.1111111111111112, 1.2222222222222223, 1.3333333333333333, 1.4444444444444444,
+                      1.5555555555555556, 1.6666666666666665, 1.7777777777777777, 1.8888888888888888, 2.0],
+        index=YearRange(2020, 2050).to_index(), name='behaviour_factor')
+
+    pd.testing.assert_series_equal(house_lighting.behaviour_factor, expected)
+
+    retail_electrical = res.query(
+        'building_category=="retail" and TEK=="TEK17" and purpose=="electrical_equipment"').set_index(['year'])
+
+    expected = pd.Series(
+        [1., 0.98333333, 0.96666667, 0.95, 0.93333333, 0.91666667, 0.9, 0.88333333, 0.86666667, 0.85, 0.83333333,
+         0.81666667, 0.8, 0.78333333, 0.76666667, 0.75, 0.73333333, 0.71666667, 0.7, 0.68333333, 0.66666667, 0.65,
+         0.63333333, 0.61666667, 0.6, 0.58333333, 0.56666667, 0.55, 0.53333333, 0.51666667, 0.5],
+        index=YearRange(2020, 2050).to_index(), name='behaviour_factor')
+
+    pd.testing.assert_series_equal(retail_electrical.behaviour_factor, expected)
 
 
 if __name__ == "__main__":

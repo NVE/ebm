@@ -130,3 +130,14 @@ def explode_column_alias(df, column, values=None, alias='default', de_dup_by=Non
         df = df.sort_values(by='_explode_column_alias_default', ascending=True)
         df = df.drop_duplicates(de_dup_by)
     return df.drop(columns=['_explode_column_alias_default'], errors='ignore')
+
+
+def replace_column_alias(df, column, values=None, alias='default', de_dup_by=None):
+    values = values if values is not None else [c for c in df[column].unique().tolist() if c != alias]
+    df.loc[:, '_explode_column_alias_default'] = df.loc[:, column] == alias
+    df.loc[df[df[column] == alias].index, column] = '+'.join(values)
+    return df.drop(columns=['_explode_column_alias_default'], errors='ignore')
+
+def explode_column(df: pd.DataFrame, column: str) -> pd.DataFrame:
+    df = df.assign(**{column: df[column].str.split('+')}).explode(column)
+    return df

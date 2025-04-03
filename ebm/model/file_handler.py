@@ -25,7 +25,7 @@ class FileHandler:
     CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'new_buildings_house_share.csv'
     CONSTRUCTION_BUILDING_CATEGORY_AREA = 'construction_building_category_yearly.csv'
     AREA_PARAMETERS = 'area_parameters.csv'
-    BEHAVIOUR_FACTOR = 'energy_requirement_behaviour_factor.csv'
+    BEHAVIOUR_FACTOR = 'energy_need_behaviour_factor.csv'
     ENERGY_REQ_ORIGINAL_CONDITION = 'energy_requirement_original_condition.csv'
     ENERGY_REQ_REDUCTION_CONDITION = 'energy_requirement_reduction_per_condition.csv'
     ENERGY_REQ_YEARLY_IMPROVEMENTS = 'energy_requirement_yearly_improvements.csv'

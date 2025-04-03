@@ -67,6 +67,8 @@ class EnergyRequirement:
 
         merged = self.calculate_energy_requirement(all_building_categories, all_purpose, all_teks, erq_oc, model_years,
                                                    most_conditions, database_manager)
+        
+        merged = merged.drop_duplicates('building_category,TEK,building_condition,year,purpose'.split(','), keep='first')
         return merged[['building_category', 'TEK', 'building_condition','year', 'purpose',
                        'original_kwh_m2', 'reduction_yearly', 'reduction_policy', 'reduction_condition',
                        'reduced_kwh_m2', 'behaviour_factor', 'kwh_m2']]
@@ -80,6 +82,13 @@ class EnergyRequirement:
         df_years = pd.merge(df_condition, pd.DataFrame({'year': model_years}), how='cross')
 
         energy_requirement_original_condition = energy_requirement_original_condition.copy()
+
+        energy_requirement_original_condition = energy_requirement_original_condition.join(
+            pd.DataFrame({'building_condition_r': most_conditions}),
+            how='cross',
+        )
+        energy_requirement_original_condition['building_condition'] = energy_requirement_original_condition.building_condition_r
+        energy_requirement_original_condition = energy_requirement_original_condition.drop(columns=['building_condition_r'])
 
         erq_all_years = pd.merge(left=df_years, right=energy_requirement_original_condition, how='left')
         energy_requirements = erq_all_years.drop(columns=['index', 'level_0'], errors='ignore')

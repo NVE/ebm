@@ -218,7 +218,8 @@ class DatabaseManager:
 
     def get_behaviour_factor(self) -> pd.DataFrame:
         f = self.file_handler.get_file(self.file_handler.BEHAVIOUR_FACTOR)
-        return validators.energy_requirement_behaviour_factor.validate(f)
+        behaviour_factor = validators.energy_need_behaviour_factor.validate(f)
+        return behaviour_factor
 
 
     def get_energy_req_original_condition(self) -> pd.DataFrame:
@@ -232,19 +233,29 @@ class DatabaseManager:
             Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
             per building category and purpose.
         """
+        logging.debug('Using default year 2020 -> 2050')
+        building_purpose = self.make_building_purpose(years=YearRange(2020, 2050)).set_index(
+            ['building_category', 'purpose', 'TEK', 'year'], drop=True
+        )
+        building_purpose = building_purpose.drop(columns=['building_condition'])
         ff = self.file_handler.get_energy_req_original_condition()[['building_category', 'TEK', 'purpose', 'kwh_m2']]
         df = self.explode_unique_columns(ff, ['building_category', 'TEK', 'purpose'])
         if len(df[df.TEK=='TEK21']) > 0:
             logging.warning(f'Detected TEK21 in energy_requirement_original_condition')
         df = df.set_index(['building_category', 'purpose', 'TEK']).sort_index()
 
-        behaviour_factor = self.get_behaviour_factor().set_index(['building_category', 'purpose', 'TEK'])
-        df = df.join(behaviour_factor)
+        df = building_purpose.join(df, how='left')
+
+        behaviour_factor = self.get_behaviour_factor().set_index(['building_category', 'TEK', 'purpose', 'year'])
+
+        df = df.join(behaviour_factor, how='left')
 
         heating_rv_factor = self.get_calibrate_heating_rv().set_index(['building_category', 'purpose']).heating_rv_factor
 
+        df['heating_rv_factor'] = heating_rv_factor
+        df['heating_rv_factor'] = df['heating_rv_factor'].astype(float).fillna(1.0)
         df['uncalibrated_kwh_m2'] = df['kwh_m2']
-        df['calibrated_kwh_m2'] = heating_rv_factor * df.kwh_m2
+        df['calibrated_kwh_m2'] = df.heating_rv_factor * df.kwh_m2
         df.loc[df.calibrated_kwh_m2.isna(), 'calibrated_kwh_m2'] = df.loc[df.calibrated_kwh_m2.isna(), 'kwh_m2']
         df['kwh_m2'] = df['calibrated_kwh_m2']
         return df.reset_index()

@@ -67,11 +67,11 @@ class EnergyRequirement:
 
         merged = self.calculate_energy_requirement(all_building_categories, all_purpose, all_teks, erq_oc, model_years,
                                                    most_conditions, database_manager)
-        merged['dupe'] = merged.duplicated('building_category,TEK,building_condition,year,purpose'.split(','))
+        
         merged = merged.drop_duplicates('building_category,TEK,building_condition,year,purpose'.split(','), keep='first')
         return merged[['building_category', 'TEK', 'building_condition','year', 'purpose',
                        'original_kwh_m2', 'reduction_yearly', 'reduction_policy', 'reduction_condition',
-                       'reduced_kwh_m2', 'behaviour_factor', 'kwh_m2', 'dupe']]
+                       'reduced_kwh_m2', 'behaviour_factor', 'kwh_m2']]
 
     def calculate_energy_requirement(self, all_building_categories, all_purpose, all_teks, energy_requirement_original_condition, model_years,
                                      most_conditions, database_manager) -> pd.DataFrame:

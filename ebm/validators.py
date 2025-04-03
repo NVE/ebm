@@ -314,7 +314,7 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
 
     interpolation_slice = (behaviour_factor.function == 'improvement_at_end_year') & (~behaviour_factor.interpolation.isna())
     behaviour_factor.loc[interpolation_slice, 'behaviour_factor'] = behaviour_factor.loc[
-        interpolation_slice, 'interpolation']
+        interpolation_slice, 'interpolation'].astype(float)
 
     behaviour_factor.sort_values(['building_category', 'TEK', 'purpose', 'year'])
 

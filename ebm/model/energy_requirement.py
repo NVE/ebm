@@ -95,7 +95,7 @@ class EnergyRequirement:
 
         reduction_per_condition = database_manager.get_energy_req_reduction_per_condition()
         policy_improvement = database_manager.get_energy_req_policy_improvements()
-        yearly_improvement = database_manager.get_energy_req_yearly_improvements()
+        yearly_improvement = database_manager.get_energy_need_yearly_improvements()
 
         return self.calculate_energy_reduction(energy_requirements, model_years, policy_improvement,
                                                reduction_per_condition, yearly_improvement)

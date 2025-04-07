@@ -17,7 +17,7 @@ from ebm.validators import (tek_parameters,
                             scurve_parameters,
                             energy_requirement_original_condition,
                             energy_requirement_reduction_per_condition,
-                            energy_requirement_yearly_improvements,
+                            energy_need_yearly_improvements,
                             energy_requirement_policy_improvements,
                             area_per_person,
                             check_overlapping_tek_periods,
@@ -521,45 +521,45 @@ def yearly_improvements_df():
                         ])
 
 
-def test_energy_req_yearly_improvements(yearly_improvements_df):
-    energy_requirement_yearly_improvements.validate(yearly_improvements_df)
+def test_energy_need_yearly_improvements(yearly_improvements_df):
+    energy_need_yearly_improvements.validate(yearly_improvements_df)
 
 
-def test_energy_req_yearly_improvements_require_valid_building_cat(yearly_improvements_df):
+def test_energy_need_yearly_improvements_require_valid_building_cat(yearly_improvements_df):
     yearly_improvements_df.loc[0, 'building_category'] = 'not_a_category'
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_yearly_improvements.validate(yearly_improvements_df)
+        energy_need_yearly_improvements.validate(yearly_improvements_df)
 
 
-def test_energy_req_yearly_improvements_require_valid_tek(yearly_improvements_df):
+def test_energy_need_yearly_improvements_require_valid_tek(yearly_improvements_df):
     yearly_improvements_df.loc[0, 'TEK'] = 'TAKK'
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_yearly_improvements.validate(yearly_improvements_df)
+        energy_need_yearly_improvements.validate(yearly_improvements_df)
 
 
-def test_energy_req_yearly_improvements_require_valid_purpose(yearly_improvements_df):
+def test_energy_need_yearly_improvements_require_valid_purpose(yearly_improvements_df):
     yearly_improvements_df.loc[0, 'purpose'] = 'not_a_purpose'
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_yearly_improvements.validate(yearly_improvements_df)
+        energy_need_yearly_improvements.validate(yearly_improvements_df)
 
 
-def test_energy_req_yearly_improvements_value_between_zero_and_one(yearly_improvements_df):
+def test_energy_need_yearly_improvements_value_between_zero_and_one(yearly_improvements_df):
     yearly_improvements_df.loc[0, 'yearly_efficiency_improvement'] = -1
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_yearly_improvements.validate(yearly_improvements_df)
+        energy_need_yearly_improvements.validate(yearly_improvements_df)
 
     yearly_improvements_df.loc[0, 'yearly_efficiency_improvement'] = 2
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_yearly_improvements.validate(yearly_improvements_df)
+        energy_need_yearly_improvements.validate(yearly_improvements_df)
 
 
-def test_energy_req_yearly_improvements_require_unique_rows():
+def test_energy_need_yearly_improvements_require_unique_rows():
     duplicate_df = pd.DataFrame(columns=['building_category', 'TEK', 'purpose', 'yearly_efficiency_improvement'],
                                 data=[['default', 'default', 'cooling', 0.0],
                                       ['default', 'default', 'cooling', 0.1],
                                       ['default', 'default', 'cooling', 0.0]])
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_yearly_improvements(duplicate_df)
+        energy_need_yearly_improvements(duplicate_df)
 
 
 @pytest.fixture

@@ -554,10 +554,11 @@ def test_energy_need_yearly_improvements_value_between_zero_and_one(yearly_impro
 
 
 def test_energy_need_yearly_improvements_require_unique_rows():
-    duplicate_df = pd.DataFrame(columns=['building_category', 'TEK', 'purpose', 'yearly_efficiency_improvement'],
-                                data=[['default', 'default', 'cooling', 0.0],
-                                      ['default', 'default', 'cooling', 0.1],
-                                      ['default', 'default', 'cooling', 0.0]])
+    duplicate_df = pd.DataFrame(
+        columns='building_category,TEK,purpose,yearly_efficiency_improvement,start_year,function,end_year'.split(','),
+        data=[['default', 'default', 'cooling', 0.0, 2020, 'yearly_reduction', 2050],
+              ['default', 'default', 'cooling', 0.1, 2020, 'yearly_reduction', 2050],
+              ['default', 'default', 'cooling', 0.0, 2020, 'yearly_reduction', 2050]])
     with pytest.raises(pa.errors.SchemaError):
         energy_need_yearly_improvements(duplicate_df)
 

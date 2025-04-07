@@ -10,7 +10,7 @@ from ebm.model.database_manager import DatabaseManager
 
 
 def test_calculate_construction_calls_commercial_construction():
-    bc = BuildingCategory.STORAGE_REPAIRS
+    bc = BuildingCategory.STORAGE
     demolition_floor_area = pd.Series([35_500, 35_500, 35_500, 35_500, 35_500,
                                        35_500, 35_500, 35_500],
                                       index=YearRange(2020, 2027).to_index())

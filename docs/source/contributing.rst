@@ -12,3 +12,6 @@ Code Conventions
 ----------------
 
 Please follow the PEP8 style guide.
+
+
+Version: |version|.

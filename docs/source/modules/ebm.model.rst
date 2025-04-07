@@ -22,6 +22,7 @@ Submodules
    ebm.model.energy_purpose
    ebm.model.energy_requirement
    ebm.model.energy_requirement_filter
+   ebm.model.enums
    ebm.model.exceptions
    ebm.model.file_handler
    ebm.model.filter_scurve_params

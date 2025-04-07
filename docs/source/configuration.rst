@@ -20,3 +20,5 @@ Environment Setup
 It's recommended to set up the environment in the following way:
 
 ...
+
+Version: |version|.

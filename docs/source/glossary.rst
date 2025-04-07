@@ -85,3 +85,6 @@ Heating systems
   
   <load> efficiency
     How efficiently the heating technology can deliver the specified heating demand. 
+
+
+Version: |version|.

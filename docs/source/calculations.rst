@@ -29,3 +29,5 @@ In the excel file "Kalibreringsark.xlsx" you can adjust various factors which ca
 
 When the model is run the excel file updates without having to close the file. 
 
+
+Version: |version|.

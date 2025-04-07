@@ -43,7 +43,7 @@ def get_building_category_sheet(building_category: BuildingCategory, area_sheet:
             BuildingCategory.NURSING_HOME: ['A shjem', 'R shjem'],
             BuildingCategory.CULTURE: ['A kult', 'R kult'],
             BuildingCategory.SPORTS: ['A idr', 'R idr'],
-            BuildingCategory.STORAGE_REPAIRS: ['A ind', 'R ind']
+            BuildingCategory.STORAGE: ['A ind', 'R ind']
     }
 
     if area_sheet:
@@ -189,7 +189,7 @@ def load_bema_area(building_category: BuildingCategory, database_manager: Databa
     tek_list = building.tek_list
 
     # define row number for first header in sheet
-    if building_category == BuildingCategory.STORAGE_REPAIRS:
+    if building_category == BuildingCategory.STORAGE:
         header = 552
     else:
         header = start_row  
@@ -618,7 +618,7 @@ def load_bema_construction(building_category: BuildingCategory, start_year: int 
         BuildingCategory.NURSING_HOME: 146,
         BuildingCategory.CULTURE: 160,
         BuildingCategory.SPORTS: 174,
-        BuildingCategory.STORAGE_REPAIRS: 189
+        BuildingCategory.STORAGE: 189
     }
     
     # Retrieve workbook

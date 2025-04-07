@@ -11,3 +11,5 @@ Common Issues
 -------------
 
 - Error Code 1001: This occurs when ...
+
+Version: |version|.

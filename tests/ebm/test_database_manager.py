@@ -206,7 +206,7 @@ def test_expand_building_category_column_default_and_groups():
     assert r.loc[(BuildingCategory.NURSING_HOME, 'TEK01'), 'v'] == 'non_residential-tek01'
     assert r.loc[(BuildingCategory.CULTURE, 'TEK01'), 'v'] == 'non_residential-tek01'
     assert r.loc[(BuildingCategory.SPORTS, 'TEK01'), 'v'] == 'non_residential-tek01'
-    assert r.loc[(BuildingCategory.STORAGE_REPAIRS, 'TEK01'), 'v'] == 'non_residential-tek01'
+    assert r.loc[(BuildingCategory.STORAGE, 'TEK01'), 'v'] == 'non_residential-tek01'
 
     for bc in BuildingCategory:
         assert r.loc[(bc, 'TEK02'), 'v'] == 'default-tek02'

@@ -1,0 +1,4 @@
+building_category,TEK,building_condition,year,purpose,m2,original_kwh_m2,reduction_yearly,reduction_policy,reduction_condition,reduced_kwh_m2,behavior_factor,kwh_m2,energy_requirement
+house,PRE_TEK49,original_condition,2020,heating_rv,941109.5047,155.290712,1,1,1,155.290712,1,155.290712,146145565.1
+house,PRE_TEK49,original_condition,2020,heating_dhw,941109.5047,29.78125,1,1,1,29.78125,1,29.78125,28027417.44
+house,PRE_TEK49,original_condition,2020,fans_and_pumps,941109.5047,0.58125,1,1,1,0.58125,1,0.58125,547019.8996

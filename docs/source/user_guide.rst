@@ -3,6 +3,7 @@ User Guide
 
 Basic Concepts
 --------------
+- Methods ans calculations: :doc:`calculations`
 
 - Models
 - Parameters
@@ -98,7 +99,6 @@ Typing `ebm --help` will give you a list of most parameters:
     --csv-delimiter CSV_DELIMITER, --delimiter CSV_DELIMITER, -e CSV_DELIMITER
                         A single character to be used for separating columns when writing csv. Default: "," Special characters like ; should be quoted ";"
     --create-input      Create input directory containing all required files in the current working directory
-    --calibration-year [CALIBRATION_YEAR]
     --horizontal-years, --horizontal, --horisontal
                         Show years horizontal (left to right)
 
@@ -126,10 +126,21 @@ Typing `ebm --help` will give you a list of most parameters:
   # The output file will be written in vertical format
   ebm area-forecast output/area-forecast-vertical.xlsx
   
+.. csv-table:: Output from using the command above
+  :file: tables\example_four_output.csv
+  :header-rows: 1
   
+
+If the user wants the output file in horizontal format, the user can use the following command:
+
+.. code:: bash
+
   # This command will write the output file in horizontal format with the name area-forecast.xlsx
   ebm --horizontal area-forecast output/area-forecast.xlsx
 
+.. csv-table:: Output from using the command above (horizontal format)
+  :file: tables\example_four_output_horizontal.csv
+  :header-rows: 1
 
 .. Beregne energibehov
 5. Calculate energy-requirements
@@ -155,9 +166,20 @@ The energy-requirements is calculated by multiplying the heating demand per squa
   # in the output directory
   ebm energy-requirements output/energy-requirements-vertical.xlsx
 
+.. csv-table:: Output from using the command above 
+  :file: tables\example_five_output.csv
+  :header-rows: 1
+
+If the user wants the output file in horizontal format, the user can use the following command:
+
+.. code:: bash
 
   # This command will write the output file in horizontal format with the name energy-requirements.xlsx
   ebm --horizontal energy-requirements output/energy-requirements.xlsx
+
+.. csv-table:: Output from using the command above (horizontal format)
+  :file: tables\example_five_output_horizontal.csv
+  :header-rows: 1
 
 
 6. Energy consumption
@@ -178,8 +200,16 @@ The energy consumption is calculated by multiplying the energy requirements from
   # in the output directory
   ebm heating-systems output/heating-systems-vertical.xlsx
 
-  # This command will write the output file in horizontal format with the name heating-systems.xlsx
-  ebm --horizontal heating-systems output/heating-systems.xlsx
+.. csv-table:: Output from using the command above 
+  :file: tables\example_six_output.csv
+  :header-rows: 1
+
+.. If the user wants the output file in horizontal format, the user can use the following command:
+
+.. .. code:: bash
+
+..   # This command will write the output file in horizontal format with the name heating-systems.xlsx
+..   ebm --horizontal heating-systems output/heating-systems.xlsx
 
 
 .. Energibruk fritidsboliger
@@ -190,10 +220,14 @@ The energy consumption is calculated by multiplying the energy requirements from
 
   # This is the default cammand, where the output file is energy-use-vertical.xlsx located
   # in the output directory
-  ebm energy-use output/energy-use-vertical.xlsx`
+  ebm energy-use output/energy-use-vertical.xlsx
 
-  # This command will write the output file in horizontal format with the name energy-use.xlsx
-  ebm --horizontal energy-use output/energy-use.xlsx
+.. csv-table:: Output from using the command above
+  :file: tables\example_seven_output.csv
+  :header-rows: 1
+
+.. # This command will write the output file in horizontal format with the name energy-use.xlsx
+.. ebm --horizontal energy-use output/energy-use.xlsx
 
 
 .. .. math::
@@ -204,12 +238,12 @@ The energy consumption is calculated by multiplying the energy requirements from
 8. Example case
 ^^^^^^^^^^^^^^^
 
-If the user wants to run the program with input files located in another directory, for instance the "kalibrering" directory, the user can use the following command:
+If the user wants to run the program with input files located in another directory, for instance the "calibration" directory, the user can use the following command:
 
 .. code:: bash
   
-  # This command will run the program with input files located in the "kalibrering" directory
-  ebm --input kalibrering energy-use output/energy-use.xlsx
+  # This command will run the program with input files located in the "calibration" directory
+  ebm --input calibration energy-use output/energy-use.xlsx
 
 
 Version: |version|.

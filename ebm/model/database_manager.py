@@ -279,18 +279,21 @@ class DatabaseManager:
         return self.explode_unique_columns(reduction_per_condition,
                                            ['building_category', 'TEK', 'purpose', 'building_condition'])
     
-    def get_energy_req_yearly_improvements(self) -> pd.DataFrame:
+    def get_energy_need_yearly_improvements(self) -> pd.DataFrame:
         """
-        Get dataframe with yearly efficiency rates for energy requirement improvements. This
+        Get dataframe with yearly efficiency rates for energy need improvements. This
         function calls explode_unique_columns to expand building_category and TEK as necessary.
+
+        The column yearly_efficiency_improvement is expected to contain the yearly reduction as
+        a float between 0.1 and 1.0.
 
         Returns
         -------
         pd.DataFrame
-            Dataframe containing yearly efficiency rates (%) for energy requirement improvements,
+            Dataframe containing yearly efficiency rates (%) for energy need improvements,
             per building category, tek and purpose.        
         """
-        yearly_improvements = self.file_handler.get_energy_req_yearly_improvements()
+        yearly_improvements = self.file_handler.get_energy_need_yearly_improvements()
         return self.explode_unique_columns(yearly_improvements, ['building_category', 'TEK', 'purpose'])
     
     def get_energy_req_policy_improvements(self) -> pd.DataFrame:

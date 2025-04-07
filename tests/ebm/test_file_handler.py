@@ -39,7 +39,7 @@ def test_check_for_missing_files_return_list(tmp_path):
     assert 'energy_need_behaviour_factor.csv' in missing_files
     assert 'energy_requirement_original_condition.csv' in missing_files
     assert 'energy_requirement_reduction_per_condition.csv' in missing_files
-    assert 'energy_requirement_yearly_improvements.csv' in missing_files
+    assert 'energy_need_yearly_improvements.csv' in missing_files
     assert 'energy_requirement_policy_improvements.csv' in missing_files
     assert 'holiday_home_energy_consumption.csv' in missing_files
     assert 'holiday_home_by_year.csv' in missing_files
@@ -115,7 +115,7 @@ def test_filehandler_create_missing_input_files(tmp_path):
     assert (input_directory / 'area_parameters.csv').is_file()
     assert (input_directory / 'energy_requirement_original_condition.csv').is_file()
     assert (input_directory / 'energy_requirement_reduction_per_condition.csv').is_file()
-    assert (input_directory / 'energy_requirement_yearly_improvements.csv').is_file()
+    assert (input_directory / 'energy_need_yearly_improvements.csv').is_file()
     assert (input_directory / 'energy_requirement_policy_improvements.csv').is_file()
     assert (input_directory / 'holiday_home_energy_consumption.csv').is_file()
     assert (input_directory / 'heating_systems_shares_start_year.csv').is_file()

@@ -452,7 +452,7 @@ energy_requirement_reduction_per_condition = pa.DataFrameSchema(
 )
 
 
-energy_requirement_yearly_improvements = pa.DataFrameSchema(
+energy_need_yearly_improvements = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
         'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),

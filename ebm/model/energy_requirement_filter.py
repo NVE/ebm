@@ -424,7 +424,7 @@ class EnergyRequirementFilter:
         dm = database_manager if isinstance(database_manager, DatabaseManager) else DatabaseManager()
         original_condition = dm.get_energy_req_original_condition()
         reduction_per_condition = dm.get_energy_req_reduction_per_condition()
-        yearly_improvements = dm.get_energy_req_yearly_improvements()
+        yearly_improvements = dm.get_energy_need_yearly_improvements()
         policy_improvement = dm.get_energy_req_policy_improvements()
         return EnergyRequirementFilter(building_category=building_category,
                                        original_condition=original_condition,

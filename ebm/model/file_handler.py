@@ -28,7 +28,7 @@ class FileHandler:
     BEHAVIOUR_FACTOR = 'energy_need_behaviour_factor.csv'
     ENERGY_REQ_ORIGINAL_CONDITION = 'energy_requirement_original_condition.csv'
     ENERGY_REQ_REDUCTION_CONDITION = 'energy_requirement_reduction_per_condition.csv'
-    ENERGY_REQ_YEARLY_IMPROVEMENTS = 'energy_requirement_yearly_improvements.csv'
+    ENERGY_NEED_YEARLY_IMPROVEMENTS = 'energy_need_yearly_improvements.csv'
     ENERGY_REQ_POLICY_IMPROVEMENTS = 'energy_requirement_policy_improvements.csv'
     HOLIDAY_HOME_BY_YEAR = 'holiday_home_by_year.csv'
     HOLIDAY_HOME_ENERGY_CONSUMPTION = 'holiday_home_energy_consumption.csv'
@@ -59,7 +59,7 @@ class FileHandler:
         self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
                                self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
                                self.AREA_PARAMETERS, self.BEHAVIOUR_FACTOR, self.ENERGY_REQ_ORIGINAL_CONDITION,
-                               self.ENERGY_REQ_REDUCTION_CONDITION, self.ENERGY_REQ_YEARLY_IMPROVEMENTS,
+                               self.ENERGY_REQ_REDUCTION_CONDITION, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
                                self.ENERGY_REQ_POLICY_IMPROVEMENTS,
                                self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_BY_YEAR,
                                self.AREA_PER_PERSON, self.HS_SHARES_START_YEAR, self.HS_EFFICIENCIES, self.HS_PROJECTION]
@@ -239,7 +239,7 @@ class FileHandler:
         """
         return self.get_file(self.ENERGY_REQ_REDUCTION_CONDITION)
     
-    def get_energy_req_yearly_improvements(self) -> pd.DataFrame:
+    def get_energy_need_yearly_improvements(self) -> pd.DataFrame:
         """
         Get dataframe with yearly efficiency rates for energy requirement improvements.
 
@@ -249,7 +249,7 @@ class FileHandler:
             Dataframe containing yearly efficiency rates (%) for energy requirement improvements,
             per building category, tek and purpose.
         """
-        return self.get_file(self.ENERGY_REQ_YEARLY_IMPROVEMENTS)
+        return self.get_file(self.ENERGY_NEED_YEARLY_IMPROVEMENTS)
     
     def get_energy_req_policy_improvements(self) -> pd.DataFrame:
         """

@@ -17,10 +17,10 @@ def yearly_reduction(x):
     if x.year < x.period_start_year:
         return 1.0
     if x.year > x.period_end_year:
-        return round(1.0 - x.improvement_at_period_end, 5)
+        return round(1.0 - x.improvement_at_period_end, 15)
     ls = np.linspace(1.0, 1.0 - x.improvement_at_period_end, int(x.period_end_year - x.period_start_year + 1.0))[
         x.year_no]
-    return round(ls, 3)  # x.year_no.astype(int)
+    return round(ls, 15)  # x.year_no.astype(int)
 
 
 

@@ -132,8 +132,7 @@ class EnergyRequirement:
         yearly_improvement.loc[:, 'efficiency_start_year'] = model_years.start
         if 'year' not in yearly_improvement.columns:
             yearly_improvement = pd.merge(yearly_improvement, pd.DataFrame({'year': model_years}), how='cross')
-        yearly_reduction_factor = self.calculate_reduction_yearly(policy_improvement_factor, yearly_improvement)
-
+        yearly_reduction_factor = yearly_improvement
         merged = self.merge_energy_requirement_reductions(condition_factor, yearly_reduction_factor, policy_improvement_factor)
 
         return merged
@@ -148,7 +147,9 @@ class EnergyRequirement:
                             on=['building_category', 'TEK', 'purpose', 'year'],
                             how='left')
         merged = m_nrg_yi.copy()
-        merged.loc[:, 'reduction_yearly'] = merged.loc[:, 'reduction_yearly'].fillna(1.0)
+        merged.loc[:, 'yearly_reduction_factor'] = merged.loc[:, 'yearly_reduction_factor'].fillna(1.0)
+        merged.loc[:, 'reduction_yearly'] = merged.loc[:, 'yearly_reduction_factor']
+
         merged.loc[:, 'reduction_policy'] = merged.loc[:, 'reduction_policy'].fillna(1.0)
         merged['reduction_condition'] = merged['reduction_condition'].fillna(1.0)
         merged['reduced_kwh_m2'] = (merged['kwh_m2'] * merged['reduction_condition'].fillna(1.0) *

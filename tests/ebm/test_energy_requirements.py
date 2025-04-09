@@ -15,8 +15,8 @@ def test_calculate_reduction_with_policy_improvement():
     dm = DatabaseManager()
 
     dm.get_energy_need_yearly_improvements = Mock(return_value=pd.DataFrame(
-        data=[['house', 'TEK01', 'lighting', y, 0.1 if y > 2015 else 0.0, 2015, 2017] for y in period],
-        columns=['building_category', 'TEK', 'purpose', 'year', 'yearly_efficiency_improvement', 'start_year', 'end_year']))
+        data=[['house', 'TEK01', 'lighting', y, (0.9**(y-2015)) if y > 2015 else 1.0, 2015, 2017] for y in period],
+        columns=['building_category', 'TEK', 'purpose', 'year', 'yearly_reduction_factor', 'start_year', 'end_year']))
 
     dm.get_energy_req_policy_improvements = Mock(return_value=pd.DataFrame(
         data=[['house', 'TEK01', 'lighting',
@@ -65,8 +65,8 @@ def test_calculate_reduction_with_yearly_reduction():
     dm = DatabaseManager()
 
     dm.get_energy_need_yearly_improvements = Mock(return_value=pd.DataFrame(
-        data=[['house', 'TEK01', 'electrical_equipment', 0.1, 2010, 2022]],
-        columns=['building_category', 'TEK', 'purpose', 'yearly_efficiency_improvement', 'start_year', 'end_year']))
+        data=[['house', 'TEK01', 'electrical_equipment', y, (0.9**(y-period.start))] for y in period],
+        columns=['building_category', 'TEK', 'purpose', 'year', 'yearly_reduction_factor']))
 
     dm.get_energy_req_policy_improvements = Mock(return_value=pd.DataFrame(
         data=[['house', 'TEK01', 'lighting', 2010, 2020, 0.6]],
@@ -117,9 +117,9 @@ def test_calculate_reduction_with_yearly_reduction_with_year():
 
     dm.get_energy_need_yearly_improvements = Mock(return_value=pd.DataFrame(
         data=
-        [['house', 'TEK01', 'electrical_equipment', y, 0.1, 2010, 2022] for y in period] +
-        [['house', 'TEK01', 'lighting', y, 0.1, 2020, 2022] for y in period],
-        columns=['building_category', 'TEK', 'purpose', 'year', 'yearly_efficiency_improvement', 'start_year', 'end_year']))
+        [['house', 'TEK01', 'electrical_equipment', y, (0.9**(y-period.start))] for y in period] +
+        [['house', 'TEK01', 'lighting', y, (0.9**(y-2020))] for y in period.subset(10)],
+        columns=['building_category', 'TEK', 'purpose', 'year', 'yearly_reduction_factor']))
 
     dm.get_energy_req_policy_improvements = Mock(return_value=pd.DataFrame(
         data=[['house', 'TEK01', 'lighting', 2010, 2020, 0.6]],
@@ -178,7 +178,7 @@ def test_calculate_reduction_by_condition():
 
     dm.get_energy_need_yearly_improvements = Mock(
         return_value=pd.DataFrame(data=[['house', 'TEK01', EnergyPurpose.ELECTRICAL_EQUIPMENT, 0.1, 2020, 2025]],
-            columns=['building_category', 'TEK', 'purpose', 'yearly_efficiency_improvement', 'start_year', 'end_year']))
+            columns=['building_category', 'TEK', 'purpose', 'yearly_reduction_factor', 'year', 'end_year']))
 
     dm.get_energy_req_policy_improvements = Mock(
         return_value=pd.DataFrame(data=[['house', 'TEK01', 'lighting', 2020, 2024, 0.1]],
@@ -233,7 +233,7 @@ def test_calculate_reduction_by_behavior():
 
     dm.get_energy_need_yearly_improvements = Mock(
         return_value=pd.DataFrame(data=[['house', 'TEK01', EnergyPurpose.ELECTRICAL_EQUIPMENT, 0.1, 2020, 2025]],
-            columns=['building_category', 'TEK', 'purpose', 'yearly_efficiency_improvement', 'start_year', 'end_year']))
+            columns=['building_category', 'TEK', 'purpose', 'yearly_reduction_factor', 'year', 'end_year']))
 
     dm.get_energy_req_policy_improvements = Mock(
         return_value=pd.DataFrame(data=[['house', 'TEK01', 'lighting', 2020, 2024, 0.1]],
@@ -286,9 +286,9 @@ def test_calculate_energy_requirements():
 
     dm.get_energy_need_yearly_improvements = Mock(
         return_value=pd.DataFrame(data=
-            [['house', 'TEK01', EnergyPurpose.ELECTRICAL_EQUIPMENT, y, 0.2, 2020, 2025] for y in period] +
-            [['house', 'TEK01', EnergyPurpose.LIGHTING, y, 0.1, 2023, 2025] for y in period.subset(3)],
-            columns=['building_category', 'TEK', 'purpose', 'year', 'yearly_efficiency_improvement', 'start_year', 'end_year']))
+            [['house', 'TEK01', EnergyPurpose.ELECTRICAL_EQUIPMENT, y, (0.8**(y-2020)), 2020, 2025] for y in period] +
+            [['house', 'TEK01', EnergyPurpose.LIGHTING, y, (0.9**(y-2023)), 2023, 2025] for y in period.subset(3)],
+            columns=['building_category', 'TEK', 'purpose', 'year', 'yearly_reduction_factor', 'start_year', 'end_year']))
 
     dm.get_energy_req_policy_improvements = Mock(
         return_value=pd.DataFrame(data=[['house', 'TEK01', 'lighting', 2021, 2023, 0.5]],
@@ -383,11 +383,11 @@ def test_calculate_energy_requirements_with_multiple_teks():
 
     dm.get_energy_need_yearly_improvements = Mock(
         return_value=pd.DataFrame(
-            data=[['house', 'TEK01', EnergyPurpose.ELECTRICAL_EQUIPMENT, 0.01, y,period.start, period.end] for y in period]+
-                 [['house', 'TEK02', EnergyPurpose.ELECTRICAL_EQUIPMENT, 0.02, y,period.start, period.end] for y in period]+
-                 [['house', 'TEK01', EnergyPurpose.LIGHTING, 0.1, y, 2023, period.end] for y in period.subset(2)]+
-                 [['house', 'TEK02', EnergyPurpose.LIGHTING, 0.2, y, 2023, period.end] for y in period.subset(2)],
-            columns=['building_category', 'TEK', 'purpose', 'yearly_efficiency_improvement', 'year', 'start_year', 'end_year']))
+            data=[['house', 'TEK01', EnergyPurpose.ELECTRICAL_EQUIPMENT, (0.99**(y-period.start)), y,period.start, period.end] for y in period]+
+                 [['house', 'TEK02', EnergyPurpose.ELECTRICAL_EQUIPMENT, (0.98**(y-period.start)), y,period.start, period.end] for y in period]+
+                 [['house', 'TEK01', EnergyPurpose.LIGHTING, (0.9**(y-2023)), y, 2023, period.end] for y in period.subset(2)]+
+                 [['house', 'TEK02', EnergyPurpose.LIGHTING, (0.8**(y-2023)), y, 2023, period.end] for y in period.subset(2)],
+            columns=['building_category', 'TEK', 'purpose', 'yearly_reduction_factor', 'year', 'start_year', 'end_year']))
 
     dm.get_energy_req_policy_improvements = Mock(
         return_value=pd.DataFrame(data=[

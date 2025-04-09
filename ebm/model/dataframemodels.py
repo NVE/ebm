@@ -20,19 +20,21 @@ class EnergyNeedYearlyImprovements(pa.DataFrameModel):
         unique = ['building_category', 'TEK', 'purpose', 'start_year', 'end_year']
 
 
-class EnergyNeedYearlyReduction(pa.DataFrameModel):
+class YearlyReduction(pa.DataFrameModel):
     building_category: Series[str]
     TEK: Series[str]
     purpose: Series[str]
     year: Series[int]
     yearly_efficiency_improvement: Series[float] = pa.Field(ge=0.0, coerce=True)
+    yearly_reduction_factor: Series[float] = pa.Field(ge=0.0, coerce=True)
 
     class Config:
         unique = ['building_category', 'TEK', 'purpose', 'year']
 
 
     @staticmethod
-    def from_energy_need_yearly_improvements(en_yearly_improvement: DataFrameBase[EnergyNeedYearlyImprovements]) -> 'DataFrameBase[EnergyNeedYearlyReduction]':
+    def from_energy_need_yearly_improvements(
+            en_yearly_improvement: DataFrameBase[EnergyNeedYearlyImprovements]|EnergyNeedYearlyImprovements) -> 'DataFrameBase[YearlyReduction]':
         """
         Transforms a EnergyNeedYearlyImprovement DataFrame into a EnergyNeedYearlyReduction DataFrame.
 
@@ -42,7 +44,7 @@ class EnergyNeedYearlyReduction(pa.DataFrameModel):
 
         Returns
         -------
-        DataFrameBase[EnergyNeedYearlyReduction]
+        DataFrameBase[YearlyReduction]
 
         Raises
         ------
@@ -67,8 +69,12 @@ class EnergyNeedYearlyReduction(pa.DataFrameModel):
 
         en_yearly_improvement = en_yearly_improvement.explode(['year'])
         en_yearly_improvement['year'] = en_yearly_improvement['year'].astype(int)
+        en_yearly_improvement.loc[:, 'yearly_reduction_factor'] = (1.0-en_yearly_improvement.loc[:, 'yearly_efficiency_improvement'])**(1.0+en_yearly_improvement.loc[:, 'year']-en_yearly_improvement.loc[:, 'start_year']).astype(float)
+
         en_yearly_improvement = en_yearly_improvement[['building_category', 'TEK', 'purpose',
-                                                          'year', 'start_year', 'end_year',
-                                                          'yearly_efficiency_improvement']]
-        return EnergyNeedYearlyReduction.validate(en_yearly_improvement, lazy=True)
+                                                       'year', 'start_year', 'end_year',
+                                                       'yearly_efficiency_improvement',
+                                                       'yearly_reduction_factor']]
+
+        return YearlyReduction.validate(en_yearly_improvement, lazy=True)
 

@@ -7,7 +7,7 @@ import pandas as pd
 from ebm import validators
 from ebm.energy_consumption import calibrate_heating_systems
 from ebm.model.column_operations import explode_building_category_column, explode_tek_column, explode_unique_columns
-from ebm.model.dataframemodels import EnergyNeedYearlyImprovements, EnergyNeedYearlyReduction
+from ebm.model.dataframemodels import EnergyNeedYearlyImprovements, YearlyReduction
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.file_handler import FileHandler
 from ebm.model.building_category import BuildingCategory, expand_building_categories
@@ -296,7 +296,7 @@ class DatabaseManager:
         """
         yearly_improvements = self.file_handler.get_energy_need_yearly_improvements()
         improvements = EnergyNeedYearlyImprovements.validate(yearly_improvements)
-        eny = EnergyNeedYearlyReduction.from_energy_need_yearly_improvements(improvements)
+        eny = YearlyReduction.from_energy_need_yearly_improvements(improvements)
         return eny
     
     def get_energy_req_policy_improvements(self) -> pd.DataFrame:

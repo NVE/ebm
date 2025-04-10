@@ -133,7 +133,6 @@ def test_get_get_energy_req_original_condition_expand_unique_columns():
 
 
 @pytest.mark.parametrize('simple_get,unique_columns',[
-    ('get_energy_req_policy_improvements', ('building_category', 'TEK', 'purpose')),
     ('get_energy_req_reduction_per_condition', ('building_category', 'TEK', 'purpose', 'building_condition'))])
 def test_method_use_and_return_through_expand_unique_columns(simple_get, unique_columns):
     file_handler_df = pd.DataFrame(data=[['default', 'default', 'lighting', 2010, 2040, 0.6], ],

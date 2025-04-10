@@ -120,7 +120,7 @@ def test_new_instance():
     expected_original_condition = dm.get_energy_req_original_condition()
     expected_reduction_per_condition = dm.get_energy_req_reduction_per_condition()
     expected_yearly_improvements = dm.get_energy_need_yearly_improvements()
-    expected_policy_improvement = dm.get_energy_req_policy_improvements()
+    expected_policy_improvement = dm.get_energy_need_policy_improvement()
 
     assert isinstance(energy_requirement_filter, EnergyRequirementFilter)
     assert energy_requirement_filter.building_category == building_category

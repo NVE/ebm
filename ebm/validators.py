@@ -461,7 +461,7 @@ energy_need_yearly_improvements = pa.DataFrameSchema(
                                                    checks=[pa.Check.between(min_value=0.0, include_min=True,
                                                                             max_value=1.0, include_max=True)])
     },
-    unique=['building_category', 'TEK', 'purpose'],
+    unique=['building_category', 'TEK', 'purpose', 'start_year', 'function', 'end_year'],
     report_duplicates='all'
 )
 

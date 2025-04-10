@@ -19,4 +19,8 @@ Here is the full, generated documentation of the code:
   
   modules/ebm
 
+.. |date| date::
+
+Last Updated on |date|.
+
 Version: |version|.

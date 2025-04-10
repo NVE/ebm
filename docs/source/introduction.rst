@@ -20,5 +20,8 @@ Target Audience
 
 This framework is intended for analysts in the energy sector. 
 
+.. |date| date::
+
+Last Updated on |date|.
 
 Version: |version|.

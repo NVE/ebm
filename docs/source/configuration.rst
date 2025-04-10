@@ -21,4 +21,8 @@ It's recommended to set up the environment in the following way:
 
 ...
 
+.. |date| date::
+
+Last Updated on |date|.
+
 Version: |version|.

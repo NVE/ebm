@@ -79,5 +79,8 @@ Once the HTML documentation is built, it needs to be hosted on a web server so t
 
 By following these steps, you ensure that the project documentation is up-to-date and accessible to everyone involved.
 
+.. |date| date::
+
+Last Updated on |date|.
 
 Version: |version|.

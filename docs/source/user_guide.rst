@@ -245,5 +245,8 @@ If the user wants to run the program with input files located in another directo
   # This command will run the program with input files located in the "calibration" directory
   ebm --input calibration energy-use output/energy-use.xlsx
 
+.. |date| date::
+
+Last Updated on |date|.
 
 Version: |version|.

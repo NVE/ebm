@@ -1,3 +1,4 @@
+import pathlib
 from typing import List
 
 import pandas as pd
@@ -57,7 +58,7 @@ def explode_tek_column(df: pd.DataFrame, unique_columns: List[str],
             The DataFrame with exploded 'TEK' columns.
         """
     # Hvor skal tek_list hentes fra?
-    tek_list = pd.read_csv('input/TEK_ID.csv')['TEK'].unique() if default_tek is None else default_tek
+    tek_list = pd.read_csv(pathlib.Path(__file__).parent.parent / 'data' / 'TEK_ID.csv')['TEK'].unique() if default_tek is None else default_tek
     df = explode_column_alias(df=df,
                               column='TEK',
                               values=tek_list,

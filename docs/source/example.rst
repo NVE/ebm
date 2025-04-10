@@ -239,3 +239,9 @@ tegn for overskrift
    -, for subsections 4
    ^, for subsubsections 5
    ", for paragraphs 6
+
+.. |date| date::
+
+Last Updated on |date|.
+
+Version: |version|.

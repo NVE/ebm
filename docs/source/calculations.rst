@@ -117,4 +117,8 @@ When the model is run the excel file updates without having to close the file.
 
       <br>
 
+.. |date| date::
+
+Last Updated on |date|.
+
 Version: |version|.

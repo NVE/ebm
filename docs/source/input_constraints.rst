@@ -303,4 +303,8 @@ heating_systems_shares_start_year
  - string
  - value: 'Electricity', 'Electricity - Bio', 'Electric boiler', 'Electric boiler - Solar', 'Gas', 'DH', 'DH - Bio
 
+.. |date| date::
+
+Last Updated on |date|.
+
  Version: |version|.

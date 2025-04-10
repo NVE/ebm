@@ -28,4 +28,8 @@ Various terms
   :widths: 10 10 30 30
   :delim: ;
 
+.. |date| date::
+
+Last Updated on |date|.
+
 Version: |version|.

@@ -15,9 +15,11 @@ Submodules
    ebm.model.buildings
    ebm.model.calibrate_energy_requirements
    ebm.model.calibrate_heating_systems
+   ebm.model.column_operations
    ebm.model.construction
    ebm.model.data_classes
    ebm.model.database_manager
+   ebm.model.dataframemodels
    ebm.model.defaults
    ebm.model.energy_purpose
    ebm.model.energy_requirement

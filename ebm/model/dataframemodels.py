@@ -59,28 +59,32 @@ class YearlyReduction(pa.DataFrameModel):
 
         """
         unique_columns = ['building_category', 'TEK', 'purpose', 'start_year', 'end_year']
-        en_yearly_improvement = explode_unique_columns(en_yearly_improvement,
+
+        # Casting en_yearly_improvement to DataFrame so that type checkers complaining about datatype
+        df = cast(pd.DataFrame, en_yearly_improvement)
+        df = explode_unique_columns(df,
                                                        unique_columns=unique_columns)
 
-        en_yearly_improvement = explode_column_alias(en_yearly_improvement,
+        df = explode_column_alias(df,
                                                      column='purpose',
                                                      values=[p for p in EnergyPurpose],
                                                      alias='default',
                                                      de_dup_by=unique_columns)
 
-        en_yearly_improvement['year']: pa.typing.DataFrame = en_yearly_improvement.apply(
-            lambda row: range(row.start_year, row.end_year + 1), axis=1)
+        df['year']: pa.typing.DataFrame = df.apply(lambda row: range(row.start_year, row.end_year + 1), axis=1)
 
-        en_yearly_improvement = en_yearly_improvement.explode(['year'])
-        en_yearly_improvement['year'] = en_yearly_improvement['year'].astype(int)
-        en_yearly_improvement.loc[:, 'yearly_reduction_factor'] = (1.0-en_yearly_improvement.loc[:, 'yearly_efficiency_improvement'])**(1.0+en_yearly_improvement.loc[:, 'year']-en_yearly_improvement.loc[:, 'start_year']).astype(float)
+        df = df.explode(['year'])
+        df['year'] = df['year'].astype(int)
+        df.loc[:, 'yearly_reduction_factor'] = (
+            1.0-df.loc[:, 'yearly_efficiency_improvement'])**(1.0+df.loc[:, 'year']-df.loc[:, 'start_year'])
 
-        en_yearly_improvement = en_yearly_improvement[['building_category', 'TEK', 'purpose',
+        df.yearly_reduction_factor = df.yearly_reduction_factor.astype(float)
+        df = df[['building_category', 'TEK', 'purpose',
                                                        'year', 'start_year', 'end_year',
                                                        'yearly_efficiency_improvement',
                                                        'yearly_reduction_factor']]
 
-        return YearlyReduction.validate(en_yearly_improvement, lazy=True)
+        return YearlyReduction.validate(df, lazy=True)
 
 
 class PolicyImprovement(pa.DataFrameModel):

@@ -4,7 +4,6 @@ from typing import cast
 import pandas as pd
 import pytest
 
-from ebm.model.building_category import BuildingCategory
 from ebm.model.dataframemodels import YearlyReduction, EnergyNeedYearlyImprovements, PolicyImprovement
 
 
@@ -12,7 +11,7 @@ def test_from_energy_need_yearly_improvements():
     dfm = EnergyNeedYearlyImprovements(pd.DataFrame(
         data=[
             ['house', 'TEK1', 'lighting', 0.2, 2021, 'yearly_reduction', 2023],
-            ['house', 'TEK1', 'heating_rv', 1.0, 2020, 'improvement_at_end_year', 2050]
+            ['house', 'TEK1', 'heating_rv', 1.0, 2021, 'improvement_at_end_year', 2023]
         ],
         columns='building_category,TEK,purpose,yearly_efficiency_improvement,start_year,function,end_year'.split(',')
     ))
@@ -64,11 +63,11 @@ house,TEK01,electrical_equipment,0.8,2025,improvement_at_end_year,2029
     assert el_eq.policy_improvement_factor.round(8).tolist() == expected_policy_improvement_factor
 
 
-
 def test_from_energy_need_policy_improvement_explode_groups():
     csv_file="""building_category,TEK,purpose,yearly_efficiency_improvement,start_year,function,end_year
 residential,TEK01+TEK02,lighting,0.1,2020,improvement_at_end_year,2021
 non_residential,TEK02,default,0.2,2020,improvement_at_end_year,2021
+non_residential,TEK02,default,0.2,2020,yearly_reduction,2021
     """.strip()
     #
     df_input = pd.read_csv(io.StringIO(csv_file))
@@ -106,8 +105,6 @@ non_residential,TEK02,default,0.2,2020,improvement_at_end_year,2021
     assert 'fans_and_pumps' in non_residential.index.get_level_values(level='purpose')
     assert 'electrical_equipment' in non_residential.index.get_level_values(level='purpose')
     assert 'lighting' in non_residential.index.get_level_values(level='purpose')
-
-
 
 
 if __name__ == '__main__':

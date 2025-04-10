@@ -1,0 +1,32 @@
+﻿English;Norwegian;Norwegian explanation;Explanation
+Heating systems;Oppvarmingsløsninger;Kombinasjon av en eller flere oppvarmingsteknologier. Er en andel som summerer seg til 1 innenfor hver kombinasjon av TEK og bygningskategori.  ;Combination of one or more heating technologies. A fraction which adds up to 1 for each combination of TEK and building category. 
+Base load;Grunnlast;Oppvarmingsteknologien som dekker majoriteten av oppvarmingsbehovet.;The heating technology covering the majority of the heating need. 
+Peak load;Spisslast;Oppvarmingsteknologiensom dekker det resterende oppvarmingsbehovet.;The heating technology covering the remaining heating need. 
+Tertiary load;Ekstralast;Oppvarmingsteknologien som dekker det resterende oppvarmingsbehovet etter grunnlast og spisslast. ;The heating technology covering the remaining heating need after base and peak load. 
+Base load energy product;Grunnlast energivare;Energivaren som brukes avgrunnlasten. ;The energy carrier used by the base load. 
+Peak load energy product;Spisslast energivare;Energivaren som brukes av spisslasten. ;The energy carrier used by the peak load. 
+Tertiary load energy product;Ekstralast energivare;Energivaren som brukes av ekstralasten. ;The energy carrier used by the tertiary load. 
+Base load coverage;Grunnlast andel;Andelen av varmebehovet som dekkes av grunnlasten.;Share of the heating need covered by the base load.
+Peak load coverage;Spisslast andel;Andelen av varmebehovet som dekkes av spisslasten.;Share of the heating need covered by the peak load.
+Tertiary load utilisation factor;Ekstralast andel;Andelen av varmebehovet som dekkes av ekstralasten.;Share of the heating need covered by the tertiary load. 
+Base load efficiency;Grunnlast virkningsgrad;Virkningsgrad, kan være over eller under 1. ;Efficiency factor, can be smaller or larger than 1
+Peak load efficiency;Spisslast virkningsgrad;Virkningsgrad, kan være over eller under 1. ;Efficiency factor, can be smaller or larger than 1.
+Tertiary load efficiency ;Ekstralast virkningsgrad;Virkningsgrad, kan være over eller under 1. ;Efficiency factor, can be smaller or larger than 1
+Domestic hot water;Tappevann;Oppvarming av varmt vann til tappevannsbruk.;Heating of domestic hot water. 
+Domestic hot water energy product ;Tappevann energivare;Hvilken energivare som brukes til å varme opp varmt tappevann. ;Energy product used by the heating technology providing hot tap water.
+Domestic hot water efficiency;Tappevann virkningsgrad;Virkningsgrad for teknologien som brukes til å varme opp varmt tappevann. ;Efficiency factor for the technology providing hot tap water.
+Cooling efficiency;Kjøling virkingsgrad;Virkningsgrad for kjølemaskin.;Efficiency factor for cooling unit.
+Cooling;Kjøling;Kjølemaskin. ;Cooling unit.
+Direct resistance heating;Direktevirkende elektristiet. ;Direktevirkende elektrisk oppvarming. For eksempel panelovn og vifteovn. Punktoppvarming. ;Direct resistance heating. For example electric wall heater or convection ovens. Space heating. 
+Electric boiler;Elkjel;Elkjel. Vannbåren varme. ;Electric boiler. Water  borne heating.
+District heating;Fjernvarme;Fjernvarme. Vannbåren varme. ;District heating. Water borne heating. 
+Gas boiler;Gasskjel;Naturgasskjel. Vannbåren varme. ;Natural gas boiler. Water borne heating.
+Direct resistance heating – Wood stove;Direktevirkende elektristet - Vedovn;Direktevirkende elektrisitet og vedovn. Punktoppvarming. ;Direct resistance heating and wood stove. Space heating.  
+District heating – Wood stove;Fjernvarme – Vedovn;Fjernvarme og vedovn. Vannbåren varme og punktoppvarming. ;District heating and wood stove. Water borne heating and space heating. 
+Heat pump air air – direct resistance heating – wood stove;Luft luft varmepumpe – Direktevirkende elektrisitet – Vedovn;Luft luft varmepumpe, vedovn og panelovn (evt varmekabler). Punktoppvarming. ;Heat pump air air, wood stove and direct resistance heating. Space heating. 
+Heat pump air air – Direct resistance heating;Luft luft varmepumpe – Direktevirkende elektrisitet;Luft luft varmepumpe og direktevirkende elektrisitet. Punktoppvarming. ;Heat pump air air and direct resistance heating. Space heating
+Heat pump central heating – Electric boiler;Vannbåren varmepumpe – Elkjel;Vannbåren varmepumpe (væske – vann eller luft – vann) og elkjel. Vannbåren varme. ;Water borne heat pump and electric boiler. Water borne heating. 
+Heat pump central heating – Gas boiler;Vannbåren varmepumpe – Naturgasskjel;Vannbåren varmepumpe og fossilkjel. Vannbåren varme. ;Water borne heat pump and fossil boiler. Water borne heating. 
+Electric boiler – Solar collector;Elkjel – Solfanger;Elkjel og solfanger. Vannbåren varme.;Electric boiler and solar collector. Water borne heating.
+Heat pump central heating – Wood stove;Vannbåren varmepumpe - Vedovn;Vannbåren varmepumpe og vedovn. Vannbåren varme og punktoppvarming. ;Water borne heat pump and wood stove. Water borne heating and space heating.
+Heat pump central heating;Vannbåren varmepumpe;Samlebetegnelse for luft-vann, væske-vann (bergvarme, jordvarme eller sjøvarme) og ventilasjonsvarmepumpe. ;Term for different types of heat pumps delivering hot water such as air-water, liquid-water (ground heat, ocean heat) and ventilation heat pumps. 

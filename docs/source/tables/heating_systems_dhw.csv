@@ -1,0 +1,13 @@
+﻿Heating systems;Domestic hot water;Domestic hot water efficiency
+Electric boiler;Electric boiler;0.98
+DH;DH;0.99
+Electricity;Electricity;0.98
+Gas;Gas;0.96
+Electricity - Bio;Electricity;0.98
+DH - Bio;DH;0.99
+HP - Bio - Electricity;Electricity;0.98
+HP - Electricity;Electricity;0.98
+HP Central heating - Electric boiler;HP Central heating;3.0
+HP Central heating - Gas;HP Central heating;3.0
+Electric boiler - Solar;Electric boiler;0.98
+HP Central heating - Bio;HP Central heating;3.0

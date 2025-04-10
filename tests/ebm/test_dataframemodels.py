@@ -1,10 +1,10 @@
+import io
 from typing import cast
 
 import pandas as pd
 import pytest
 
-from ebm.model.dataframemodels import YearlyReduction, EnergyNeedYearlyImprovements
-
+from ebm.model.dataframemodels import YearlyReduction, EnergyNeedYearlyImprovements, PolicyImprovement
 
 
 def test_from_energy_need_yearly_improvements():
@@ -29,6 +29,37 @@ def test_from_energy_need_yearly_improvements():
 
     actual_yearly_reduction_factor = df['yearly_reduction_factor']
     pd.testing.assert_series_equal(actual_yearly_reduction_factor, expected_yearly_reduction_factor)
+
+
+def test_from_energy_need_policy_improvement():
+    csv_file="""building_category,TEK,purpose,yearly_efficiency_improvement,start_year,function,end_year
+default,default,lighting,0.005,2031,yearly_reduction,2050
+default,default,lighting,0.5555555555555556,2020,improvement_at_end_year,2030
+default,default,electrical_equipment,0.8,2025,improvement_at_end_year,2029
+    """.strip()
+    df_input = pd.read_csv(io.StringIO(csv_file))
+    df = PolicyImprovement.from_energy_need_yearly_improvements(EnergyNeedYearlyImprovements(df_input))
+
+    assert isinstance(df, pd.DataFrame), f'Expected df to be a DataFrame. Was: {type(df)}'
+    df = cast(pd.DataFrame, df).set_index(['building_category','TEK','purpose','year'])
+
+    actual_years = set(df.loc[('default', 'default', 'lighting', slice(None))].index.get_level_values(level='year'))
+    expected_years = {2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030}
+
+    assert actual_years == expected_years
+
+    lighting = df.query('purpose=="lighting"')
+
+    assert (lighting.improvement_at_end_year == 0.5555555555555556).all()
+
+    expected_policy_improvement_factor = [1., 0.94444444, 0.88888889, 0.83333333, 0.77777778,
+                                          0.72222222, 0.66666667, 0.61111111, 0.55555556, 0.5,
+                                          0.44444444]
+    assert lighting.policy_improvement_factor.round(8).tolist() == expected_policy_improvement_factor
+
+    el_eq = df.query('purpose=="electrical_equipment"')
+    expected_policy_improvement_factor = [1., 0.8, 0.6, 0.4, 0.2]
+    assert el_eq.policy_improvement_factor.round(8).tolist() == expected_policy_improvement_factor
 
 
 if __name__ == '__main__':

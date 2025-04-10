@@ -1,3 +1,7 @@
+from typing import cast
+
+import numpy as np
+import pandas as pd
 import pandera as pa
 from pandera.typing import Index, DataFrame, Series
 from pandera.typing.common import DataFrameBase
@@ -78,3 +82,29 @@ class YearlyReduction(pa.DataFrameModel):
 
         return YearlyReduction.validate(en_yearly_improvement, lazy=True)
 
+
+class PolicyImprovement(pa.DataFrameModel):
+    building_category: Series[str]
+    TEK: Series[str]
+    purpose: Series[str]
+    year: Series[int]
+    improvement_at_end_year: Series[float] = pa.Field(ge=0.0, coerce=True)
+    policy_improvement_factor: Series[float] = pa.Field(ge=0.0, coerce=True)
+
+    class Config:
+        unique = ['building_category', 'TEK', 'purpose', 'year']
+
+
+    @staticmethod
+    def from_energy_need_yearly_improvements(
+            energy_need_improvements: DataFrameBase[EnergyNeedYearlyImprovements] | EnergyNeedYearlyImprovements) -> 'DataFrameBase[PolicyImprovement]':
+
+        energy_need_improvements = cast(pd.DataFrame, energy_need_improvements)
+        df = energy_need_improvements.query('function=="improvement_at_end_year"')
+        df['year']: pa.typing.DataFrame = df.apply(lambda row: range(row.start_year, row.end_year + 1), axis=1)
+        df['policy_improvement_factor'] = df.apply(lambda x: np.linspace(1.0, 1.0 - x.yearly_efficiency_improvement, int(x.end_year - x.start_year + 1.0)), axis=1)
+        df = df.explode(['year', 'policy_improvement_factor'])
+        df['year'] = df['year'].astype(int)
+        df['improvement_at_end_year'] = df['yearly_efficiency_improvement']
+
+        return PolicyImprovement.validate(df)

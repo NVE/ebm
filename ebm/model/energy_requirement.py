@@ -17,9 +17,10 @@ def yearly_reduction(x):
     if x.year < x.period_start_year:
         return 1.0
     if x.year > x.period_end_year:
-        return 1.0 - x.improvement_at_period_end
-    return np.linspace(1.0, 1.0 - x.improvement_at_period_end, int(x.period_end_year - x.period_start_year + 1.0))[
-        x.year_no]  # x.year_no.astype(int)
+        return round(1.0 - x.improvement_at_period_end, 15)
+    ls = np.linspace(1.0, 1.0 - x.improvement_at_period_end, int(x.period_end_year - x.period_start_year + 1.0))[
+        x.year_no]
+    return round(ls, 15)  # x.year_no.astype(int)
 
 
 
@@ -129,16 +130,26 @@ class EnergyRequirement:
         policy_improvement_factor = self.calculate_reduction_policy(policy_improvement)
 
         yearly_improvement.loc[:, 'efficiency_start_year'] = model_years.start
-        yearly_improvement = pd.merge(yearly_improvement, pd.DataFrame({'year': model_years}), how='cross')
-        yearly_reduction_factor = self.calculate_reduction_yearly(policy_improvement_factor, yearly_improvement)
+        if 'year' not in yearly_improvement.columns:
+            yearly_improvement = pd.merge(yearly_improvement, pd.DataFrame({'year': model_years}), how='cross')
+        yearly_reduction_factor = yearly_improvement
+        merged = self.merge_energy_requirement_reductions(condition_factor, yearly_reduction_factor, policy_improvement_factor)
 
-        merged = self.merge_energy_requirement_reductions(condition_factor, yearly_reduction_factor)
         return merged
 
-    def merge_energy_requirement_reductions(self, condition_factor, yearly_improvements):
-        m_nrg_yi = pd.merge(left=condition_factor, right=yearly_improvements.copy(), how='left')
+    def merge_energy_requirement_reductions(self, condition_factor, yearly_improvements, policy_improvement_factor):
+        m_nrg_yi = pd.merge(left=condition_factor,
+                            right=yearly_improvements.copy(),
+                            on=['building_category', 'TEK', 'purpose', 'year'],
+                            how='left')
+        m_nrg_yi = pd.merge(left=m_nrg_yi,
+                            right=policy_improvement_factor.copy(),
+                            on=['building_category', 'TEK', 'purpose', 'year'],
+                            how='left')
         merged = m_nrg_yi.copy()
-        merged.loc[:, 'reduction_yearly'] = merged.loc[:, 'reduction_yearly'].fillna(1.0)
+        merged.loc[:, 'yearly_reduction_factor'] = merged.loc[:, 'yearly_reduction_factor'].fillna(1.0)
+        merged.loc[:, 'reduction_yearly'] = merged.loc[:, 'yearly_reduction_factor']
+
         merged.loc[:, 'reduction_policy'] = merged.loc[:, 'reduction_policy'].fillna(1.0)
         merged['reduction_condition'] = merged['reduction_condition'].fillna(1.0)
         merged['reduced_kwh_m2'] = (merged['kwh_m2'] * merged['reduction_condition'].fillna(1.0) *
@@ -169,24 +180,17 @@ class EnergyRequirement:
         pd.DataFrame
             DataFrame with the calculated 'reduction_yearly' column and updated entries.
         """
-        yearly_improvements = pd.merge(yearly_improvement, policy_improvement, how='left')
-        period_end_gt_start_year = (
-            yearly_improvements[yearly_improvements.period_end_year > yearly_improvements.efficiency_start_year]).index
-        yearly_improvements.loc[period_end_gt_start_year, 'efficiency_start_year'] = yearly_improvements.loc[
-            period_end_gt_start_year, 'period_end_year']
-        yearly_improvements.loc[:, 'reduce_efficiency_improvement'] = 1.0 - yearly_improvements.loc[:,
-                                                                            'yearly_efficiency_improvement']
-        yearly_improvements.loc[:, 'year_efficiency'] = yearly_improvements.loc[:, 'year'] - yearly_improvements.loc[:,
-                                                                                             'efficiency_start_year']
-        yearly_improvements.loc[:, 'year_efficiency'] = (
-                yearly_improvements.loc[:, 'year'] - yearly_improvements.loc[:, 'efficiency_start_year']).clip(0)
-        yearly_improvements.loc[:, 'reduction_yearly'] = (1.0 - yearly_improvements.loc[:,
-                                                                'yearly_efficiency_improvement']) ** yearly_improvements.loc[
-                                                                                                     :,
-                                                                                                     'year_efficiency']
-        yearly_improvements.loc[:, 'year_efficiency'] = yearly_improvements.loc[:, 'year'] - yearly_improvements.loc[:,
-                                                                                             'efficiency_start_year']
-        return yearly_improvements
+
+        ys = yearly_improvement[yearly_improvement.year >= yearly_improvement.start_year].index
+        yearly_improvement.loc[ys, 'reduction_yearly'] = (1.0 - yearly_improvement.loc[ys,
+                                                                'yearly_efficiency_improvement']) ** (yearly_improvement.loc[ys
+                                                                                                     ,
+                                                                                                     'year'] - yearly_improvement.loc[
+                                                                                                     ys,
+                                                                                                     'start_year'])
+
+        return yearly_improvement
+
 
     def calculate_reduction_policy(self, policy_improvement: pd.DataFrame) -> pd.DataFrame:
         """

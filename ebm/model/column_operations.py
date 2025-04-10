@@ -1,6 +1,7 @@
 from typing import List
 
 import pandas as pd
+from pandera.typing.common import DataFrameBase
 
 from ebm.model.building_category import BuildingCategory
 
@@ -64,7 +65,7 @@ def explode_tek_column(df: pd.DataFrame, unique_columns: List[str],
     return df
 
 
-def explode_unique_columns(df: pd.DataFrame, unique_columns: List[str], default_tek: List[str]|None = None) -> pd.DataFrame:
+def explode_unique_columns(df: pd.DataFrame| DataFrameBase, unique_columns: List[str], default_tek: List[str]|None = None) -> pd.DataFrame:
     """
     Explodes 'TEK' and 'building_category' columns in df.
 

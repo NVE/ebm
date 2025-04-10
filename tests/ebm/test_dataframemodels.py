@@ -10,7 +10,8 @@ from ebm.model.dataframemodels import YearlyReduction, EnergyNeedYearlyImproveme
 def test_from_energy_need_yearly_improvements():
     dfm = EnergyNeedYearlyImprovements(pd.DataFrame(
         data=[
-            ['house', 'TEK1', 'lighting', 0.2, 2021, 'yearly_reduction', 2023]
+            ['house', 'TEK1', 'lighting', 0.2, 2021, 'yearly_reduction', 2023],
+            ['house', 'TEK1', 'heating_rv', 1.0, 2020, 'improvement_at_end_year', 2050]
         ],
         columns='building_category,TEK,purpose,yearly_efficiency_improvement,start_year,function,end_year'.split(',')
     ))

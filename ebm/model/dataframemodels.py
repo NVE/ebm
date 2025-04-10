@@ -62,6 +62,7 @@ class YearlyReduction(pa.DataFrameModel):
 
         # Casting en_yearly_improvement to DataFrame so that type checkers complaining about datatype
         df = cast(pd.DataFrame, en_yearly_improvement)
+        df = en_yearly_improvement.query('function=="yearly_reduction"')
         df = explode_unique_columns(df,
                                                        unique_columns=unique_columns)
 

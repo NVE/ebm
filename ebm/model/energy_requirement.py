@@ -126,8 +126,16 @@ class EnergyRequirement:
                                     on=['building_category', 'TEK', 'building_condition', 'purpose'],
                                     how='left')
 
-        policy_improvement = pd.merge(right=pd.DataFrame({'year': model_years}), left=policy_improvement, how='cross')
-        policy_improvement_factor = self.calculate_reduction_policy(policy_improvement)
+        if 'year' not in policy_improvement.columns:
+            policy_improvement = pd.merge(right=pd.DataFrame({'year': model_years}), left=policy_improvement, how='cross')
+
+        policy_improvement_factor = pd.merge(
+            left=energy_requirements[['building_category', 'TEK', 'purpose', 'year']],
+            right=policy_improvement,
+            on=['building_category', 'TEK', 'purpose', 'year'],
+            how='left')
+        policy_improvement_factor.policy_improvement_factor = policy_improvement_factor.policy_improvement_factor.ffill()
+        policy_improvement_factor['reduction_policy'] = policy_improvement_factor.policy_improvement_factor
 
         yearly_improvement.loc[:, 'efficiency_start_year'] = model_years.start
         if 'year' not in yearly_improvement.columns:
@@ -210,13 +218,7 @@ class EnergyRequirement:
         pd.DataFrame
             DataFrame with the calculated 'reduction_policy' column and updated entries.
         """
-        policy_improvement.loc[:, 'year_no'] = policy_improvement.loc[:, 'year'] - policy_improvement.loc[:,
-                                                                                   'period_start_year']
-        policy_improvement.loc[:, 'year_no'] = policy_improvement.loc[:, 'year_no'].fillna(0)
-        policy_improvement_slice = policy_improvement[~policy_improvement.year_no.isna()].index
-        policy_improvement.loc[policy_improvement_slice, 'reduction_policy'] = policy_improvement.loc[
-            policy_improvement_slice].apply(
-            yearly_reduction, axis=1)
+        policy_improvement['reduction_policy'] = policy_improvement['policy_improvement_factor']
         return policy_improvement
 
     def calculate_reduction_condition(self, reduction_per_condition: pd.DataFrame) -> pd.DataFrame:

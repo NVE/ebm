@@ -15,14 +15,12 @@ def test_calculate_reduction_with_policy_improvement():
     dm = DatabaseManager()
 
     dm.get_energy_need_yearly_improvements = Mock(return_value=pd.DataFrame(
-        data=[['house', 'TEK01', 'lighting', y, (0.9**(y-2015)) if y > 2015 else 1.0, 2015, 2017] for y in period],
+        data=[['house', 'TEK01', 'heating_rv', y, (0.9**(y-2015)) if y > 2015 else 1.0, 2015, 2017] for y in period],
         columns=['building_category', 'TEK', 'purpose', 'year', 'yearly_reduction_factor', 'start_year', 'end_year']))
 
     dm.get_energy_need_policy_improvement = Mock(return_value=pd.DataFrame(
-        data=[['house', 'TEK01', 'lighting',
-               2011, 2015, 0.8]],
-        columns=['building_category','TEK','purpose',
-                 'period_start_year','period_end_year','improvement_at_period_end']))
+        data=[['house', 'TEK01', 'lighting', y, factor] for y, factor in zip(range(2011, 2015), [1., .7, .4, .1])],
+        columns=['building_category', 'TEK', 'purpose', 'year', 'policy_improvement_factor']))
 
     dm.get_energy_req_reduction_per_condition = Mock(return_value=pd.DataFrame(
         data=[['house', 'TEK01', 'heating_rv', 'original_condition', 0.0]],
@@ -53,7 +51,7 @@ def test_calculate_reduction_with_policy_improvement():
     )
     result = df.kwh_m2
 
-    expected = pd.Series([50.0, 40.0, 30.0, 20.0, 10.0, 9, 8.1],
+    expected = pd.Series([50.0, 35.0, 20.0, 5.0, 5., 5., 5.],
                          index=period.to_index())
     
     assert len(result) == len(expected)
@@ -65,13 +63,13 @@ def test_calculate_reduction_with_yearly_reduction():
     dm = DatabaseManager()
 
     dm.get_energy_need_yearly_improvements = Mock(return_value=pd.DataFrame(
-        data=[['house', 'TEK01', 'electrical_equipment', y, (0.9**(y-period.start))] for y in period],
+        data=[['house', 'TEK01', 'lighting', y, (0.9**(y-period.start))] for y in period],
         columns=['building_category', 'TEK', 'purpose', 'year', 'yearly_reduction_factor']))
 
+    factors_by_year = zip(range(2010, 2015), [1.0, 0.8, 0.6, 0.4])
     dm.get_energy_need_policy_improvement = Mock(return_value=pd.DataFrame(
-        data=[['house', 'TEK01', 'lighting', 2010, 2020, 0.6]],
-        columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year',
-                 'improvement_at_period_end']))
+        data=[['house', 'TEK01', 'lighting', y, factor] for y, factor in factors_by_year],
+        columns=['building_category', 'TEK', 'purpose', 'year', 'policy_improvement_factor']))
 
     dm.get_energy_req_reduction_per_condition = Mock(return_value=pd.DataFrame(
         data=[['house', 'TEK01', 'heating_rv', 'original_condition', 0.0]],
@@ -86,10 +84,10 @@ def test_calculate_reduction_with_yearly_reduction():
 
     buildings = [BuildingCategory.HOUSE]
     erq_oc = pd.DataFrame(
-        data=[['house', 'TEK01', 'electrical_equipment', 100, 1.0]],
+        data=[['house', 'TEK01', 'lighting', 100, 1.0]],
         columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behaviour_factor'])
 
-    purpose = pd.DataFrame(data=[[EnergyPurpose.ELECTRICAL_EQUIPMENT]], columns=['purpose'])
+    purpose = pd.DataFrame(data=[[EnergyPurpose.LIGHTING]], columns=['purpose'])
 
     df = en_req.calculate_energy_requirement(
         all_building_categories=buildings,
@@ -102,13 +100,21 @@ def test_calculate_reduction_with_yearly_reduction():
     )
     result = df.kwh_m2
 
+    assert df.reduction_policy.tolist() == [1.0, 0.8, 0.6, 0.4] + [0.4]*9
+    assert df.reduction_yearly.tolist() == [1.0, 0.9, 0.81, 0.7290000000000001,
+                                            0.6561, 0.5904900000000001, 0.531441, 0.4782969000000001,
+                                            0.4304672100000001, 0.3874204890000001, 0.3486784401000001,
+                                            0.31381059609000006, 0.2824295364810001]
+
     expected = pd.Series(
-        [100.0, 90.0, 81.0, 72.9, 65.61,
-         59.04900000000001, 53.14410000000001, 47.82969000000001, 43.04672100000001, 38.74204890000001,
-         34.86784401000001, 31.381059609000005, 28.242953648100013], index=period.to_index())
+        [100., 72., 48.6, 29.16,
+         26.244, 23.6196, 21.25764, 19.131876,
+         17.2186884, 15.49681956, 13.9471376, 12.55242384,
+         11.29718146], index=period.to_index())
 
     assert len(result) == len(expected)
     pd.testing.assert_series_equal(result, expected, check_index=False, check_names=False)
+
 
 
 def test_calculate_reduction_with_yearly_reduction_with_year():

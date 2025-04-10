@@ -1,3 +1,4 @@
+.. _heating_systems Heating systems:
 Heating systems
 ===============
 Overview
@@ -33,7 +34,7 @@ About 130 000 certificates do not have this information. For certificates missin
 corresponding technology for the different loads and hot tap water. 
 
 .. csv-table:: Heating systems overview
-  :file: tables\heating_systems_efficiencies_table.csv
+  :file: tables\heating_systems_table.csv
   :widths: 15, 15, 15, 15, 15
   :header-rows: 1
 
@@ -49,6 +50,7 @@ of a heating system to another on a per building and TEK basis. An example is gi
 into Heat pump central heating and electric boilers for apartment blocks in TEK07, TEK10 and TEK17. 
 
 .. code-block:: python
+  
   {
     "current_heating_system": "DH",
     "new_heating_system": "HP Central heating - Electric boiler",
@@ -106,6 +108,14 @@ After calibration and forecasting the resulting heating system fractions for hou
 
 .. raw:: html
   :file: images\Hus.html
+
+Heating systems glossary
+------------------------
+.. csv-table:: Glossary of terms used in heating systems
+  :file: tables\heating_systems_glossary_csv.csv
+  :header-rows: 1
+  :widths: 10 10 30 30
+  :delim: ;
 
 
 Version: |version|.

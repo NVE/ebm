@@ -1,0 +1,13 @@
+﻿Heating systems,Base load,Peak load,Tertiary load,Domestic hot water
+Electric boiler,Electric boiler,-,-,Electric boiler
+DH,DH,-,-,DH
+Electricity,Electricity,-,-,Electricity
+Gas,Gas,-,-,Gas
+Electricity - Bio,Electricity,Bio,-,Electricity
+DH - Bio,DH,Bio,-,DH
+HP - Bio - Electricity,HP,Bio,Electricity,Electricity
+HP - Electricity,HP,Electricity,-,Electricity
+HP Central heating - Electric boiler,HP Central heating,Electric boiler,-,HP Central heating
+HP Central heating - Gas,HP Central heating,Gas,-,HP Central heating
+Electric boiler - Solar,Electric boiler,Solar,-,Electric boiler
+HP Central heating - Bio,HP Central heating,Bio,-,HP Central heating

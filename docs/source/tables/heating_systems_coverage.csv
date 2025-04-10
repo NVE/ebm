@@ -1,0 +1,13 @@
+Heating systems;Base |br| load;Peak |br| load;Tertiary |br| load;Base load |br| share;Peak load |br| share;Tertiary load |br| share
+Electric boiler;Electric boiler;-;-;1.0;0.0;0.0
+DH;DH;-;-;1.0;0.0;0.0
+Electricity;Electricity;-;-;1.0;0.0;0.0
+Gas;Gas;-;-;1.0;0.0;0.0
+Electricity - Bio;Electricity;Bio;-;0.7;0.3;0.0
+DH - Bio;DH;Bio;-;0.95;0.05;0.0
+HP - Electricity - Bio;HP;Electricity;Bio;0.5;0.4;0.1
+HP - Electricity;HP;Electricity;-;0.5;0.5;0.0
+HP Central heating - Electric boiler;HP Central heating;Electric boiler;-;0.85;0.15;0.0
+HP Central heating - Gas;HP Central heating;Gas;-;0.85;0.15;0.0
+Electric boiler - Solar;Electric boiler;Solar;-;0.85;0.15;0.0
+HP Central heating - Bio;HP Central heating;Bio;-;0.85;0.15;0.0

@@ -4,6 +4,7 @@ from typing import cast
 import pandas as pd
 import pytest
 
+from ebm.model.building_category import BuildingCategory
 from ebm.model.dataframemodels import YearlyReduction, EnergyNeedYearlyImprovements, PolicyImprovement
 
 
@@ -35,8 +36,8 @@ def test_from_energy_need_yearly_improvements():
 def test_from_energy_need_policy_improvement():
     csv_file="""building_category,TEK,purpose,yearly_efficiency_improvement,start_year,function,end_year
 default,default,lighting,0.005,2031,yearly_reduction,2050
-default,default,lighting,0.5555555555555556,2020,improvement_at_end_year,2030
-default,default,electrical_equipment,0.8,2025,improvement_at_end_year,2029
+house,TEK01,lighting,0.5555555555555556,2020,improvement_at_end_year,2030
+house,TEK01,electrical_equipment,0.8,2025,improvement_at_end_year,2029
     """.strip()
     df_input = pd.read_csv(io.StringIO(csv_file))
     df = PolicyImprovement.from_energy_need_yearly_improvements(EnergyNeedYearlyImprovements(df_input))
@@ -44,7 +45,7 @@ default,default,electrical_equipment,0.8,2025,improvement_at_end_year,2029
     assert isinstance(df, pd.DataFrame), f'Expected df to be a DataFrame. Was: {type(df)}'
     df = cast(pd.DataFrame, df).set_index(['building_category','TEK','purpose','year'])
 
-    actual_years = set(df.loc[('default', 'default', 'lighting', slice(None))].index.get_level_values(level='year'))
+    actual_years = set(df.loc[('house', 'TEK01', 'lighting', slice(None))].index.get_level_values(level='year'))
     expected_years = {2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030}
 
     assert actual_years == expected_years
@@ -61,6 +62,52 @@ default,default,electrical_equipment,0.8,2025,improvement_at_end_year,2029
     el_eq = df.query('purpose=="electrical_equipment"')
     expected_policy_improvement_factor = [1., 0.8, 0.6, 0.4, 0.2]
     assert el_eq.policy_improvement_factor.round(8).tolist() == expected_policy_improvement_factor
+
+
+
+def test_from_energy_need_policy_improvement_explode_groups():
+    csv_file="""building_category,TEK,purpose,yearly_efficiency_improvement,start_year,function,end_year
+residential,TEK01+TEK02,lighting,0.1,2020,improvement_at_end_year,2021
+non_residential,TEK02,default,0.2,2020,improvement_at_end_year,2021
+    """.strip()
+    #
+    df_input = pd.read_csv(io.StringIO(csv_file))
+    df = PolicyImprovement.from_energy_need_yearly_improvements(EnergyNeedYearlyImprovements(df_input))
+
+    assert isinstance(df, pd.DataFrame), f'Expected df to be a DataFrame. Was: {type(df)}'
+    df = cast(pd.DataFrame, df).set_index(['building_category','TEK','purpose','year'])
+
+    house_light = df.query('building_category=="house" and purpose=="lighting"')
+
+    expected_house_lighting = pd.Series(
+        data=[1.0, 0.9] + [1.0, 0.9],
+        name='policy_improvement_factor',
+        index=pd.Index(
+            data=[
+                ('house', 'TEK01', 'lighting', 2020),
+                ('house', 'TEK01', 'lighting', 2021),
+                ('house', 'TEK02', 'lighting', 2020),
+                ('house', 'TEK02', 'lighting', 2021),
+            ],
+            name=('building_category', 'TEK', 'purpose', 'year')
+        ))
+
+    pd.testing.assert_series_equal(house_light.policy_improvement_factor, expected_house_lighting)
+
+    non_residential = df.query('yearly_efficiency_improvement==0.2')
+
+    assert 'hotel' in non_residential.index.get_level_values(level='building_category')
+    assert 'school' in non_residential.index.get_level_values(level='building_category')
+    assert 'house' not in non_residential.index.get_level_values(level='building_category')
+    assert 'apartment_block' not in non_residential.index.get_level_values(level='building_category')
+
+    assert 'heating_rv' in non_residential.index.get_level_values(level='purpose')
+    assert 'heating_dhw' in non_residential.index.get_level_values(level='purpose')
+    assert 'fans_and_pumps' in non_residential.index.get_level_values(level='purpose')
+    assert 'electrical_equipment' in non_residential.index.get_level_values(level='purpose')
+    assert 'lighting' in non_residential.index.get_level_values(level='purpose')
+
+
 
 
 if __name__ == '__main__':

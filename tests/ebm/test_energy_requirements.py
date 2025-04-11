@@ -10,6 +10,156 @@ from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement
 
 
+def test_calculate_reduction_policy():
+    period = YearRange(2011, 2017)
+    dm = DatabaseManager()
+    er = EnergyRequirement(tek_list=['TEK01'],
+                      period=period,
+                      calibration_year=2014,
+                      database_manager=dm)
+
+    all_things =pd.DataFrame(
+        data=[['house', 'TEK01', 'lighting', y] for y in period]
+             +  [['kindergarten', 'TEK01', 'lighting', y] for y in period],
+        columns=['building_category', 'TEK', 'purpose', 'year'])
+
+    p_i_df = pd.DataFrame(
+        data=[
+            ['house', 'TEK01', 'lighting', 2011, 0.6, 2015],
+            ['kindergarten', 'TEK01', 'lighting', 2012, 0.6, 2016]
+        ],
+        columns=['building_category', 'TEK', 'purpose', 'start_year', 'improvement_at_end_year', 'end_year'])
+
+    df = er.calculate_reduction_policy(policy_improvement=p_i_df, all_things=all_things)
+    df = df.set_index(['building_category', 'TEK', 'purpose', 'year'])
+
+    expected_reduction_policy = pd.Series(
+        data=[1.0, 0.85, 0.7, 0.55, 0.4, 0.4, 0.4]+
+             [1.0, 1.0, 0.85, 0.7, 0.55, 0.4, 0.4],
+        name='reduction_policy',
+        index=pd.Index(
+            data=[('house', 'TEK01', 'lighting', y) for y in period] +
+                 [('kindergarten', 'TEK01', 'lighting', y) for y in period],
+            name=('building_category', 'TEK', 'purpose', 'year'))
+
+    )
+    pd.testing.assert_series_equal(df['reduction_policy'], expected_reduction_policy)
+
+
+def test_calculate_reduction_policy_with_start_year_in_all_things():
+    period = YearRange(2011, 2017)
+    dm = DatabaseManager()
+    er = EnergyRequirement(tek_list=['TEK01'],
+                      period=period,
+                      calibration_year=2014,
+                      database_manager=dm)
+
+    all_things =pd.DataFrame(
+        data=[['house', 'TEK01', 'lighting', y, period.start, None] for y in period]
+             +  [['kindergarten', 'TEK01', 'lighting', y, period.start, period.end] for y in period],
+        columns=['building_category', 'TEK', 'purpose', 'year', 'start_year', 'end_year'])
+
+    p_i_df = pd.DataFrame(
+        data=[
+            ['house', 'TEK01', 'lighting', 2011, 0.6, 2015],
+            ['kindergarten', 'TEK01', 'lighting', 2012, 0.6, 2016]
+        ],
+        columns=['building_category', 'TEK', 'purpose', 'start_year', 'improvement_at_end_year', 'end_year'])
+
+    er.calculate_reduction_policy(policy_improvement=p_i_df, all_things=all_things)
+
+
+def test_calculate_reduction_policy_handle_missing_policy_improvement():
+    period = YearRange(2011, 2017)
+    dm = DatabaseManager()
+    er = EnergyRequirement(tek_list=['TEK01'],
+                      period=period,
+                      calibration_year=2014,
+                      database_manager=dm)
+
+    all_things =pd.DataFrame(
+        data=[['office', 'TEK01', 'lighting', y] for y in period],
+        columns=['building_category', 'TEK', 'purpose', 'year'])
+
+    p_i_df = pd.DataFrame(
+        data=[
+            ['kindergarten', 'TEK01', 'lighting', 2012, 0.6, 2016]
+        ],
+        columns=['building_category', 'TEK', 'purpose', 'start_year', 'improvement_at_end_year', 'end_year'])
+
+    df = er.calculate_reduction_policy(policy_improvement=p_i_df, all_things=all_things)
+    df = df.set_index(['building_category', 'TEK', 'purpose', 'year'])
+
+    expected_reduction_policy = pd.Series(
+        data=[1.0] * 7,
+        name='reduction_policy',
+        index=pd.Index(
+            data=[('office', 'TEK01', 'lighting', y) for y in period],
+            name=('building_category', 'TEK', 'purpose', 'year'))
+
+    )
+    pd.testing.assert_series_equal(df['reduction_policy'], expected_reduction_policy)
+
+
+def test_calculate_reduction_policy_return_expected_columns():
+    period = YearRange(2011, 2017)
+    dm = DatabaseManager()
+    er = EnergyRequirement(tek_list=['TEK01'],
+                      period=period,
+                      calibration_year=2014,
+                      database_manager=dm)
+
+    all_things =pd.DataFrame(
+        data=[['house', 'TEK01', 'lighting', y] for y in period],
+        columns=['building_category', 'TEK', 'purpose', 'year'])
+
+    p_i_df = pd.DataFrame(
+        data=[
+            ['house', 'TEK01', 'lighting', 2011, 0.6, 2015]
+        ],
+        columns=['building_category', 'TEK', 'purpose', 'start_year', 'improvement_at_end_year', 'end_year'])
+
+    df = er.calculate_reduction_policy(policy_improvement=p_i_df, all_things=all_things)
+
+    assert df.columns.tolist() == ['building_category', 'TEK', 'purpose', 'year', 'reduction_policy']
+
+
+def test_calculate_reduction_policy_works_with_multiple_periods():
+    period = YearRange(2011, 2020)
+    dm = DatabaseManager()
+    er = EnergyRequirement(tek_list=['TEK01'],
+                      period=period,
+                      calibration_year=2014,
+                      database_manager=dm)
+
+    all_things =pd.DataFrame(
+        data=[['house', 'TEK01', 'lighting', y] for y in period],
+        columns=['building_category', 'TEK', 'purpose', 'year'])
+
+    p_i_df = pd.DataFrame(
+        data=[
+            ['house', 'TEK01', 'lighting', 2011, 0.6, 2015],
+            ['house', 'TEK01', 'lighting', 2017, 0.8, 2020]
+        ],
+        columns=['building_category', 'TEK', 'purpose', 'start_year', 'improvement_at_end_year', 'end_year'])
+
+    df = er.calculate_reduction_policy(policy_improvement=p_i_df, all_things=all_things)
+    df = df.set_index(['building_category', 'TEK', 'purpose', 'year'])
+
+    expected_reduction_policy = pd.Series(
+        data=[1.  , 0.85, 0.7 , 0.55, 0.4 ]+
+             [0.4] +
+             [0.4, 0.33333333, 0.26666667, 0.2],
+        name='reduction_policy',
+        index=pd.Index(
+            data=[('house', 'TEK01', 'lighting', y) for y in period],
+            name=('building_category', 'TEK', 'purpose', 'year'))
+
+    )
+    pd.testing.assert_series_equal(df['reduction_policy'], expected_reduction_policy)
+
+
+
 def test_calculate_reduction_with_policy_improvement():
     period = YearRange(2011, 2017)
     dm = DatabaseManager()
@@ -18,9 +168,15 @@ def test_calculate_reduction_with_policy_improvement():
         data=[['house', 'TEK01', 'heating_rv', y, (0.9**(y-2015)) if y > 2015 else 1.0, 2015, 2017] for y in period],
         columns=['building_category', 'TEK', 'purpose', 'year', 'yearly_reduction_factor', 'start_year', 'end_year']))
 
-    dm.get_energy_need_policy_improvement = Mock(return_value=pd.DataFrame(
-        data=[['house', 'TEK01', 'lighting', y, factor] for y, factor in zip(range(2011, 2015), [1., .7, .4, .1])],
-        columns=['building_category', 'TEK', 'purpose', 'year', 'policy_improvement_factor']))
+    policy_improvement = pd.DataFrame(
+        data=[
+            ['house', 'TEK01', 'lighting', 2011, 0.9, 2014],
+        ],
+        columns=['building_category', 'TEK', 'purpose', 'start_year', 'improvement_at_end_year', 'end_year'])
+
+    dm.get_energy_need_policy_improvement = Mock(return_value=policy_improvement)
+
+    # pd.DataFrame( data=[['house', 'TEK01', 'lighting', y, factor] for y, factor in zip(range(2011, 2015), [1., .7, .4, .1])], columns=['building_category', 'TEK', 'purpose', 'year', 'policy_improvement_factor'])
 
     dm.get_energy_req_reduction_per_condition = Mock(return_value=pd.DataFrame(
         data=[['house', 'TEK01', 'heating_rv', 'original_condition', 0.0]],
@@ -71,10 +227,9 @@ def test_calculate_reduction_with_yearly_reduction():
              [['house', 'TEK01', 'electrical_equipment', y, (0.95**(y-period.start))] for y in period],
         columns=['building_category', 'TEK', 'purpose', 'year', 'yearly_reduction_factor']))
 
-    factors_by_year = zip(range(2011, 2016), [1.0, 0.8, 0.6, 0.4])
     dm.get_energy_need_policy_improvement = Mock(return_value=pd.DataFrame(
-        data=[['house', 'TEK01', 'lighting', y, 0.4, factor] for y, factor in factors_by_year],
-        columns=['building_category', 'TEK', 'purpose', 'year', 'improvement_at_end_year', 'policy_improvement_factor']))
+        data=[['house', 'TEK01', 'lighting', 2011, 0.6, 2014]],
+        columns=['building_category', 'TEK', 'purpose', 'start_year', 'improvement_at_end_year', 'end_year']))
 
     dm.get_energy_req_reduction_per_condition = Mock(return_value=pd.DataFrame(
         data=[['house', 'TEK01', 'heating_rv', 'original_condition', 0.0]],
@@ -109,7 +264,7 @@ def test_calculate_reduction_with_yearly_reduction():
     house_lighting = df.query('purpose=="lighting"')
 
 
-    assert house_lighting.reduction_policy.tolist() == [1.0, 1.0, 0.8, 0.6, 0.4] + [0.4]*8
+    assert house_lighting.reduction_policy.round(8).tolist() == [1.0, 1.0, 0.8, 0.6, 0.4] + [0.4]*8
     assert house_lighting.reduction_yearly.tolist() == [1.0, 0.9, 0.81, 0.7290000000000001,
                                             0.6561, 0.5904900000000001, 0.531441, 0.4782969000000001,
                                             0.4304672100000001, 0.3874204890000001, 0.3486784401000001,
@@ -141,8 +296,8 @@ def test_calculate_reduction_with_yearly_reduction_with_year():
 
     dm.get_energy_need_policy_improvement = Mock(return_value=pd.DataFrame(
         data=[['house', 'TEK01', 'lighting', 2010, 2020, 0.6]],
-        columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year',
-                 'improvement_at_period_end']))
+        columns=['building_category', 'TEK', 'purpose', 'start_year', 'end_year',
+                 'improvement_at_end_year']))
 
     dm.get_energy_req_reduction_per_condition = Mock(return_value=pd.DataFrame(
         data=[['house', 'TEK01', 'heating_rv', 'original_condition', 0.0]],
@@ -200,8 +355,8 @@ def test_calculate_reduction_by_condition():
 
     dm.get_energy_need_policy_improvement = Mock(
         return_value=pd.DataFrame(data=[['house', 'TEK01', 'lighting', 2020, 2024, 0.1]],
-            columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year',
-                     'improvement_at_period_end']))
+            columns=['building_category', 'TEK', 'purpose', 'start_year', 'end_year',
+                     'improvement_at_end_year']))
 
     tek_list = ['TEK01']
     en_req = EnergyRequirement(tek_list=tek_list, period=period, calibration_year=2023, database_manager=dm)
@@ -255,16 +410,18 @@ def test_calculate_reduction_by_behavior():
 
     dm.get_energy_need_policy_improvement = Mock(
         return_value=pd.DataFrame(data=[['house', 'TEK01', 'lighting', 2020, 2024, 0.1]],
-            columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year',
-                     'improvement_at_period_end']))
+            columns=['building_category', 'TEK', 'purpose', 'start_year', 'end_year',
+                     'improvement_at_end_year']))
 
     tek_list = ['TEK01']
     en_req = EnergyRequirement(tek_list=tek_list, period=period, calibration_year=2023, database_manager=dm)
 
     buildings = [BuildingCategory.HOUSE]
-    erq_oc = pd.DataFrame(data=[['house', 'TEK01', EnergyPurpose.HEATING_RV, 120.0, 100.0, 100.0, 0.8]],
+    erq_oc = pd.DataFrame(data=[['house', 'TEK01', EnergyPurpose.HEATING_RV,
+                                 120.0, 100.0, 100.0, 0.8, period.start, period.end]],
         columns=['building_category', 'TEK', 'purpose',
-                 'uncalibrated_kwh_m2', 'calibrated_kwh_m2', 'kwh_m2', 'behaviour_factor'])
+                 'uncalibrated_kwh_m2', 'calibrated_kwh_m2', 'kwh_m2', 'behaviour_factor',
+                 'start_year', 'end_year'])
 
     purpose = pd.DataFrame(data=[[EnergyPurpose.HEATING_RV]], columns=['purpose'])
 
@@ -310,8 +467,8 @@ def test_calculate_energy_requirements():
 
     dm.get_energy_need_policy_improvement = Mock(
         return_value=pd.DataFrame(data=[['house', 'TEK01', 'lighting', 2021, 2023, 0.5]],
-            columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year',
-                     'improvement_at_period_end']))
+            columns=['building_category', 'TEK', 'purpose', 'start_year', 'end_year',
+                     'improvement_at_end_year']))
 
     tek_list = ['TEK01']
     en_req = EnergyRequirement(tek_list=tek_list, period=period, calibration_year=2023, database_manager=dm)
@@ -412,8 +569,8 @@ def test_calculate_energy_requirements_with_multiple_teks():
             ['house', 'TEK01', 'lighting', 2021, 2023, 0.5],
             ['house', 'TEK02', 'lighting', 2021, 2023, 0.5]
         ],
-            columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year',
-                     'improvement_at_period_end']))
+            columns=['building_category', 'TEK', 'purpose', 'start_year', 'end_year',
+                     'improvement_at_end_year']))
 
     tek_list = ['TEK01', 'TEK02']
     en_req = EnergyRequirement(tek_list=tek_list, period=period, calibration_year=2023, database_manager=dm)

@@ -126,16 +126,7 @@ class EnergyRequirement:
                                     on=['building_category', 'TEK', 'building_condition', 'purpose'],
                                     how='left')
 
-        if 'year' not in policy_improvement.columns:
-            policy_improvement = pd.merge(right=pd.DataFrame({'year': model_years}), left=policy_improvement, how='cross')
-
-        policy_improvement_factor = pd.merge(
-            left=energy_requirements[['building_category', 'TEK', 'purpose', 'year']],
-            right=policy_improvement,
-            on=['building_category', 'TEK', 'purpose', 'year'],
-            how='left')
-        policy_improvement_factor.policy_improvement_factor = policy_improvement_factor.policy_improvement_factor.ffill()
-        policy_improvement_factor['reduction_policy'] = policy_improvement_factor.policy_improvement_factor
+        policy_improvement_factor = self.calculate_reduction_policy(policy_improvement, energy_requirements)
 
         yearly_improvement.loc[:, 'efficiency_start_year'] = model_years.start
         if 'year' not in yearly_improvement.columns:
@@ -200,7 +191,7 @@ class EnergyRequirement:
         return yearly_improvement
 
 
-    def calculate_reduction_policy(self, policy_improvement: pd.DataFrame) -> pd.DataFrame:
+    def calculate_reduction_policy(self, policy_improvement: pd.DataFrame, all_things) -> pd.DataFrame:
         """
         Calculate the reduction policy for each entry in the DataFrame.
 
@@ -218,8 +209,61 @@ class EnergyRequirement:
         pd.DataFrame
             DataFrame with the calculated 'reduction_policy' column and updated entries.
         """
-        policy_improvement['reduction_policy'] = policy_improvement['policy_improvement_factor']
-        return policy_improvement
+        policy_improvement = policy_improvement.sort_values(
+            by=['building_category', 'TEK', 'purpose', 'start_year', 'end_year'])
+
+        policy_improvement[['building_category_s', 'TEK_s', 'purpose_s', 'start_year_s', 'end_year_s']] = \
+        policy_improvement[
+            ['building_category', 'TEK', 'purpose', 'start_year', 'end_year']]
+
+        policy_improvement = policy_improvement.set_index(
+            ['building_category', 'TEK', 'purpose', 'start_year', 'end_year'], drop=True)
+        policy_improvement
+
+        r = policy_improvement.shift(1)
+        r = r.reset_index()
+        r
+
+        syfp = r.query('building_category==building_category_s & TEK==TEK_s & purpose==purpose_s')
+        syfp['improvement_at_start_year'] = syfp['improvement_at_end_year']
+        syfp = syfp[['building_category', 'TEK', 'purpose', 'start_year', 'end_year', 'improvement_at_start_year']]
+
+        start_year_from_previous = syfp.copy()
+        start_year_from_previous  # policy_improvement
+
+        policy_improvement = pd.merge(left=policy_improvement,
+                                      right=start_year_from_previous,
+                                      left_on=['building_category', 'TEK', 'purpose', 'start_year', 'end_year'],
+                                      right_on=['building_category', 'TEK', 'purpose', 'start_year', 'end_year'],
+                                      how='left'
+                                      )
+        policy_improvement
+
+        policy_improvement[['start_year', 'end_year']] = policy_improvement[['start_year', 'end_year']].astype(int)
+        policy_improvement = policy_improvement.set_index(
+            ['building_category', 'TEK', 'purpose', 'start_year', 'end_year'], drop=True)
+        policy_improvement['improvement_at_start_year'] = 1.0-policy_improvement['improvement_at_start_year'].fillna(0.0)
+
+        policy_improvement = policy_improvement[['improvement_at_start_year', 'improvement_at_end_year']].reset_index()
+
+        df = pd.merge(left=all_things[['building_category', 'TEK', 'purpose', 'year']],
+                      right=policy_improvement,
+                      on=['building_category', 'TEK', 'purpose'], how='left')
+
+
+        df['num_values'] = df['end_year'] - df['start_year'] + 1.0
+        df['n'] = (df.year - df.start_year).clip(upper=df.num_values-1, lower=0)
+
+        df['step'] = ((1.0-df['improvement_at_end_year']) - df['improvement_at_start_year']) / (df['num_values']-1.0)
+
+        df['reduction_policy'] = df['improvement_at_start_year'] + (df['n']) * df['step']
+        df['reduction_policy'] = df['reduction_policy'].fillna(1.0)
+        df['_col_to_filter'] = (df['year'] < df['start_year']) | (df['year'] > df['end_year'])
+        df = df.sort_values(by=['building_category', 'TEK', 'purpose', 'year', '_col_to_filter'])
+        df = df.drop_duplicates(['building_category', 'TEK', 'purpose', 'year'])
+
+        return df[['building_category', 'TEK', 'purpose', 'year', 'reduction_policy']]
+
 
     def calculate_reduction_condition(self, reduction_per_condition: pd.DataFrame) -> pd.DataFrame:
         """

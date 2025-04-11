@@ -92,12 +92,12 @@ class PolicyImprovement(pa.DataFrameModel):
     building_category: Series[str]
     TEK: Series[str]
     purpose: Series[str]
-    year: Series[int]
+    start_year: Series[int]
+    end_year: Series[int]
     improvement_at_end_year: Series[float] = pa.Field(ge=0.0, coerce=True)
-    policy_improvement_factor: Series[float] = pa.Field(ge=0.0, coerce=True)
 
     class Config:
-        unique = ['building_category', 'TEK', 'purpose', 'year']
+        unique = ['building_category', 'TEK', 'purpose', 'start_year', 'end_year']
 
 
     @staticmethod
@@ -111,13 +111,6 @@ class PolicyImprovement(pa.DataFrameModel):
         df = explode_column_alias(df, column='purpose', values=[p for p in EnergyPurpose], alias='default',
                                   de_dup_by=unique_columns)
 
-        df['year']: pa.typing.DataFrame = df.apply(lambda row: range(row.start_year, row.end_year + 1), axis=1)
-        df['policy_improvement_factor'] = df.apply(
-            lambda x: np.linspace(1.0, 1.0 - x.yearly_efficiency_improvement, int(x.end_year - x.start_year + 1.0)),
-            axis=1)
-
-        df = df.explode(['year', 'policy_improvement_factor'])
-        df['year'] = df['year'].astype(int)
         df['improvement_at_end_year'] = df['yearly_efficiency_improvement']
 
         return PolicyImprovement.validate(df)

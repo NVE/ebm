@@ -74,27 +74,20 @@ non_residential,TEK02,default,0.2,2020,yearly_reduction,2021
     df = PolicyImprovement.from_energy_need_yearly_improvements(EnergyNeedYearlyImprovements(df_input))
 
     assert isinstance(df, pd.DataFrame), f'Expected df to be a DataFrame. Was: {type(df)}'
-    df = cast(pd.DataFrame, df).set_index(['building_category','TEK','purpose','year'])
+    df = cast(pd.DataFrame, df).set_index(['building_category','TEK','purpose','start_year', 'end_year'])
 
     house_light = df.query('building_category=="house" and purpose=="lighting"')
 
     expected_house_lighting = pd.Series(
-        data=[1.0, 0.9] + [1.0, 0.9],
-        name='policy_improvement_factor',
-        index=pd.Index(
-            data=[
-                ('house', 'TEK01', 'lighting', 2020),
-                ('house', 'TEK01', 'lighting', 2021),
-                ('house', 'TEK02', 'lighting', 2020),
-                ('house', 'TEK02', 'lighting', 2021),
-            ],
-            name=('building_category', 'TEK', 'purpose', 'year')
-        ))
+        data=[0.1, 0.1],
+        name='improvement_at_end_year',
+        index=pd.Index(data=[('house', 'TEK01', 'lighting', 2020, 2021),
+                            ('house', 'TEK02', 'lighting', 2020, 2021)],
+                       name=('building_category', 'TEK', 'purpose', 'start_year', 'end_year')))
 
-    pd.testing.assert_series_equal(house_light.policy_improvement_factor, expected_house_lighting)
+    pd.testing.assert_series_equal(house_light.improvement_at_end_year, expected_house_lighting)
 
-    non_residential = df.query('yearly_efficiency_improvement==0.2')
-
+    non_residential = df.query('improvement_at_end_year==0.2')
     assert 'hotel' in non_residential.index.get_level_values(level='building_category')
     assert 'school' in non_residential.index.get_level_values(level='building_category')
     assert 'house' not in non_residential.index.get_level_values(level='building_category')

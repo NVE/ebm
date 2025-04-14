@@ -128,10 +128,8 @@ class EnergyRequirement:
 
         policy_improvement_factor = self.calculate_reduction_policy(policy_improvement, energy_requirements)
 
-        yearly_improvement.loc[:, 'efficiency_start_year'] = model_years.start
-        if 'year' not in yearly_improvement.columns:
-            yearly_improvement = pd.merge(yearly_improvement, pd.DataFrame({'year': model_years}), how='cross')
-        yearly_reduction_factor = yearly_improvement
+        yearly_reduction_factor = self.calculate_reduction_yearly(energy_requirements, yearly_improvement)
+
         merged = self.merge_energy_requirement_reductions(condition_factor, yearly_reduction_factor, policy_improvement_factor)
 
         return merged
@@ -146,8 +144,7 @@ class EnergyRequirement:
                             on=['building_category', 'TEK', 'purpose', 'year'],
                             how='left')
         merged = m_nrg_yi.copy()
-        merged.loc[:, 'yearly_reduction_factor'] = merged.loc[:, 'yearly_reduction_factor'].fillna(1.0)
-        merged.loc[:, 'reduction_yearly'] = merged.loc[:, 'yearly_reduction_factor']
+        merged.loc[:, 'reduction_yearly'] = merged.loc[:, 'reduction_yearly'].fillna(1.0)
 
         merged.loc[:, 'reduction_policy'] = merged.loc[:, 'reduction_policy'].fillna(1.0)
         merged['reduction_condition'] = merged['reduction_condition'].fillna(1.0)
@@ -180,15 +177,19 @@ class EnergyRequirement:
             DataFrame with the calculated 'reduction_yearly' column and updated entries.
         """
 
-        ys = yearly_improvement[yearly_improvement.year >= yearly_improvement.start_year].index
-        yearly_improvement.loc[ys, 'reduction_yearly'] = (1.0 - yearly_improvement.loc[ys,
-                                                                'yearly_efficiency_improvement']) ** (yearly_improvement.loc[ys
+
+        df = pd.merge(left=policy_improvement[['building_category', 'TEK', 'purpose', 'year']],
+                      right=yearly_improvement,
+                      on=['building_category', 'TEK', 'purpose'])
+        ys = df[df.year >= df.start_year].index
+        df.loc[ys, 'reduction_yearly'] = (1.0 - df.loc[ys,
+                                                                'yearly_efficiency_improvement']) ** (df.loc[ys
                                                                                                      ,
-                                                                                                     'year'] - yearly_improvement.loc[
+                                                                                                     'year'] - df.loc[
                                                                                                      ys,
                                                                                                      'start_year'])
-
-        return yearly_improvement
+        df = df.drop_duplicates(['building_category', 'TEK', 'purpose', 'year'])
+        return df
 
 
     def calculate_reduction_policy(self, policy_improvement: pd.DataFrame, all_things) -> pd.DataFrame:

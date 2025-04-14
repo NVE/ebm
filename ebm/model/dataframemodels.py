@@ -28,9 +28,9 @@ class YearlyReduction(pa.DataFrameModel):
     building_category: Series[str]
     TEK: Series[str]
     purpose: Series[str]
-    year: Series[int]
+    start_year: Series[int]
+    end_year: Series[int]
     yearly_efficiency_improvement: Series[float] = pa.Field(ge=0.0, coerce=True)
-    yearly_reduction_factor: Series[float] = pa.Field(ge=0.0, coerce=True)
 
     class Config:
         unique = ['building_category', 'TEK', 'purpose', 'year']
@@ -72,18 +72,7 @@ class YearlyReduction(pa.DataFrameModel):
                                                      alias='default',
                                                      de_dup_by=unique_columns)
 
-        df['year']: pa.typing.DataFrame = df.apply(lambda row: range(row.start_year, row.end_year + 1), axis=1)
-
-        df = df.explode(['year'])
-        df['year'] = df['year'].astype(int)
-        df.loc[:, 'yearly_reduction_factor'] = (
-            1.0-df.loc[:, 'yearly_efficiency_improvement'])**(1.0+df.loc[:, 'year']-df.loc[:, 'start_year'])
-
-        df.yearly_reduction_factor = df.yearly_reduction_factor.astype(float)
-        df = df[['building_category', 'TEK', 'purpose',
-                                                       'year', 'start_year', 'end_year',
-                                                       'yearly_efficiency_improvement',
-                                                       'yearly_reduction_factor']]
+        df = df[['building_category', 'TEK', 'purpose', 'start_year', 'end_year', 'yearly_efficiency_improvement']]
 
         return YearlyReduction.validate(df, lazy=True)
 

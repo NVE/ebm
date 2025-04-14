@@ -594,41 +594,40 @@ def test_energy_req_policy_improvements_require_valid_purpose(policy_improvement
     with pytest.raises(pa.errors.SchemaError):
         PolicyImprovement.to_schema().validate(policy_improvements_df)
 
-@pytest.mark.skip
+
 def test_energy_req_policy_improvements_wrong_year_range(policy_improvements_df):
-    policy_improvements_df.loc[0, 'period_start_year'] = 2050
-    policy_improvements_df.loc[0, 'period_end_year'] = 2010
+    policy_improvements_df.loc[0, 'start_year'] = 2050
+    policy_improvements_df.loc[0, 'end_year'] = 2010
     
     with pytest.raises(pa.errors.SchemaError):
         PolicyImprovement.to_schema().validate(policy_improvements_df)
 
-@pytest.mark.skip
+
 @pytest.mark.parametrize('start_year', [-1, ""])
 def test_energy_req_policy_improvements_wrong_start_year(policy_improvements_df, start_year):
-    policy_improvements_df['period_start_year'] = start_year
+    policy_improvements_df['start_year'] = start_year
     with pytest.raises(pa.errors.SchemaError):
         PolicyImprovement.to_schema().validate(policy_improvements_df)
 
-@pytest.mark.skip
+
 @pytest.mark.parametrize('end_year', [-1, ""])
 def test_energy_req_policy_improvements_wrong_end_year(policy_improvements_df, end_year):
-    policy_improvements_df['period_end_year'] = end_year
+    policy_improvements_df['end_year'] = end_year
     with pytest.raises(pa.errors.SchemaError):
         PolicyImprovement.to_schema().validate(policy_improvements_df)
 
-@pytest.mark.skip
-@pytest.mark.parametrize('improvement_value', [-1, 2])
+
+@pytest.mark.parametrize('improvement_at_end_year', [-1, 2])
 def test_energy_req_policy_improvements_value_between_zero_and_one(policy_improvements_df, 
-                                                                   improvement_value):
-    policy_improvements_df.loc[0, 'improvement_at_period_end'] = improvement_value
+                                                                   improvement_at_end_year):
+    policy_improvements_df.loc[0, 'improvement_at_end_year'] = improvement_at_end_year
     with pytest.raises(pa.errors.SchemaError):
         PolicyImprovement.to_schema().validate(policy_improvements_df)
 
-@pytest.mark.skip
+
 def test_energy_req_policy_improvements_require_unique_rows():
     duplicate_df = pd.DataFrame(
-        columns=['building_category', 'TEK', 'purpose', 'period_start_year', 'period_end_year',
-                 'improvement_at_period_end'],
+        columns=['building_category', 'TEK', 'purpose', 'start_year', 'end_year', 'improvement_at_period_end'],
         data=[['default', 'default', 'lighting', 2018, 2030, 0.6],
               ['default', 'default', 'lighting', 2018, 2030, 0.6],
               ['default', 'default', 'lighting', 2018, 2030, 0.1]])

@@ -81,13 +81,16 @@ class PolicyImprovement(pa.DataFrameModel):
     building_category: Series[str]
     TEK: Series[str]
     purpose: Series[str]
-    start_year: Series[int]
-    end_year: Series[int]
-    improvement_at_end_year: Series[float] = pa.Field(ge=0.0, coerce=True)
+    start_year: Series[int] = pa.Field(ge=0, coerce=True)
+    end_year: Series[int] = pa.Field(ge=0, coerce=True)
+    improvement_at_end_year: Series[float] = pa.Field(ge=0.0, lt=2.0, coerce=True)
 
     class Config:
         unique = ['building_category', 'TEK', 'purpose', 'start_year', 'end_year']
 
+    @pa.dataframe_check
+    def start_year_before_end_year(cls, df: pd.DataFrame) -> Series[bool]:
+        return df.start_year < df.end_year
 
     @staticmethod
     def from_energy_need_yearly_improvements(

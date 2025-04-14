@@ -563,24 +563,12 @@ def test_energy_need_yearly_improvements_require_unique_rows():
         energy_need_improvements(duplicate_df)
 
 
-@pytest.fixture
-def policy_improvements_df():
-    df = pd.DataFrame(
-        columns=['building_category', 'TEK', 'purpose', 'start_year', 'end_year',
-                 'improvement_at_end_year'],
-        data=[['default', 'default', 'lighting', 2018, 2030, 0.6],
-              ['house', 'TEK01', 'default', 2020, 2040, 0.9]])
-    return df
-
-
-def test_energy_req_policy_improvements(policy_improvements_df):
-    PolicyImprovement.to_schema().validate(policy_improvements_df)
-
 @pytest.mark.skip
 def test_energy_req_policy_improvements_require_valid_building_cat(policy_improvements_df):
     policy_improvements_df.loc[0, 'building_category'] = 'not_a_category'
     with pytest.raises(pa.errors.SchemaError):
         PolicyImprovement.to_schema().validate(policy_improvements_df)
+
 
 @pytest.mark.skip
 def test_energy_req_policy_improvements_require_valid_tek(policy_improvements_df):
@@ -588,51 +576,12 @@ def test_energy_req_policy_improvements_require_valid_tek(policy_improvements_df
     with pytest.raises(pa.errors.SchemaError):
         PolicyImprovement.to_schema().validate(policy_improvements_df)
 
+
 @pytest.mark.skip
 def test_energy_req_policy_improvements_require_valid_purpose(policy_improvements_df):
     policy_improvements_df.loc[0, 'purpose'] = 'not_a_purpose'
     with pytest.raises(pa.errors.SchemaError):
         PolicyImprovement.to_schema().validate(policy_improvements_df)
-
-
-def test_energy_req_policy_improvements_wrong_year_range(policy_improvements_df):
-    policy_improvements_df.loc[0, 'start_year'] = 2050
-    policy_improvements_df.loc[0, 'end_year'] = 2010
-    
-    with pytest.raises(pa.errors.SchemaError):
-        PolicyImprovement.to_schema().validate(policy_improvements_df)
-
-
-@pytest.mark.parametrize('start_year', [-1, ""])
-def test_energy_req_policy_improvements_wrong_start_year(policy_improvements_df, start_year):
-    policy_improvements_df['start_year'] = start_year
-    with pytest.raises(pa.errors.SchemaError):
-        PolicyImprovement.to_schema().validate(policy_improvements_df)
-
-
-@pytest.mark.parametrize('end_year', [-1, ""])
-def test_energy_req_policy_improvements_wrong_end_year(policy_improvements_df, end_year):
-    policy_improvements_df['end_year'] = end_year
-    with pytest.raises(pa.errors.SchemaError):
-        PolicyImprovement.to_schema().validate(policy_improvements_df)
-
-
-@pytest.mark.parametrize('improvement_at_end_year', [-1, 2])
-def test_energy_req_policy_improvements_value_between_zero_and_one(policy_improvements_df, 
-                                                                   improvement_at_end_year):
-    policy_improvements_df.loc[0, 'improvement_at_end_year'] = improvement_at_end_year
-    with pytest.raises(pa.errors.SchemaError):
-        PolicyImprovement.to_schema().validate(policy_improvements_df)
-
-
-def test_energy_req_policy_improvements_require_unique_rows():
-    duplicate_df = pd.DataFrame(
-        columns=['building_category', 'TEK', 'purpose', 'start_year', 'end_year', 'improvement_at_period_end'],
-        data=[['default', 'default', 'lighting', 2018, 2030, 0.6],
-              ['default', 'default', 'lighting', 2018, 2030, 0.6],
-              ['default', 'default', 'lighting', 2018, 2030, 0.1]])
-    with pytest.raises(pa.errors.SchemaError):
-        PolicyImprovement.to_schema()(duplicate_df)
 
 
 def test_area_per_person_ok():

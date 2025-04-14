@@ -32,6 +32,25 @@ def test_from_energy_need_yearly_improvements():
     pd.testing.assert_series_equal(actual_yearly_reduction_factor, expected_yearly_reduction_factor)
 
 
+def test_from_energy_need_yearly_improvements_default_start_year_is_2020():
+    dfm = EnergyNeedYearlyImprovements(pd.DataFrame(
+        data=[
+            ['house', 'TEK1', 'lighting', None, 'yearly_reduction', 2050, 0.1],
+            ['house', 'TEK2', 'lighting', 2020, 'yearly_reduction', None, 0.2],
+            ['house', 'TEK3', 'lighting', None, 'yearly_reduction', None, 0.3],
+        ],
+        columns=['building_category', 'TEK', 'purpose', 'start_year', 'function', 'end_year', 'yearly_efficiency_improvement']
+    ))
+    df = YearlyReduction.from_energy_need_yearly_improvements(dfm)
+
+    df = cast(pd.DataFrame, df)
+    assert df['start_year'].dtype == int
+    assert (df['start_year'] == 2020).all()
+
+    assert df['end_year'].dtype == int
+    assert (df['end_year'] == 2050).all()
+
+
 def test_from_energy_need_policy_improvement():
     csv_file="""building_category,TEK,purpose,yearly_efficiency_improvement,start_year,function,end_year
 default,default,lighting,0.005,2031,yearly_reduction,2050

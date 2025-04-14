@@ -204,6 +204,8 @@ class EnergyRequirement:
         ----------
         policy_improvement : pd.DataFrame
             DataFrame containing policy improvement information. Must include columns 'year' and 'period_start_year'.
+        all_things: pd.DataFrame
+            DataFrame containing every combination of building_category, TEK, purpose, year
 
         Returns
         -------
@@ -219,18 +221,14 @@ class EnergyRequirement:
 
         policy_improvement = policy_improvement.set_index(
             ['building_category', 'TEK', 'purpose', 'start_year', 'end_year'], drop=True)
-        policy_improvement
 
-        r = policy_improvement.shift(1)
-        r = r.reset_index()
-        r
+        shifted = policy_improvement.shift(1).reset_index()
 
-        syfp = r.query('building_category==building_category_s & TEK==TEK_s & purpose==purpose_s')
-        syfp['improvement_at_start_year'] = syfp['improvement_at_end_year']
-        syfp = syfp[['building_category', 'TEK', 'purpose', 'start_year', 'end_year', 'improvement_at_start_year']]
+        shifted = shifted.query('building_category==building_category_s & TEK==TEK_s & purpose==purpose_s')
+        shifted['improvement_at_start_year'] = shifted['improvement_at_end_year']
+        shifted = shifted[['building_category', 'TEK', 'purpose', 'start_year', 'end_year', 'improvement_at_start_year']]
 
-        start_year_from_previous = syfp.copy()
-        start_year_from_previous  # policy_improvement
+        start_year_from_previous = shifted
 
         policy_improvement = pd.merge(left=policy_improvement,
                                       right=start_year_from_previous,
@@ -238,7 +236,6 @@ class EnergyRequirement:
                                       right_on=['building_category', 'TEK', 'purpose', 'start_year', 'end_year'],
                                       how='left'
                                       )
-        policy_improvement
 
         policy_improvement[['start_year', 'end_year']] = policy_improvement[['start_year', 'end_year']].astype(int)
         policy_improvement = policy_improvement.set_index(
@@ -250,7 +247,6 @@ class EnergyRequirement:
         df = pd.merge(left=all_things[['building_category', 'TEK', 'purpose', 'year']],
                       right=policy_improvement,
                       on=['building_category', 'TEK', 'purpose'], how='left')
-
 
         df['num_values'] = df['end_year'] - df['start_year'] + 1.0
         df['n'] = (df.year - df.start_year).clip(upper=df.num_values-1, lower=0)

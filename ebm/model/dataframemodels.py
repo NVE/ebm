@@ -18,7 +18,7 @@ class EnergyNeedYearlyImprovements(pa.DataFrameModel):
     start_year: Series[int] = pa.Field(coerce=True, default=2020)
     function: Series[str]
     end_year: Series[int] = pa.Field(coerce=True, default=2050)
-    _filename = 'energy_need_yearly_improvements'
+    _filename = 'energy_need_improvements'
 
     class Config:
         unique = ['building_category', 'TEK', 'purpose', 'start_year', 'function', 'end_year']

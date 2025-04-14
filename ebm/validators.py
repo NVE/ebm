@@ -452,7 +452,7 @@ energy_requirement_reduction_per_condition = pa.DataFrameSchema(
 )
 
 
-energy_need_yearly_improvements = pa.DataFrameSchema(
+energy_need_improvements = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
         'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
@@ -462,25 +462,6 @@ energy_need_yearly_improvements = pa.DataFrameSchema(
                                                                             max_value=1.0, include_max=True)])
     },
     unique=['building_category', 'TEK', 'purpose', 'start_year', 'function', 'end_year'],
-    report_duplicates='all'
-)
-
-
-# TODO: allow blank value on period_start_year (nullable=True) and implement solution for default value = model_start_year? 
-energy_requirement_policy_improvements = pa.DataFrameSchema(
-    columns={
-        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
-        'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
-        'purpose': pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
-        'period_start_year': pa.Column(int, coerce=True, checks=[pa.Check.greater_than_or_equal_to(0)]),
-        'period_end_year': pa.Column(int, coerce=True,  checks=[pa.Check.greater_than_or_equal_to(0)]),
-        'improvement_at_period_end': pa.Column(float, coerce=True, 
-                                               checks=[pa.Check.between(min_value=0.0, include_min=True,
-                                                                        max_value=1.0, include_max=True)])
-    },
-    checks=[pa.Check(lambda df: df["period_end_year"] > df["period_start_year"],
-                     error="period_end_year should be greater than period_start_year")],
-    unique=['building_category', 'TEK', 'purpose'],
     report_duplicates='all'
 )
 

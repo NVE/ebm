@@ -143,7 +143,7 @@ print(policy_improvement)
 #%% md
 # ## yearly improvements
 
-y_i = pd.read_csv('kalibrering/energy_need_yearly_improvements.csv')
+y_i = pd.read_csv('kalibrering/energy_need_improvements.csv')
 
 y_i = explode_column_alias(y_i, 'building_category', all_building_categories, 'default')
 y_i = explode_column_alias(y_i, 'TEK', all_teks, 'default')

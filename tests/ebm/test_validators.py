@@ -573,7 +573,6 @@ def policy_improvements_df():
     return df
 
 
-@pytest.mark.skip
 def test_energy_req_policy_improvements(policy_improvements_df):
     PolicyImprovement.to_schema().validate(policy_improvements_df)
 

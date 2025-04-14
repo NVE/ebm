@@ -42,25 +42,15 @@ house,TEK01,electrical_equipment,0.8,2025,improvement_at_end_year,2029
     df = PolicyImprovement.from_energy_need_yearly_improvements(EnergyNeedYearlyImprovements(df_input))
 
     assert isinstance(df, pd.DataFrame), f'Expected df to be a DataFrame. Was: {type(df)}'
-    df = cast(pd.DataFrame, df).set_index(['building_category','TEK','purpose','year'])
-
-    actual_years = set(df.loc[('house', 'TEK01', 'lighting', slice(None))].index.get_level_values(level='year'))
-    expected_years = {2020, 2021, 2022, 2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030}
-
-    assert actual_years == expected_years
+    df = cast(pd.DataFrame, df).set_index(['building_category','TEK','purpose','start_year', 'end_year'])
 
     lighting = df.query('purpose=="lighting"')
 
     assert (lighting.improvement_at_end_year == 0.5555555555555556).all()
 
-    expected_policy_improvement_factor = [1., 0.94444444, 0.88888889, 0.83333333, 0.77777778,
-                                          0.72222222, 0.66666667, 0.61111111, 0.55555556, 0.5,
-                                          0.44444444]
-    assert lighting.policy_improvement_factor.round(8).tolist() == expected_policy_improvement_factor
-
     el_eq = df.query('purpose=="electrical_equipment"')
-    expected_policy_improvement_factor = [1., 0.8, 0.6, 0.4, 0.2]
-    assert el_eq.policy_improvement_factor.round(8).tolist() == expected_policy_improvement_factor
+    expected_policy_improvement_factor = [0.8]
+    assert el_eq.improvement_at_end_year.round(8).tolist() == expected_policy_improvement_factor
 
 
 def test_from_energy_need_policy_improvement_explode_groups():

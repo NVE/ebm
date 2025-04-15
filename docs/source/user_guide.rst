@@ -3,7 +3,7 @@ User Guide
 
 Basic Concepts
 --------------
-- Methods ans calculations: :doc:`calculations`
+- Methods and calculations: :doc:`calculations`
 
 - Models
 - Parameters

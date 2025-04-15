@@ -1,7 +1,7 @@
-﻿#;Engelsk;Norwegian;Explanation Norwegian;Explanation english
-1;Area;Areal;Areal (BRA) fordelt på bygningskategori og TEK i modellens startår. ;Useful floor area in the start year distributed by building category and building code. 
+﻿#
+1;Area;Areal;Areal (BRA) fordelt på bygningskategori og TEK i modellens startår.;Useful floor area in the start year distributed by building category and building code. 
 2;Area per person;Areal per person;Areal for nybygg i yrkesbygg, følger befolkningsøkning.;Useful floor area for new non-residential buildings based on population growth.
-3;area new residential buildings;Area bolig nybygg;Areal nybygg for boliger. Har behov for dette arealet i 2020 og 2021 for å kunne gjøre beregninger.  ;New useful floor area for residential buildings in 2020 and 2021. Constants. 
+3;Area new residential buildings;Areal bolig nybygg;Areal nybygg for boliger. Har behov for dette arealet i 2020 og 2021 for å kunne gjøre beregninger.  ;New useful floor area for residential buildings in 2020 and 2021. Constants. 
 4;Energy need original condition;Energibehov uberørte bygg;Energibehov per kvadratmeter til ulike formål fordelt på TEK og bygningskategori. Filen inneholder også adferdsfaktor.;Energy need per square meter for various energy purposes differentiated by building code and building category. Including a behavior factor. 
 5;Energy need improvements;Forbedringer fra politiske virkemidler;Reduksjon i for eksempel energibehov til belysning som følge av økodesignkrav.;Reduction in lighting and equipment energy need from implementation of ecodesign.
 6;Improvement building upgrade;Forbedringer ved ENØK og rehabilitering. ;Prosentvis reduksjon i energibehov til oppvarming ved hhv. Enøk, rehab og enøk + rehab. ;Reduction in heating energy need from completed small measures, renovation and small measures + renovation. Percentage reduction.

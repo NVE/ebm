@@ -1,0 +1,15 @@
+Building category;Building types
+House; Single houses and terraced houses.
+Apartment block; Apartment blocks of two or more storeys, contains the area of multiple apartments.
+Kindergarten; Kindergartens and buildings at playgrounds.
+Retail; Shopping malls, gas stations, restaurants, other retail buildings.
+Hotel; Hotels, motels, hospits.
+Sports;Sport halls, ice rinks, swimming facilities and gyms.
+Office; City halls, police stations, fire stations, other offices.
+Culture;Museums, libraries, religous buildings, other culture buildings.
+School;Primary to highschool.
+Nursing home; Nursing homes, rehabilitation facilites and health facilites.
+Hospital; Hospitals and doctor offices.
+University; Unversities and laboratories.
+Storage; Warehouses and freezing storage.
+

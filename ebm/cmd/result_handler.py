@@ -272,7 +272,7 @@ class EbmDefaultHandler:
                         page_end = min(i + chunk_size, len(output))
                         logger.trace(f'{start_row=} {page_start=} {page_end=}')
                         output.iloc[page_start:page_end].to_excel(excel_writer, startrow=start_row, header=(i == 0),
-                                                                  merge_cells=True, index=True)
+                                                                  merge_cells=True, index=not reset_index)
                         pbar.update(chunk_size)
                     pbar.set_description(f'Closing {output_file}')
                     closing_file = time.time()

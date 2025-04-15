@@ -2,6 +2,7 @@ Glossary
 ========
 
 The # column is an identifier for the file name and its corresponding columns. 
+
 Filenames
 ---------
 .. csv-table:: Overview of the input files and contents.

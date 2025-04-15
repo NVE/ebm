@@ -29,6 +29,9 @@ First of all, you need to create a directory with the necessary input files. To 
 
 
 
+.. |date| date::
+
+Last Updated on |date|.
 
 Version: |version|.
 
@@ -202,8 +205,4 @@ Version: |version|.
 
 ..   .. α_t(i) = P(O_1, O_2, … O_t, q_t = S_i λ)
 
-.. |date| date::
 
-Last Updated on |date|.
-
-Version: |version|.

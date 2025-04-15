@@ -175,11 +175,9 @@ class EnergyRequirement:
         pd.DataFrame
             DataFrame with the calculated 'reduction_yearly' column and updated entries.
         """
+        years = pd.DataFrame(data=[y for y in policy_improvement.year.unique()], columns=['year'])
 
-
-        df = pd.merge(left=policy_improvement[['building_category', 'TEK', 'purpose', 'year']],
-                      right=yearly_improvement,
-                      on=['building_category', 'TEK', 'purpose'])
+        df = pd.merge(left=yearly_improvement, right=years, how='cross')
         ys = df[df.year >= df.start_year].index
         df.loc[ys, 'reduction_yearly'] = (1.0 - df.loc[ys,
                                                                 'yearly_efficiency_improvement']) ** (df.loc[ys

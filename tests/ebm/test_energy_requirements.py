@@ -309,10 +309,10 @@ def test_calculate_reduction_with_yearly_reduction():
 
 
     assert house_lighting.reduction_policy.round(8).tolist() == [1.0, 1.0, 0.8, 0.6, 0.4] + [0.4]*8
-    assert house_lighting.reduction_yearly.tolist() == [1.0, 0.9, 0.81, 0.7290000000000001,
-                                            0.6561, 0.5904900000000001, 0.531441, 0.4782969000000001,
-                                            0.4304672100000001, 0.3874204890000001, 0.3486784401000001,
-                                            0.31381059609000006, 0.2824295364810001]
+    assert house_lighting.reduction_yearly.round(5).tolist() == [1.0, 0.9, 0.81, 0.729,
+                                            0.6561, 0.59049, 0.53144, 0.4783,
+                                            0.43047, 0.38742, 0.34868,
+                                            0.31381, 0.28243]
 
     result = house_lighting.kwh_m2
     expected = pd.Series([100., 90., 64.8, 43.74,

@@ -7,7 +7,7 @@ import pandas as pd
 from ebm import validators
 from ebm.energy_consumption import calibrate_heating_systems
 from ebm.model.column_operations import explode_building_category_column, explode_tek_column, explode_unique_columns
-from ebm.model.dataframemodels import EnergyNeedYearlyImprovements, YearlyReduction
+from ebm.model.dataframemodels import EnergyNeedYearlyImprovements, YearlyReduction, PolicyImprovement
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.file_handler import FileHandler
 from ebm.model.building_category import BuildingCategory, expand_building_categories
@@ -299,20 +299,21 @@ class DatabaseManager:
         eny = YearlyReduction.from_energy_need_yearly_improvements(improvements)
         return eny
     
-    def get_energy_req_policy_improvements(self) -> pd.DataFrame:
+    def get_energy_need_policy_improvement(self) -> pd.DataFrame:
         """
-        Get dataframe with total energy requirement improvement in a period related to a policy. This
+        Get dataframe with total energy need improvement in a period related to a policy. This
         function calls explode_unique_columns to expand building_category and TEK as necessary.
 
         Returns
         -------
         pd.DataFrame
-            Dataframe containing total energy requirement improvement (%) in a policy period,
+            Dataframe containing total energy need improvement (%) in a policy period,
             per building category, tek and purpose.        
         """
-        policy_improvements = self.file_handler.get_energy_req_policy_improvements()
-        return self.explode_unique_columns(policy_improvements,
-                                           ['building_category', 'TEK', 'purpose'])
+        en_improvements = self.file_handler.get_energy_need_yearly_improvements()
+        improvements = EnergyNeedYearlyImprovements.validate(en_improvements)
+        enp = PolicyImprovement.from_energy_need_yearly_improvements(improvements)
+        return enp
 
     def get_holiday_home_fuelwood_consumption(self) -> pd.Series:
         df = self.file_handler.get_holiday_home_energy_consumption().set_index('year')["fuelwood"]
@@ -391,5 +392,5 @@ if __name__ == '__main__':
     db = DatabaseManager()
     building_category = BuildingCategory.HOUSE
 
-    a = db.get_energy_req_policy_improvements()
+    a = db.get_energy_need_policy_improvement()
     print(a)

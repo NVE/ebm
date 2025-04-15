@@ -1,0 +1,7 @@
+building_category,TEK,purpose,value,start_year,function,end_year
+default,default,cooling,0.0,2020,yearly_reduction,2050
+default,default,electrical_equipment,0.01,2021,yearly_reduction,2050
+default,default,fans_and_pumps,0.0,2020,yearly_reduction,2050
+default,default,heating_dhw,0.0,2020,yearly_reduction,2050
+default,default,lighting,0.5555555555555556,2020,improvement_at_end_year,2030
+default,default,lighting,0.005,2030,yearly_reduction,2050

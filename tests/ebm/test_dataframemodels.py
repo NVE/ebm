@@ -52,6 +52,25 @@ def test_from_energy_need_yearly_improvements_default_start_year_is_2020():
     assert (df['end_year'] == 2050).all()
 
 
+def test_from_energy_need_yearly_improvements_fill_optional_columns():
+    dfm = EnergyNeedYearlyImprovements(pd.DataFrame(
+        data=[
+            ['house', 'TEK1', 'lighting', 'yearly_reduction', 0.1],
+            ['house', 'TEK2', 'lighting', 'yearly_reduction', 0.2],
+            ['house', 'TEK3', 'lighting', 'yearly_reduction', 0.3],
+        ],
+        columns=['building_category', 'TEK', 'purpose', 'function', 'value']
+    ))
+    df = YearlyReduction.from_energy_need_yearly_improvements(dfm)
+
+    df = cast(pd.DataFrame, df)
+    assert df['start_year'].dtype == int
+    assert (df['start_year'] == 2020).all()
+
+    assert df['end_year'].dtype == int
+    assert (df['end_year'] == 2050).all()
+
+
 def test_from_energy_need_policy_improvement():
     csv_file="""building_category,TEK,purpose,value,start_year,function,end_year
 default,default,lighting,0.005,2031,yearly_reduction,2050
@@ -162,6 +181,25 @@ def test_energy_req_policy_improvements_require_unique_rows():
               ['default', 'default', 'lighting', 2018, 2030, 0.1]])
     with pytest.raises(pa.errors.SchemaError):
         PolicyImprovement.to_schema()(duplicate_df)
+
+
+def test_from_policy_improvements__fill_optional_columns():
+    dfm = EnergyNeedYearlyImprovements(pd.DataFrame(
+        data=[
+            ['house', 'TEK1', 'lighting', 'improvement_at_period_end', 0.1],
+            ['house', 'TEK2', 'lighting', 'improvement_at_period_end', 0.2],
+            ['house', 'TEK3', 'lighting', 'improvement_at_period_end', 0.3],
+        ],
+        columns=['building_category', 'TEK', 'purpose', 'function', 'value']
+    ))
+    df = PolicyImprovement.from_energy_need_yearly_improvements(dfm)
+
+    df = cast(pd.DataFrame, df)
+    assert df['start_year'].dtype == int
+    assert (df['start_year'] == 2020).all()
+
+    assert df['end_year'].dtype == int
+    assert (df['end_year'] == 2050).all()
 
 
 if __name__ == '__main__':

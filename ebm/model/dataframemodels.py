@@ -1,4 +1,4 @@
-from typing import cast
+from typing import cast, Optional
 
 import numpy as np
 import pandas as pd
@@ -15,9 +15,9 @@ class EnergyNeedYearlyImprovements(pa.DataFrameModel):
     TEK: Series[str]
     purpose: Series[str]
     value: Series[float] = pa.Field(ge=0.0, coerce=True)
-    start_year: Series[int] = pa.Field(coerce=True, default=2020)
+    start_year: Optional[Series[int]] = pa.Field(coerce=True, default=2020)
     function: Series[str]
-    end_year: Series[int] = pa.Field(coerce=True, default=2050)
+    end_year: Optional[Series[int]] = pa.Field(coerce=True, default=2050)
     _filename = 'energy_need_improvements'
 
     class Config:
@@ -28,8 +28,8 @@ class YearlyReduction(pa.DataFrameModel):
     building_category: Series[str]
     TEK: Series[str]
     purpose: Series[str]
-    start_year: Series[int]
-    end_year: Series[int]
+    start_year: Series[int] = pa.Field(coerce=True, default=2020)
+    end_year: Series[int] = pa.Field(coerce=True, default=2050)
     yearly_efficiency_improvement: Series[float] = pa.Field(ge=0.0, coerce=True)
 
     class Config:
@@ -62,6 +62,10 @@ class YearlyReduction(pa.DataFrameModel):
 
         # Casting en_yearly_improvement to DataFrame so that type checkers complaining about datatype
         df = cast(pd.DataFrame, en_yearly_improvement)
+        if 'start_year' not in df.columns:
+            df['start_year'] = 2020
+        if 'end_year' not in df.columns:
+            df['end_year'] = 2050
         df = df.query('function=="yearly_reduction"')
         df = explode_unique_columns(df,
                                                        unique_columns=unique_columns)
@@ -98,6 +102,10 @@ class PolicyImprovement(pa.DataFrameModel):
 
         energy_need_improvements = cast(pd.DataFrame, energy_need_improvements)
         df = energy_need_improvements.query('function=="improvement_at_end_year"')
+        if 'start_year' not in df.columns:
+            df['start_year'] = 2020
+        if 'end_year' not in df.columns:
+            df['end_year'] = 2050
         unique_columns = ('building_category', 'TEK', 'purpose', 'start_year', 'function', 'end_year',)
         df = explode_unique_columns(df, unique_columns=unique_columns)
         df = explode_column_alias(df, column='purpose', values=[p for p in EnergyPurpose], alias='default',

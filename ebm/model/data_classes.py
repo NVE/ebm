@@ -163,6 +163,21 @@ class YearRange:
         """
         return pd.Index(self.year_range, name=name)
 
+    def to_dataframe(self, name='year') -> pd.DataFrame:
+        """
+        Converts the year_range to a pandas DataFrame.
+        Parameters
+        ----------
+        name : str, optional
+            name of the column. Default: 'year'
+        Returns
+        -------
+        pd.DataFrame
+            Pandas Dataframe object containing the years in the range in the column year.
+        """
+        return pd.DataFrame(self.year_range, columns=[name])
+
+
     def __getitem__(self, key: int | slice) -> pd.Index:
         """
         Returns a pandas Index object for the specified slice of the year range.

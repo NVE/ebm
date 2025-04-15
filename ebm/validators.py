@@ -457,7 +457,7 @@ energy_need_improvements = pa.DataFrameSchema(
         'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
         'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
         'purpose':pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
-        'yearly_efficiency_improvement': pa.Column(float, coerce=True, 
+        'value': pa.Column(float, coerce=True,
                                                    checks=[pa.Check.between(min_value=0.0, include_min=True,
                                                                             max_value=1.0, include_max=True)])
     },

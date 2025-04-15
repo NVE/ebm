@@ -510,7 +510,7 @@ def test_energy_req_reduction_per_condition_allow_missing_building_conditions(re
 
 @pytest.fixture
 def yearly_improvements_df():
-    return pd.DataFrame(columns=['building_category', 'TEK', 'purpose', 'yearly_efficiency_improvement'],
+    return pd.DataFrame(columns=['building_category', 'TEK', 'purpose', 'value'],
                         data=[
                             ['default', 'default', 'cooling', 0.0],
                             ['default', 'default', 'electrical_equipment', 0.1],
@@ -544,11 +544,11 @@ def test_energy_need_yearly_improvements_require_valid_purpose(yearly_improvemen
 
 
 def test_energy_need_yearly_improvements_value_between_zero_and_one(yearly_improvements_df):
-    yearly_improvements_df.loc[0, 'yearly_efficiency_improvement'] = -1
+    yearly_improvements_df.loc[0, 'value'] = -1
     with pytest.raises(pa.errors.SchemaError):
         energy_need_improvements.validate(yearly_improvements_df)
 
-    yearly_improvements_df.loc[0, 'yearly_efficiency_improvement'] = 2
+    yearly_improvements_df.loc[0, 'value'] = 2
     with pytest.raises(pa.errors.SchemaError):
         energy_need_improvements.validate(yearly_improvements_df)
 

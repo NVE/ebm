@@ -14,7 +14,7 @@ class EnergyNeedYearlyImprovements(pa.DataFrameModel):
     building_category: Series[str]
     TEK: Series[str]
     purpose: Series[str]
-    yearly_efficiency_improvement: Series[float] = pa.Field(ge=0.0, coerce=True)
+    value: Series[float] = pa.Field(ge=0.0, coerce=True)
     start_year: Series[int] = pa.Field(coerce=True, default=2020)
     function: Series[str]
     end_year: Series[int] = pa.Field(coerce=True, default=2050)
@@ -71,7 +71,7 @@ class YearlyReduction(pa.DataFrameModel):
                                                      values=[p for p in EnergyPurpose],
                                                      alias='default',
                                                      de_dup_by=unique_columns)
-
+        df['yearly_efficiency_improvement'] = df['value']
         df = df[['building_category', 'TEK', 'purpose', 'start_year', 'end_year', 'yearly_efficiency_improvement']]
 
         return YearlyReduction.validate(df, lazy=True)
@@ -103,6 +103,6 @@ class PolicyImprovement(pa.DataFrameModel):
         df = explode_column_alias(df, column='purpose', values=[p for p in EnergyPurpose], alias='default',
                                   de_dup_by=unique_columns)
 
-        df['improvement_at_end_year'] = df['yearly_efficiency_improvement']
+        df['improvement_at_end_year'] = df['value']
 
         return PolicyImprovement.validate(df)

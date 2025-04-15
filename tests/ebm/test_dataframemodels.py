@@ -14,7 +14,7 @@ def test_from_energy_need_yearly_improvements():
             ['house', 'TEK1', 'lighting', 2021, 'yearly_reduction', 2023,0.2],
             # ['house', 'TEK1', 'heating_rv', 1.0, 2021, 'improvement_at_end_year', 2023]
         ],
-        columns=['building_category', 'TEK', 'purpose', 'start_year', 'function', 'end_year', 'yearly_efficiency_improvement']
+        columns=['building_category', 'TEK', 'purpose', 'start_year', 'function', 'end_year', 'value']
     ))
     df = YearlyReduction.from_energy_need_yearly_improvements(dfm)
 
@@ -40,7 +40,7 @@ def test_from_energy_need_yearly_improvements_default_start_year_is_2020():
             ['house', 'TEK2', 'lighting', 2020, 'yearly_reduction', None, 0.2],
             ['house', 'TEK3', 'lighting', None, 'yearly_reduction', None, 0.3],
         ],
-        columns=['building_category', 'TEK', 'purpose', 'start_year', 'function', 'end_year', 'yearly_efficiency_improvement']
+        columns=['building_category', 'TEK', 'purpose', 'start_year', 'function', 'end_year', 'value']
     ))
     df = YearlyReduction.from_energy_need_yearly_improvements(dfm)
 
@@ -53,7 +53,7 @@ def test_from_energy_need_yearly_improvements_default_start_year_is_2020():
 
 
 def test_from_energy_need_policy_improvement():
-    csv_file="""building_category,TEK,purpose,yearly_efficiency_improvement,start_year,function,end_year
+    csv_file="""building_category,TEK,purpose,value,start_year,function,end_year
 default,default,lighting,0.005,2031,yearly_reduction,2050
 house,TEK01,lighting,0.5555555555555556,2020,improvement_at_end_year,2030
 house,TEK01,electrical_equipment,0.8,2025,improvement_at_end_year,2029
@@ -74,7 +74,7 @@ house,TEK01,electrical_equipment,0.8,2025,improvement_at_end_year,2029
 
 
 def test_from_energy_need_policy_improvement_explode_groups():
-    csv_file="""building_category,TEK,purpose,yearly_efficiency_improvement,start_year,function,end_year
+    csv_file="""building_category,TEK,purpose,value,start_year,function,end_year
 residential,TEK01+TEK02,lighting,0.1,2020,improvement_at_end_year,2021
 non_residential,TEK02,default,0.2,2020,improvement_at_end_year,2021
 non_residential,TEK02,default,0.2,2020,yearly_reduction,2021

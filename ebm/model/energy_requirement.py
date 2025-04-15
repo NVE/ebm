@@ -121,26 +121,25 @@ class EnergyRequirement:
         -------
         pd.DataFrame
         """
-        reduction_per_condition = self.calculate_reduction_condition(reduction_per_condition)
-        condition_factor = pd.merge(left=energy_requirements, right=reduction_per_condition,
+        reduction_condition = self.calculate_reduction_condition(reduction_per_condition)
+        condition_factor = pd.merge(left=energy_requirements, right=reduction_condition,
                                     on=['building_category', 'TEK', 'building_condition', 'purpose'],
                                     how='left')
 
-        policy_improvement_factor = self.calculate_reduction_policy(policy_improvement, energy_requirements)
+        reduction_policy = self.calculate_reduction_policy(policy_improvement, energy_requirements)
+        reduction_yearly = self.calculate_reduction_yearly(energy_requirements, yearly_improvement)
 
-        yearly_reduction_factor = self.calculate_reduction_yearly(energy_requirements, yearly_improvement)
-
-        merged = self.merge_energy_requirement_reductions(condition_factor, yearly_reduction_factor, policy_improvement_factor)
+        merged = self.merge_energy_requirement_reductions(condition_factor, reduction_yearly, reduction_policy)
 
         return merged
 
-    def merge_energy_requirement_reductions(self, condition_factor, yearly_improvements, policy_improvement_factor):
+    def merge_energy_requirement_reductions(self, condition_factor, yearly_improvements, reduction_policy):
         m_nrg_yi = pd.merge(left=condition_factor,
                             right=yearly_improvements.copy(),
                             on=['building_category', 'TEK', 'purpose', 'year'],
                             how='left')
         m_nrg_yi = pd.merge(left=m_nrg_yi,
-                            right=policy_improvement_factor.copy(),
+                            right=reduction_policy.copy(),
                             on=['building_category', 'TEK', 'purpose', 'year'],
                             how='left')
         merged = m_nrg_yi.copy()

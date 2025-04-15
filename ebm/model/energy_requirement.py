@@ -155,7 +155,7 @@ class EnergyRequirement:
         return merged
 
     def calculate_reduction_yearly(self,
-                                   policy_improvement: pd.DataFrame, yearly_improvement: pd.DataFrame) -> pd.DataFrame:
+                                   df_years: pd.DataFrame, yearly_improvement: pd.DataFrame) -> pd.DataFrame:
         """
         Calculate the yearly reduction for each entry in the DataFrame.
 
@@ -165,8 +165,8 @@ class EnergyRequirement:
 
         Parameters
         ----------
-        policy_improvement : pd.DataFrame
-            DataFrame containing policy improvement information. Must include columns 'period_end_year' and 'efficiency_start_year'.
+        df_years : pd.DataFrame
+            DataFrame containing all model years. Must include column 'year'.
         yearly_improvement : pd.DataFrame
             DataFrame containing yearly improvement information. Must include columns 'year', 'yearly_efficiency_improvement', and 'efficiency_start_year'.
 
@@ -175,17 +175,19 @@ class EnergyRequirement:
         pd.DataFrame
             DataFrame with the calculated 'reduction_yearly' column and updated entries.
         """
-        years = pd.DataFrame(data=[y for y in policy_improvement.year.unique()], columns=['year'])
+        years = pd.DataFrame(data=[y for y in df_years.year.unique()], columns=['year'])
 
         df = pd.merge(left=yearly_improvement, right=years, how='cross')
-        ys = df[df.year >= df.start_year].index
+        ys = df[(df.year >= df.start_year) & (df.year <= df.end_year)].index
         df.loc[ys, 'reduction_yearly'] = (1.0 - df.loc[ys,
                                                                 'yearly_efficiency_improvement']) ** (df.loc[ys
                                                                                                      ,
                                                                                                      'year'] - df.loc[
                                                                                                      ys,
                                                                                                      'start_year'])
-        df = df.drop_duplicates(['building_category', 'TEK', 'purpose', 'year'])
+        df.loc[df[df.start_year > df.year].index, 'reduction_yearly'] = df.loc[df[df.start_year > df.year].index, 'reduction_yearly'].fillna(1.0)
+        df.loc[:, 'reduction_yearly'] = df.loc[:, 'reduction_yearly'].ffill()
+
         return df
 
 

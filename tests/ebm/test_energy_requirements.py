@@ -159,7 +159,6 @@ def test_calculate_reduction_policy_works_with_multiple_periods():
     pd.testing.assert_series_equal(df['reduction_policy'], expected_reduction_policy)
 
 
-
 def test_calculate_reduction_with_policy_improvement():
     period = YearRange(2011, 2017)
     dm = DatabaseManager()
@@ -212,6 +211,49 @@ def test_calculate_reduction_with_policy_improvement():
     
     assert len(result) == len(expected)
     pd.testing.assert_series_equal(result, expected, check_index=False, check_names=False)
+
+
+def test_calculate_yearly_reduction():
+    """
+    reduction_yearly starts after start_year and ends in end_year
+    reduction_yearly replace nan values with 1.0 before start_year and by ffill after end_year
+
+    """
+    period = YearRange(2010, 2022)
+    dm = DatabaseManager()
+
+    yearly_efficiency_improvement = pd.DataFrame(
+        data=[
+            ['house', 'TEK01', 'lighting', period.start, 0.1, period.end],
+            ['house', 'TEK01', 'electrical_equipment', 2011, 0.05, 2020],
+        ],
+        columns=['building_category', 'TEK', 'purpose', 'start_year', 'yearly_efficiency_improvement', 'end_year'])
+
+    en_req = EnergyRequirement(tek_list=['TEK01'], period=period, calibration_year=2013, database_manager=dm)
+
+    df = en_req.calculate_reduction_yearly(df_years=period.to_dataframe(), yearly_improvement=yearly_efficiency_improvement)
+
+    house_lighting = df.query('purpose=="lighting"').set_index(['year'])
+
+    expected = pd.Series(
+        data={2010:1.0, 2011:0.9, 2012:0.81, 2013:0.7290000000000001, 2014: 0.6561, 2015:0.5904900000000001,
+              2016:0.531441, 2017:0.4782969000000001, 2018:0.4304672100000001, 2019:0.3874204890000001,
+              2020:0.3486784401000001, 2021:0.31381059609000006, 2022:0.2824295364810001},
+        name='reduction_yearly',
+        index=period.to_index())
+
+    pd.testing.assert_series_equal(house_lighting.reduction_yearly, expected)
+
+    house_el_eq = df.query('purpose=="electrical_equipment"').set_index(['year'])
+
+    house_el_expected = pd.Series(
+        data=[1.0, 1.0, 0.95, 0.9025, 0.8573749999999999, 0.8145062499999999, 0.7737809374999998, 0.7350918906249998,
+              0.6983372960937497, 0.6634204312890623, 0.6302494097246091,  0.6302494097246091,  0.6302494097246091
+        ],
+        name='reduction_yearly',
+        index=period.to_index())
+
+    pd.testing.assert_series_equal(house_el_eq.reduction_yearly, house_el_expected)
 
 
 def test_calculate_reduction_with_yearly_reduction():

@@ -154,10 +154,9 @@ class EnergyRequirement:
         merged['kwh_m2'] = merged['behavior_kwh_m2']
         return merged
 
-    def calculate_reduction_yearly(self,
-                                   df_years: pd.DataFrame, yearly_improvement: pd.DataFrame) -> pd.DataFrame:
+    def calculate_reduction_yearly(self, df_years: pd.DataFrame, yearly_improvement: pd.DataFrame) -> pd.DataFrame:
         """
-        Calculate the yearly reduction for each entry in the DataFrame.
+        Calculate factor for yearly reduction for each entry in the DataFrame yearly_improvement.
 
         This method merges the yearly improvement data with the policy improvement data, adjusts the
         efficiency start year if the period end year is greater, and calculates the yearly reduction
@@ -166,26 +165,37 @@ class EnergyRequirement:
         Parameters
         ----------
         df_years : pd.DataFrame
-            DataFrame containing all model years. Must include column 'year'.
+            DataFrame containing all years for which to calculate factors. Must include column 'year'.
         yearly_improvement : pd.DataFrame
-            DataFrame containing yearly improvement information. Must include columns 'year', 'yearly_efficiency_improvement', and 'efficiency_start_year'.
+            DataFrame containing yearly improvement information. Must include columns 'yearly_efficiency_improvement', and 'efficiency_start_year'.
 
         Returns
         -------
         pd.DataFrame
             DataFrame with the calculated 'reduction_yearly' column and updated entries.
         """
+        required_in_yearly_improvement = {'yearly_efficiency_improvement', 'start_year', 'end_year'}
+        if not required_in_yearly_improvement.issubset(yearly_improvement.columns):
+            logger.debug(f'Got columns {', '.join(yearly_improvement.columns)}')
+            missing = required_in_yearly_improvement.difference(yearly_improvement.columns)
+            raise ValueError('Required column{} not found in yearly_improvement: {}'.format(
+                's' if len(missing) != 1 else '', missing
+            ))
+        if 'year' not in df_years:
+            logger.debug(f'Got columns {', '.join(df_years.columns)}')
+            raise ValueError('df_years does not contain column year')
+
         years = pd.DataFrame(data=[y for y in df_years.year.unique()], columns=['year'])
 
         df = pd.merge(left=yearly_improvement, right=years, how='cross')
-        ys = df[(df.year >= df.start_year) & (df.year <= df.end_year)].index
-        df.loc[ys, 'reduction_yearly'] = (1.0 - df.loc[ys,
-                                                                'yearly_efficiency_improvement']) ** (df.loc[ys
-                                                                                                     ,
-                                                                                                     'year'] - df.loc[
-                                                                                                     ys,
-                                                                                                     'start_year'])
-        df.loc[df[df.start_year > df.year].index, 'reduction_yearly'] = df.loc[df[df.start_year > df.year].index, 'reduction_yearly'].fillna(1.0)
+        rows_in_range = df[(df.year >= df.start_year) & (df.year <= df.end_year)].index
+
+        df.loc[rows_in_range, 'yearly_change'] = (1.0 - df.loc[rows_in_range, 'yearly_efficiency_improvement'])
+        df.loc[rows_in_range, 'pow'] = (df.loc[rows_in_range, 'year'] - df.loc[rows_in_range, 'start_year']) + 1
+        df.loc[rows_in_range, 'reduction_yearly'] =  df.loc[rows_in_range, 'yearly_change'] ** df.loc[rows_in_range, 'pow']
+
+        df.loc[df[df.start_year > df.year].index, 'reduction_yearly'] = df.loc[
+            df[df.start_year > df.year].index, 'reduction_yearly'].fillna(1.0)
         df.loc[:, 'reduction_yearly'] = df.loc[:, 'reduction_yearly'].ffill()
 
         return df

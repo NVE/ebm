@@ -252,6 +252,42 @@ energy_requirement_policy_improvements
  - float using a decimal point ('.') as the separator
  - **0.0** ≤ value ≤ **1.0**
 
+energy_need_improvements
+------------------------
+
+``building_category``
+ - required
+ - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs, default, residential, non_residential
+
+``TEK``
+ - required
+ - values: Any string containing ``TEK``
+
+``purpose``
+ - required
+ - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling, default'
+
+``start_year``
+ - integer
+ - **0** ≤ value ≤ **end_year**
+ - default 2020
+
+``function``
+ - required
+ - values: yearly_reduction, improvement_at_end_year
+
+``value``
+ - required
+ - float using a decimal point ('.') as the separator
+ - **0.0** ≤ value
+
+``end_year``
+ - required
+ - integer
+ - **start_year** ≤ value ≤ **2070**
+ - default 2050
+
+
 holiday_home_by_year
 --------------------
 

@@ -156,7 +156,7 @@ class EnergyRequirement:
 
     def calculate_reduction_yearly(self, df_years: pd.DataFrame, yearly_improvement: pd.DataFrame) -> pd.DataFrame:
         """
-        Calculate the yearly reduction for each entry in the DataFrame.
+        Calculate factor for yearly reduction for each entry in the DataFrame yearly_improvement.
 
         This method merges the yearly improvement data with the policy improvement data, adjusts the
         efficiency start year if the period end year is greater, and calculates the yearly reduction
@@ -165,22 +165,24 @@ class EnergyRequirement:
         Parameters
         ----------
         df_years : pd.DataFrame
-            DataFrame containing all model years. Must include column 'year'.
+            DataFrame containing all years for which to calculate factors. Must include column 'year'.
         yearly_improvement : pd.DataFrame
-            DataFrame containing yearly improvement information. Must include columns 'year', 'yearly_efficiency_improvement', and 'efficiency_start_year'.
+            DataFrame containing yearly improvement information. Must include columns 'yearly_efficiency_improvement', and 'efficiency_start_year'.
 
         Returns
         -------
         pd.DataFrame
             DataFrame with the calculated 'reduction_yearly' column and updated entries.
         """
+
         years = pd.DataFrame(data=[y for y in df_years.year.unique()], columns=['year'])
 
         df = pd.merge(left=yearly_improvement, right=years, how='cross')
-        ys = df[(df.year >= df.start_year) & (df.year <= df.end_year)].index
+        rows_in_range = df[(df.year >= df.start_year) & (df.year <= df.end_year)].index
 
-        df.loc[ys, 'reduction_yearly'] = (1.0 - df.loc[ys, 'yearly_efficiency_improvement']) ** (
-                    df.loc[ys, 'year'] - df.loc[ys, 'start_year'])
+        df.loc[rows_in_range, 'yearly_change'] = (1.0 - df.loc[rows_in_range, 'yearly_efficiency_improvement'])
+        df.loc[rows_in_range, 'pow'] = (df.loc[rows_in_range, 'year'] - df.loc[rows_in_range, 'start_year'])
+        df.loc[rows_in_range, 'reduction_yearly'] =  df.loc[rows_in_range, 'yearly_change'] ** df.loc[rows_in_range, 'pow']
 
         df.loc[df[df.start_year > df.year].index, 'reduction_yearly'] = df.loc[
             df[df.start_year > df.year].index, 'reduction_yearly'].fillna(1.0)

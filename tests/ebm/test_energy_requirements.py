@@ -212,6 +212,32 @@ def test_calculate_reduction_with_policy_improvement():
     assert len(result) == len(expected)
     pd.testing.assert_series_equal(result, expected, check_index=False, check_names=False)
 
+@pytest.fixture
+def energy_need():
+    period = YearRange(2010, 2022)
+    return EnergyRequirement(tek_list=['TEK01', 'TEK02'], period=period, calibration_year=2013,
+                                    database_manager=DatabaseManager())
+
+
+def test_calculate_yearly_reduction_raise_value_error_on_missing_columns(energy_need):
+    """
+    calculate_reduction_yearly should check validity of its parameters.
+    """
+    yearly_efficiency_improvement = pd.DataFrame(
+        data=[['house', 'TEK01', 'lighting', energy_need.period.start, 0.1, energy_need.period.end],
+            ['house', 'TEK01', 'electrical_equipment', energy_need.period.start + 1, 0.05,
+             energy_need.period.end - 1], ],
+        columns=['building_category', 'TEK', 'purpose', 'start_year', 'yearly_efficiency_improvement', 'end_year'])
+
+    for column in ['yearly_efficiency_improvement', 'start_year', 'end_year']:
+        with pytest.raises(ValueError):
+            energy_need.calculate_reduction_yearly(df_years=energy_need.period.to_dataframe(),
+                yearly_improvement=yearly_efficiency_improvement.drop(columns=[column]))
+
+    with pytest.raises(ValueError):
+        energy_need.calculate_reduction_yearly(df_years=pd.DataFrame(data={'month': [1, 2, 3]}),
+                                               yearly_improvement=yearly_efficiency_improvement)
+
 
 def test_calculate_yearly_reduction():
     """
@@ -224,7 +250,7 @@ def test_calculate_yearly_reduction():
 
     yearly_efficiency_improvement = pd.DataFrame(
         data=[
-            ['house', 'TEK01', 'lighting', period.start, 0.1, period.end],
+            ['house', 'TEK01', 'lighting', 2010, 0.1, period.end],
             ['house', 'TEK01', 'electrical_equipment', 2011, 0.05, 2020],
         ],
         columns=['building_category', 'TEK', 'purpose', 'start_year', 'yearly_efficiency_improvement', 'end_year'])

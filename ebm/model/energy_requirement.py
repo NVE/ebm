@@ -154,8 +154,7 @@ class EnergyRequirement:
         merged['kwh_m2'] = merged['behavior_kwh_m2']
         return merged
 
-    def calculate_reduction_yearly(self,
-                                   df_years: pd.DataFrame, yearly_improvement: pd.DataFrame) -> pd.DataFrame:
+    def calculate_reduction_yearly(self, df_years: pd.DataFrame, yearly_improvement: pd.DataFrame) -> pd.DataFrame:
         """
         Calculate the yearly reduction for each entry in the DataFrame.
 
@@ -179,13 +178,12 @@ class EnergyRequirement:
 
         df = pd.merge(left=yearly_improvement, right=years, how='cross')
         ys = df[(df.year >= df.start_year) & (df.year <= df.end_year)].index
-        df.loc[ys, 'reduction_yearly'] = (1.0 - df.loc[ys,
-                                                                'yearly_efficiency_improvement']) ** (df.loc[ys
-                                                                                                     ,
-                                                                                                     'year'] - df.loc[
-                                                                                                     ys,
-                                                                                                     'start_year'])
-        df.loc[df[df.start_year > df.year].index, 'reduction_yearly'] = df.loc[df[df.start_year > df.year].index, 'reduction_yearly'].fillna(1.0)
+
+        df.loc[ys, 'reduction_yearly'] = (1.0 - df.loc[ys, 'yearly_efficiency_improvement']) ** (
+                    df.loc[ys, 'year'] - df.loc[ys, 'start_year'])
+
+        df.loc[df[df.start_year > df.year].index, 'reduction_yearly'] = df.loc[
+            df[df.start_year > df.year].index, 'reduction_yearly'].fillna(1.0)
         df.loc[:, 'reduction_yearly'] = df.loc[:, 'reduction_yearly'].ffill()
 
         return df

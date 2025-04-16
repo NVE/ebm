@@ -91,7 +91,7 @@ def explode_unique_columns(df: pd.DataFrame| DataFrameBase, unique_columns: List
     return df
 
 
-def explode_column_alias(df, column, values=None, alias='default', de_dup_by=None):
+def explode_column_alias(df, column, values: list|dict=None, alias='default', de_dup_by=None):
     """
     Explodes a specified column in the DataFrame into multiple rows based on provided values and alias.
 
@@ -101,10 +101,12 @@ def explode_column_alias(df, column, values=None, alias='default', de_dup_by=Non
         The input DataFrame containing the column to be exploded.
     column : str
         The name of the column to be exploded.
-    values : Optional[List[str]], optional
-        List of values to explode the column by. If not provided, unique values from the column excluding the alias are used.
+    values : Optional[List[str], dict[str, list[str]], optional
+        List or dict of values to explode the column by. If not provided, unique values from the column excluding the
+        alias are used.
     alias : str, optional
         The alias to be used for default values. Default is 'default'.
+        When values is a dict the parameter alias is ignored
     de_dup_by : Optional[List[str]], optional
         List of columns to use for de-duplication. If not provided, no de-duplication is performed.
 
@@ -123,10 +125,15 @@ def explode_column_alias(df, column, values=None, alias='default', de_dup_by=Non
     2         A
     2         B
     """
+    if column not in df.columns:
+        raise ValueError(f"The DataFrame (df) must contain the column: {column}")
+
     values = values if values is not None else [c for c in df[column].unique().tolist() if c != alias]
+    aliases = {alias: values} if not isinstance(values, dict) else values
     df = df.copy()
-    df['_explode_column_alias_default'] = df[column] == alias
-    df.loc[df[df[column] == alias].index, column] = '+'.join(values)
+    for k, v in aliases.items():
+        df['_explode_column_alias_default'] = df[column] == k
+        df.loc[df[df[column] == k].index, column] = '+'.join(v)
 
     df = df.assign(**{column: df[column].str.split('+')}).explode(column)
     if de_dup_by:

@@ -6,6 +6,7 @@ import pytest
 import pandas as pd
 
 from ebm.model.building_category import BuildingCategory
+from ebm.model.energy_need_filter import filter_original_condition
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.energy_requirement_filter import EnergyRequirementFilter
 from ebm.model.exceptions import AmbiguousDataError
@@ -53,7 +54,15 @@ def test_get_orginal_condition_return_value_for_best_match(default_parameters,
     """
     e_r_filter = EnergyRequirementFilter(**{**default_parameters})
     result = e_r_filter.get_original_condition(tek=tek, purpose=purpose)
+
     assert result == expected_value
+
+    rs = filter_original_condition(default_parameters.get('original_condition'),
+                              building_category='apartment_block',
+                              tek=tek,
+                              purpose=purpose)
+    assert len(rs) == 1
+    assert rs.iloc[0].kwh_m2 == expected_value
 
 
 def test_get_orginal_condition_return_default_value_when_not_found(default_parameters):
@@ -66,6 +75,13 @@ def test_get_orginal_condition_return_default_value_when_not_found(default_param
                                             'building_category': BuildingCategory.CULTURE})
     result = e_r_filter.get_original_condition(tek='TEK07', purpose=EnergyPurpose.ELECTRICAL_EQUIPMENT)
     assert result == 3.3
+
+    rs = filter_original_condition(default_parameters.get('original_condition'),
+                              building_category='apartment_block',
+                              tek='TEK07',
+                              purpose=EnergyPurpose.ELECTRICAL_EQUIPMENT)
+    assert len(rs) == 1
+    assert rs.iloc[0].kwh_m2 == 3.3
 
 
 def test_get_orginal_condition_return_false_value_when_building_category_not_found(default_parameters):
@@ -83,6 +99,14 @@ def test_get_orginal_condition_return_false_value_when_building_category_not_fou
                                             'original_condition':original_condition})
     result = e_r_filter.get_original_condition(tek='PRE_TEK49_RES_1950', purpose=EnergyPurpose.COOLING)
     assert result == 0.0
+
+    rs = filter_original_condition(original_condition,
+                              building_category='house',
+                              tek='PRE_TEK49_RES_1950',
+                              purpose=EnergyPurpose.COOLING)
+    assert len(rs) == 0
+
+
 
 def test_get_orginal_condition_return_false_value_when_purpose_not_found(default_parameters):
     """
@@ -117,6 +141,13 @@ def test_get_orginal_condition_return_false_value_when_tek_not_found(default_par
     result = e_r_filter.get_original_condition(tek='TEK21', purpose=EnergyPurpose.COOLING)
     assert result == 0.0
 
+    rs = filter_original_condition(original_condition,
+                              building_category=BuildingCategory.APARTMENT_BLOCK,
+                              tek='TEK21',
+                              purpose=EnergyPurpose.COOLING)
+    assert len(rs) == 0
+
+
 
 def test_get_original_condition_return_value_when_match_has_same_priority(default_parameters):
     """
@@ -136,6 +167,13 @@ def test_get_original_condition_return_value_when_match_has_same_priority(defaul
                                                'original_condition':original_condition})
     result = e_r_filter.get_original_condition(tek='TEK07', purpose=EnergyPurpose.COOLING)
     assert result == 0.3
+
+    rs = filter_original_condition(original_condition,
+                              building_category=BuildingCategory.APARTMENT_BLOCK,
+                              tek='TEK07',
+                              purpose=EnergyPurpose.COOLING)
+    assert len(rs) == 1
+    assert rs.iloc[0].kwh_m2 == 0.1 # Diverging implementation
 
 
 def test_get_original_condition_raise_error_for_duplicate_rows_with_different_values(default_parameters):

@@ -123,10 +123,11 @@ def explode_column_alias(df, column, values=None, alias='default', de_dup_by=Non
     2         A
     2         B
     """
-
     values = values if values is not None else [c for c in df[column].unique().tolist() if c != alias]
-    df.loc[:, '_explode_column_alias_default'] = df.loc[:, column] == alias
+    df = df.copy()
+    df['_explode_column_alias_default'] = df[column] == alias
     df.loc[df[df[column] == alias].index, column] = '+'.join(values)
+
     df = df.assign(**{column: df[column].str.split('+')}).explode(column)
     if de_dup_by:
         df = df.sort_values(by='_explode_column_alias_default', ascending=True)

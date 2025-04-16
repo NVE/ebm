@@ -198,7 +198,7 @@ class EnergyRequirement:
             df[df.start_year > df.year].index, 'reduction_yearly'].fillna(1.0)
         df.loc[:, 'reduction_yearly'] = df.loc[:, 'reduction_yearly'].ffill()
 
-        return df
+        return df[['building_category', 'TEK', 'purpose', 'year', 'reduction_yearly']]
 
 
     def calculate_reduction_policy(self, policy_improvement: pd.DataFrame, all_things) -> pd.DataFrame:

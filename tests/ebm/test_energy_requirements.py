@@ -239,6 +239,24 @@ def test_calculate_yearly_reduction_raise_value_error_on_missing_columns(energy_
                                                yearly_improvement=yearly_efficiency_improvement)
 
 
+def test_calculate_yearly_reduction_adds_column_reduction_yearly(energy_need):
+    """
+    calculate_reduction_yearly add column reduction_yearly and no others
+    """
+    yearly_efficiency_improvement = pd.DataFrame(
+        data=[['house', 'TEK01', 'lighting', energy_need.period.start, 0.1, energy_need.period.end],
+            ['house', 'TEK01', 'electrical_equipment', energy_need.period.start + 1, 0.05,
+             energy_need.period.end - 1], ],
+        columns=['building_category', 'TEK', 'purpose', 'start_year', 'yearly_efficiency_improvement', 'end_year'])
+
+    df = energy_need.calculate_reduction_yearly(df_years=energy_need.period.to_dataframe(),
+                                                yearly_improvement=yearly_efficiency_improvement)
+
+    expected_columns = ['building_category', 'TEK', 'purpose', 'year', 'reduction_yearly']
+
+    assert df.columns.tolist() == expected_columns
+
+
 def test_calculate_yearly_reduction():
     """
     reduction_yearly starts on start_year and ends in end_year

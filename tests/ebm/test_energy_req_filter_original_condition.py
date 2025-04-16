@@ -168,12 +168,12 @@ def test_get_original_condition_return_value_when_match_has_same_priority(defaul
     result = e_r_filter.get_original_condition(tek='TEK07', purpose=EnergyPurpose.COOLING)
     assert result == 0.3
 
-    rs = filter_original_condition(original_condition,
-                              building_category=BuildingCategory.APARTMENT_BLOCK,
-                              tek='TEK07',
-                              purpose=EnergyPurpose.COOLING)
+    rs = filter_original_condition(df=original_condition,
+                                   building_category=BuildingCategory.APARTMENT_BLOCK,
+                                   tek='TEK07',
+                                   purpose=EnergyPurpose.COOLING)
     assert len(rs) == 1
-    assert rs.iloc[0].kwh_m2 == 0.1 # Diverging implementation
+    assert rs.iloc[0].kwh_m2 == 0.3
 
 
 def test_get_original_condition_raise_error_for_duplicate_rows_with_different_values(default_parameters):

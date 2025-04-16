@@ -16,8 +16,9 @@ def de_dupe_dataframe(df):
     return de_duped
 
 
-def explode_dataframe(df):
-    tek_list = 'TEK49 PRE_TEK49 PRE_TEK49_RES_1950 TEK69 TEK87 TEK97 TEK07 TEK10 TEK17 TEK21 TEK01'.split(' ')
+def explode_dataframe(df: pd.DataFrame, tek_list=None) -> pd.DataFrame:
+    if not tek_list:
+        tek_list = 'TEK49 PRE_TEK49 PRE_TEK49_RES_1950 TEK69 TEK87 TEK97 TEK07 TEK10 TEK17 TEK21 TEK01'.split(' ')
     # expand building_category
     df = replace_column_alias(df,
                               column='building_category',
@@ -34,6 +35,7 @@ def explode_dataframe(df):
     df['bc_priority'] = df.building_category.apply(lambda x: 0 if '+' not in x else len(x.split('+')))
     df['t_priority'] = df.TEK.apply(lambda x: 0 if '+' not in x else len(x.split('+')))
     df['p_priority'] = df.purpose.apply(lambda x: 0 if '+' not in x else len(x.split('+')))
+
     if not 'priority' in df.columns:
         df['priority'] = 0
     df['priority'] = df.bc_priority + df.t_priority + df.p_priority
@@ -47,3 +49,21 @@ def explode_dataframe(df):
     deduped['dupe'] = deduped.duplicated(['building_category', 'TEK', 'purpose'], keep=False)
     return deduped
 
+
+def _load_file(infile):
+    df = pd.read_csv(infile)
+    TEKs = 'TEK49 PRE_TEK49 TEK69 TEK87 TEK97 TEK07 TEK10 TEK17'.split(' ')
+
+    return explode_dataframe(df, tek_list=TEKs).sort_values(by=['dupe', 'building_category', 'TEK', 'purpose', 'priority'])
+
+
+if __name__ == '__main__':
+    import pathlib
+    import sys
+
+    pd.set_option('display.max_rows', None)
+    pd.set_option('display.max_columns', None)
+    pd.set_option('display.width', None)
+
+    for f in sys.argv[1:]:
+        print(_load_file(pathlib.Path(f)))

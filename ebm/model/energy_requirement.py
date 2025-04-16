@@ -183,7 +183,7 @@ class EnergyRequirement:
             ))
         if 'year' not in df_years:
             logger.debug(f'Got columns {', '.join(df_years.columns)}')
-            raise ValueError('df_years does not contain any year')
+            raise ValueError('df_years does not contain column year')
 
         years = pd.DataFrame(data=[y for y in df_years.year.unique()], columns=['year'])
 
@@ -191,7 +191,7 @@ class EnergyRequirement:
         rows_in_range = df[(df.year >= df.start_year) & (df.year <= df.end_year)].index
 
         df.loc[rows_in_range, 'yearly_change'] = (1.0 - df.loc[rows_in_range, 'yearly_efficiency_improvement'])
-        df.loc[rows_in_range, 'pow'] = (df.loc[rows_in_range, 'year'] - df.loc[rows_in_range, 'start_year'])
+        df.loc[rows_in_range, 'pow'] = (df.loc[rows_in_range, 'year'] - df.loc[rows_in_range, 'start_year']) + 1
         df.loc[rows_in_range, 'reduction_yearly'] =  df.loc[rows_in_range, 'yearly_change'] ** df.loc[rows_in_range, 'pow']
 
         df.loc[df[df.start_year > df.year].index, 'reduction_yearly'] = df.loc[

@@ -59,14 +59,12 @@ def _load_file(infile):
     return explode_dataframe(df, tek_list=TEKs).sort_values(by=['dupe', 'building_category', 'TEK', 'purpose', 'priority'])
 
 
-if __name__ == '__main__':
+def main():
     import pathlib
     import sys
-
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)
     pd.set_option('display.width', None)
-
     if not sys.argv[1:]:
         files = pathlib.Path('input').glob('*.csv')
     else:
@@ -74,3 +72,7 @@ if __name__ == '__main__':
     for filename in files:
         print(f'# {filename}')
         print(_load_file(filename))
+
+
+if __name__ == '__main__':
+    main()

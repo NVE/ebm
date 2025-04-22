@@ -196,3 +196,7 @@ def test_get_original_condition_raise_error_for_duplicate_rows_with_different_va
     )
     with pytest.raises(AmbiguousDataError, match=expected_error_msg):
         e_r_filter.get_original_condition(tek='TEK07', purpose=EnergyPurpose.COOLING)
+
+
+if __name__ == "__main__":
+    pytest.main()

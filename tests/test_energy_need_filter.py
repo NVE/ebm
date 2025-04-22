@@ -1,8 +1,10 @@
 import io
 
 import pandas as pd
+import pytest
 
-from ebm.model.energy_need_filter import de_dupe_dataframe
+from ebm.model.energy_need_filter import de_dupe_dataframe, explode_dataframe
+
 
 def test_de_dupe_dataframe():
     settings = pd.read_csv(io.StringIO(
@@ -28,3 +30,30 @@ default,default,lighting,0.5555555555555556,2020,improvement_at_end_year,2030
     lighting_improvement_at_end_year = df.query('function=="improvement_at_end_year"')
     assert len(lighting_improvement_at_end_year) == 143
     assert (lighting_improvement_at_end_year.value == 0.5555555555555556).all()
+
+
+def test_explode_dataframe():
+    """
+    If there are more than one match for the given params (building_category, tek and purpose) and
+    they have the same priority, then they should be sorted by a pre-defined preferance order. The
+    order in which they should be prioritized is as follows: building_category, tek and purpose.
+    """
+    original_condition = pd.read_csv(io.StringIO("""
+    building_category,TEK,purpose,kwh_m2
+    default,TEK07,cooling,0.1
+    apartment_block,default,cooling,0.2                                                                                   
+    apartment_block,TEK07,default,0.3
+    default,default,default,0.99                                                                                                                                                                                                                                                                                          
+    """.strip()), skipinitialspace=True)
+
+    ex_df = explode_dataframe(
+        df=original_condition,
+        tek_list='TEK49 PRE_TEK49 PRE_TEK49_RES_1950 TEK69 TEK87 TEK97 TEK07 TEK10 TEK17 TEK21 TEK01'.split(' '))
+    cooling = ex_df.query('building_category=="apartment_block" and TEK=="TEK07" and purpose=="cooling"')
+
+    assert len(cooling) == 4
+    assert cooling.iloc[0].kwh_m2 == 0.3
+
+
+if __name__ == "__main__":
+    pytest.main()

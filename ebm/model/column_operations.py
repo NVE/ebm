@@ -66,7 +66,9 @@ def explode_tek_column(df: pd.DataFrame, unique_columns: List[str],
     return df
 
 
-def explode_unique_columns(df: pd.DataFrame| DataFrameBase, unique_columns: List[str], default_tek: List[str]|None = None) -> pd.DataFrame:
+def explode_unique_columns(df: pd.DataFrame| DataFrameBase,
+                           unique_columns: List[str],
+                           default_tek: List[str]|None = None) -> pd.DataFrame:
     """
     Explodes 'TEK' and 'building_category' columns in df.
 
@@ -91,7 +93,7 @@ def explode_unique_columns(df: pd.DataFrame| DataFrameBase, unique_columns: List
     return df
 
 
-def explode_column_alias(df, column, values: list|dict=None, alias='default', de_dup_by=None):
+def explode_column_alias(df, column, values: list|dict=None, alias='default', de_dup_by: list[str]=None):
     """
     Explodes a specified column in the DataFrame into multiple rows based on provided values and alias.
 
@@ -137,9 +139,7 @@ def explode_column_alias(df, column, values: list|dict=None, alias='default', de
     return df.drop(columns=['_explode_column_alias_default'], errors='ignore')
 
 
-def replace_column_alias(df: pd.DataFrame,
-                         column: list[str], values: Optional[list|dict]=None,
-                         alias: Optional[str]='default',
+def replace_column_alias(df: pd.DataFrame, column: str, values: Optional[list|dict]=None, alias: Optional[str]='default',
                          de_dup_by=None) -> pd.DataFrame:
     values = values if values is not None else [c for c in df[column].unique().tolist() if c != alias]
     aliases = {alias: values} if not isinstance(values, dict) else values

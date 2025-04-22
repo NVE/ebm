@@ -7,13 +7,53 @@ from ebm.model.column_operations import replace_column_alias
 from ebm.model.energy_purpose import EnergyPurpose
 
 
-def filter_original_condition(df: pd.DataFrame, building_category: BuildingCategory|str, tek:str, purpose: str):
+def filter_original_condition(df: pd.DataFrame, building_category: BuildingCategory|str, tek:str, purpose: str) -> pd.DataFrame:
+    """
+    Explode and deduplicates DataFrame df and returns rows matching building_category, tek, and purpose
+
+    Convenience function that does
+
+    ```python
+
+    exploded = explode_dataframe(df)
+    de_duped = de_dupe_dataframe(exploded)
+    filtered = de_duped[(de_duped.building_category==building_category) & (de_duped.TEK==tek) & (de_duped.purpose == purpose)]
+
+    ```
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+    building_category : BuildingCategory | str
+    tek : str
+    purpose : str
+
+    Returns
+    -------
+    pd.DataFrame
+
+    """
     exploded = explode_dataframe(df)
     de_duped = de_dupe_dataframe(exploded)
     return de_duped[(de_duped.building_category==building_category) & (de_duped.TEK==tek) & (de_duped.purpose == purpose)]
 
 
 def de_dupe_dataframe(df: pd.DataFrame, unique_columns: Optional[list[str]]=None) -> pd.DataFrame:
+    """
+    Drops duplicate rows in df based on building_category, TEK and purpose
+    same as
+        df.drop_duplicates(unique_columns)
+    Parameters
+    ----------
+    df : pd.DataFrame
+    unique_columns : list[str], optional
+                     default= ['building_category', 'TEK', 'purpose']
+
+    Returns
+    -------
+    pd.DataFrame
+
+    """
     de_dupe_by = unique_columns if unique_columns else ['building_category', 'TEK', 'purpose']
 
     de_duped = df.drop_duplicates(de_dupe_by)
@@ -21,6 +61,24 @@ def de_dupe_dataframe(df: pd.DataFrame, unique_columns: Optional[list[str]]=None
 
 
 def explode_dataframe(df: pd.DataFrame, tek_list:Optional[list[str]]=None) -> pd.DataFrame:
+    """
+    Explode column aliases for building_category, TEK, purpose in dataframe.
+
+    default in building_category is replaced with all options from BuildingCategory enum
+    default in TEK is replaced with all elements in optional tek_list parameter
+    default in purpose is replaced with all options from EnergyPurpose enum
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+    tek_list : list of TEK to replace default, Optional
+               default TEK49 PRE_TEK49 PRE_TEK49_RES_1950 TEK69 TEK87 TEK97 TEK07 TEK10 TEK17
+
+    Returns
+    -------
+    pd.DataFrame
+
+    """
     if not tek_list:
         tek_list = 'TEK49 PRE_TEK49 PRE_TEK49_RES_1950 TEK69 TEK87 TEK97 TEK07 TEK10 TEK17 TEK21 TEK01'.split(' ')
     # expand building_category
@@ -55,6 +113,10 @@ def explode_dataframe(df: pd.DataFrame, tek_list:Optional[list[str]]=None) -> pd
 
 
 def main():
+    """
+    Explode and prints all files listed in command line arguments. Default is reading files from input/
+
+    """
     import pathlib
     import sys
     def _load_file(infile):

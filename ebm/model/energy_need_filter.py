@@ -1,3 +1,5 @@
+from typing import Optional
+
 import pandas as pd
 
 from ebm.model.building_category import BuildingCategory
@@ -5,20 +7,20 @@ from ebm.model.column_operations import replace_column_alias
 from ebm.model.energy_purpose import EnergyPurpose
 
 
-def filter_original_condition(df, building_category, tek, purpose):
+def filter_original_condition(df: pd.DataFrame, building_category: BuildingCategory|str, tek:str, purpose: str):
     exploded = explode_dataframe(df)
     de_duped = de_dupe_dataframe(exploded)
     return de_duped[(de_duped.building_category==building_category) & (de_duped.TEK==tek) & (de_duped.purpose == purpose)]
 
 
-def de_dupe_dataframe(df, unique_columns=None):
+def de_dupe_dataframe(df: pd.DataFrame, unique_columns: Optional[list[str]]=None) -> pd.DataFrame:
     de_dupe_by = unique_columns if unique_columns else ['building_category', 'TEK', 'purpose']
 
     de_duped = df.drop_duplicates(de_dupe_by)
     return de_duped
 
 
-def explode_dataframe(df: pd.DataFrame, tek_list=None) -> pd.DataFrame:
+def explode_dataframe(df: pd.DataFrame, tek_list:Optional[list[str]]=None) -> pd.DataFrame:
     if not tek_list:
         tek_list = 'TEK49 PRE_TEK49 PRE_TEK49_RES_1950 TEK69 TEK87 TEK97 TEK07 TEK10 TEK17 TEK21 TEK01'.split(' ')
     # expand building_category

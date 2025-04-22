@@ -134,7 +134,11 @@ def main():
         files = [pathlib.Path(f) for f in sys.argv[1:]]
     for filename in files:
         print(f'# {filename}')
-        print(_load_file(filename))
+        try:
+            df = _load_file(filename)
+            print(df)
+        except KeyError as key_error:
+            print('KeyError: missing ', str(key_error), sys.stderr)
 
 
 if __name__ == '__main__':

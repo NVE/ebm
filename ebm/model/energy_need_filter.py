@@ -10,9 +10,10 @@ def filter_original_condition(df, building_category, tek, purpose):
     return de_duped[(de_duped.building_category==building_category) & (de_duped.TEK==tek) & (de_duped.purpose == purpose)]
 
 
-def de_dupe_dataframe(df):
+def de_dupe_dataframe(df, unique_columns=None):
+    de_dupe_by = unique_columns if unique_columns else ['building_category', 'TEK', 'purpose']
     de_duped = explode_dataframe(df)
-    de_duped = de_duped.drop_duplicates(['building_category', 'TEK', 'purpose'])
+    de_duped = de_duped.drop_duplicates(de_dupe_by)
     return de_duped
 
 

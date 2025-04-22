@@ -66,5 +66,10 @@ if __name__ == '__main__':
     pd.set_option('display.max_columns', None)
     pd.set_option('display.width', None)
 
-    for f in sys.argv[1:]:
-        print(_load_file(pathlib.Path(f)))
+    if not sys.argv[1:]:
+        files = pathlib.Path('input').glob('*.csv')
+    else:
+        files = [pathlib.Path(f) for f in sys.argv[1:]]
+    for filename in files:
+        print(f'# {filename}')
+        print(_load_file(filename))

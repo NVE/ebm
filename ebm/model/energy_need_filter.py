@@ -54,16 +54,15 @@ def explode_dataframe(df: pd.DataFrame, tek_list:Optional[list[str]]=None) -> pd
     return deduped
 
 
-def _load_file(infile):
-    df = pd.read_csv(infile)
-    TEKs = 'TEK49 PRE_TEK49 TEK69 TEK87 TEK97 TEK07 TEK10 TEK17'.split(' ')
-
-    return explode_dataframe(df, tek_list=TEKs).sort_values(by=['dupe', 'building_category', 'TEK', 'purpose', 'priority'])
-
-
 def main():
     import pathlib
     import sys
+    def _load_file(infile):
+        df = pd.read_csv(infile)
+        tek_list = 'TEK49 PRE_TEK49 TEK69 TEK87 TEK97 TEK07 TEK10 TEK17'.split(' ')
+
+        return explode_dataframe(df, tek_list=tek_list).sort_values(
+            by=['dupe', 'building_category', 'TEK', 'purpose', 'priority'])
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)
     pd.set_option('display.width', None)

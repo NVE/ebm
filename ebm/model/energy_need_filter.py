@@ -128,8 +128,8 @@ def main():
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)
     pd.set_option('display.width', None)
-    if not sys.argv[1:]:
-        files = pathlib.Path('input').glob('*.csv')
+    if len(sys.argv) < 2:
+        files = list(pathlib.Path('input').glob('*.csv'))
     else:
         files = [pathlib.Path(f) for f in sys.argv[1:]]
     for filename in files:

@@ -15,7 +15,7 @@ default,default,lighting,0.005,2031,yearly_reduction,2050
 default,default,lighting,0.5555555555555556,2020,improvement_at_end_year,2030
 """.strip()))
 
-    df = de_dupe_dataframe(df=settings,
+    df = de_dupe_dataframe(df=explode_dataframe(settings),
                            unique_columns=['building_category', 'TEK', 'purpose', 'start_year', 'end_year', 'function'])
 
     others = df.query('purpose not in ["lighting", "electrical_equipment"]')

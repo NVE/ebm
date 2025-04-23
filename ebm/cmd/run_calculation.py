@@ -1,4 +1,5 @@
 import os
+import pathlib
 import sys
 from typing import Dict
 
@@ -7,7 +8,7 @@ from loguru import logger
 
 from ebm.holiday_home_energy import HolidayHomeEnergy
 from ebm.model.building_category import BuildingCategory
-from ebm.model.building_condition import BuildingCondition
+
 from ebm.model.buildings import Buildings
 from ebm.model.construction import ConstructionCalculator
 from ebm.model.data_classes import YearRange
@@ -138,14 +139,22 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
     return merged
 
 
-def write_to_disk(df, constructed_floor_area, building_category: BuildingCategory):
+def write_to_disk(constructed_floor_area, building_category: BuildingCategory):
     """Writes constructed_floor_area to disk if the environment variable EBM_WRITE_TO_DISK is True"""
     if os.environ.get('EBM_WRITE_TO_DISK', 'False').upper() == 'TRUE':
         df = result_to_horizontal_dataframe(constructed_floor_area)
-        df.index.name = building_category
-        df.to_excel(f'output/constructed_{building_category}.xlsx')
+        df.insert(0, 'building_category', building_category)
+        file_path = pathlib.Path('output/construction.xlsx')
+        df.index.name = 'series'
 
-
+        if building_category == BuildingCategory.HOUSE or not file_path.is_file():
+            df.to_excel(file_path, sheet_name='construction')
+            logger.debug(f'Wrote {file_path}')
+        else:
+            with pd.ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writer:
+                start_row = writer.sheets['construction'].max_row
+                df.to_excel(writer, sheet_name='construction', index=True, header=False, startrow=start_row)
+            logger.debug(f'Added {building_category} to {file_path}')
 
 
 def calculate_building_category_area_forecast(building_category: BuildingCategory,
@@ -191,7 +200,10 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
     forecast: pd.DataFrame = area_forecast.calc_area(constructed_floor_area['accumulated_constructed_floor_area'])
     forecast['building_category'] = building_category
 
-    write_to_disk(forecast, constructed_floor_area, building_category)
+    try:
+        write_to_disk(constructed_floor_area, building_category)
+    except (PermissionError, IOError) as ex:
+        logger.debug(ex)
     return forecast
 
 

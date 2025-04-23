@@ -8,7 +8,7 @@ from loguru import logger
 
 from ebm.holiday_home_energy import HolidayHomeEnergy
 from ebm.model.building_category import BuildingCategory
-from ebm.model.building_condition import BuildingCondition
+
 from ebm.model.buildings import Buildings
 from ebm.model.construction import ConstructionCalculator
 from ebm.model.data_classes import YearRange
@@ -139,7 +139,7 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
     return merged
 
 
-def write_to_disk(df, constructed_floor_area, building_category: BuildingCategory):
+def write_to_disk(constructed_floor_area, building_category: BuildingCategory):
     """Writes constructed_floor_area to disk if the environment variable EBM_WRITE_TO_DISK is True"""
     if os.environ.get('EBM_WRITE_TO_DISK', 'False').upper() == 'TRUE':
         df = result_to_horizontal_dataframe(constructed_floor_area)
@@ -202,7 +202,10 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
     forecast: pd.DataFrame = area_forecast.calc_area(constructed_floor_area['accumulated_constructed_floor_area'])
     forecast['building_category'] = building_category
 
-    write_to_disk(forecast, constructed_floor_area, building_category)
+    try:
+        write_to_disk(constructed_floor_area, building_category)
+    except (PermissionError, IOError) as ex:
+        logger.debug(ex)
     return forecast
 
 

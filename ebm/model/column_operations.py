@@ -1,5 +1,5 @@
 import pathlib
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 from pandera.typing.common import DataFrameBase
@@ -66,7 +66,9 @@ def explode_tek_column(df: pd.DataFrame, unique_columns: List[str],
     return df
 
 
-def explode_unique_columns(df: pd.DataFrame| DataFrameBase, unique_columns: List[str], default_tek: List[str]|None = None) -> pd.DataFrame:
+def explode_unique_columns(df: pd.DataFrame| DataFrameBase,
+                           unique_columns: List[str],
+                           default_tek: List[str]|None = None) -> pd.DataFrame:
     """
     Explodes 'TEK' and 'building_category' columns in df.
 
@@ -91,7 +93,7 @@ def explode_unique_columns(df: pd.DataFrame| DataFrameBase, unique_columns: List
     return df
 
 
-def explode_column_alias(df, column, values: list|dict=None, alias='default', de_dup_by=None):
+def explode_column_alias(df, column, values: list|dict=None, alias='default', de_dup_by: list[str]=None):
     """
     Explodes a specified column in the DataFrame into multiple rows based on provided values and alias.
 
@@ -128,12 +130,7 @@ def explode_column_alias(df, column, values: list|dict=None, alias='default', de
     if column not in df.columns:
         raise ValueError(f"The DataFrame (df) must contain the column: {column}")
 
-    values = values if values is not None else [c for c in df[column].unique().tolist() if c != alias]
-    aliases = {alias: values} if not isinstance(values, dict) else values
-    df = df.copy()
-    for k, v in aliases.items():
-        df['_explode_column_alias_default'] = df[column] == k
-        df.loc[df[df[column] == k].index, column] = '+'.join(v)
+    df = replace_column_alias(df, column=column, values=values, alias=alias, de_dup_by=None)
 
     df = df.assign(**{column: df[column].str.split('+')}).explode(column)
     if de_dup_by:
@@ -142,11 +139,18 @@ def explode_column_alias(df, column, values: list|dict=None, alias='default', de
     return df.drop(columns=['_explode_column_alias_default'], errors='ignore')
 
 
-def replace_column_alias(df, column, values=None, alias='default', de_dup_by=None):
+def replace_column_alias(df: pd.DataFrame, column: str, values: Optional[list|dict]=None, alias: Optional[str]='default',
+                         de_dup_by=None) -> pd.DataFrame:
     values = values if values is not None else [c for c in df[column].unique().tolist() if c != alias]
-    df.loc[:, '_explode_column_alias_default'] = df.loc[:, column] == alias
-    df.loc[df[df[column] == alias].index, column] = '+'.join(values)
+    aliases = {alias: values} if not isinstance(values, dict) else values
+    df = df.copy()
+    for k, v in aliases.items():
+        df['_explode_column_alias_default'] = df[column] == k
+        df.loc[df[df[column] == k].index, column] = '+'.join(v)
+    if not de_dup_by:
+        return df
     return df.drop(columns=['_explode_column_alias_default'], errors='ignore')
+
 
 def explode_column(df: pd.DataFrame, column: str) -> pd.DataFrame:
     df = df.assign(**{column: df[column].str.split('+')}).explode(column)

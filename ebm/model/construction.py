@@ -129,7 +129,7 @@ class ConstructionCalculator:
             'households': households,
             'households_change': households_change,
             'building_growth': building_growth,
-            'yearly_floor_area_constructed': yearly_floor_area_constructed,
+            'net_constructed_floor_area': yearly_floor_area_constructed,
             'demolished_floor_area': yearly_demolished_floor_area,
             'constructed_floor_area': floor_area_change,
             'accumulated_constructed_floor_area': floor_area_change_accumulated},

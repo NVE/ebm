@@ -1,4 +1,5 @@
 import os
+import pathlib
 import sys
 from typing import Dict
 
@@ -142,8 +143,18 @@ def write_to_disk(df, constructed_floor_area, building_category: BuildingCategor
     """Writes constructed_floor_area to disk if the environment variable EBM_WRITE_TO_DISK is True"""
     if os.environ.get('EBM_WRITE_TO_DISK', 'False').upper() == 'TRUE':
         df = result_to_horizontal_dataframe(constructed_floor_area)
-        df.index.name = building_category
-        df.to_excel(f'output/constructed_{building_category}.xlsx')
+        df.insert(0, 'building_category', [building_category]*len(df))
+        file_path = pathlib.Path('output/construction.xlsx')
+        df.index.name = 'series'
+
+        if file_path.is_file():
+            with pd.ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writer:
+                start_row = writer.sheets['construction'].max_row
+                df.to_excel(writer, sheet_name='construction', index=True, header=False, startrow=start_row)
+            logger.debug(f'Added {building_category} to {file_path}')
+        else:
+            df.to_excel(file_path, sheet_name='construction')
+            logger.debug(f'Wrote {file_path}')
 
 
 

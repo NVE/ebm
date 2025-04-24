@@ -1,9 +1,8 @@
 from typing import cast, Optional
 
-import numpy as np
 import pandas as pd
 import pandera as pa
-from pandera.typing import Index, DataFrame, Series
+from pandera.typing import DataFrame, Series
 from pandera.typing.common import DataFrameBase
 
 from ebm.model.column_operations import explode_unique_columns, explode_column_alias
@@ -33,7 +32,7 @@ class YearlyReduction(pa.DataFrameModel):
     yearly_efficiency_improvement: Series[float] = pa.Field(ge=0.0, coerce=True)
 
     class Config:
-        unique = ['building_category', 'TEK', 'purpose', 'year']
+        unique = ['building_category', 'TEK', 'purpose', 'start_year', 'function', 'end_year']
 
 
     @staticmethod
@@ -77,7 +76,7 @@ class YearlyReduction(pa.DataFrameModel):
                                                      de_dup_by=unique_columns)
         df['yearly_efficiency_improvement'] = df['value']
         df = df[['building_category', 'TEK', 'purpose', 'start_year', 'end_year', 'yearly_efficiency_improvement']]
-
+        df = df.reset_index()
         return YearlyReduction.validate(df, lazy=True)
 
 

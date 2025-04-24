@@ -8,6 +8,30 @@ import pytest
 from ebm.model.dataframemodels import YearlyReduction, EnergyNeedYearlyImprovements, PolicyImprovement
 
 
+def test_from_energy_need_yearly_improvements_handle_duplicate_keys():
+    """
+    Make sure from_energy_need_yearly_improvements does not raise ValueError when unpacking that may result
+    result in duplicate keys in the default index.
+
+    default,default,cooling has duplicate primaries as well as start_year and end_year
+
+    """
+    energy_need_improvements_csv = io.StringIO("""
+building_category,TEK,purpose,value,start_year,function,end_year
+default,default,cooling,0.5,2021,yearly_reduction,2029
+default,default,cooling,0.5,2021,improvement_at_end_year,2029
+default,default,electrical_equipment,0.01,2021,yearly_reduction,
+default,default,fans_and_pumps,0.0,2020,yearly_reduction,
+default,default,heating_dhw,0.0,2020,yearly_reduction,
+house,default,default,0.099,2031,yearly_reduction,2050
+default,default,lighting,0.005,2031,yearly_reduction,2050
+default,default,lighting,0.5555555555555556,2020,improvement_at_end_year,2030
+    """.strip())
+
+    energy_need_yearly_improvements = EnergyNeedYearlyImprovements(pd.read_csv(energy_need_improvements_csv))
+    YearlyReduction.from_energy_need_yearly_improvements(energy_need_yearly_improvements)
+
+
 def test_from_energy_need_yearly_improvements():
     dfm = EnergyNeedYearlyImprovements(pd.DataFrame(
         data=[

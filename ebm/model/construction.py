@@ -719,6 +719,7 @@ class ConstructionCalculator:
 
         accumulated_constructed = yearly_constructed.cumsum()
         commercial_construction = pd.DataFrame({
+            'demolished_floor_area': demolition,
             "constructed_floor_area": yearly_constructed,
             "accumulated_constructed_floor_area": accumulated_constructed
         })

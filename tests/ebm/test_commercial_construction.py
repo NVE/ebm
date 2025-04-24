@@ -95,10 +95,14 @@ def test_calculate_commercial_construction_with_area_per_person_as_series():
     expected_yearly_construction = pd.Series([0.0, 810_000, 812_000],
                                              index=period.to_index())
     expected_accumulated_construction = pd.Series([0.0, 810_000, 1622_000],
-                                             index=period.to_index())
+                                                  index=period.to_index())
+    expected_demolition = pd.Series([10_000, 12_000, 14_000], index=period.to_index())
+
+
     expected = pd.DataFrame({
+            'demolished_floor_area': expected_demolition,
             "constructed_floor_area": expected_yearly_construction,
-            "accumulated_constructed_floor_area": expected_accumulated_construction
+            "accumulated_constructed_floor_area": expected_accumulated_construction,
         })
 
     result = ConCal.calculate_commercial_construction(
@@ -124,7 +128,11 @@ def test_calculate_commercial_construction_with_area_per_person_as_float():
                                              index=period.to_index())
     expected_accumulated_construction = pd.Series([0.0, 310_000, 622_000],
                                              index=period.to_index())
+    expected_demolition = pd.Series([10_000, 12_000, 14_000],
+                                    index=period.to_index())
+
     expected = pd.DataFrame({
+            "demolished_floor_area": expected_demolition,
             "constructed_floor_area": expected_yearly_construction,
             "accumulated_constructed_floor_area": expected_accumulated_construction
         })

@@ -1,10 +1,11 @@
 import numpy as np
 import pandas as pd
+import pytest
 
 from ebm.energy_consumption import EnergyConsumption
 
-
-def test_calculate():
+@pytest.fixture
+def heating_systems_parameters_house_tek07():
     heating_systems_parameters_house_tek07 = pd.DataFrame(
         data=[
             ['house', 'TEK07', np.int64(2020), 'DH', np.float64(0.11371747224812079), 'DH', 'Ingen', 'Ingen', 'DH', 'Ingen', 'Ingen', np.float64(0.0), np.float64(1.0), np.float64(0.0), np.float64(0.99), np.float64(1.0), np.int64(1), 'DH', 'DH', np.float64(0.99), np.int64(1), np.int64(4)],
@@ -22,6 +23,10 @@ def test_calculate():
             'Spisslast virkningsgrad', 'Ekstralast virkningsgrad', 'Tappevann',
             'Tappevann energivare', 'Tappevann virkningsgrad', 'Spesifikt elforbruk', 'Kjoling virkningsgrad'])
 
+    return heating_systems_parameters_house_tek07
+
+
+def test_calculate(heating_systems_parameters_house_tek07):
     ec = EnergyConsumption(heating_systems_parameters_house_tek07)
 
     energy_need_house_tek07 = pd.DataFrame(
@@ -63,28 +68,12 @@ def test_calculate():
     assert result.kwh.sum() == sum(expected_kwh)
 
 
-def test_calculate_supports_non_index_energy_need():
+def test_calculate_supports_non_index_energy_need(heating_systems_parameters_house_tek07):
     """ Most functions works with row num indexed dataframes
 
     Make sure EnergyConsumption.calculate does not surprise by expecting the parameter dataframe to be indexed by
         'building_category', 'TEK', 'building_condition', 'year', 'purpose'
     """
-    heating_systems_parameters_house_tek07 = pd.DataFrame(
-        data=[
-            ['house', 'TEK07', np.int64(2020), 'DH', np.float64(0.11371747224812079), 'DH', 'Ingen', 'Ingen', 'DH', 'Ingen', 'Ingen', np.float64(0.0), np.float64(1.0), np.float64(0.0), np.float64(0.99), np.float64(1.0), np.int64(1), 'DH', 'DH', np.float64(0.99), np.int64(1), np.int64(4)],
-            ['house', 'TEK07', np.int64(2020), 'DH - Bio', np.float64(0.0033946606308616), 'DH', 'Bio', 'Ingen', 'DH', 'Bio', 'Ingen', np.float64(0.0), np.float64(0.95), np.float64(0.05), np.float64(0.99), np.float64(0.65), np.int64(1), 'DH', 'DH', np.float64(0.99), np.int64(1), np.int64(4)],
-            ['house', 'TEK07', np.int64(2020), 'Electric boiler', np.float64(0.022406810402312557), 'Electric boiler', 'Ingen', 'Ingen', 'Electricity', 'Ingen', 'Ingen', np.float64(0.0), np.float64(1.0), np.float64(0.0), np.float64(0.98), np.float64(1.0), np.int64(1), 'Electric boiler', 'Electricity', np.float64(0.98), np.int64(1), np.int64(4)],
-            ['house', 'TEK07', np.int64(2020), 'Electric boiler - Solar', np.float64(0.0003390668680222), 'Electric boiler', 'Solar', 'Ingen', 'Electricity', 'Solar', 'Ingen', np.float64(0.0), np.float64(0.85), np.float64(0.15), np.float64(0.98), np.float64(0.7), np.int64(1), 'Electric boiler', 'Electricity', np.float64(0.98), np.int64(1), np.int64(4)],
-            ['house', 'TEK07', np.int64(2020), 'Electricity', np.float64(0.4578496981974673), 'Electricity', 'Ingen', 'Ingen', 'Electricity', 'Ingen', 'Ingen', np.float64(0.0), np.float64(1.0), np.float64(0.0), np.float64(1.0), np.float64(1.0), np.int64(1), 'Electricity', 'Electricity', np.float64(0.98), np.int64(1), np.int64(4)],
-            ['house', 'TEK07', np.int64(2020), 'Electricity - Bio', np.float64(0.2040037143152775), 'Electricity', 'Bio', 'Ingen', 'Electricity', 'Bio', 'Ingen', np.float64(0.0), np.float64(0.7), np.float64(0.3), np.float64(1.0), np.float64(0.65), np.int64(1), 'Electricity', 'Electricity', np.float64(0.98), np.int64(1), np.int64(4)],
-            ['house', 'TEK07', np.int64(2020), 'HP - Electricity', np.float64(0.0073046316982173), 'HP', 'Electricity', 'Ingen', 'Electricity', 'Electricity', 'Ingen', np.float64(0.0), np.float64(0.62), np.float64(0.38), np.float64(2.5), np.float64(1.0), np.int64(1), 'Electricity', 'Electricity', np.float64(0.98), np.int64(1), np.int64(4)],
-            ['house', 'TEK07', np.int64(2020), 'HP Central heating - Bio', np.float64(0.0086647944512573), 'HP Central heating', 'Bio', 'Ingen', 'Electricity', 'Bio', 'Ingen', np.float64(0.0), np.float64(0.85), np.float64(0.15), np.float64(3.0), np.float64(0.65), np.int64(1), 'HP Central heating', 'Electricity', np.float64(3.0), np.int64(1), np.int64(4)],
-            ['house', 'TEK07', np.int64(2020), 'HP Central heating - Electric boiler', np.float64(0.18231915118846304), 'HP Central heating', 'Electric boiler', 'Ingen', 'Electricity', 'Electricity', 'Ingen', np.float64(0.0), np.float64(0.85), np.float64(0.15), np.float64(3.0), np.float64(0.99), np.int64(1), 'HP Central heating', 'Electricity', np.float64(3.0), np.int64(1), np.int64(4)]],
-        columns=
-            ['building_category', 'TEK', 'year', 'heating_systems', 'TEK_shares', 'Grunnlast', 'Spisslast', 'Ekstralast', 'Grunnlast energivare', 'Spisslast energivare', 'Ekstralast energivare',
-            'Ekstralast andel', 'Grunnlast andel', 'Spisslast andel', 'Grunnlast virkningsgrad',
-            'Spisslast virkningsgrad', 'Ekstralast virkningsgrad', 'Tappevann',
-            'Tappevann energivare', 'Tappevann virkningsgrad', 'Spesifikt elforbruk', 'Kjoling virkningsgrad'])
 
     ec = EnergyConsumption(heating_systems_parameters_house_tek07)
 

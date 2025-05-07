@@ -107,3 +107,14 @@ def efficiency_factor(heating_systems: pd.DataFrame) -> pd.DataFrame:
     df.loc[:, 'efficiency_factor'] = df.loc[:, 'TEK_shares'] * df.loc[:, 'load_share'] / df.loc[:, 'load_efficiency']
 
     return df
+
+
+def energy_use_kwh(energy_need: pd.DataFrame, efficiency_factor: pd.DataFrame) -> pd.DataFrame:
+    nrj = energy_need.copy()
+
+    df = nrj.reset_index().merge(efficiency_factor,
+                                 left_on=['building_category', 'TEK', 'purpose', 'year'],
+                                 right_on=['building_category', 'TEK', 'purpose', 'year'])
+
+    df['kwh'] = df['energy_requirement'] * df['TEK_shares'] * df['load_share'] / df['load_efficiency']
+    return df

@@ -5,7 +5,7 @@ from ebm.energy_consumption import TEK_SHARES, GRUNNLAST_ANDEL, GRUNNLAST_VIRKNI
     EKSTRALAST_ENERGIVARE, KJOLING_VIRKNINGSGRAD, DHW_EFFICIENCY, TAPPEVANN_ENERGIVARE
 
 
-def base_load(heating_systems_parameters):
+def base_load(heating_systems_parameters: pd.DataFrame) -> pd.DataFrame:
     heating_systems_parameters['heating_system'] = '-'
     df = heating_systems_parameters[
         ['building_category', 'TEK', 'year', 'heating_systems', TEK_SHARES, GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD,
@@ -19,7 +19,7 @@ def base_load(heating_systems_parameters):
     return df
 
 
-def peak_load(heating_systems_parameters):
+def peak_load(heating_systems_parameters:pd.DataFrame) -> pd.DataFrame:
     df = heating_systems_parameters[
         ['building_category', 'TEK', 'year', 'heating_systems', TEK_SHARES, SPISSLAST_ANDEL, SPISSLAST_VIRKNINGSGRAD,
          SPISSLAST_ENERGIVARE, 'heating_system']].copy()
@@ -31,7 +31,7 @@ def peak_load(heating_systems_parameters):
     return df
 
 
-def tertiary_load(heating_systems_parameters):
+def tertiary_load(heating_systems_parameters: pd.DataFrame) ->pd.DataFrame:
     df = heating_systems_parameters[
         ['building_category', 'TEK', 'year', 'heating_systems', TEK_SHARES, EKSTRALAST_ANDEL, EKSTRALAST_VIRKNINGSGRAD,
          EKSTRALAST_ENERGIVARE, 'heating_system']].copy()
@@ -43,10 +43,8 @@ def tertiary_load(heating_systems_parameters):
     return df
 
 
-def heating_rv(heating_systems_parameters):
+def heating_rv(heating_systems_parameters: pd.DataFrame) -> pd.DataFrame:
     df = heating_systems_parameters.copy()
-    # df['_num_loads'] = df.heating_systems.apply(lambda s: len(s.split('-')))
-    # df[['heating_systems']]
 
     base = base_load(df)
     peak = peak_load(df)
@@ -55,7 +53,7 @@ def heating_rv(heating_systems_parameters):
     return pd.concat([base, peak, tertiary])
 
 
-def heating_dhw(heating_systems_parameters):
+def heating_dhw(heating_systems_parameters: pd.DataFrame) ->pd.DataFrame:
     df = heating_systems_parameters[
         ['building_category', 'TEK', 'year', 'heating_systems', TEK_SHARES, GRUNNLAST_ANDEL, DHW_EFFICIENCY,
          TAPPEVANN_ENERGIVARE]].copy()
@@ -68,12 +66,11 @@ def heating_dhw(heating_systems_parameters):
     return df
 
 
-def cooling(heating_systems_parameters):
+def cooling(heating_systems_parameters: pd.DataFrame) -> pd.DataFrame:
     df = heating_systems_parameters[
         ['building_category', 'TEK', 'year', 'heating_systems', TEK_SHARES, GRUNNLAST_ANDEL, KJOLING_VIRKNINGSGRAD,
          GRUNNLAST_ENERGIVARE]].copy()
     df.loc[:, GRUNNLAST_ANDEL] = 1.0
-    # df_c.loc[:, KJOLING_VIRKNINGSGRAD] = 4.0
     df.loc[:, GRUNNLAST_ENERGIVARE] = 'Electricity'
     df = df.rename(columns={GRUNNLAST_ANDEL: 'load_share', KJOLING_VIRKNINGSGRAD: 'load_efficiency',
         GRUNNLAST_ENERGIVARE: 'energy_product'})
@@ -83,7 +80,7 @@ def cooling(heating_systems_parameters):
     return df
 
 
-def other(heating_systems_parameters):
+def other(heating_systems_parameters: pd.DataFrame) -> pd.DataFrame:
     df = heating_systems_parameters[
         ['building_category', 'TEK', 'year', 'heating_systems', TEK_SHARES, GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD,
          GRUNNLAST_ENERGIVARE]].copy()
@@ -105,8 +102,8 @@ def all_purposes(heating_systems_parameters: pd.DataFrame) -> pd.DataFrame:
                cooling(heating_systems_parameters), other(heating_systems_parameters)])
 
 
-def efficiency_factor(all_purposes):
-    df = all_purposes
+def efficiency_factor(heating_systems: pd.DataFrame) -> pd.DataFrame:
+    df = heating_systems
     df.loc[:, 'efficiency_factor'] = df.loc[:, 'TEK_shares'] * df.loc[:, 'load_share'] / df.loc[:, 'load_efficiency']
 
     return df

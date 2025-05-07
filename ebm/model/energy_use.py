@@ -101,7 +101,7 @@ def other(heating_systems_parameters):
 
 
 def all_purposes(heating_systems_parameters: pd.DataFrame) -> pd.DataFrame:
-    pd.concat([heating_rv(heating_systems_parameters), heating_dhw(heating_systems_parameters),
+    return pd.concat([heating_rv(heating_systems_parameters), heating_dhw(heating_systems_parameters),
                cooling(heating_systems_parameters), other(heating_systems_parameters)])
 
 

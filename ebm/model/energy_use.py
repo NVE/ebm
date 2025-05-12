@@ -15,7 +15,7 @@ def base_load(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:
     df.loc[:, 'load'] = 'base'
     df.loc[:, 'purpose'] = 'heating_rv'
     df['heating_system'] = df.heating_systems.apply(lambda s: s.split('-')[0])
-
+    df['heating_system'] = df['heating_system'].str.strip()
     return df
 
 
@@ -28,6 +28,7 @@ def peak_load(heating_systems_projection:pd.DataFrame) -> pd.DataFrame:
     df.loc[:, 'load'] = 'peak'
     df.loc[:, 'purpose'] = 'heating_rv'
     df['heating_system'] = df.heating_systems.apply(lambda s: s.split('-')[1:2]).explode('heating_system')
+    df['heating_system'] = df['heating_system'].str.strip()
     return df
 
 
@@ -40,6 +41,7 @@ def tertiary_load(heating_systems_projection: pd.DataFrame) ->pd.DataFrame:
     df.loc[:, 'load'] = 'tertiary'
     df.loc[:, 'purpose'] = 'heating_rv'
     df['heating_system'] = df.heating_systems.apply(lambda s: s.split('-')[2:3]).explode('heating_system')
+    df['heating_system'] = df['heating_system'].str.strip()
     return df
 
 
@@ -94,7 +96,7 @@ def other(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:
     df = df.assign(**{'purpose': df['_purposes'].str.split(',')}).explode('purpose')
     df = df.drop(columns=['_purposes'], errors='ignore')
 
-    return df
+    return df.reset_index().drop(columns=['index'], errors='ignore')
 
 
 def all_purposes(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:

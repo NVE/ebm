@@ -78,7 +78,7 @@ Combining the two:
                           &-\text{area/person}*\text{population} (\text{year } x-1) \\
                           &+ \text{ demolished}(\text{year }x-1)
 
-The area per person is different for each of the non-residental building categories. It can also change from year to year, but currently it is a constant.
+The area per person is different for each of the non-residental building categories. It can also change from year to year, but currently it is a constant. 
 
 .. csv-table:: Area per person per non-residential building category
   :file: tables\area_per_person.csv
@@ -87,7 +87,10 @@ The area per person is different for each of the non-residental building categor
 
 Residential area
 ^^^^^^^^^^^^^^^^
-New construction in residential area are also based on population, but with some key differences compared to the non-residential area.
+New construction in residential area is based on population, but with some key differences compared to the non-residential area. Instead of forecasting square-meters per person 
+as is done in non-residential area, we first have to calculate the required number of new dwellings. Number of new new dwellings is calculated from the "population_forecast" input file which contains 
+both the popluation forecast and average household size. The new dwellings can be either apartments or houses and the ratio between them, and the area per dwelling, is given 
+in the input file "new_buildings_residential".  
 
 
 Calibration
@@ -112,6 +115,13 @@ In the excel file "Kalibreringsark.xlsx" you can adjust various factors which ca
 * Energy need for lighting and other electrical equipment.
 
 When the model is run the excel file updates without having to close the file. 
+
+
+Energy need
+-----------
+
+
+
 
 .. |br| raw:: html
 

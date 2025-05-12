@@ -23,3 +23,4 @@ Condition.;Tilstand.;Arealet har en av fem tilstander: uberørt, gjennomført en
 Storage.;Lager.;Omfatter kun lagerbygg i modellen. En underkategori av lettindustri og verksted. ;Consists only of storage and warehouses in the model. A subcategory of light industry and workshops. 
 Energy need.;Energibehov.;Arealets energibehov i kWh/m2 etter definisjon i TEK. Teoretisk størrelse.;The areas energy need in kWh/m\ :sup:`2` after definition in the building code. A theoretical size.
 Energy use.;Energibruk ;Den energimengden arealet må få tilført for å dekke energibehovet. Målbar mengde. I kWh/m\ :sup:`2`. Dette er en målbar mengde. ;The amount of delivered energy the area requires in order to cover the energy need. In kWh/m\ :sup:`2` This is a measurable quantity.
+Energy product.;Energivare.;Energivaren til oppvarmingsteknologien. ;Energy product used by the heating technology. 

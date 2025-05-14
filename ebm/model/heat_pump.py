@@ -44,3 +44,9 @@ def heat_prod_hp(production: pd.DataFrame, group_by:list|None=None) -> pd.DataFr
     production.loc[production['building_category'].isin(['house', 'apartment_block']), 'building_group'] = 'Bolig'
     production.loc[production['building_group'] != 'Bolig', 'building_group'] = 'Yrkesbygg'
     return production.groupby(by=grouping+['hp_source']).agg({'RV_HP': 'sum'}) / 1_000_000
+
+
+def heat_prod_hp_wide(production: pd.DataFrame) -> pd.DataFrame:
+    df = heat_prod_hp(production)
+    wide = df.reset_index().pivot(columns=['year'], index=['building_group', 'hp_source'], values=['RV_HP']).reset_index()
+    return wide

@@ -335,9 +335,8 @@ def main():
     air_air = h_p.air_source_heat_pump(df)
     district_heating = h_p.district_heating_heat_pump(df)
     production = h_p.heat_pump_production(total_energy_need, air_air, district_heating)
-    heat_prod_hp = h_p.heat_prod_hp(production)
-    heat_prod_hp_wide = heat_prod_hp.reset_index().pivot(columns=['year'], index=['building_group', 'hp_source'],
-                                                         values=['RV_HP']).reset_index()
+
+    heat_prod_hp_wide = h_p.heat_prod_hp_wide(production)
 
     logger.debug('✅ Write file heat_prod_hp.xlsx')
     heat_prod_hp_file = output_path / 'heat_prod_hp.xlsx'

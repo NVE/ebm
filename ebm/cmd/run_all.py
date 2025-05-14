@@ -5,6 +5,10 @@ import dotenv
 import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
+from openpyxl.formatting.rule import FormulaRule
+from openpyxl.reader.excel import load_workbook
+from openpyxl.styles import PatternFill, Font
+from openpyxl.utils import get_column_letter
 
 from ebm.cmd.result_handler import transform_model_to_horizontal
 from ebm.cmd.run_calculation import configure_loglevel
@@ -23,6 +27,7 @@ from ebm.model.building_category import BEMA_ORDER as building_category_order
 from ebm.model.tek import BEMA_ORDER as tek_order
 from ebm.model import heat_pump as h_p
 from ebm.model import energy_use as e_u
+from ebm.services.spreadsheet import find_max_column_width
 
 
 def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
@@ -274,10 +279,12 @@ def main():
     area_output = output_path / 'area.xlsx'
 
     with pd.ExcelWriter(area_output, engine='xlsxwriter') as writer:
-        logger.debug('❌ reorder columns')
-        logger.debug('❌ make area.xlsx pretty')
-        area_fane_1.to_excel(writer, sheet_name='wide')
-        area_fane_2.to_excel(writer, sheet_name='long')
+        logger.debug('✅ reorder columns')
+        logger.debug('✅ make area.xlsx pretty')
+        area_fane_1.to_excel(writer, sheet_name='wide', index=False)
+        area_fane_2.to_excel(writer, sheet_name='long', index=False)
+    make_pretty(area_output)
+
 
     logger.info('✅ Energy use to energy_purpose')
     logger.debug('✅ extract energy_need')
@@ -299,6 +306,7 @@ def main():
         logger.debug(f'❌ make {energy_purpose_output.name} pretty')
         energy_purpose_fane1.to_excel(writer, sheet_name='wide')
         energy_purpose_fane2.to_excel(writer, sheet_name='long')
+
 
 
     logger.info('✅ Heating_system_share')
@@ -397,6 +405,55 @@ def main():
     logger.debug('❌ area')
     logger.debug('❌ energy_need')
     logger.debug('❌ energy_use')
+
+
+def make_pretty(workbook_name):
+    wb = load_workbook(workbook_name)
+    font = Font(name='Arial', size=11)
+    header_font = Font(name='Source Sans Pro', size=11, bold=True, color="ffffff")
+    for s in wb.sheetnames:
+        ws = wb[s]
+        # Freeze the top row
+        ws.freeze_panes = ws['A2']
+
+        ws.font = font
+
+        # Define the fill color
+        header_fill = PatternFill(start_color='c8102e', end_color='c8102e', fill_type='solid')
+        odd_fill = PatternFill(start_color='ffd8de', end_color='ffd8de', fill_type='solid')
+        even_fill = PatternFill(start_color='ffebee', end_color='ffebee', fill_type='solid')
+
+        # Apply the fill color to the header row
+        for cell in ws[1]:
+            cell.fill = header_fill
+            cell.font = header_font
+        for row_number, row in enumerate(ws.rows):
+            if row_number == 0:
+                continue
+            for column_number, cell in enumerate(row):
+                cell.font = font
+
+        even_rule = FormulaRule(formula=['MOD(ROW(),2)=0'], fill=even_fill)
+        odd_rule = FormulaRule(formula=['MOD(ROW(),2)=1'], fill=odd_fill)
+        worksheet_range = f'A2:{get_column_letter(ws.max_column)}{ws.max_row}'
+        # logger.error(worksheet_range)
+        ws.conditional_formatting.add(worksheet_range, odd_rule)
+        ws.conditional_formatting.add(worksheet_range, even_rule)
+
+        for col in ws.iter_cols(min_col=1):
+            adjusted_width = find_max_column_width(col)
+            ws.column_dimensions[col[0].column_letter].width = adjusted_width
+            values = [int(r.value) for r in col if r.value and r.data_type == 'n']
+            if values:
+                max_value = max(values)
+                if max_value > 1000:
+                    for row_number, cell in enumerate(col):
+                        if row_number < 1:
+                            if cell.value == 'year':
+                                break
+                            continue
+                        cell.number_format = '### ### ### ### ##0'
+    wb.save(workbook_name)
 
 
 if __name__ == '__main__':

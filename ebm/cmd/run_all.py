@@ -6,8 +6,9 @@ import dotenv
 import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
+from sphinx.addnodes import production
 
-from ebm.cmd.result_handler import transform_model_to_horizontal
+from ebm.cmd.result_handler import transform_model_to_horizontal, transform_heating_systems_to_horizontal
 from ebm.cmd.run_calculation import configure_loglevel
 from ebm.energy_consumption import EnergyConsumption
 from ebm.heating_systems_projection import HeatingSystemsProjection
@@ -21,6 +22,8 @@ from ebm.model.energy_requirement import EnergyRequirement
 from ebm.model.file_handler import FileHandler
 from ebm.model.building_category import BEMA_ORDER as building_category_order
 from ebm.model.tek import BEMA_ORDER as tek_order
+from ebm.model import heat_pump as h_p
+from ebm.model import energy_use as e_u
 
 
 def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
@@ -187,6 +190,25 @@ def transform_heating_systems_share_wide(heating_systems_share_long):
     return df
 
 
+def extract_heating_systems_parameter(heating_systems_projection):
+    calculator = EnergyConsumption(heating_systems_projection.copy())
+
+    return calculator.grouped_heating_systems()
+
+
+def extract_energy_use_kwh(heating_systems_parameter, energy_need):
+    df = e_u.all_purposes(heating_systems_parameter)
+    df.loc[:, 'building_group'] = 'yrkesbygg'
+    df.loc[df.building_category.isin(['house', 'apartment_block']), 'building_group'] = 'bolig'
+
+    efficiency_factor = e_u.efficiency_factor(df)
+    energy_use_kwh = e_u.energy_use_kwh(energy_need=energy_need, efficiency_factor=efficiency_factor)
+
+    return energy_use_kwh
+
+
+
+
 def main():
     env_file = pathlib.Path(dotenv.find_dotenv(usecwd=True))
     if env_file.is_file():
@@ -239,13 +261,17 @@ def main():
     area_output = output_path / 'area.xlsx'
 
     with pd.ExcelWriter(area_output, engine='xlsxwriter') as writer:
+        logger.debug('❌ reorder columns')
+        logger.debug('❌ make area.xlsx pretty')
         area_fane_1.to_excel(writer, sheet_name='wide')
         area_fane_2.to_excel(writer, sheet_name='long')
-        logger.debug('❌ make area.xlsx pretty')
 
     logger.info('✅ Energy use to energy_purpose')
     logger.debug('✅ extract energy_need')
     energy_need = extract_energy_need(years, database_manager)
+
+    total_energy_need = forecasts.reset_index().set_index(['building_category', 'TEK', 'building_condition', 'year']).merge(energy_need, left_index=True, right_index=True)
+    total_energy_need['energy_requirement'] = total_energy_need.kwh_m2 * total_energy_need.m2
 
     logger.debug('✅ transform fane 1')
     energy_purpose_fane1 = transform_energy_need_to_energy_purpose_wide(energy_need=energy_need, area_forecast=forecasts)
@@ -256,9 +282,10 @@ def main():
     energy_purpose_output = output_path / 'energy_purpose.xlsx'
 
     with pd.ExcelWriter(energy_purpose_output, engine='xlsxwriter') as writer:
+        logger.debug('❌ reorder columns')
+        logger.debug(f'❌ make {energy_purpose_output.name} pretty')
         energy_purpose_fane1.to_excel(writer, sheet_name='wide')
         energy_purpose_fane2.to_excel(writer, sheet_name='long')
-        logger.debug(f'❌ make {energy_purpose_output.name} pretty')
 
 
     logger.info('✅ Heating_system_share')
@@ -273,43 +300,86 @@ def main():
     heating_system_share = output_path / 'heating_system_share.xlsx'
 
     with pd.ExcelWriter(heating_system_share, engine='xlsxwriter') as writer:
+        logger.debug('❌ reorder columns')
+        logger.debug(f'❌ make {heating_system_share.name} pretty')
         heating_systems_share_wide.to_excel(writer, sheet_name='wide')
         heating_systems_share_long.to_excel(writer, sheet_name='long')
-        logger.debug(f'❌ make {heating_system_share.name} pretty')
 
-    return
+    logger.info('✅ heat_prod_hp')
+
+    logger.debug('✅ extract heating_system_parameters')
+    heating_systems_parameter = extract_heating_systems_parameter(heating_systems_projection)
+    logger.debug('✅ transform to hp')
+
+    df = heating_systems_parameter
+    df = df.assign(**{'heating_system': df['heating_systems'].str.split('-')}).explode('heating_system')
+    df['heating_system'] = df['heating_system'].str.strip()
+    df['load_share'] = df['Grunnlast andel']
+
+    air_air = h_p.air_source_heat_pump(df)
+    district_heating = h_p.district_heating_heat_pump(df)
+    production = h_p.heat_pump_production(total_energy_need, air_air, district_heating)
+    heat_prod_hp = h_p.heat_prod_hp(production)
+    heat_prod_hp_wide = heat_prod_hp.reset_index().pivot(columns=['year'], index=['building_group', 'hp_source'],
+                  values=['RV_HP']).reset_index()
+
+    logger.debug('✅ Write file heat_prod_hp.xlsx')
+    heat_prod_hp_file = output_path / 'heat_prod_hp.xlsx'
+
+    with pd.ExcelWriter(heat_prod_hp_file, engine='xlsxwriter') as writer:
+        logger.debug('❌ reorder columns')
+        logger.debug(f'❌ make {heat_prod_hp_file.name} pretty')
+        heat_prod_hp_wide.to_excel(writer, sheet_name='wide')
+
 
     logger.info('❌ Energy_use')
-    logger.debug('❌ extract energy_need')
-    logger.debug('❌ extract heating_system_parameters')
-    logger.debug('❌ transform to energy_use')
+
+    logger.debug('✅ extract energy_use_kwh')
+    energy_use_kwh = extract_energy_use_kwh(heating_systems_parameter, total_energy_need)
+
+    logger.debug('✅ transform fane 2')
+    logger.debug('✅ group by category, year, product')
+    e_u_by_category = energy_use_kwh[['building_category', 'year', 'energy_product', 'kwh']].groupby(
+        by=['building_category', 'energy_product', 'year']).sum() / 1_000_000
+    energy_use_long = e_u_by_category.rename(columns={'kwh': 'energy_use'})
 
     logger.debug('❌ transform fane 1')
-    logger.debug('❌ transform fane 2')
-    logger.debug('❌ Write file energy_use')
+    logger.debug('❌ add holiday homes 1')
 
-    logger.debug('❌ Write file energy_use')
-    logger.info('❌ heat_prod_hp')
+    logger.debug('✅ group by group, product year')
+    e_u_by_group = energy_use_kwh[['building_group', 'year', 'energy_product', 'kwh']].groupby(
+        by=['building_group', 'energy_product', 'year']).sum() / 1_000_000
+    energy_use_wide = e_u_by_group.reset_index().pivot(columns=['year'], index=['building_group', 'energy_product'], values=['kwh']).reset_index()
 
-    logger.debug('❌ extract energy_need')
-    logger.debug('❌ extract heating_system_parameters')
-    logger.debug('❌ transform to energy_use')
+    logger.debug('✅ Write file energy_use')
 
-    logger.debug('❌ transform to hp')
+    energy_use_file = output_path / 'energy_use.xlsx'
 
-    logger.debug('❌ Write file heat_prod_hp.xlsx')
+    with pd.ExcelWriter(energy_use_file, engine='xlsxwriter') as writer:
+        logger.debug('❌ reorder columns')
+        logger.debug(f'❌ make {energy_use_file.name} pretty')
+        energy_use_long.to_excel(writer, sheet_name='long')
+        energy_use_wide.to_excel(writer, sheet_name='wide')
 
+    logger.info('Returns…')
 
+    logger.debug('❌ Write file demolition_construction')
     logger.info('❌ building razing to demolition_construction.xlsx')
-
+    demolition_construction = df
     logger.debug('❌ extract demolition')
     logger.debug('❌ extract construction')
     logger.debug('❌ extract energy_need')
     logger.debug('❌ transform demolition_construction')
-    logger.debug('❌ Write file demolition_construction.xlsx')
+
+    demolition_construction_file = output_path / 'demolition_construction.xlsx'
+
+    logger.debug('✅ Write file demolition_construction.xlsx')
+    with pd.ExcelWriter(demolition_construction_file, engine='xlsxwriter') as writer:
+        logger.debug('❌ reorder columns')
+        logger.debug(f'❌ make {demolition_construction_file.name} pretty')
+        demolition_construction.to_excel(writer, sheet_name='long')
 
     logger.info('❌ Ekstra resultater som skrives etter behov')
-
     logger.debug('❌ area')
     logger.debug('❌ energy_need')
     logger.debug('❌ energy_use')

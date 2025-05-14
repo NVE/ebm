@@ -1,0 +1,323 @@
+import os
+import pathlib
+from math import lgamma
+
+import dotenv
+import pandas as pd
+from dotenv import load_dotenv
+from loguru import logger
+
+from ebm.cmd.result_handler import transform_model_to_horizontal
+from ebm.cmd.run_calculation import configure_loglevel
+from ebm.energy_consumption import EnergyConsumption
+from ebm.heating_systems_projection import HeatingSystemsProjection
+from ebm.model.area_forecast import AreaForecast
+from ebm.model.building_category import BuildingCategory
+from ebm.model.buildings import Buildings
+from ebm.model.construction import ConstructionCalculator
+from ebm.model.data_classes import YearRange
+from ebm.model.database_manager import DatabaseManager
+from ebm.model.energy_requirement import EnergyRequirement
+from ebm.model.file_handler import FileHandler
+from ebm.model.building_category import BEMA_ORDER as building_category_order
+from ebm.model.tek import BEMA_ORDER as tek_order
+
+
+def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
+    er_calculator = EnergyRequirement.new_instance(period=years, calibration_year=2023,
+                                                   database_manager=dm)
+    energy_need = er_calculator.calculate_for_building_category(database_manager=dm)
+
+    energy_need = energy_need.set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year'])
+
+    return energy_need
+
+def extract_area_change(years: YearRange, dm: DatabaseManager) -> tuple[pd.DataFrame, pd.DataFrame]:
+    construction: pd.DataFrame | None = None
+    demolition: pd.DataFrame | None = None
+
+    for building_category in BuildingCategory:
+        buildings = Buildings.build_buildings(building_category=building_category, database_manager=dm, period=years)
+        area_forecast: AreaForecast = buildings.build_area_forecast(dm, years.start, years.end)
+        s = area_forecast.calc_total_demolition_area_per_year()
+        building_category_demolition = s.to_frame().reset_index()
+        building_category_demolition['building_category'] = building_category
+
+        demolition_floor_area = building_category_demolition[
+            building_category_demolition['building_category'] == building_category].set_index('year').demolition
+
+        df = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area, dm, period=years)
+        df['building_category'] = building_category
+        df = df.reset_index().set_index(['building_category', 'year'])
+        if construction is None:
+            construction = df
+            demolition = s
+        else:
+            construction = pd.concat([construction, df])
+            demolition = pd.concat([demolition, s])
+
+    return construction, demolition
+
+
+def extract_area_forecast(years: YearRange, construction: pd.DataFrame, dm: DatabaseManager) -> pd.DataFrame:
+    forecasts: pd.DataFrame | None = None
+
+    for building_category in BuildingCategory:
+        buildings = Buildings.build_buildings(building_category=building_category, database_manager=dm,
+                                              period=years)
+        area_forecast: AreaForecast = buildings.build_area_forecast(dm, years.start, years.end)
+
+        accumulated_constructed_floor_area = construction.loc[building_category, 'accumulated_constructed_floor_area']
+        forecast: pd.DataFrame = area_forecast.calc_area(accumulated_constructed_floor_area)
+        forecast['building_category'] = building_category
+        if forecasts is None:
+            forecasts = forecast
+        else:
+            forecasts = pd.concat([forecasts, forecast])
+
+    return forecasts
+
+
+def transform_energy_need_to_energy_purpose_wide(energy_need, area_forecast):
+    df_a = area_forecast.copy()
+    df_a = df_a.query('building_condition!="demolition"').reset_index().set_index(
+        ['building_category', 'building_condition', 'TEK', 'year'], drop=True)
+
+    df_e = energy_need.copy().reset_index().set_index(
+        ['building_category', 'building_condition', 'TEK', 'purpose', 'year'])
+
+    df = df_e.join(df_a)[['m2', 'kwh_m2']].reset_index()
+    df.loc[:, 'GWh'] = (df['m2'] * df['kwh_m2']) / 1_000_000
+    df.loc[:, ('TEK', 'building_condition')] = ('all', 'all')
+
+    non_residential = [b for b in BuildingCategory if b.is_non_residential()]
+
+    df.loc[df[df['building_category'].isin(non_residential)].index, 'building_category'] = 'non_residential'
+
+    df = df.groupby(by=['building_category', 'purpose', 'year'], as_index=False).sum()
+    df = df[['building_category', 'purpose', 'year', 'GWh']]
+
+    df = df.pivot(columns=['year'], index=['building_category', 'purpose'], values=['GWh']).reset_index()
+    df = df.sort_values(by=['building_category', 'purpose'],
+                        key=lambda x: x.map(building_category_order) if x.name == 'building_category' else x.map(
+                            tek_order) if x.name == 'building_category' else x.map(
+                            {'heating_rv': 1, 'heating_dhw': 2, 'fans_and_pumps': 3, 'lighting': 4,
+                             'electrical_equipment': 5, 'cooling': 6}) if x.name == 'purpose' else x)
+
+    df.insert(2, 'U', 'GWh')
+    df.columns = ['building_category', 'purpose', 'U'] + [y for y in range(2020, 2051)]
+
+    energy_purpose_fane1 = df
+
+    return df
+
+
+def transform_energy_need_to_energy_purpose_long(energy_need, area_forecast):
+    df_a = area_forecast.copy()
+    df_a = df_a.query('building_condition!="demolition"').reset_index().set_index(
+        ['building_category', 'building_condition', 'TEK', 'year'], drop=True)
+
+    df_e = energy_need.copy().reset_index().set_index(
+        ['building_category', 'building_condition', 'TEK', 'purpose', 'year'])
+
+    df = df_e.join(df_a)[['m2', 'kwh_m2']].reset_index()
+    df.loc[:, 'GWh'] = (df['m2'] * df['kwh_m2']) / 1_000_000
+
+    df = df.groupby(by=['year', 'building_category', 'TEK', 'purpose'], as_index=False).sum()
+    df = df[['year', 'building_category', 'TEK', 'purpose', 'GWh']]
+    df = df.sort_values(by=['year', 'building_category', 'TEK', 'purpose'],
+                        key=lambda x: x.map(building_category_order) if x.name == 'building_category' else x.map(
+                            tek_order) if x.name == 'building_category' else x.map(
+                            tek_order) if x.name == 'TEK' else x.map(
+                            {'heating_rv': 1, 'heating_dhw': 2, 'fans_and_pumps': 3, 'lighting': 4,
+                             'electrical_equipment': 5, 'cooling': 6}) if x.name == 'purpose' else x)
+
+    df = df.rename(columns={'GWh': 'energy_use [GWh]'})
+
+    df.reset_index(inplace=True, drop=True)
+    return df
+
+
+def extract_heating_systems_projection(years, database_manager):
+    projection_period = YearRange(2023, 2050)
+    hsp = HeatingSystemsProjection.new_instance(projection_period, database_manager)
+    df = hsp.calculate_projection()
+    df = hsp.pad_projection(df, YearRange(2020, 2022))
+
+    heating_system_projection = df.copy()
+    return heating_system_projection
+
+
+def extract_heating_systems(heating_system_projection, energy_need):
+    calculator = EnergyConsumption(heating_system_projection.copy())
+
+    calculator.heating_systems_parameters = calculator.grouped_heating_systems()
+
+    df = calculator.calculate(energy_need)
+
+    return df
+
+    return heating_systems
+
+
+def transform_heating_systems_share_long(heating_systems_projection):
+    df = heating_systems_projection.copy()
+
+    value_column = 'TEK_shares'
+
+    fane2_columns = ['building_category', 'heating_systems', 'year', 'TEK_shares']
+
+    df.loc[~df['building_category'].isin(['house', 'apartment_block']), 'building_category'] = 'non_residential'
+
+    mean_tek_shares_yearly = df[fane2_columns].groupby(by=['year', 'building_category', 'heating_systems']).mean()
+    return mean_tek_shares_yearly
+
+
+def transform_heating_systems_share_wide(heating_systems_share_long):
+    value_column = 'TEK_shares'
+    df = heating_systems_share_long.copy().reset_index()
+    df = df.pivot(columns=['year'], index=['building_category', 'heating_systems'], values=[value_column]).reset_index()
+
+    df = df.sort_values(by=['building_category', 'heating_systems'],
+                        key=lambda x: x.map(building_category_order) if x.name == 'building_category' else x)
+    df.insert(2, 'U', value_column)
+    df['U'] = '%'
+
+    df.columns = ['building_category', 'heating_systems', 'U'] + [y for y in range(2020, 2051)]
+    return df
+
+
+def main():
+    env_file = pathlib.Path(dotenv.find_dotenv(usecwd=True))
+    if env_file.is_file():
+        logger.debug(f'Loading environment from {env_file}')
+        load_dotenv(pathlib.Path('.env').absolute())
+    else:
+        logger.debug(f'.env not found in {env_file.absolute()}')
+
+    configure_loglevel(os.environ.get('LOG_FORMAT', None))
+    configure_loglevel(os.environ.get('LOG_FORMAT', None))
+
+    years = YearRange(2020, 2050)
+    input_path = pathlib.Path('kalibar')
+    output_path = pathlib.Path('t2775_output')
+    output_path.mkdir(exist_ok=True)
+
+    file_handler = FileHandler(directory=input_path)
+    database_manager = DatabaseManager(file_handler=file_handler)
+
+    logger.info('✅ Area to area.xlsx')
+
+    logger.debug('✅ extract area_change')
+    construction, demolition = extract_area_change(years, database_manager)
+    logger.debug('✅ extract area')
+    forecasts = extract_area_forecast(years, construction, database_manager)
+
+    logger.debug('✅ transform fane 1 (wide)')
+
+    df = forecasts.copy()
+
+    df = df.query('building_condition!="demolition"')
+    df.loc[:, 'TEK'] = 'all'
+    df.loc[:, 'building_condition'] = 'all'
+
+    df = transform_model_to_horizontal(df).drop(columns=['TEK', 'building_condition'])
+
+    area_fane_1 = df.copy()
+
+    logger.debug('✅ transform fane 2 (long')
+
+    df = forecasts['year,building_category,TEK,building_condition,m2'.split(',')].copy()
+    df = df.query('building_condition!="demolition"')
+
+    df = df.groupby(by='year,building_category,TEK'.split(','))[['m2']].sum().rename(columns={'m2': 'area'})
+    df.insert(0, 'U', 'm2')
+    area_fane_2 = df.reset_index()
+
+    logger.debug('✅ Write file area.xlsx')
+
+    area_output = output_path / 'area.xlsx'
+
+    with pd.ExcelWriter(area_output, engine='xlsxwriter') as writer:
+        area_fane_1.to_excel(writer, sheet_name='wide')
+        area_fane_2.to_excel(writer, sheet_name='long')
+        logger.debug('❌ make area.xlsx pretty')
+
+    logger.info('✅ Energy use to energy_purpose')
+    logger.debug('✅ extract energy_need')
+    energy_need = extract_energy_need(years, database_manager)
+
+    logger.debug('✅ transform fane 1')
+    energy_purpose_fane1 = transform_energy_need_to_energy_purpose_wide(energy_need=energy_need, area_forecast=forecasts)
+    logger.debug('✅ transform fane 2')
+    energy_purpose_fane2 = transform_energy_need_to_energy_purpose_long(energy_need=energy_need, area_forecast=forecasts)
+
+    logger.debug('✅ Write file energy_purpose.xlsx')
+    energy_purpose_output = output_path / 'energy_purpose.xlsx'
+
+    with pd.ExcelWriter(energy_purpose_output, engine='xlsxwriter') as writer:
+        energy_purpose_fane1.to_excel(writer, sheet_name='wide')
+        energy_purpose_fane2.to_excel(writer, sheet_name='long')
+        logger.debug(f'❌ make {energy_purpose_output.name} pretty')
+
+
+    logger.info('✅ Heating_system_share')
+
+    heating_systems_projection = extract_heating_systems_projection(years, database_manager)
+    logger.debug('✅ transform fane 2')
+    heating_systems_share_long = transform_heating_systems_share_long(heating_systems_projection)
+    logger.debug('✅ transform fane 1')
+    heating_systems_share_wide = transform_heating_systems_share_wide(heating_systems_share_long)
+
+    logger.debug('✅ Write file heating_system_share.xlsx')
+    heating_system_share = output_path / 'heating_system_share.xlsx'
+
+    with pd.ExcelWriter(heating_system_share, engine='xlsxwriter') as writer:
+        heating_systems_share_wide.to_excel(writer, sheet_name='wide')
+        heating_systems_share_long.to_excel(writer, sheet_name='long')
+        logger.debug(f'❌ make {heating_system_share.name} pretty')
+
+    return
+
+    logger.info('❌ Energy_use')
+    logger.debug('❌ extract energy_need')
+    logger.debug('❌ extract heating_system_parameters')
+    logger.debug('❌ transform to energy_use')
+
+    logger.debug('❌ transform fane 1')
+    logger.debug('❌ transform fane 2')
+    logger.debug('❌ Write file energy_use')
+
+    logger.debug('❌ Write file energy_use')
+    logger.info('❌ heat_prod_hp')
+
+    logger.debug('❌ extract energy_need')
+    logger.debug('❌ extract heating_system_parameters')
+    logger.debug('❌ transform to energy_use')
+
+    logger.debug('❌ transform to hp')
+
+    logger.debug('❌ Write file heat_prod_hp.xlsx')
+
+
+    logger.info('❌ building razing to demolition_construction.xlsx')
+
+    logger.debug('❌ extract demolition')
+    logger.debug('❌ extract construction')
+    logger.debug('❌ extract energy_need')
+    logger.debug('❌ transform demolition_construction')
+    logger.debug('❌ Write file demolition_construction.xlsx')
+
+    logger.info('❌ Ekstra resultater som skrives etter behov')
+
+    logger.debug('❌ area')
+    logger.debug('❌ energy_need')
+    logger.debug('❌ energy_use')
+
+
+
+
+
+if __name__ == '__main__':
+    main()
+

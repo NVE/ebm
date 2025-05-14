@@ -1,19 +1,18 @@
 import os
 import pathlib
-from math import lgamma
 
 import dotenv
 import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
-from sphinx.addnodes import production
 
-from ebm.cmd.result_handler import transform_model_to_horizontal, transform_heating_systems_to_horizontal
+from ebm.cmd.result_handler import transform_model_to_horizontal
 from ebm.cmd.run_calculation import configure_loglevel
 from ebm.energy_consumption import EnergyConsumption
 from ebm.heating_systems_projection import HeatingSystemsProjection
 from ebm.model.area_forecast import AreaForecast
 from ebm.model.building_category import BuildingCategory
+from ebm.model.building_condition import BuildingCondition
 from ebm.model.buildings import Buildings
 from ebm.model.construction import ConstructionCalculator
 from ebm.model.data_classes import YearRange
@@ -39,25 +38,28 @@ def extract_area_change(years: YearRange, dm: DatabaseManager) -> tuple[pd.DataF
     construction: pd.DataFrame | None = None
     demolition: pd.DataFrame | None = None
 
+    tek_params = dm.get_tek_params(dm.get_tek_list())
     for building_category in BuildingCategory:
         buildings = Buildings.build_buildings(building_category=building_category, database_manager=dm, period=years)
         area_forecast: AreaForecast = buildings.build_area_forecast(dm, years.start, years.end)
-        s = area_forecast.calc_total_demolition_area_per_year()
-        building_category_demolition = s.to_frame().reset_index()
-        building_category_demolition['building_category'] = building_category
 
-        demolition_floor_area = building_category_demolition[
-            building_category_demolition['building_category'] == building_category].set_index('year').demolition
+        nested_list = [area_forecast.calc_area_pre_construction(t, BuildingCondition.DEMOLITION).to_frame().assign(**{'TEK': t}) for t in tek_params if t not in ['TEK17', 'TEK21']]
+        bc_demolition = pd.concat(nested_list)
+        bc_demolition['building_category'] = building_category
+        # bc_demolition['demolition_construction'] = 'demolition'
+        # bc_demolition.rename(columns={'area': 'm2'}, inplace=True)
 
+        demolition_floor_area = bc_demolition.groupby(by=['year']).sum().area
         df = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area, dm, period=years)
         df['building_category'] = building_category
         df = df.reset_index().set_index(['building_category', 'year'])
+
         if construction is None:
             construction = df
-            demolition = s
+            demolition = bc_demolition
         else:
             construction = pd.concat([construction, df])
-            demolition = pd.concat([demolition, s])
+            demolition = pd.concat([demolition, bc_demolition])
 
     return construction, demolition
 
@@ -207,6 +209,20 @@ def extract_energy_use_kwh(heating_systems_parameter, energy_need):
     return energy_use_kwh
 
 
+def transform_demolition_construction(energy_need, demolition, construction):
+    demolition['demolition_construction'] = 'demolition'
+    demolition['energy_use'] = demolition['area']
+    demolition['m2'] = -demolition['area']
+
+    construction['demolition_construction'] = 'construction'
+    construction['TEK'] = 'TEK17'
+    construction['energy_use'] = -construction['constructed_floor_area']
+    construction['m2'] = construction['constructed_floor_area']
+
+    return pd.concat([
+        demolition.reset_index()[['year', 'demolition_construction', 'building_category', 'TEK', 'm2', 'energy_use']],
+        construction.reset_index()[['year', 'demolition_construction', 'building_category', 'TEK', 'm2', 'energy_use']]
+    ])
 
 
 def main():
@@ -321,7 +337,7 @@ def main():
     production = h_p.heat_pump_production(total_energy_need, air_air, district_heating)
     heat_prod_hp = h_p.heat_prod_hp(production)
     heat_prod_hp_wide = heat_prod_hp.reset_index().pivot(columns=['year'], index=['building_group', 'hp_source'],
-                  values=['RV_HP']).reset_index()
+                                                         values=['RV_HP']).reset_index()
 
     logger.debug('✅ Write file heat_prod_hp.xlsx')
     heat_prod_hp_file = output_path / 'heat_prod_hp.xlsx'
@@ -365,11 +381,14 @@ def main():
 
     logger.debug('❌ Write file demolition_construction')
     logger.info('❌ building razing to demolition_construction.xlsx')
-    demolition_construction = df
-    logger.debug('❌ extract demolition')
-    logger.debug('❌ extract construction')
+
+
+    demolition_construction = transform_demolition_construction(energy_need, demolition, construction)
+
+    logger.debug('✅ extract demolition')
+    logger.debug('✅ extract construction')
     logger.debug('❌ extract energy_need')
-    logger.debug('❌ transform demolition_construction')
+    logger.debug('✅ transform demolition_construction')
 
     demolition_construction_file = output_path / 'demolition_construction.xlsx'
 

@@ -46,8 +46,6 @@ def extract_area_change(years: YearRange, dm: DatabaseManager) -> tuple[pd.DataF
         nested_list = [area_forecast.calc_area_pre_construction(t, BuildingCondition.DEMOLITION).to_frame().assign(**{'TEK': t}) for t in tek_params if t not in ['TEK17', 'TEK21']]
         bc_demolition = pd.concat(nested_list)
         bc_demolition['building_category'] = building_category
-        # bc_demolition['demolition_construction'] = 'demolition'
-        # bc_demolition.rename(columns={'area': 'm2'}, inplace=True)
 
         demolition_floor_area = bc_demolition.groupby(by=['year']).sum().area
         df = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area, dm, period=years)
@@ -192,7 +190,7 @@ def transform_heating_systems_share_wide(heating_systems_share_long):
     return df
 
 
-def extract_heating_systems_parameter(heating_systems_projection):
+def heating_systems_parameter_from_projection(heating_systems_projection):
     calculator = EnergyConsumption(heating_systems_projection.copy())
 
     return calculator.grouped_heating_systems()
@@ -233,7 +231,6 @@ def main():
     else:
         logger.debug(f'.env not found in {env_file.absolute()}')
 
-    configure_loglevel(os.environ.get('LOG_FORMAT', None))
     configure_loglevel(os.environ.get('LOG_FORMAT', None))
 
     years = YearRange(2020, 2050)
@@ -308,9 +305,9 @@ def main():
 
     heating_systems_projection = extract_heating_systems_projection(years, database_manager)
     logger.debug('✅ transform fane 2')
-    heating_systems_share_long = transform_heating_systems_share_long(heating_systems_projection)
+    heating_systems_share = transform_heating_systems_share_long(heating_systems_projection)
     logger.debug('✅ transform fane 1')
-    heating_systems_share_wide = transform_heating_systems_share_wide(heating_systems_share_long)
+    heating_systems_share_wide = transform_heating_systems_share_wide(heating_systems_share)
 
     logger.debug('✅ Write file heating_system_share.xlsx')
     heating_system_share = output_path / 'heating_system_share.xlsx'
@@ -319,12 +316,12 @@ def main():
         logger.debug('❌ reorder columns')
         logger.debug(f'❌ make {heating_system_share.name} pretty')
         heating_systems_share_wide.to_excel(writer, sheet_name='wide')
-        heating_systems_share_long.to_excel(writer, sheet_name='long')
+        heating_systems_share.to_excel(writer, sheet_name='long')
 
     logger.info('✅ heat_prod_hp')
 
     logger.debug('✅ extract heating_system_parameters')
-    heating_systems_parameter = extract_heating_systems_parameter(heating_systems_projection)
+    heating_systems_parameter = heating_systems_parameter_from_projection(heating_systems_projection)
     logger.debug('✅ transform to hp')
 
     df = heating_systems_parameter
@@ -345,7 +342,6 @@ def main():
         logger.debug('❌ reorder columns')
         logger.debug(f'❌ make {heat_prod_hp_file.name} pretty')
         heat_prod_hp_wide.to_excel(writer, sheet_name='wide')
-
 
     logger.info('❌ Energy_use')
 
@@ -401,9 +397,6 @@ def main():
     logger.debug('❌ area')
     logger.debug('❌ energy_need')
     logger.debug('❌ energy_use')
-
-
-
 
 
 if __name__ == '__main__':

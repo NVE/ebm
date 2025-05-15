@@ -344,6 +344,7 @@ def main():
     production = h_p.heat_pump_production(total_energy_need, air_air, district_heating)
 
     heat_prod_hp_wide = h_p.heat_prod_hp_wide(production)
+    heat_prod_hp_wide.columns = ['building_group', 'hp_source'] + [c for c in heat_prod_hp_wide.columns.get_level_values(1)[2:]]
 
     logger.debug('✅ Write file heat_prod_hp.xlsx')
     heat_prod_hp_file = output_path / 'heat_prod_hp.xlsx'
@@ -351,7 +352,7 @@ def main():
     with pd.ExcelWriter(heat_prod_hp_file, engine='xlsxwriter') as writer:
         logger.debug('❌ reorder columns')
         logger.debug(f'❌ make {heat_prod_hp_file.name} pretty')
-        heat_prod_hp_wide.to_excel(writer, sheet_name='wide', merge_cells=False)
+        heat_prod_hp_wide.to_excel(writer, sheet_name='wide', index=False)
     make_pretty(heat_prod_hp_file)
 
     logger.info('❌ Energy_use')

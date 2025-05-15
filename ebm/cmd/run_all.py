@@ -199,9 +199,8 @@ def transform_demolition_construction(energy_use: pd.DataFrame, area_change: pd.
     energy_use_m2 = df.groupby(by=['building_category', 'building_condition', 'TEK', 'year'], as_index=False).sum()[['building_category',  'TEK', 'year', 'kwh_m2']]
 
     dem_con = pd.merge(left=area_change, right=energy_use_m2, on=['building_category', 'TEK', 'year'])
-    dem_con['energy_use'] = dem_con['kwh_m2'] * dem_con['m2'] # (dem_con['kwh'] / dem_con['m2']) * dem_con['area']
-
-    return dem_con[['year', 'building_category', 'TEK', 'demolition_construction', 'm2', 'energy_use']]
+    dem_con['gwh'] = (dem_con['kwh_m2'] * dem_con['m2']) / 1_000_000
+    return dem_con[['year', 'demolition_construction', 'building_category', 'TEK', 'm2', 'gwh']]
 
 
 def main():
@@ -375,24 +374,16 @@ def main():
     logger.debug(f'Adding top row filter to {energy_use_file}')
     add_top_row_filter(workbook_file=energy_use_file, sheet_names=['long'])
 
-
-    logger.debug('❌ Write file demolition_construction')
-    logger.info('❌ building razing to demolition_construction.xlsx')
-
-
-    demolition_construction = transform_demolition_construction(energy_use_kwh, area_change)
-
-    logger.debug('✅ extract demolition')
-    logger.debug('✅ extract construction')
-    logger.debug('❌ extract energy_need')
     logger.debug('✅ transform demolition_construction')
-
+    demolition_construction = transform_demolition_construction(energy_use_kwh, area_change)
+    demolition_construction = demolition_construction.rename(columns={'m2': 'Area [m2]',
+                                                                      'gwh': 'Energy use [GWh]'})
     demolition_construction_file = output_path / 'demolition_construction.xlsx'
 
     logger.debug('✅ Write file demolition_construction.xlsx')
     with pd.ExcelWriter(demolition_construction_file, engine='xlsxwriter') as writer:
-        logger.debug('❌ reorder columns')
-        logger.debug(f'❌ make {demolition_construction_file.name} pretty')
+        logger.debug('✅ reorder columns')
+        logger.debug(f'✅| make {demolition_construction_file.name} pretty')
         demolition_construction.to_excel(writer, sheet_name='long', index=False)
     make_pretty(demolition_construction_file)
     logger.debug(f'Adding top row filter to {demolition_construction_file}')

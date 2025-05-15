@@ -13,6 +13,7 @@ from openpyxl.formatting.rule import FormulaRule
 from openpyxl.styles import Font, PatternFill
 from openpyxl.utils import get_column_letter
 from openpyxl.utils.cell import cols_from_range, coordinate_to_tuple, get_column_letter
+from openpyxl.workbook import Workbook
 from openpyxl.worksheet.errors import IgnoredError
 
 
@@ -207,6 +208,22 @@ def find_max_column_width(col: typing.Tuple[Cell]):
     return max_length
 
 
+def add_top_row_filter(workbook_file: str|None=None, workbook: Workbook| None=None, sheet_names: list[str] | None=None):
+    if not workbook_file and not workbook_file:
+        raise ValueError('add_top_row_filter require either workbook_file or workbook')
+
+    wb = workbook if workbook else load_workbook(workbook_file)
+
+    sheet_names = wb.sheetnames if not sheet_names else sheet_names
+    for worksheet in sheet_names:
+        ws = wb[worksheet]
+        top_row = f'A1:{get_column_letter(ws.max_column)}{1}'
+        ws.auto_filter.ref = top_row
+
+    if not workbook and workbook_file:
+        wb.save(workbook_file)
+
+
 def make_pretty(workbook_name: str):
     wb = load_workbook(workbook_name)
     font = Font(name='Arial', size=11)
@@ -231,8 +248,8 @@ def make_pretty(workbook_name: str):
             if row_number == 0:
                 continue
             for column_number, cell in enumerate(row):
-                cell.font = font
 
+                cell.font = font
         even_rule = FormulaRule(formula=['MOD(ROW(),2)=0'], fill=even_fill)
         odd_rule = FormulaRule(formula=['MOD(ROW(),2)=1'], fill=odd_fill)
         worksheet_range = f'A2:{get_column_letter(ws.max_column)}{ws.max_row}'

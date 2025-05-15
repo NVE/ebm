@@ -23,7 +23,7 @@ from ebm.model.building_category import BEMA_ORDER as building_category_order
 from ebm.model.tek import BEMA_ORDER as tek_order
 from ebm.model import heat_pump as h_p
 from ebm.model import energy_use as e_u
-from ebm.services.spreadsheet import make_pretty
+from ebm.services.spreadsheet import make_pretty, add_top_row_filter
 
 
 def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
@@ -235,7 +235,6 @@ def main():
     input_path = pathlib.Path('kalibar')
     output_path = pathlib.Path('t2775_output')
     output_path.mkdir(exist_ok=True)
-
     file_handler = FileHandler(directory=input_path)
     database_manager = DatabaseManager(file_handler=file_handler)
 
@@ -276,8 +275,9 @@ def main():
         logger.debug('✅ make area.xlsx pretty')
         area_fane_1.to_excel(writer, sheet_name='wide', index=False)
         area_fane_2.to_excel(writer, sheet_name='long', index=False)
+    logger.debug(f'Adding top row filter to {area_output}')
     make_pretty(area_output)
-
+    add_top_row_filter(workbook_file=area_output, sheet_names=['long'])
 
     logger.info('✅ Energy use to energy_purpose')
     logger.debug('✅ extract energy_need')
@@ -302,6 +302,8 @@ def main():
         energy_purpose_fane1.to_excel(writer, sheet_name='wide', index=False)
         energy_purpose_fane2.to_excel(writer, sheet_name='long', index=False)
     make_pretty(energy_purpose_output)
+    logger.debug(f'Adding top row filter to {energy_purpose_output}')
+    add_top_row_filter(workbook_file=energy_purpose_output, sheet_names=['long'])
 
 
     logger.info('✅ Heating_system_share')
@@ -322,6 +324,8 @@ def main():
         # Resetting index to stop
         heating_systems_share.to_excel(writer, sheet_name='long', merge_cells=False)
     make_pretty(heating_system_share)
+    logger.debug(f'Adding top row filter to {heating_system_share}')
+    add_top_row_filter(workbook_file=heating_system_share, sheet_names=['long'])
 
     logger.info('✅ heat_prod_hp')
 
@@ -349,6 +353,7 @@ def main():
         logger.debug(f'❌ make {heat_prod_hp_file.name} pretty')
         heat_prod_hp_wide.to_excel(writer, sheet_name='wide', index=False)
     make_pretty(heat_prod_hp_file)
+    logger.debug(f'Adding top row filter to {heat_prod_hp_file}')
 
     logger.info('❌ Energy_use')
 
@@ -382,6 +387,8 @@ def main():
         energy_use_long.to_excel(writer, sheet_name='long', index=False)
         energy_use_wide.to_excel(writer, sheet_name='wide', index=False)
     make_pretty(energy_use_file)
+    logger.debug(f'Adding top row filter to {energy_use_file}')
+    add_top_row_filter(workbook_file=energy_use_file, sheet_names=['long'])
 
 
     logger.debug('❌ Write file demolition_construction')
@@ -403,6 +410,8 @@ def main():
         logger.debug(f'❌ make {demolition_construction_file.name} pretty')
         demolition_construction.to_excel(writer, sheet_name='long', index=False)
     make_pretty(demolition_construction_file)
+    logger.debug(f'Adding top row filter to {demolition_construction_file}')
+    add_top_row_filter(workbook_file=demolition_construction_file, sheet_names=['long'])
 
     logger.info('❌ Ekstra resultater som skrives etter behov')
     logger.debug('❌ area')

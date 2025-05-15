@@ -362,17 +362,20 @@ def main():
 
     logger.debug('✅ transform fane 2')
     logger.debug('✅ group by category, year, product')
-    e_u_by_category = energy_use_kwh[['building_category', 'year', 'energy_product', 'kwh']].groupby(
-        by=['building_category', 'energy_product', 'year']).sum() / 1_000_000
-    energy_use_long = e_u_by_category.rename(columns={'kwh': 'energy_use'})
+    column_order = ['year', 'building_category', 'TEK', 'energy_product', 'kwh']
+    energy_use_by_product = energy_use_kwh[column_order].groupby(
+        by=['building_category', 'TEK', 'energy_product', 'year']).sum() / 1_000_000
+    energy_use_long = energy_use_by_product.reset_index()[column_order].rename(columns={'kwh': 'energy_use'})
 
     logger.debug('❌ transform fane 1')
     logger.debug('❌ add holiday homes 1')
 
     logger.debug('✅ group by group, product year')
-    e_u_by_group = energy_use_kwh[['building_group', 'year', 'energy_product', 'kwh']].groupby(
+    energy_use_by_building_group = energy_use_kwh[['building_group', 'year', 'energy_product', 'kwh']].groupby(
         by=['building_group', 'energy_product', 'year']).sum() / 1_000_000
-    energy_use_wide = e_u_by_group.reset_index().pivot(columns=['year'], index=['building_group', 'energy_product'], values=['kwh']).reset_index()
+    energy_use_wide = energy_use_by_building_group.reset_index().pivot(columns=['year'], index=['building_group', 'energy_product'], values=['kwh'])
+    energy_use_wide = energy_use_wide.reset_index()
+    energy_use_wide.columns = ['building_group', 'energy_source'] + [c for c in energy_use_wide.columns.get_level_values(1)[2:]]
 
     logger.debug('✅ Write file energy_use')
 
@@ -381,8 +384,8 @@ def main():
     with pd.ExcelWriter(energy_use_file, engine='xlsxwriter') as writer:
         logger.debug('❌ reorder columns')
         logger.debug(f'❌ make {energy_use_file.name} pretty')
-        energy_use_long.to_excel(writer, sheet_name='long', merge_cells=False)
-        energy_use_wide.to_excel(writer, sheet_name='wide', merge_cells=False)
+        energy_use_long.to_excel(writer, sheet_name='long', index=False)
+        energy_use_wide.to_excel(writer, sheet_name='wide', index=False)
     make_pretty(energy_use_file)
 
 

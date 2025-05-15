@@ -297,13 +297,16 @@ def main():
     heating_systems_share = transform_heating_systems_share_long(heating_systems_projection)
     logger.debug('✅ transform fane 1')
     heating_systems_share_wide = transform_heating_systems_share_wide(heating_systems_share)
+    heating_systems_share = heating_systems_share.rename(columns={'TEK_shares': 'Share',
+                                                                  'heating_systems': 'Heating system'})
+    heating_systems_share_wide = heating_systems_share_wide.rename(columns={'heating_systems':'Heating technology'})
 
     logger.debug('✅ Write file heating_system_share.xlsx')
     heating_system_share = output_path / 'heating_system_share.xlsx'
 
     with pd.ExcelWriter(heating_system_share, engine='xlsxwriter') as writer:
-        logger.debug('❌ reorder columns')
-        logger.debug(f'❌ make {heating_system_share.name} pretty')
+        logger.debug('✅ reorder columns')
+        logger.debug(f'✅ make {heating_system_share.name} pretty')
         heating_systems_share_wide.to_excel(writer, sheet_name='wide', merge_cells=False, index=False)
         # Resetting index to stop
         heating_systems_share.to_excel(writer, sheet_name='long', merge_cells=False)
@@ -366,8 +369,8 @@ def main():
     energy_use_file = output_path / 'energy_use.xlsx'
 
     with pd.ExcelWriter(energy_use_file, engine='xlsxwriter') as writer:
-        logger.debug('❌ reorder columns')
-        logger.debug(f'❌ make {energy_use_file.name} pretty')
+        logger.debug('✅ reorder columns')
+        logger.debug(f'✅ make {energy_use_file.name} pretty')
         energy_use_long.to_excel(writer, sheet_name='long', index=False)
         energy_use_wide.to_excel(writer, sheet_name='wide', index=False)
     make_pretty(energy_use_file)

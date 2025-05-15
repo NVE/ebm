@@ -1,6 +1,7 @@
 import dataclasses
 import itertools
 import math
+import pathlib
 import typing
 import string
 from dataclasses import dataclass
@@ -11,7 +12,6 @@ from openpyxl import load_workbook
 from openpyxl.cell import Cell
 from openpyxl.formatting.rule import FormulaRule
 from openpyxl.styles import Font, PatternFill
-from openpyxl.utils import get_column_letter
 from openpyxl.utils.cell import cols_from_range, coordinate_to_tuple, get_column_letter
 from openpyxl.workbook import Workbook
 from openpyxl.worksheet.errors import IgnoredError
@@ -208,7 +208,7 @@ def find_max_column_width(col: typing.Tuple[Cell]):
     return max_length
 
 
-def add_top_row_filter(workbook_file: str|None=None, workbook: Workbook| None=None, sheet_names: list[str] | None=None):
+def add_top_row_filter(workbook_file: pathlib.Path|str|None=None, workbook: Workbook| None=None, sheet_names: list[str] | None=None):
     if not workbook_file and not workbook_file:
         raise ValueError('add_top_row_filter require either workbook_file or workbook')
 
@@ -224,7 +224,7 @@ def add_top_row_filter(workbook_file: str|None=None, workbook: Workbook| None=No
         wb.save(workbook_file)
 
 
-def make_pretty(workbook_name: str):
+def make_pretty(workbook_name: pathlib.Path|str):
     wb = load_workbook(workbook_name)
 
     header_font = Font(name='Source Sans Pro', size=11, bold=True, color="ffffff")

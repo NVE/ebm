@@ -86,7 +86,7 @@ def extract_area_forecast(years: YearRange, construction: pd.DataFrame, dm: Data
     return forecasts
 
 
-def transform_energy_need_to_energy_purpose_wide(energy_need, area_forecast):
+def transform_energy_need_to_energy_purpose_wide(energy_need: pd.DataFrame, area_forecast: pd.DataFrame) -> pd.DataFrame:
     df_a = area_forecast.copy()
     df_a = df_a.query('building_condition!="demolition"').reset_index().set_index(
         ['building_category', 'building_condition', 'TEK', 'year'], drop=True)
@@ -115,12 +115,10 @@ def transform_energy_need_to_energy_purpose_wide(energy_need, area_forecast):
     df.insert(2, 'U', 'GWh')
     df.columns = ['building_category', 'purpose', 'U'] + [y for y in range(2020, 2051)]
 
-    energy_purpose_fane1 = df
-
     return df
 
 
-def transform_energy_need_to_energy_purpose_long(energy_need, area_forecast):
+def transform_energy_need_to_energy_purpose_long(energy_need: pd.DataFrame, area_forecast: pd.DataFrame) -> pd.DataFrame:
     df_a = area_forecast.copy()
     df_a = df_a.query('building_condition!="demolition"').reset_index().set_index(
         ['building_category', 'building_condition', 'TEK', 'year'], drop=True)
@@ -146,7 +144,7 @@ def transform_energy_need_to_energy_purpose_long(energy_need, area_forecast):
     return df
 
 
-def extract_heating_systems_projection(years, database_manager):
+def extract_heating_systems_projection(years: YearRange, database_manager: DatabaseManager) -> pd.DataFrame:
     projection_period = YearRange(2023, 2050)
     hsp = HeatingSystemsProjection.new_instance(projection_period, database_manager)
     df = hsp.calculate_projection()
@@ -156,7 +154,7 @@ def extract_heating_systems_projection(years, database_manager):
     return heating_system_projection
 
 
-def extract_heating_systems(heating_system_projection, energy_need):
+def extract_heating_systems(heating_system_projection: pd.DataFrame, energy_need: pd.DataFrame) -> pd.DataFrame:
     calculator = EnergyConsumption(heating_system_projection.copy())
 
     calculator.heating_systems_parameters = calculator.grouped_heating_systems()
@@ -165,10 +163,8 @@ def extract_heating_systems(heating_system_projection, energy_need):
 
     return df
 
-    return heating_systems
 
-
-def transform_heating_systems_share_long(heating_systems_projection):
+def transform_heating_systems_share_long(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:
     df = heating_systems_projection.copy()
 
     value_column = 'TEK_shares'
@@ -181,7 +177,7 @@ def transform_heating_systems_share_long(heating_systems_projection):
     return mean_tek_shares_yearly
 
 
-def transform_heating_systems_share_wide(heating_systems_share_long):
+def transform_heating_systems_share_wide(heating_systems_share_long: pd.DataFrame) -> pd.DataFrame:
     value_column = 'TEK_shares'
     df = heating_systems_share_long.copy().reset_index()
     df = df.pivot(columns=['year'], index=['building_category', 'heating_systems'], values=[value_column]).reset_index()
@@ -195,13 +191,13 @@ def transform_heating_systems_share_wide(heating_systems_share_long):
     return df
 
 
-def heating_systems_parameter_from_projection(heating_systems_projection):
+def heating_systems_parameter_from_projection(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:
     calculator = EnergyConsumption(heating_systems_projection.copy())
 
     return calculator.grouped_heating_systems()
 
 
-def extract_energy_use_kwh(heating_systems_parameter, energy_need):
+def extract_energy_use_kwh(heating_systems_parameter: pd.DataFrame, energy_need: pd.DataFrame) -> pd.DataFrame:
     df = e_u.all_purposes(heating_systems_parameter)
     df.loc[:, 'building_group'] = 'yrkesbygg'
     df.loc[df.building_category.isin(['house', 'apartment_block']), 'building_group'] = 'bolig'
@@ -212,7 +208,8 @@ def extract_energy_use_kwh(heating_systems_parameter, energy_need):
     return energy_use_kwh
 
 
-def transform_demolition_construction(energy_need, demolition, construction):
+def transform_demolition_construction(energy_need: pd.DataFrame, demolition: pd.DataFrame, construction: pd.DataFrame) \
+        -> pd.DataFrame:
     demolition['demolition_construction'] = 'demolition'
     demolition['energy_use'] = demolition['area']
     demolition['m2'] = -demolition['area']
@@ -288,9 +285,11 @@ def main():
 
     logger.info('✅ Energy use to energy_purpose')
     logger.debug('✅ extract energy_need')
+
     energy_need = extract_energy_need(years, database_manager)
 
     total_energy_need = forecasts.reset_index().set_index(['building_category', 'TEK', 'building_condition', 'year']).merge(energy_need, left_index=True, right_index=True)
+
     total_energy_need['energy_requirement'] = total_energy_need.kwh_m2 * total_energy_need.m2
 
     logger.debug('✅ transform fane 1')
@@ -415,7 +414,7 @@ def main():
     logger.debug('❌ energy_use')
 
 
-def make_pretty(workbook_name):
+def make_pretty(workbook_name: str):
     wb = load_workbook(workbook_name)
     font = Font(name='Arial', size=11)
     header_font = Font(name='Source Sans Pro', size=11, bold=True, color="ffffff")

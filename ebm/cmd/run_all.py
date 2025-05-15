@@ -304,9 +304,9 @@ def main():
     with pd.ExcelWriter(energy_purpose_output, engine='xlsxwriter') as writer:
         logger.debug('❌ reorder columns')
         logger.debug(f'❌ make {energy_purpose_output.name} pretty')
-        energy_purpose_fane1.to_excel(writer, sheet_name='wide')
-        energy_purpose_fane2.to_excel(writer, sheet_name='long')
-
+        energy_purpose_fane1.to_excel(writer, sheet_name='wide', index=False)
+        energy_purpose_fane2.to_excel(writer, sheet_name='long', index=False)
+    make_pretty(energy_purpose_output)
 
 
     logger.info('✅ Heating_system_share')
@@ -323,8 +323,10 @@ def main():
     with pd.ExcelWriter(heating_system_share, engine='xlsxwriter') as writer:
         logger.debug('❌ reorder columns')
         logger.debug(f'❌ make {heating_system_share.name} pretty')
-        heating_systems_share_wide.to_excel(writer, sheet_name='wide')
-        heating_systems_share.to_excel(writer, sheet_name='long')
+        heating_systems_share_wide.to_excel(writer, sheet_name='wide', merge_cells=False, index=False)
+        # Resetting index to stop
+        heating_systems_share.to_excel(writer, sheet_name='long', merge_cells=False)
+    make_pretty(heating_system_share)
 
     logger.info('✅ heat_prod_hp')
 
@@ -349,7 +351,8 @@ def main():
     with pd.ExcelWriter(heat_prod_hp_file, engine='xlsxwriter') as writer:
         logger.debug('❌ reorder columns')
         logger.debug(f'❌ make {heat_prod_hp_file.name} pretty')
-        heat_prod_hp_wide.to_excel(writer, sheet_name='wide')
+        heat_prod_hp_wide.to_excel(writer, sheet_name='wide', merge_cells=False)
+    make_pretty(heat_prod_hp_file)
 
     logger.info('❌ Energy_use')
 
@@ -377,10 +380,10 @@ def main():
     with pd.ExcelWriter(energy_use_file, engine='xlsxwriter') as writer:
         logger.debug('❌ reorder columns')
         logger.debug(f'❌ make {energy_use_file.name} pretty')
-        energy_use_long.to_excel(writer, sheet_name='long')
-        energy_use_wide.to_excel(writer, sheet_name='wide')
+        energy_use_long.to_excel(writer, sheet_name='long', merge_cells=False)
+        energy_use_wide.to_excel(writer, sheet_name='wide', merge_cells=False)
+    make_pretty(energy_use_file)
 
-    logger.info('Returns…')
 
     logger.debug('❌ Write file demolition_construction')
     logger.info('❌ building razing to demolition_construction.xlsx')
@@ -399,7 +402,8 @@ def main():
     with pd.ExcelWriter(demolition_construction_file, engine='xlsxwriter') as writer:
         logger.debug('❌ reorder columns')
         logger.debug(f'❌ make {demolition_construction_file.name} pretty')
-        demolition_construction.to_excel(writer, sheet_name='long')
+        demolition_construction.to_excel(writer, sheet_name='long', index=False)
+    make_pretty(demolition_construction_file)
 
     logger.info('❌ Ekstra resultater som skrives etter behov')
     logger.debug('❌ area')

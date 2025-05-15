@@ -2,12 +2,13 @@ import os
 import pathlib
 
 import dotenv
+import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
 from ebm.cmd.result_handler import transform_model_to_horizontal
-from ebm.cmd.run_calculation import configure_loglevel
+from ebm.cmd.run_calculation import configure_loglevel, calculate_building_category_area_forecast
 from ebm.energy_consumption import EnergyConsumption
 from ebm.heating_systems_projection import HeatingSystemsProjection
 from ebm.model.area_forecast import AreaForecast
@@ -35,44 +36,35 @@ def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
 
     return energy_need
 
-def extract_area_change(years: YearRange, dm: DatabaseManager) -> tuple[pd.DataFrame, pd.DataFrame]:
-    construction: pd.DataFrame | None = None
-    demolition: pd.DataFrame | None = None
+def extract_area_change(area_forecast: pd.DataFrame) -> pd.DataFrame:
+    df = area_forecast[area_forecast.TEK=='TEK17'].copy()
 
-    tek_params = dm.get_tek_params(dm.get_tek_list())
-    for building_category in BuildingCategory:
-        buildings = Buildings.build_buildings(building_category=building_category, database_manager=dm, period=years)
-        area_forecast: AreaForecast = buildings.build_area_forecast(dm, years.start, years.end)
+    df = df.set_index(['building_category', 'TEK', 'year', 'building_condition']).unstack()
+    df.columns=df.columns.get_level_values(1)
+    df['total']=df.sum(axis=1)
+    df['m2'] = df['total'] - df['total'].shift()
 
-        nested_list = [area_forecast.calc_area_pre_construction(t, BuildingCondition.DEMOLITION).to_frame().assign(**{'TEK': t}) for t in tek_params if t not in ['TEK17', 'TEK21']]
-        bc_demolition = pd.concat(nested_list)
-        bc_demolition['building_category'] = building_category
+    df['demolition_construction'] = 'construction'
 
-        demolition_floor_area = bc_demolition.groupby(by=['year']).sum().area
-        df = ConstructionCalculator.calculate_construction(building_category, demolition_floor_area, dm, period=years)
-        df['building_category'] = building_category
-        df = df.reset_index().set_index(['building_category', 'year'])
+    construction = df[['demolition_construction','m2']].copy()
+    construction['m2'] = construction['m2'].clip(lower=np.nan)
 
-        if construction is None:
-            construction = df
-            demolition = bc_demolition
-        else:
-            construction = pd.concat([construction, df])
-            demolition = pd.concat([demolition, bc_demolition])
+    demolition = area_forecast[area_forecast['building_condition']==BuildingCondition.DEMOLITION].copy()
+    demolition.loc[:, 'demolition_construction'] = 'demolition'
+    demolition.loc[:, 'm2'] = -demolition.loc[:, 'm2']
 
-    return construction, demolition
+    area_change = pd.concat([
+        demolition[['building_category', 'TEK', 'year', 'demolition_construction', 'm2']],
+        construction.reset_index()[['building_category', 'TEK', 'year', 'demolition_construction', 'm2']]
+    ])
+    return area_change
 
 
-def extract_area_forecast(years: YearRange, construction: pd.DataFrame, dm: DatabaseManager) -> pd.DataFrame:
+def extract_area_forecast(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
     forecasts: pd.DataFrame | None = None
 
     for building_category in BuildingCategory:
-        buildings = Buildings.build_buildings(building_category=building_category, database_manager=dm,
-                                              period=years)
-        area_forecast: AreaForecast = buildings.build_area_forecast(dm, years.start, years.end)
-
-        accumulated_constructed_floor_area = construction.loc[building_category, 'accumulated_constructed_floor_area']
-        forecast: pd.DataFrame = area_forecast.calc_area(accumulated_constructed_floor_area)
+        forecast = calculate_building_category_area_forecast(building_category, dm, years.start, years.end)
         forecast['building_category'] = building_category
         if forecasts is None:
             forecasts = forecast
@@ -204,21 +196,15 @@ def extract_energy_use_kwh(heating_systems_parameter: pd.DataFrame, energy_need:
     return energy_use_kwh
 
 
-def transform_demolition_construction(energy_need: pd.DataFrame, demolition: pd.DataFrame, construction: pd.DataFrame) \
-        -> pd.DataFrame:
-    demolition['demolition_construction'] = 'demolition'
-    demolition['energy_use'] = demolition['area']
-    demolition['m2'] = -demolition['area']
+def transform_demolition_construction(energy_use: pd.DataFrame, area_change: pd.DataFrame) -> pd.DataFrame:
+    df = energy_use[energy_use['building_condition']=='renovation_and_small_measure']
 
-    construction['demolition_construction'] = 'construction'
-    construction['TEK'] = 'TEK17'
-    construction['energy_use'] = -construction['constructed_floor_area']
-    construction['m2'] = construction['constructed_floor_area']
+    energy_use_m2 = df.groupby(by=['building_category', 'building_condition', 'TEK', 'year'], as_index=False).sum()[['building_category',  'TEK', 'year', 'kwh_m2']]
 
-    return pd.concat([
-        demolition.reset_index()[['year', 'demolition_construction', 'building_category', 'TEK', 'm2', 'energy_use']],
-        construction.reset_index()[['year', 'demolition_construction', 'building_category', 'TEK', 'm2', 'energy_use']]
-    ])
+    dem_con = pd.merge(left=area_change, right=energy_use_m2, on=['building_category', 'TEK', 'year'])
+    dem_con['energy_use'] = dem_con['kwh_m2'] * dem_con['m2'] # (dem_con['kwh'] / dem_con['m2']) * dem_con['area']
+
+    return dem_con[['year', 'building_category', 'TEK', 'demolition_construction', 'm2', 'energy_use']]
 
 
 def main():
@@ -241,10 +227,12 @@ def main():
     logger.info('✅ Area to area.xlsx')
 
     logger.debug('✅ extract area_change')
-    construction, demolition = extract_area_change(years, database_manager)
-    logger.debug('✅ extract area')
-    forecasts = extract_area_forecast(years, construction, database_manager)
+    forecasts = extract_area_forecast(years,  database_manager)
+    area_change = extract_area_change(area_forecast=forecasts)
 
+    logger.debug('✅ extract area')
+
+    forecasts.to_excel('output/forecasts.xlsx')
     logger.debug('✅ transform fane 1 (wide)')
 
     df = forecasts.copy()
@@ -395,7 +383,7 @@ def main():
     logger.info('❌ building razing to demolition_construction.xlsx')
 
 
-    demolition_construction = transform_demolition_construction(energy_need, demolition, construction)
+    demolition_construction = transform_demolition_construction(energy_use_kwh, area_change)
 
     logger.debug('✅ extract demolition')
     logger.debug('✅ extract construction')

@@ -256,9 +256,9 @@ def make_pretty(workbook_name: str):
         ws.conditional_formatting.add(worksheet_range, odd_rule)
         ws.conditional_formatting.add(worksheet_range, even_rule)
 
-        for col in ws.iter_cols(min_col=1):
+        for col in ws.iter_cols(min_col=0):
             adjusted_width = find_max_column_width(col)
-            ws.column_dimensions[col[0].column_letter].width = adjusted_width
+            ws.column_dimensions[col[0].column_letter].width = adjusted_width + 1.5
             values = [int(r.value) for r in col if r.value and r.data_type == 'n']
             if values:
                 max_value = max(values)

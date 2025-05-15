@@ -11,11 +11,8 @@ from ebm.cmd.result_handler import transform_model_to_horizontal
 from ebm.cmd.run_calculation import configure_loglevel, calculate_building_category_area_forecast
 from ebm.energy_consumption import EnergyConsumption
 from ebm.heating_systems_projection import HeatingSystemsProjection
-from ebm.model.area_forecast import AreaForecast
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
-from ebm.model.buildings import Buildings
-from ebm.model.construction import ConstructionCalculator
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement

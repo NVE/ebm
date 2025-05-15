@@ -226,14 +226,14 @@ def add_top_row_filter(workbook_file: str|None=None, workbook: Workbook| None=No
 
 def make_pretty(workbook_name: str):
     wb = load_workbook(workbook_name)
-    font = Font(name='Arial', size=11)
+
     header_font = Font(name='Source Sans Pro', size=11, bold=True, color="ffffff")
+    body_font = Font(name='Source Sans Pro', size=11, bold=False, color="000000")
+
     for s in wb.sheetnames:
         ws = wb[s]
         # Freeze the top row
         ws.freeze_panes = ws['A2']
-
-        ws.font = font
 
         # Define the fill color
         header_fill = PatternFill(start_color='c8102e', end_color='c8102e', fill_type='solid')
@@ -248,8 +248,7 @@ def make_pretty(workbook_name: str):
             if row_number == 0:
                 continue
             for column_number, cell in enumerate(row):
-
-                cell.font = font
+                cell.font = body_font
         even_rule = FormulaRule(formula=['MOD(ROW(),2)=0'], fill=even_fill)
         odd_rule = FormulaRule(formula=['MOD(ROW(),2)=1'], fill=odd_fill)
         worksheet_range = f'A2:{get_column_letter(ws.max_column)}{ws.max_row}'

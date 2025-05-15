@@ -178,6 +178,45 @@ def test_energy_use_kwh():
     pd.testing.assert_frame_equal(result, expected)
 
 
+def test_energy_use_kwh_m2():
+    energy_need = pd.DataFrame(
+        data=[
+            ['house', 'TEK07', 'original_condition', 'lighting', 1977, 100, 54],
+            ['house', 'TEK07', 'original_condition', 'heating_rv', 1978, 100, 10],
+            ['house', 'TEK07', 'original_condition', 'heating_rv', 1977, 100, 20],
+        ],
+        columns='building_category,TEK,building_condition,purpose,year,energy_requirement,kwh_m2'.split(','))
+    efficiency_factor = pd.DataFrame(
+        data=[
+            ['house', 'TEK07', 'lighting', 1977, 0.5, 0.2, 1, 0.1],
+            ['house', 'TEK07', 'heating_rv', 1978, 1.0, 1.0, 2, 0.5],
+            ['house', 'TEK07', 'heating_rv', 1977, 2, 2, 2, 2.0]],
+        columns='building_category,TEK,purpose,year,TEK_shares,load_share,load_efficiency,efficiency_factor'.split(','))
+
+    result = energy_use.energy_use_kwh(energy_need, efficiency_factor)
+    result = result.drop(columns=['index'], errors='ignore')
+    expected = pd.DataFrame(
+        data = [
+            ['house', 'TEK07', 'original_condition', 'lighting', 1977, 100, 5.4, 0.5, 0.2, 1, 0.1, 10.0],
+            ['house', 'TEK07', 'original_condition', 'heating_rv', 1978, 100, 5.0, 1.0, 1.0, 2, 0.5, 50.0],
+            ['house', 'TEK07', 'original_condition', 'heating_rv', 1977, 100, 40, 2.0, 2.0, 2, 2.0, 200.0],
+        ],
+        columns=['building_category', 'TEK', 'building_condition', 'purpose', 'year', 'energy_requirement', 'kwh_m2', 'TEK_shares', 'load_share',
+       'load_efficiency', 'efficiency_factor', 'kwh'],
+    )
+
+    assert len(result) == 3
+    assert result.building_category.to_list() == ['house']*3
+    assert result.TEK.to_list() == ['TEK07']*3
+    assert result.building_condition.to_list() == ['original_condition'] * 3
+    assert result.year.to_list() == [1977, 1978, 1977]
+    assert result.kwh_m2.to_list() == [5.4, 5.0, 40.0]
+
+    pd.testing.assert_frame_equal(result, expected)
+
+
+
+
 def test_efficiency_factor():
     heating_systems = pd.DataFrame(
         data=[

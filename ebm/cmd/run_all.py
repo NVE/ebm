@@ -281,8 +281,8 @@ def main():
     energy_purpose_output = output_path / 'energy_purpose.xlsx'
 
     with pd.ExcelWriter(energy_purpose_output, engine='xlsxwriter') as writer:
-        logger.debug('❌ reorder columns')
-        logger.debug(f'❌ make {energy_purpose_output.name} pretty')
+        logger.debug('✅ reorder columns')
+        logger.debug(f'✅ make {energy_purpose_output.name} pretty')
         energy_purpose_fane1.to_excel(writer, sheet_name='wide', index=False)
         energy_purpose_fane2.to_excel(writer, sheet_name='long', index=False)
     make_pretty(energy_purpose_output)

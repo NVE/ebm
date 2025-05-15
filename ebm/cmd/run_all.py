@@ -333,8 +333,8 @@ def main():
     heat_prod_hp_file = output_path / 'heat_prod_hp.xlsx'
 
     with pd.ExcelWriter(heat_prod_hp_file, engine='xlsxwriter') as writer:
-        logger.debug('❌ reorder columns')
-        logger.debug(f'❌ make {heat_prod_hp_file.name} pretty')
+        logger.debug('✅ reorder columns')
+        logger.debug(f'✅ make {heat_prod_hp_file.name} pretty')
         heat_prod_hp_wide.to_excel(writer, sheet_name='wide', index=False)
     make_pretty(heat_prod_hp_file)
     logger.debug(f'Adding top row filter to {heat_prod_hp_file}')
@@ -351,7 +351,7 @@ def main():
         by=['building_category', 'TEK', 'energy_product', 'year']).sum() / 1_000_000
     energy_use_long = energy_use_by_product.reset_index()[column_order].rename(columns={'kwh': 'energy_use'})
 
-    logger.debug('❌ transform fane 1')
+    logger.debug('✅ transform fane 1')
     logger.debug('❌ add holiday homes 1')
 
     logger.debug('✅ group by group, product year')

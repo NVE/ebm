@@ -264,7 +264,7 @@ def main():
     add_top_row_filter(workbook_file=area_output, sheet_names=['long'])
 
     logger.info('✅ Energy use to energy_purpose')
-    logger.debug('✅ extract energy_need')
+    logger.debug('❌ extract energy_use')
 
     energy_need = extract_energy_need(years, database_manager)
 

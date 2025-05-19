@@ -7,8 +7,9 @@ import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
 
-from ebm.cmd.result_handler import transform_model_to_horizontal
-from ebm.cmd.run_calculation import configure_loglevel, calculate_building_category_area_forecast
+from ebm.cmd.result_handler import transform_model_to_horizontal, transform_holiday_homes_to_horizontal, \
+    transform_to_sorted_heating_systems
+from ebm.cmd.run_calculation import configure_loglevel, calculate_building_category_area_forecast, calculate_energy_use
 from ebm.energy_consumption import EnergyConsumption
 from ebm.heating_systems_projection import HeatingSystemsProjection
 from ebm.model.building_category import BuildingCategory
@@ -354,15 +355,21 @@ def main():
         by=['building_category', 'TEK', 'energy_product', 'year']).sum() / 1_000_000
     energy_use_long = energy_use_by_product.reset_index()[column_order].rename(columns={'kwh': 'energy_use'})
 
+    energy_use_holiday_homes = extract_energy_use_holiday_homes(database_manager)
+
     logger.debug('✅ transform fane 1')
     logger.debug('❌ add holiday homes 1')
 
     logger.debug('✅ group by group, product year')
     energy_use_by_building_group = energy_use_kwh[['building_group', 'year', 'energy_product', 'kwh']].groupby(
         by=['building_group', 'energy_product', 'year']).sum() / 1_000_000
+
     energy_use_wide = energy_use_by_building_group.reset_index().pivot(columns=['year'], index=['building_group', 'energy_product'], values=['kwh'])
     energy_use_wide = energy_use_wide.reset_index()
     energy_use_wide.columns = ['building_group', 'energy_source'] + [c for c in energy_use_wide.columns.get_level_values(1)[2:]]
+
+    energy_use_wide = transform_to_sorted_heating_systems(energy_use_wide, energy_use_holiday_homes,
+                                                          building_column='building_group')
 
     logger.debug('✅ Write file energy_use')
 
@@ -396,6 +403,14 @@ def main():
     logger.debug('❌ area')
     logger.debug('❌ energy_need')
     logger.debug('❌ energy_use')
+
+
+def extract_energy_use_holiday_homes(database_manager):
+    df = transform_holiday_homes_to_horizontal(calculate_energy_use(database_manager)).copy()
+    df = df.rename(columns={'building_category': 'building_group'})
+    df[df.energy_source=='Elektrisitet']['energy_source'] = 'Electricity'
+    df[df.energy_source=='fossil']['energy_source'] = 'Fossil'
+    return df
 
 
 if __name__ == '__main__':

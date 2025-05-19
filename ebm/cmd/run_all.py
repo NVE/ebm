@@ -240,7 +240,7 @@ def main():
 
     df = transform_model_to_horizontal(df).drop(columns=['TEK', 'building_condition'])
 
-    area_fane_1 = df.copy()
+    area_wide = df.copy()
 
     logger.debug('✅ transform fane 2 (long')
 
@@ -249,7 +249,7 @@ def main():
 
     df = df.groupby(by='year,building_category,TEK'.split(','))[['m2']].sum().rename(columns={'m2': 'area'})
     df.insert(0, 'U', 'm2')
-    area_fane_2 = df.reset_index()
+    area_long = df.reset_index()
 
     logger.debug('✅ Write file area.xlsx')
 
@@ -258,8 +258,8 @@ def main():
     with pd.ExcelWriter(area_output, engine='xlsxwriter') as writer:
         logger.debug('✅ reorder columns')
         logger.debug('✅ make area.xlsx pretty')
-        area_fane_1.to_excel(writer, sheet_name='wide', index=False)
-        area_fane_2.to_excel(writer, sheet_name='long', index=False)
+        area_wide.to_excel(writer, sheet_name='wide', index=False)
+        area_long.to_excel(writer, sheet_name='long', index=False)
     logger.debug(f'Adding top row filter to {area_output}')
     make_pretty(area_output)
     add_top_row_filter(workbook_file=area_output, sheet_names=['long'])
@@ -267,16 +267,16 @@ def main():
     logger.info('✅ Energy use to energy_purpose')
     logger.debug('❌ extract energy_use')
 
-    energy_need = extract_energy_need(years, database_manager)
+    energy_need_kwh_m2 = extract_energy_need(years, database_manager)
 
-    total_energy_need = forecasts.reset_index().set_index(['building_category', 'TEK', 'building_condition', 'year']).merge(energy_need, left_index=True, right_index=True)
+    total_energy_need = forecasts.reset_index().set_index(['building_category', 'TEK', 'building_condition', 'year']).merge(energy_need_kwh_m2, left_index=True, right_index=True)
 
     total_energy_need['energy_requirement'] = total_energy_need.kwh_m2 * total_energy_need.m2
 
     logger.debug('✅ transform fane 1')
-    energy_purpose_fane1 = transform_energy_need_to_energy_purpose_wide(energy_need=energy_need, area_forecast=forecasts)
+    energy_purpose_wide = transform_energy_need_to_energy_purpose_wide(energy_need=energy_need_kwh_m2, area_forecast=forecasts)
     logger.debug('✅ transform fane 2')
-    energy_purpose_fane2 = transform_energy_need_to_energy_purpose_long(energy_need=energy_need, area_forecast=forecasts)
+    energy_purpose_long = transform_energy_need_to_energy_purpose_long(energy_need=energy_need_kwh_m2, area_forecast=forecasts)
 
     logger.debug('✅ Write file energy_purpose.xlsx')
     energy_purpose_output = output_path / 'energy_purpose.xlsx'
@@ -284,8 +284,8 @@ def main():
     with pd.ExcelWriter(energy_purpose_output, engine='xlsxwriter') as writer:
         logger.debug('✅ reorder columns')
         logger.debug(f'✅ make {energy_purpose_output.name} pretty')
-        energy_purpose_fane1.to_excel(writer, sheet_name='wide', index=False)
-        energy_purpose_fane2.to_excel(writer, sheet_name='long', index=False)
+        energy_purpose_wide.to_excel(writer, sheet_name='wide', index=False)
+        energy_purpose_long.to_excel(writer, sheet_name='long', index=False)
     make_pretty(energy_purpose_output)
     logger.debug(f'Adding top row filter to {energy_purpose_output}')
     add_top_row_filter(workbook_file=energy_purpose_output, sheet_names=['long'])
@@ -385,8 +385,8 @@ def main():
     add_top_row_filter(workbook_file=energy_use_file, sheet_names=['long'])
 
     logger.debug('✅ transform demolition_construction')
-    demolition_construction = transform_demolition_construction(energy_use_kwh, area_change)
-    demolition_construction = demolition_construction.rename(columns={'m2': 'Area [m2]',
+    demolition_construction_long = transform_demolition_construction(energy_use_kwh, area_change)
+    demolition_construction_long = demolition_construction_long.rename(columns={'m2': 'Area [m2]',
                                                                       'gwh': 'Energy use [GWh]'})
     demolition_construction_file = output_path / 'demolition_construction.xlsx'
 
@@ -394,7 +394,7 @@ def main():
     with pd.ExcelWriter(demolition_construction_file, engine='xlsxwriter') as writer:
         logger.debug('✅ reorder columns')
         logger.debug(f'✅| make {demolition_construction_file.name} pretty')
-        demolition_construction.to_excel(writer, sheet_name='long', index=False)
+        demolition_construction_long.to_excel(writer, sheet_name='long', index=False)
     make_pretty(demolition_construction_file)
     logger.debug(f'Adding top row filter to {demolition_construction_file}')
     add_top_row_filter(workbook_file=demolition_construction_file, sheet_names=['long'])

@@ -409,8 +409,8 @@ def main():
 def extract_energy_use_holiday_homes(database_manager):
     df = transform_holiday_homes_to_horizontal(calculate_energy_use(database_manager)).copy()
     df = df.rename(columns={'building_category': 'building_group'})
-    df[df.energy_source=='Elektrisitet']['energy_source'] = 'Electricity'
-    df[df.energy_source=='fossil']['energy_source'] = 'Fossil'
+    df.loc[df.energy_source=='Elektrisitet', 'energy_source'] = 'Electricity'
+    df.loc[df.energy_source=='fossil', 'energy_source'] = 'Fossil'
     return df
 
 

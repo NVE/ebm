@@ -1,12 +1,12 @@
 import os
 import pathlib
 
-import dotenv
 import numpy as np
 import pandas as pd
-from dotenv import load_dotenv
+
 from loguru import logger
 
+from ebm.cmd.helpers import load_environment_from_dotenv
 from ebm.cmd.result_handler import transform_model_to_horizontal, transform_holiday_homes_to_horizontal, \
     transform_to_sorted_heating_systems
 from ebm.cmd.run_calculation import configure_loglevel, calculate_building_category_area_forecast, calculate_energy_use
@@ -212,12 +212,7 @@ def expand_heating_system_parameters(heating_systems_parameter):
 
 
 def main():
-    env_file = pathlib.Path(dotenv.find_dotenv(usecwd=True))
-    if env_file.is_file():
-        logger.debug(f'Loading environment from {env_file}')
-        load_dotenv(pathlib.Path('.env').absolute())
-    else:
-        logger.debug(f'.env not found in {env_file.absolute()}')
+    load_environment_from_dotenv()
 
     configure_loglevel(os.environ.get('LOG_FORMAT', None))
 

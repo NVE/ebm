@@ -315,9 +315,9 @@ def main():
     heating_systems_parameter = heating_systems_parameter_from_projection(heating_systems_projection)
     logger.debug('Transform to hp')
 
-    heating_systems_parameter = expand_heating_system_parameters(heating_systems_parameter)
-    air_air = h_p.air_source_heat_pump(heating_systems_parameter)
-    district_heating = h_p.district_heating_heat_pump(heating_systems_parameter)
+    expanded_heating_systems_parameter = expand_heating_system_parameters(heating_systems_parameter)
+    air_air = h_p.air_source_heat_pump(expanded_heating_systems_parameter)
+    district_heating = h_p.district_heating_heat_pump(expanded_heating_systems_parameter)
 
     production = h_p.heat_pump_production(total_energy_need, air_air, district_heating)
 
@@ -335,7 +335,7 @@ def main():
     logger.info('Energy_use')
 
     logger.debug('Extract energy_use_kwh')
-    energy_use_kwh = extract_energy_use_kwh(heating_systems_parameter, total_energy_need)
+    energy_use_kwh = extract_energy_use_kwh(expanded_heating_systems_parameter, total_energy_need)
 
     logger.debug('Transform fane 2')
     logger.debug('Group by category, year, product')

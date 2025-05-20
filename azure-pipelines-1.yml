@@ -4,11 +4,11 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
 trigger:
-- 'sprint21'
+- 'sprint22'
 pr:
   branches:
     include:
-      - 'sprint21'
+      - 'sprint22'
 jobs:
 - job: PytestUbuntu
   displayName: 'Run pytest on Ubuntu'

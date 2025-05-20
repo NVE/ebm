@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 from ebm.energy_consumption import TEK_SHARES, GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE, \
@@ -119,5 +120,8 @@ def energy_use_kwh(energy_need: pd.DataFrame, efficiency_factor: pd.DataFrame) -
                                  right_on=['building_category', 'TEK', 'purpose', 'year'])
 
     df['kwh'] = df['energy_requirement'] * df['TEK_shares'] * df['load_share'] / df['load_efficiency']
-    df['kwh_m2'] = df['kwh_m2'] * df['efficiency_factor']
+    if 'kwh_m2' in df.columns:
+        df['kwh_m2'] = df['kwh_m2'] * df['efficiency_factor']
+    else:
+        df['kwh_m2'] = np.nan
     return df

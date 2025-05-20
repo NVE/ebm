@@ -161,11 +161,11 @@ def test_energy_use_kwh():
     result = result.drop(columns=['index'], errors='ignore')
     expected = pd.DataFrame(
         data = [
-            ['house', 'TEK07', 'original_condition', 'heating_rv', 1977, 200, 0.5, 0.2, 4, 5.0],
-            ['house', 'TEK07', 'original_condition', 'heating_rv', 1978, 240, 1.0, 0.2, 4, 12.0],
+            ['house', 'TEK07', 'original_condition', 'heating_rv', 1977, 200, 0.5, 0.2, 4, 5.0, np.nan],
+            ['house', 'TEK07', 'original_condition', 'heating_rv', 1978, 240, 1.0, 0.2, 4, 12.0, np.nan],
         ],
         columns=['building_category', 'TEK', 'building_condition', 'purpose', 'year', 'energy_requirement', 'TEK_shares', 'load_share',
-       'load_efficiency', 'kwh'],
+       'load_efficiency', 'kwh', 'kwh_m2'],
     )
 
     assert len(result) == 2
@@ -174,6 +174,8 @@ def test_energy_use_kwh():
     assert result.building_condition.to_list() == ['original_condition']*2
     assert result.year.to_list() == [1977, 1978]
     assert result.kwh.to_list() == [5.0, 12.0]
+    # This does not really make sense. Move kwh_m2 to a different function or add it to efficiency_factor parameter
+    assert result.kwh_m2.isna().all()
 
     pd.testing.assert_frame_equal(result, expected)
 

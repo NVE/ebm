@@ -302,18 +302,19 @@ def main():
                                                                   'heating_systems': 'Heating system'})
     heating_systems_share_wide = heating_systems_share_wide.rename(columns={'heating_systems':'Heating technology'})
 
-    logger.debug('✅ Write file heating_system_share.xlsx')
-    heating_system_share = output_path / 'heating_system_share.xlsx'
+    logger.debug('Write file heating_system_share.xlsx')
+    heating_system_share_file = output_path / 'heating_system_share.xlsx'
 
-    with pd.ExcelWriter(heating_system_share, engine='xlsxwriter') as writer:
+    with pd.ExcelWriter(heating_system_share_file, engine='xlsxwriter') as writer:
         logger.debug('✅ reorder columns')
-        logger.debug(f'✅ make {heating_system_share.name} pretty')
+        logger.debug(f'✅ make {heating_system_share_file.name} pretty')
         heating_systems_share_wide.to_excel(writer, sheet_name='wide', merge_cells=False, index=False)
         # Resetting index to stop
-        heating_systems_share.to_excel(writer, sheet_name='long', merge_cells=False)
-    make_pretty(heating_system_share)
-    logger.debug(f'Adding top row filter to {heating_system_share}')
-    add_top_row_filter(workbook_file=heating_system_share, sheet_names=['long'])
+        heating_systems_share_long.to_excel(writer, sheet_name='long', merge_cells=False)
+    make_pretty(heating_system_share_file)
+    logger.debug(f'Adding top row filter to {heating_system_share_file}')
+    add_top_row_filter(workbook_file=heating_system_share_file, sheet_names=['long'])
+    logger.info(f'Wrote {heating_system_share_file.name}')
 
     logger.info('✅ heat_prod_hp')
 

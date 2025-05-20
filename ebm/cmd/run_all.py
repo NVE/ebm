@@ -34,6 +34,7 @@ def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
 
     return energy_need
 
+
 def extract_area_change(area_forecast: pd.DataFrame) -> pd.DataFrame:
     df = area_forecast[area_forecast.TEK=='TEK17'].copy()
 
@@ -153,8 +154,6 @@ def extract_heating_systems(heating_system_projection: pd.DataFrame, energy_need
 def transform_heating_systems_share_long(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:
     df = heating_systems_projection.copy()
 
-    value_column = 'TEK_shares'
-
     fane2_columns = ['building_category', 'heating_systems', 'year', 'TEK_shares']
 
     df.loc[~df['building_category'].isin(['house', 'apartment_block']), 'building_category'] = 'non_residential'
@@ -221,16 +220,14 @@ def main():
     file_handler = FileHandler(directory=input_path)
     database_manager = DatabaseManager(file_handler=file_handler)
 
-    logger.info('✅ Area to area.xlsx')
+    logger.info('Area to area.xlsx')
 
-    logger.debug('✅ extract area_change')
+    logger.debug('Extract area_change')
     forecasts = extract_area_forecast(years,  database_manager)
-    area_change = extract_area_change(area_forecast=forecasts)
 
-    logger.debug('✅ extract area')
+    logger.debug('Extract area')
 
-    forecasts.to_excel('output/forecasts.xlsx')
-    logger.debug('✅ transform fane 1 (wide)')
+    logger.debug('Transform fane 1 (wide)')
 
     df = forecasts.copy()
 
@@ -242,7 +239,7 @@ def main():
 
     area_wide = df.copy()
 
-    logger.debug('✅ transform fane 2 (long')
+    logger.debug('Transform fane 2 (long')
 
     df = forecasts['year,building_category,TEK,building_condition,m2'.split(',')].copy()
     df = df.query('building_condition!="demolition"')
@@ -251,21 +248,20 @@ def main():
     df.insert(0, 'U', 'm2')
     area_long = df.reset_index()
 
-    logger.debug('✅ Write file area.xlsx')
+    logger.debug('Write file area.xlsx')
 
     area_output = output_path / 'area.xlsx'
 
     with pd.ExcelWriter(area_output, engine='xlsxwriter') as writer:
-        logger.debug('✅ reorder columns')
-        logger.debug('✅ make area.xlsx pretty')
         area_wide.to_excel(writer, sheet_name='wide', index=False)
         area_long.to_excel(writer, sheet_name='long', index=False)
     logger.debug(f'Adding top row filter to {area_output}')
     make_pretty(area_output)
     add_top_row_filter(workbook_file=area_output, sheet_names=['long'])
 
-    logger.info('✅ Energy use to energy_purpose')
-    logger.debug('❌ extract energy_use')
+    logger.info(f'Wrote {area_output}')
+    logger.info('Energy use to energy_purpose')
+    logger.debug('Extract energy_use')
 
     energy_need_kwh_m2 = extract_energy_need(years, database_manager)
 
@@ -273,32 +269,30 @@ def main():
 
     total_energy_need['energy_requirement'] = total_energy_need.kwh_m2 * total_energy_need.m2
 
-    logger.debug('✅ transform fane 1')
+    logger.debug('Transform fane 1')
     energy_purpose_wide = transform_energy_need_to_energy_purpose_wide(energy_need=energy_need_kwh_m2, area_forecast=forecasts)
-    logger.debug('✅ transform fane 2')
+    logger.debug('Transform fane 2')
     energy_purpose_long = transform_energy_need_to_energy_purpose_long(energy_need=energy_need_kwh_m2, area_forecast=forecasts)
 
-    logger.debug('✅ Write file energy_purpose.xlsx')
+    logger.debug('Write file energy_purpose.xlsx')
     energy_purpose_output = output_path / 'energy_purpose.xlsx'
 
     with pd.ExcelWriter(energy_purpose_output, engine='xlsxwriter') as writer:
-        logger.debug('✅ reorder columns')
-        logger.debug(f'✅ make {energy_purpose_output.name} pretty')
         energy_purpose_wide.to_excel(writer, sheet_name='wide', index=False)
         energy_purpose_long.to_excel(writer, sheet_name='long', index=False)
     make_pretty(energy_purpose_output)
     logger.debug(f'Adding top row filter to {energy_purpose_output}')
     add_top_row_filter(workbook_file=energy_purpose_output, sheet_names=['long'])
+    logger.info(f'Wrote {energy_purpose_output.name}')
 
-
-    logger.info('✅ Heating_system_share')
+    logger.info('Heating_system_share')
 
     heating_systems_projection = extract_heating_systems_projection(years, database_manager)
-    logger.debug('✅ transform fane 2')
+    logger.debug('Transform fane 2')
     heating_systems_share = transform_heating_systems_share_long(heating_systems_projection)
-    logger.debug('✅ transform fane 1')
+    logger.debug('Transform fane 1')
     heating_systems_share_wide = transform_heating_systems_share_wide(heating_systems_share)
-    heating_systems_share = heating_systems_share.rename(columns={'TEK_shares': 'Share',
+    heating_systems_share_long = heating_systems_share.rename(columns={'TEK_shares': 'Share',
                                                                   'heating_systems': 'Heating system'})
     heating_systems_share_wide = heating_systems_share_wide.rename(columns={'heating_systems':'Heating technology'})
 
@@ -306,21 +300,19 @@ def main():
     heating_system_share_file = output_path / 'heating_system_share.xlsx'
 
     with pd.ExcelWriter(heating_system_share_file, engine='xlsxwriter') as writer:
-        logger.debug('✅ reorder columns')
-        logger.debug(f'✅ make {heating_system_share_file.name} pretty')
-        heating_systems_share_wide.to_excel(writer, sheet_name='wide', merge_cells=False, index=False)
-        # Resetting index to stop
         heating_systems_share_long.to_excel(writer, sheet_name='long', merge_cells=False)
+        heating_systems_share_wide.to_excel(writer, sheet_name='wide', merge_cells=False, index=False)
+
     make_pretty(heating_system_share_file)
     logger.debug(f'Adding top row filter to {heating_system_share_file}')
     add_top_row_filter(workbook_file=heating_system_share_file, sheet_names=['long'])
     logger.info(f'Wrote {heating_system_share_file.name}')
 
-    logger.info('✅ heat_prod_hp')
+    logger.info('heat_prod_hp')
 
-    logger.debug('✅ extract heating_system_parameters')
+    logger.debug('Extract heating_system_parameters')
     heating_systems_parameter = heating_systems_parameter_from_projection(heating_systems_projection)
-    logger.debug('✅ transform to hp')
+    logger.debug('Transform to hp')
 
     df = heating_systems_parameter
     df = df.assign(**{'heating_system': df['heating_systems'].str.split('-')}).explode('heating_system')
@@ -334,34 +326,32 @@ def main():
     heat_prod_hp_wide = h_p.heat_prod_hp_wide(production)
     heat_prod_hp_wide.columns = ['building_group', 'hp_source'] + [c for c in heat_prod_hp_wide.columns.get_level_values(1)[2:]]
 
-    logger.debug('✅ Write file heat_prod_hp.xlsx')
+    logger.debug('Write file heat_prod_hp.xlsx')
     heat_prod_hp_file = output_path / 'heat_prod_hp.xlsx'
 
     with pd.ExcelWriter(heat_prod_hp_file, engine='xlsxwriter') as writer:
-        logger.debug('✅ reorder columns')
-        logger.debug(f'✅ make {heat_prod_hp_file.name} pretty')
         heat_prod_hp_wide.to_excel(writer, sheet_name='wide', index=False)
     make_pretty(heat_prod_hp_file)
-    logger.debug(f'Adding top row filter to {heat_prod_hp_file}')
+    logger.info(f'Wrote {heat_prod_hp_file.name}')
 
-    logger.info('❌ Energy_use')
+    logger.info('Energy_use')
 
-    logger.debug('✅ extract energy_use_kwh')
+    logger.debug('Extract energy_use_kwh')
     energy_use_kwh = extract_energy_use_kwh(heating_systems_parameter, total_energy_need)
 
-    logger.debug('✅ transform fane 2')
-    logger.debug('✅ group by category, year, product')
+    logger.debug('Transform fane 2')
+    logger.debug('Group by category, year, product')
     column_order = ['year', 'building_category', 'TEK', 'energy_product', 'kwh']
     energy_use_by_product = energy_use_kwh[column_order].groupby(
         by=['building_category', 'TEK', 'energy_product', 'year']).sum() / 1_000_000
     energy_use_long = energy_use_by_product.reset_index()[column_order].rename(columns={'kwh': 'energy_use'})
 
+    logger.debug('Extract holiday homes 1')
     energy_use_holiday_homes = extract_energy_use_holiday_homes(database_manager)
 
-    logger.debug('✅ transform fane 1')
-    logger.debug('❌ add holiday homes 1')
+    logger.debug('Transform fane 1')
 
-    logger.debug('✅ group by group, product year')
+    logger.debug('Group by group, product year')
     energy_use_by_building_group = energy_use_kwh[['building_group', 'year', 'energy_product', 'kwh']].groupby(
         by=['building_group', 'energy_product', 'year']).sum() / 1_000_000
 
@@ -372,18 +362,17 @@ def main():
     energy_use_wide = transform_to_sorted_heating_systems(energy_use_wide, energy_use_holiday_homes,
                                                           building_column='building_group')
 
-    logger.debug('✅ Write file energy_use')
+    logger.debug('Write file energy_use')
 
     energy_use_file = output_path / 'energy_use.xlsx'
 
     with pd.ExcelWriter(energy_use_file, engine='xlsxwriter') as writer:
-        logger.debug('✅ reorder columns')
-        logger.debug(f'✅ make {energy_use_file.name} pretty')
         energy_use_long.to_excel(writer, sheet_name='long', index=False)
         energy_use_wide.to_excel(writer, sheet_name='wide', index=False)
     make_pretty(energy_use_file)
     logger.debug(f'Adding top row filter to {energy_use_file}')
     add_top_row_filter(workbook_file=energy_use_file, sheet_names=['long'])
+    logger.info(f'Wrote {energy_use_file.name}')
 
     logger.debug('✅ transform demolition_construction')
     demolition_construction_long = transform_demolition_construction(energy_use_kwh, area_change)
@@ -391,14 +380,13 @@ def main():
                                                                       'gwh': 'Energy use [GWh]'})
     demolition_construction_file = output_path / 'demolition_construction.xlsx'
 
-    logger.debug('✅ Write file demolition_construction.xlsx')
+    logger.debug('Write file demolition_construction.xlsx')
     with pd.ExcelWriter(demolition_construction_file, engine='xlsxwriter') as writer:
-        logger.debug('✅ reorder columns')
-        logger.debug(f'✅| make {demolition_construction_file.name} pretty')
         demolition_construction_long.to_excel(writer, sheet_name='long', index=False)
     make_pretty(demolition_construction_file)
     logger.debug(f'Adding top row filter to {demolition_construction_file}')
     add_top_row_filter(workbook_file=demolition_construction_file, sheet_names=['long'])
+    logger.info(f'Wrote {demolition_construction_file.name}')
 
     logger.info('❌ Ekstra resultater som skrives etter behov')
     logger.debug('❌ area')

@@ -374,7 +374,9 @@ def main():
     add_top_row_filter(workbook_file=energy_use_file, sheet_names=['long'])
     logger.info(f'Wrote {energy_use_file.name}')
 
-    logger.debug('✅ transform demolition_construction')
+    area_change = extract_area_change(area_forecast=forecasts)
+
+    logger.debug('Transform demolition_construction')
     demolition_construction_long = transform_demolition_construction(energy_use_kwh, area_change)
     demolition_construction_long = demolition_construction_long.rename(columns={'m2': 'Area [m2]',
                                                                       'gwh': 'Energy use [GWh]'})

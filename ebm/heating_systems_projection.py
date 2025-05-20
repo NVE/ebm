@@ -149,7 +149,7 @@ class HeatingSystemsProjection:
 
         Returns
         -------
-        HeatingSystemsProjection
+        pd.DataFrame
             hf with left padding
         """
 

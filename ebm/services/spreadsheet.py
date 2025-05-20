@@ -1,14 +1,19 @@
 import dataclasses
 import itertools
 import math
+import pathlib
 import typing
 import string
 from dataclasses import dataclass
 
 import numpy as np
 from loguru import logger
+from openpyxl import load_workbook
 from openpyxl.cell import Cell
+from openpyxl.formatting.rule import FormulaRule
+from openpyxl.styles import Font, PatternFill
 from openpyxl.utils.cell import cols_from_range, coordinate_to_tuple, get_column_letter
+from openpyxl.workbook import Workbook
 from openpyxl.worksheet.errors import IgnoredError
 
 
@@ -201,3 +206,67 @@ def find_max_column_width(col: typing.Tuple[Cell]):
             logger.error(ex)
             pass
     return max_length
+
+
+def add_top_row_filter(workbook_file: pathlib.Path|str|None=None, workbook: Workbook| None=None, sheet_names: list[str] | None=None):
+    if not workbook_file and not workbook_file:
+        raise ValueError('add_top_row_filter require either workbook_file or workbook')
+
+    wb = workbook if workbook else load_workbook(workbook_file)
+
+    sheet_names = wb.sheetnames if not sheet_names else sheet_names
+    for worksheet in sheet_names:
+        ws = wb[worksheet]
+        top_row = f'A1:{get_column_letter(ws.max_column)}{1}'
+        ws.auto_filter.ref = top_row
+
+    if not workbook and workbook_file:
+        wb.save(workbook_file)
+
+
+def make_pretty(workbook_name: pathlib.Path|str):
+    wb = load_workbook(workbook_name)
+
+    header_font = Font(name='Source Sans Pro', size=11, bold=True, color="ffffff")
+    body_font = Font(name='Source Sans Pro', size=11, bold=False, color="000000")
+
+    for s in wb.sheetnames:
+        ws = wb[s]
+        # Freeze the top row
+        ws.freeze_panes = ws['A2']
+
+        # Define the fill color
+        header_fill = PatternFill(start_color='c8102e', end_color='c8102e', fill_type='solid')
+        odd_fill = PatternFill(start_color='ffd8de', end_color='ffd8de', fill_type='solid')
+        even_fill = PatternFill(start_color='ffebee', end_color='ffebee', fill_type='solid')
+
+        # Apply the fill color to the header row
+        for cell in ws[1]:
+            cell.fill = header_fill
+            cell.font = header_font
+        for row_number, row in enumerate(ws.rows):
+            if row_number == 0:
+                continue
+            for column_number, cell in enumerate(row):
+                cell.font = body_font
+        even_rule = FormulaRule(formula=['MOD(ROW(),2)=0'], fill=even_fill)
+        odd_rule = FormulaRule(formula=['MOD(ROW(),2)=1'], fill=odd_fill)
+        worksheet_range = f'A2:{get_column_letter(ws.max_column)}{ws.max_row}'
+        # logger.error(worksheet_range)
+        ws.conditional_formatting.add(worksheet_range, odd_rule)
+        ws.conditional_formatting.add(worksheet_range, even_rule)
+
+        for col in ws.iter_cols(min_col=0):
+            adjusted_width = find_max_column_width(col)
+            ws.column_dimensions[col[0].column_letter].width = adjusted_width + 1.5
+            values = [int(r.value) for r in col if r.value and r.data_type == 'n']
+            if values:
+                max_value = max(values)
+                if max_value > 1000:
+                    for row_number, cell in enumerate(col):
+                        if row_number < 1:
+                            if cell.value == 'year':
+                                break
+                            continue
+                        cell.number_format = '### ### ### ### ##0'
+    wb.save(workbook_name)

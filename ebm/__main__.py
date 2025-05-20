@@ -4,11 +4,10 @@ import pathlib
 import sys
 import typing
 
-import dotenv
 import pandas as pd
-from dotenv import load_dotenv
 from loguru import logger
 
+from ebm.cmd.helpers import load_environment_from_dotenv
 from ebm.cmd.result_handler import transform_heating_systems_to_horizontal, append_result, \
     transform_model_to_horizontal, EbmDefaultHandler, transform_holiday_homes_to_horizontal, \
     transform_to_sorted_heating_systems
@@ -36,13 +35,7 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
     exit code : tuple[ReturnCode, pd.DataFrame]
         zero when the program exits gracefully
     """
-    env_file = pathlib.Path(dotenv.find_dotenv(usecwd=True))
-    if env_file.is_file():
-        logger.debug(f'Loading environment from {env_file}')
-        load_dotenv(pathlib.Path('.env').absolute())
-    else:
-        logger.debug(f'.env not found in {env_file.absolute()}')
-
+    load_environment_from_dotenv()
     configure_loglevel(os.environ.get('LOG_FORMAT', None))
 
     logger.debug(f'Starting {sys.executable} {__file__}')

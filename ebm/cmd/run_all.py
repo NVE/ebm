@@ -203,6 +203,14 @@ def transform_demolition_construction(energy_use: pd.DataFrame, area_change: pd.
     return dem_con[['year', 'demolition_construction', 'building_category', 'TEK', 'm2', 'gwh']]
 
 
+def expand_heating_system_parameters(heating_systems_parameter):
+    df = heating_systems_parameter
+    df = df.assign(**{'heating_system': df['heating_systems'].str.split('-')}).explode('heating_system')
+    df['heating_system'] = df['heating_system'].str.strip()
+    df['load_share'] = df['Grunnlast andel']
+    return df
+
+
 def main():
     env_file = pathlib.Path(dotenv.find_dotenv(usecwd=True))
     if env_file.is_file():
@@ -229,24 +237,24 @@ def main():
 
     logger.debug('Transform fane 1 (wide)')
 
-    df = forecasts.copy()
+    expanded_heating_system_parameters = forecasts.copy()
 
-    df = df.query('building_condition!="demolition"')
-    df.loc[:, 'TEK'] = 'all'
-    df.loc[:, 'building_condition'] = 'all'
+    expanded_heating_system_parameters = expanded_heating_system_parameters.query('building_condition!="demolition"')
+    expanded_heating_system_parameters.loc[:, 'TEK'] = 'all'
+    expanded_heating_system_parameters.loc[:, 'building_condition'] = 'all'
 
-    df = transform_model_to_horizontal(df).drop(columns=['TEK', 'building_condition'])
+    expanded_heating_system_parameters = transform_model_to_horizontal(expanded_heating_system_parameters).drop(columns=['TEK', 'building_condition'])
 
-    area_wide = df.copy()
+    area_wide = expanded_heating_system_parameters.copy()
 
     logger.debug('Transform fane 2 (long')
 
-    df = forecasts['year,building_category,TEK,building_condition,m2'.split(',')].copy()
-    df = df.query('building_condition!="demolition"')
+    expanded_heating_system_parameters = forecasts['year,building_category,TEK,building_condition,m2'.split(',')].copy()
+    expanded_heating_system_parameters = expanded_heating_system_parameters.query('building_condition!="demolition"')
 
-    df = df.groupby(by='year,building_category,TEK'.split(','))[['m2']].sum().rename(columns={'m2': 'area'})
-    df.insert(0, 'U', 'm2')
-    area_long = df.reset_index()
+    expanded_heating_system_parameters = expanded_heating_system_parameters.groupby(by='year,building_category,TEK'.split(','))[['m2']].sum().rename(columns={'m2': 'area'})
+    expanded_heating_system_parameters.insert(0, 'U', 'm2')
+    area_long = expanded_heating_system_parameters.reset_index()
 
     logger.debug('Write file area.xlsx')
 
@@ -314,13 +322,10 @@ def main():
     heating_systems_parameter = heating_systems_parameter_from_projection(heating_systems_projection)
     logger.debug('Transform to hp')
 
-    df = heating_systems_parameter
-    df = df.assign(**{'heating_system': df['heating_systems'].str.split('-')}).explode('heating_system')
-    df['heating_system'] = df['heating_system'].str.strip()
-    df['load_share'] = df['Grunnlast andel']
+    expanded_heating_system_parameters = expand_heating_system_parameters(heating_systems_parameter)
+    air_air = h_p.air_source_heat_pump(expanded_heating_system_parameters)
+    district_heating = h_p.district_heating_heat_pump(expanded_heating_system_parameters)
 
-    air_air = h_p.air_source_heat_pump(df)
-    district_heating = h_p.district_heating_heat_pump(df)
     production = h_p.heat_pump_production(total_energy_need, air_air, district_heating)
 
     heat_prod_hp_wide = h_p.heat_prod_hp_wide(production)

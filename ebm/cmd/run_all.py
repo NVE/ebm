@@ -232,24 +232,22 @@ def main():
 
     logger.debug('Transform fane 1 (wide)')
 
-    expanded_heating_system_parameters = forecasts.copy()
+    area_forecasts = forecasts.copy()
 
-    expanded_heating_system_parameters = expanded_heating_system_parameters.query('building_condition!="demolition"')
-    expanded_heating_system_parameters.loc[:, 'TEK'] = 'all'
-    expanded_heating_system_parameters.loc[:, 'building_condition'] = 'all'
+    existing_area = area_forecasts.query('building_condition!="demolition"')
+    existing_area.loc[:, 'TEK'] = 'all'
+    existing_area.loc[:, 'building_condition'] = 'all'
 
-    expanded_heating_system_parameters = transform_model_to_horizontal(expanded_heating_system_parameters).drop(columns=['TEK', 'building_condition'])
-
-    area_wide = expanded_heating_system_parameters.copy()
+    area_wide = transform_model_to_horizontal(existing_area).drop(columns=['TEK', 'building_condition']).copy()
 
     logger.debug('Transform fane 2 (long')
 
-    expanded_heating_system_parameters = forecasts['year,building_category,TEK,building_condition,m2'.split(',')].copy()
-    expanded_heating_system_parameters = expanded_heating_system_parameters.query('building_condition!="demolition"')
+    area_forecasts = forecasts['year,building_category,TEK,building_condition,m2'.split(',')].copy()
+    area_forecasts = area_forecasts.query('building_condition!="demolition"')
 
-    expanded_heating_system_parameters = expanded_heating_system_parameters.groupby(by='year,building_category,TEK'.split(','))[['m2']].sum().rename(columns={'m2': 'area'})
-    expanded_heating_system_parameters.insert(0, 'U', 'm2')
-    area_long = expanded_heating_system_parameters.reset_index()
+    area_forecasts = area_forecasts.groupby(by='year,building_category,TEK'.split(','))[['m2']].sum().rename(columns={'m2': 'area'})
+    area_forecasts.insert(0, 'U', 'm2')
+    area_long = area_forecasts.reset_index()
 
     logger.debug('Write file area.xlsx')
 
@@ -317,9 +315,9 @@ def main():
     heating_systems_parameter = heating_systems_parameter_from_projection(heating_systems_projection)
     logger.debug('Transform to hp')
 
-    expanded_heating_system_parameters = expand_heating_system_parameters(heating_systems_parameter)
-    air_air = h_p.air_source_heat_pump(expanded_heating_system_parameters)
-    district_heating = h_p.district_heating_heat_pump(expanded_heating_system_parameters)
+    heating_systems_parameter = expand_heating_system_parameters(heating_systems_parameter)
+    air_air = h_p.air_source_heat_pump(heating_systems_parameter)
+    district_heating = h_p.district_heating_heat_pump(heating_systems_parameter)
 
     production = h_p.heat_pump_production(total_energy_need, air_air, district_heating)
 

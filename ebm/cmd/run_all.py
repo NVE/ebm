@@ -62,8 +62,8 @@ def main():
     area_output = output_path / 'area.xlsx'
 
     with pd.ExcelWriter(area_output, engine='xlsxwriter') as writer:
-        area_wide.to_excel(writer, sheet_name='wide', index=False)
-        area_long.to_excel(writer, sheet_name='long', index=False)
+        area_wide.to_excel(writer, sheet_name='wide', index=False) # 💾
+        area_long.to_excel(writer, sheet_name='long', index=False) # 💾
     logger.debug(f'Adding top row filter to {area_output}')
     make_pretty(area_output)
     add_top_row_filter(workbook_file=area_output, sheet_names=['long'])
@@ -84,8 +84,8 @@ def main():
     energy_purpose_output = output_path / 'energy_purpose.xlsx'
 
     with pd.ExcelWriter(energy_purpose_output, engine='xlsxwriter') as writer:
-        energy_purpose_wide.to_excel(writer, sheet_name='wide', index=False)
-        energy_purpose_long.to_excel(writer, sheet_name='long', index=False)
+        energy_purpose_wide.to_excel(writer, sheet_name='wide', index=False) # 💾
+        energy_purpose_long.to_excel(writer, sheet_name='long', index=False) # 💾
     make_pretty(energy_purpose_output)
     logger.debug(f'Adding top row filter to {energy_purpose_output}')
     add_top_row_filter(workbook_file=energy_purpose_output, sheet_names=['long'])
@@ -106,8 +106,8 @@ def main():
     heating_system_share_file = output_path / 'heating_system_share.xlsx'
 
     with pd.ExcelWriter(heating_system_share_file, engine='xlsxwriter') as writer:
-        heating_systems_share_long.to_excel(writer, sheet_name='long', merge_cells=False)
-        heating_systems_share_wide.to_excel(writer, sheet_name='wide', merge_cells=False, index=False)
+        heating_systems_share_long.to_excel(writer, sheet_name='long', merge_cells=False) # 💾
+        heating_systems_share_wide.to_excel(writer, sheet_name='wide', merge_cells=False, index=False) # 💾
 
     make_pretty(heating_system_share_file)
     logger.debug(f'Adding top row filter to {heating_system_share_file}')
@@ -117,7 +117,7 @@ def main():
     logger.info('heat_prod_hp')
 
     logger.debug('Transform heating_system_parameters')
-    heating_systems_parameter = h_s_param.heating_systems_parameter_from_projection(heating_systems_projection) # 📍
+    heating_systems_parameter = h_s_param.heating_systems_parameter_from_projection(heating_systems_projection)
     logger.debug('Transform to hp')
 
     expanded_heating_systems_parameter = h_s_param.expand_heating_system_parameters(heating_systems_parameter)
@@ -132,7 +132,7 @@ def main():
     heat_prod_hp_file = output_path / 'heat_prod_hp.xlsx'
 
     with pd.ExcelWriter(heat_prod_hp_file, engine='xlsxwriter') as writer:
-        heat_prod_hp_wide.to_excel(writer, sheet_name='wide', index=False)
+        heat_prod_hp_wide.to_excel(writer, sheet_name='wide', index=False) # 💾
     make_pretty(heat_prod_hp_file)
     logger.info(f'Wrote {heat_prod_hp_file.name}')
 
@@ -166,8 +166,8 @@ def main():
     energy_use_file = output_path / 'energy_use.xlsx'
 
     with pd.ExcelWriter(energy_use_file, engine='xlsxwriter') as writer:
-        energy_use_long.to_excel(writer, sheet_name='long', index=False)
-        energy_use_wide.to_excel(writer, sheet_name='wide', index=False)
+        energy_use_long.to_excel(writer, sheet_name='long', index=False) # 💾
+        energy_use_wide.to_excel(writer, sheet_name='wide', index=False) # 💾
     make_pretty(energy_use_file)
     logger.debug(f'Adding top row filter to {energy_use_file}')
     add_top_row_filter(workbook_file=energy_use_file, sheet_names=['long'])
@@ -183,7 +183,7 @@ def main():
 
     logger.debug('Write file demolition_construction.xlsx')
     with pd.ExcelWriter(demolition_construction_file, engine='xlsxwriter') as writer:
-        demolition_construction_long.to_excel(writer, sheet_name='long', index=False)
+        demolition_construction_long.to_excel(writer, sheet_name='long', index=False) # 💾
     make_pretty(demolition_construction_file)
     logger.debug(f'Adding top row filter to {demolition_construction_file}')
     add_top_row_filter(workbook_file=demolition_construction_file, sheet_names=['long'])

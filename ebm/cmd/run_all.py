@@ -225,16 +225,15 @@ def main():
 
     logger.info('Area to area.xlsx')
 
-    logger.debug('Extract area_change')
-    forecasts = extract_area_forecast(years,  database_manager)
+    forecasts = extract_area_forecast(years,  database_manager) # 📍
 
     logger.debug('Extract area')
 
     logger.debug('Transform fane 1 (wide)')
 
-    area_forecasts = forecasts.copy()
+    area_forecast = forecasts.copy() # 📍
 
-    existing_area = area_forecasts.query('building_condition!="demolition"')
+    existing_area = area_forecast.query('building_condition!="demolition"')
     existing_area.loc[:, 'TEK'] = 'all'
     existing_area.loc[:, 'building_condition'] = 'all'
 
@@ -242,12 +241,12 @@ def main():
 
     logger.debug('Transform fane 2 (long')
 
-    area_forecasts = forecasts['year,building_category,TEK,building_condition,m2'.split(',')].copy()
-    area_forecasts = area_forecasts.query('building_condition!="demolition"')
+    area_forecast = forecasts['year,building_category,TEK,building_condition,m2'.split(',')].copy()
+    area_forecast = area_forecast.query('building_condition!="demolition"')
 
-    area_forecasts = area_forecasts.groupby(by='year,building_category,TEK'.split(','))[['m2']].sum().rename(columns={'m2': 'area'})
-    area_forecasts.insert(0, 'U', 'm2')
-    area_long = area_forecasts.reset_index()
+    area_forecast = area_forecast.groupby(by='year,building_category,TEK'.split(','))[['m2']].sum().rename(columns={'m2': 'area'})
+    area_forecast.insert(0, 'U', 'm2')
+    area_long = area_forecast.reset_index()
 
     logger.debug('Write file area.xlsx')
 
@@ -264,7 +263,7 @@ def main():
     logger.info('Energy use to energy_purpose')
     logger.debug('Extract energy_use')
 
-    energy_need_kwh_m2 = extract_energy_need(years, database_manager)
+    energy_need_kwh_m2 = extract_energy_need(years, database_manager) # 📍
 
     total_energy_need = forecasts.reset_index().set_index(['building_category', 'TEK', 'building_condition', 'year']).merge(energy_need_kwh_m2, left_index=True, right_index=True)
 
@@ -288,7 +287,7 @@ def main():
 
     logger.info('Heating_system_share')
 
-    heating_systems_projection = extract_heating_systems_projection(years, database_manager)
+    heating_systems_projection = extract_heating_systems_projection(years, database_manager) # 📍
     logger.debug('Transform fane 2')
     heating_systems_share = transform_heating_systems_share_long(heating_systems_projection)
     logger.debug('Transform fane 1')
@@ -312,7 +311,7 @@ def main():
     logger.info('heat_prod_hp')
 
     logger.debug('Extract heating_system_parameters')
-    heating_systems_parameter = heating_systems_parameter_from_projection(heating_systems_projection)
+    heating_systems_parameter = heating_systems_parameter_from_projection(heating_systems_projection) # 📍
     logger.debug('Transform to hp')
 
     expanded_heating_systems_parameter = expand_heating_system_parameters(heating_systems_parameter)
@@ -335,7 +334,7 @@ def main():
     logger.info('Energy_use')
 
     logger.debug('Extract energy_use_kwh')
-    energy_use_kwh = extract_energy_use_kwh(expanded_heating_systems_parameter, total_energy_need)
+    energy_use_kwh = extract_energy_use_kwh(expanded_heating_systems_parameter, total_energy_need) # 📍
 
     logger.debug('Transform fane 2')
     logger.debug('Group by category, year, product')
@@ -345,7 +344,7 @@ def main():
     energy_use_long = energy_use_by_product.reset_index()[column_order].rename(columns={'kwh': 'energy_use'})
 
     logger.debug('Extract holiday homes 1')
-    energy_use_holiday_homes = extract_energy_use_holiday_homes(database_manager)
+    energy_use_holiday_homes = extract_energy_use_holiday_homes(database_manager) # 📍
 
     logger.debug('Transform fane 1')
 

@@ -1,11 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from ebm.cmd.run_calculation import calculate_building_category_area_forecast
-from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
-from ebm.model.data_classes import YearRange
-from ebm.model.database_manager import DatabaseManager
 
 
 def extract_area_change(area_forecast: pd.DataFrame) -> pd.DataFrame:
@@ -30,20 +26,6 @@ def extract_area_change(area_forecast: pd.DataFrame) -> pd.DataFrame:
         construction.reset_index()[['building_category', 'TEK', 'year', 'demolition_construction', 'm2']]
     ])
     return area_change
-
-
-def extract_area_forecast(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
-    forecasts: pd.DataFrame | None = None
-
-    for building_category in BuildingCategory:
-        forecast = calculate_building_category_area_forecast(building_category, dm, years.start, years.end)
-        forecast['building_category'] = building_category
-        if forecasts is None:
-            forecasts = forecast
-        else:
-            forecasts = pd.concat([forecasts, forecast])
-
-    return forecasts
 
 
 def transform_demolition_construction(energy_use: pd.DataFrame, area_change: pd.DataFrame) -> pd.DataFrame:

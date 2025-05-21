@@ -5,10 +5,10 @@ import pandas as pd
 
 from loguru import logger
 
+from ebm import extractors
 from ebm.cmd.helpers import load_environment_from_dotenv
-from ebm.cmd.result_handler import transform_model_to_horizontal, transform_holiday_homes_to_horizontal, \
-    transform_to_sorted_heating_systems
-from ebm.cmd.run_calculation import configure_loglevel, calculate_energy_use
+from ebm.cmd.result_handler import transform_model_to_horizontal, transform_to_sorted_heating_systems
+from ebm.cmd.run_calculation import configure_loglevel
 import ebm.model.area as a_f
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
@@ -17,18 +17,9 @@ from ebm.model import energy_purpose as e_p
 from ebm.model import energy_use as e_u
 from ebm.model.file_handler import FileHandler
 import ebm.model.heating_systems_parameter as h_s_param
-import ebm.model.heating_systems_projection as h_s_projection
 from ebm.model import heat_pump as h_p
 from ebm.model.heating_systems_share import transform_heating_systems_share_long, transform_heating_systems_share_wide
 from ebm.services.spreadsheet import make_pretty, add_top_row_filter
-
-
-def extract_energy_use_holiday_homes(database_manager):
-    df = transform_holiday_homes_to_horizontal(calculate_energy_use(database_manager)).copy()
-    df = df.rename(columns={'building_category': 'building_group'})
-    df.loc[df.energy_source=='Elektrisitet', 'energy_source'] = 'Electricity'
-    df.loc[df.energy_source=='fossil', 'energy_source'] = 'Fossil'
-    return df
 
 
 def main():
@@ -44,10 +35,8 @@ def main():
     database_manager = DatabaseManager(file_handler=file_handler)
 
     logger.info('Area to area.xlsx')
-
-    forecasts = a_f.extract_area_forecast(years, database_manager) # 📍
-
     logger.debug('Extract area')
+    forecasts = extractors.extract_area_forecast(years, database_manager) # 📍
 
     logger.debug('Transform fane 1 (wide)')
 
@@ -83,7 +72,7 @@ def main():
     logger.info('Energy use to energy_purpose')
     logger.debug('Extract energy_use')
 
-    energy_need_kwh_m2 = e_n.extract_energy_need(years, database_manager) # 📍
+    energy_need_kwh_m2 = extractors.extract_energy_need(years, database_manager) # 📍
     total_energy_need = e_n.transform_total_energy_need(energy_need_kwh_m2, forecasts)
 
     logger.debug('Transform fane 1')
@@ -104,7 +93,7 @@ def main():
 
     logger.info('Heating_system_share')
 
-    heating_systems_projection = h_s_projection.extract_heating_systems_projection(years, database_manager) # 📍
+    heating_systems_projection = extractors.extract_heating_systems_projection(years, database_manager) # 📍
     logger.debug('Transform fane 2')
     heating_systems_share = transform_heating_systems_share_long(heating_systems_projection)
     logger.debug('Transform fane 1')
@@ -127,7 +116,7 @@ def main():
 
     logger.info('heat_prod_hp')
 
-    logger.debug('Extract heating_system_parameters')
+    logger.debug('Transform heating_system_parameters')
     heating_systems_parameter = h_s_param.heating_systems_parameter_from_projection(heating_systems_projection) # 📍
     logger.debug('Transform to hp')
 
@@ -149,7 +138,7 @@ def main():
 
     logger.info('Energy_use')
 
-    logger.debug('Extract energy_use_kwh')
+    logger.debug('Transform energy_use_kwh')
     energy_use_kwh = e_u.building_group_energy_use_kwh(heating_systems_parameter, total_energy_need) # 📍
 
     logger.debug('Transform fane 1')
@@ -164,7 +153,7 @@ def main():
     energy_use_long = energy_use_long.reset_index()[column_order].rename(columns={'kwh': 'energy_use'})
 
     logger.debug('Extract holiday homes 1')
-    energy_use_holiday_homes = extract_energy_use_holiday_homes(database_manager) # 📍
+    energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(database_manager) # 📍
 
     logger.debug('Transform fane 1')
 

@@ -49,4 +49,5 @@ def heat_prod_hp(production: pd.DataFrame, group_by:list|None=None) -> pd.DataFr
 def heat_prod_hp_wide(production: pd.DataFrame) -> pd.DataFrame:
     df = heat_prod_hp(production)
     wide = df.reset_index().pivot(columns=['year'], index=['building_group', 'hp_source'], values=['RV_HP']).reset_index()
+    wide.columns = ['building_group', 'hp_source'] + [c for c in wide.columns.get_level_values(1)[2:]]
     return wide

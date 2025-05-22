@@ -173,7 +173,7 @@ def main():
     add_top_row_filter(workbook_file=energy_use_file, sheet_names=['long'])
     logger.info(f'Wrote {energy_use_file.name}')
 
-    area_change = a_f.extract_area_change(area_forecast=forecasts)
+    area_change = a_f.transform_area_forecast_to_area_change(area_forecast=forecasts)
 
     logger.debug('Transform demolition_construction')
     demolition_construction_long = a_f.transform_demolition_construction(energy_use_kwh, area_change)

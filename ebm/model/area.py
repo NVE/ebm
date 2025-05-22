@@ -4,7 +4,7 @@ import pandas as pd
 from ebm.model.building_condition import BuildingCondition
 
 
-def extract_area_change(area_forecast: pd.DataFrame) -> pd.DataFrame:
+def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame) -> pd.DataFrame:
     df = area_forecast[area_forecast.TEK=='TEK17'].copy()
 
     df = df.set_index(['building_category', 'TEK', 'year', 'building_condition']).unstack()

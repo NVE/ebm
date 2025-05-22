@@ -26,11 +26,10 @@ def main():
     load_environment_from_dotenv()
 
     configure_loglevel(os.environ.get('LOG_FORMAT', None))
+    input_path, output_path, years = load_config()
 
-    years = YearRange(2020, 2050)
-    input_path = pathlib.Path('kalibar')
-    output_path = pathlib.Path('t2775_output')
     output_path.mkdir(exist_ok=True)
+
     file_handler = FileHandler(directory=input_path)
     database_manager = DatabaseManager(file_handler=file_handler)
 
@@ -183,6 +182,21 @@ def main():
     logger.debug('❌ area')
     logger.debug('❌ energy_need')
     logger.debug('❌ energy_use')
+
+
+def load_config():
+    try:
+        start_year = int(os.environ.get('EBM_START_YEAR', 2020))
+    except ValueError:
+        start_year = 2020
+    try:
+        end_year = int(os.environ.get('EBM_END_YEAR', 2050))
+    except ValueError:
+        end_year = 2050
+    years = YearRange(start_year, end_year)
+    input_path = pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
+    output_path = pathlib.Path(os.environ.get('EBM_OUTPUT_DIRECTORY', 'output'))
+    return input_path, output_path, years
 
 
 if __name__ == '__main__':

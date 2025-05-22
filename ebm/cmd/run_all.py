@@ -70,24 +70,7 @@ def main():
     logger.info(f'Wrote {area_output}')
 
     logger.info('Energy use to energy_purpose')
-    logger.debug('Extract energy_use ❌')
     total_energy_need = e_n.transform_total_energy_need(energy_need_kwh_m2, area_forecast)
-
-    logger.debug('Transform fane 1')
-    energy_purpose_wide = e_p.transform_energy_need_to_energy_purpose_wide(energy_need=energy_need_kwh_m2, area_forecast=area_forecast)
-    logger.debug('Transform fane 2')
-    energy_purpose_long = e_p.transform_energy_need_to_energy_purpose_long(energy_need=energy_need_kwh_m2, area_forecast=area_forecast)
-
-    logger.debug('Write file energy_purpose.xlsx')
-    energy_purpose_output = output_path / 'energy_purpose.xlsx'
-
-    with pd.ExcelWriter(energy_purpose_output, engine='xlsxwriter') as writer:
-        energy_purpose_wide.to_excel(writer, sheet_name='wide', index=False) # 💾
-        energy_purpose_long.to_excel(writer, sheet_name='long', index=False) # 💾
-    make_pretty(energy_purpose_output)
-    logger.debug(f'Adding top row filter to {energy_purpose_output}')
-    add_top_row_filter(workbook_file=energy_purpose_output, sheet_names=['long'])
-    logger.info(f'Wrote {energy_purpose_output.name}')
 
     logger.info('Heating_system_share')
 
@@ -133,7 +116,6 @@ def main():
     make_pretty(heat_prod_hp_file)
     logger.info(f'Wrote {heat_prod_hp_file.name}')
 
-
     logger.info('Energy_use')
 
     logger.debug('Transform energy_use_kwh')
@@ -168,6 +150,23 @@ def main():
     logger.debug(f'Adding top row filter to {energy_use_file}')
     add_top_row_filter(workbook_file=energy_use_file, sheet_names=['long'])
     logger.info(f'Wrote {energy_use_file.name}')
+
+    logger.debug('Transform fane 1')
+    energy_purpose_wide = e_p.group_energy_use_kwh_by_building_group_purpose_year_wide(energy_use_kwh=energy_use_kwh)
+    logger.debug('Transform fane 2')
+    energy_purpose_long = e_p.group_energy_use_by_year_category_tek_purpose(energy_use_kwh=energy_use_kwh)
+
+    logger.debug('Write file energy_purpose.xlsx')
+    energy_purpose_output = output_path / 'energy_purpose.xlsx'
+
+    with pd.ExcelWriter(energy_purpose_output, engine='xlsxwriter') as writer:
+        energy_purpose_wide.to_excel(writer, sheet_name='wide', index=False) # 💾
+        energy_purpose_long.to_excel(writer, sheet_name='long', index=False) # 💾
+    make_pretty(energy_purpose_output)
+    logger.debug(f'Adding top row filter to {energy_purpose_output}')
+    add_top_row_filter(workbook_file=energy_purpose_output, sheet_names=['long'])
+    logger.info(f'Wrote {energy_purpose_output.name}')
+
 
     area_change = a_f.transform_area_forecast_to_area_change(area_forecast=area_forecast)
 

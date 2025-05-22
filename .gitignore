@@ -111,6 +111,7 @@ target/
 
 # Pycharm
 .idea/
+*-pycharm-support-libs/
 
 # IPython
 profile_default/

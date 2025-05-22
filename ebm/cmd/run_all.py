@@ -42,6 +42,10 @@ def main():
     heating_systems_projection = extractors.extract_heating_systems_projection(years, database_manager) # 📍
     energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(database_manager) # 📍
 
+    total_energy_need = e_n.transform_total_energy_need(energy_need_kwh_m2, area_forecast)  # 📌
+    heating_systems_parameter = h_s_param.heating_systems_parameter_from_projection(heating_systems_projection) # 📌
+    energy_use_kwh = e_u.building_group_energy_use_kwh(heating_systems_parameter, total_energy_need) # 📌
+
     existing_area = a_f.filter_existing_area(area_forecast)
 
     logger.debug('Transform fane 1 (wide)')
@@ -70,7 +74,6 @@ def main():
     logger.info(f'Wrote {area_output}')
 
     logger.info('Energy use to energy_purpose')
-    total_energy_need = e_n.transform_total_energy_need(energy_need_kwh_m2, area_forecast)
 
     logger.info('Heating_system_share')
 
@@ -97,7 +100,6 @@ def main():
 
     logger.info('heat_prod_hp')
     logger.debug('Transform heating_system_parameters')
-    heating_systems_parameter = h_s_param.heating_systems_parameter_from_projection(heating_systems_projection)
 
     logger.debug('Transform to hp')
     expanded_heating_systems_parameter = h_s_param.expand_heating_system_parameters(heating_systems_parameter)
@@ -118,7 +120,6 @@ def main():
     logger.info('Energy_use')
 
     logger.debug('Transform energy_use_kwh')
-    energy_use_kwh = e_u.building_group_energy_use_kwh(heating_systems_parameter, total_energy_need) # 📍
 
     logger.debug('Transform fane 1')
     energy_use_gwh_by_building_group = e_u.energy_use_gwh_by_building_group(energy_use_kwh)

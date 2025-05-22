@@ -69,9 +69,9 @@ def main():
     add_top_row_filter(workbook_file=area_output, sheet_names=['long'])
 
     logger.info(f'Wrote {area_output}')
-    logger.info('Energy use to energy_purpose')
-    logger.debug('Extract energy_use')
 
+    logger.info('Energy use to energy_purpose')
+    logger.debug('Extract energy_use ❌')
     energy_need_kwh_m2 = extractors.extract_energy_need(years, database_manager) # 📍
     total_energy_need = e_n.transform_total_energy_need(energy_need_kwh_m2, forecasts)
 
@@ -174,13 +174,12 @@ def main():
     logger.info(f'Wrote {energy_use_file.name}')
 
     area_change = a_f.transform_area_forecast_to_area_change(area_forecast=forecasts)
-
+    logger.info('demolition_construction')
     logger.debug('Transform demolition_construction')
     demolition_construction_long = a_f.transform_demolition_construction(energy_use_kwh, area_change)
     demolition_construction_long = demolition_construction_long.rename(columns={'m2': 'Area [m2]',
                                                                       'gwh': 'Energy use [GWh]'})
     demolition_construction_file = output_path / 'demolition_construction.xlsx'
-
     logger.debug('Write file demolition_construction.xlsx')
     with pd.ExcelWriter(demolition_construction_file, engine='xlsxwriter') as writer:
         demolition_construction_long.to_excel(writer, sheet_name='long', index=False) # 💾
@@ -189,7 +188,7 @@ def main():
     add_top_row_filter(workbook_file=demolition_construction_file, sheet_names=['long'])
     logger.info(f'Wrote {demolition_construction_file.name}')
 
-    logger.info('❌ Ekstra resultater som skrives etter behov')
+    logger.info('❌ raw data')
     logger.debug('❌ area')
     logger.debug('❌ energy_need')
     logger.debug('❌ energy_use')

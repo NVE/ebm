@@ -36,26 +36,25 @@ def main():
 
     logger.info('Area to area.xlsx')
     logger.debug('Extract area')
-    forecasts = extractors.extract_area_forecast(years, database_manager) # 📍
+    area_forecast = extractors.extract_area_forecast(years, database_manager) # 📍
 
     logger.debug('Transform fane 1 (wide)')
 
-    area_forecast = forecasts.copy() # 📍
 
-    existing_area = area_forecast.query('building_condition!="demolition"')
-    existing_area.loc[:, 'TEK'] = 'all'
-    existing_area.loc[:, 'building_condition'] = 'all'
+    all_existing_area = area_forecast.copy().query('building_condition!="demolition"')
+    all_existing_area.loc[:, 'TEK'] = 'all'
+    all_existing_area.loc[:, 'building_condition'] = 'all'
 
-    area_wide = transform_model_to_horizontal(existing_area).drop(columns=['TEK', 'building_condition']).copy()
+    area_wide = transform_model_to_horizontal(all_existing_area).drop(columns=['TEK', 'building_condition']).copy()
 
     logger.debug('Transform fane 2 (long')
 
-    area_forecast = forecasts['year,building_category,TEK,building_condition,m2'.split(',')].copy()
-    area_forecast = area_forecast.query('building_condition!="demolition"')
+    existing_area_by_tek_condition = area_forecast['year,building_category,TEK,building_condition,m2'.split(',')].copy()
+    existing_area_by_tek_condition = existing_area_by_tek_condition.query('building_condition!="demolition"')
 
-    area_forecast = area_forecast.groupby(by='year,building_category,TEK'.split(','))[['m2']].sum().rename(columns={'m2': 'area'})
-    area_forecast.insert(0, 'U', 'm2')
-    area_long = area_forecast.reset_index()
+    existing_area_by_tek_condition = existing_area_by_tek_condition.groupby(by='year,building_category,TEK'.split(','))[['m2']].sum().rename(columns={'m2': 'area'})
+    existing_area_by_tek_condition.insert(0, 'U', 'm2')
+    area_long = existing_area_by_tek_condition.reset_index()
 
     logger.debug('Write file area.xlsx')
 
@@ -73,12 +72,12 @@ def main():
     logger.info('Energy use to energy_purpose')
     logger.debug('Extract energy_use ❌')
     energy_need_kwh_m2 = extractors.extract_energy_need(years, database_manager) # 📍
-    total_energy_need = e_n.transform_total_energy_need(energy_need_kwh_m2, forecasts)
+    total_energy_need = e_n.transform_total_energy_need(energy_need_kwh_m2, area_forecast)
 
     logger.debug('Transform fane 1')
-    energy_purpose_wide = e_p.transform_energy_need_to_energy_purpose_wide(energy_need=energy_need_kwh_m2, area_forecast=forecasts)
+    energy_purpose_wide = e_p.transform_energy_need_to_energy_purpose_wide(energy_need=energy_need_kwh_m2, area_forecast=area_forecast)
     logger.debug('Transform fane 2')
-    energy_purpose_long = e_p.transform_energy_need_to_energy_purpose_long(energy_need=energy_need_kwh_m2, area_forecast=forecasts)
+    energy_purpose_long = e_p.transform_energy_need_to_energy_purpose_long(energy_need=energy_need_kwh_m2, area_forecast=area_forecast)
 
     logger.debug('Write file energy_purpose.xlsx')
     energy_purpose_output = output_path / 'energy_purpose.xlsx'
@@ -173,7 +172,7 @@ def main():
     add_top_row_filter(workbook_file=energy_use_file, sheet_names=['long'])
     logger.info(f'Wrote {energy_use_file.name}')
 
-    area_change = a_f.transform_area_forecast_to_area_change(area_forecast=forecasts)
+    area_change = a_f.transform_area_forecast_to_area_change(area_forecast=area_forecast)
     logger.info('demolition_construction')
     logger.debug('Transform demolition_construction')
     demolition_construction_long = a_f.transform_demolition_construction(energy_use_kwh, area_change)

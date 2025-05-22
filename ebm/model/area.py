@@ -38,9 +38,15 @@ def transform_demolition_construction(energy_use: pd.DataFrame, area_change: pd.
     return dem_con[['year', 'demolition_construction', 'building_category', 'TEK', 'm2', 'gwh']]
 
 
-def group_existing_area_by_building_category(area_forecast:pd.DataFrame) -> pd.DataFrame:
-    all_existing_area = area_forecast.query('building_condition!="demolition"').copy()
+def merge_tek_and_condition(area_forecast:pd.DataFrame) -> pd.DataFrame:
+    all_existing_area = area_forecast.copy()
     all_existing_area.loc[:, 'TEK'] = 'all'
     all_existing_area.loc[:, 'building_condition'] = 'all'
 
     return all_existing_area
+
+
+def filter_existing_area(area_forecast):
+    existing_area = area_forecast.query('building_condition!="demolition"').copy()
+    existing_area = existing_area[['year','building_category','TEK','building_condition']+['m2']]
+    return existing_area

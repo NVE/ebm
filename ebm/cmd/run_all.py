@@ -38,19 +38,19 @@ def main():
     logger.debug('Extract area')
     area_forecast = extractors.extract_area_forecast(years, database_manager) # 📍
 
+    existing_area = a_f.filter_existing_area(area_forecast)
+
     logger.debug('Transform fane 1 (wide)')
-    existing_area_by_building_category = a_f.group_existing_area_by_building_category(area_forecast)
-    area_wide = transform_model_to_horizontal(existing_area_by_building_category)
+    merged_tek_and_condition = a_f.merge_tek_and_condition(existing_area)
+    area_wide = transform_model_to_horizontal(merged_tek_and_condition)
     area_wide = area_wide.drop(columns=['TEK', 'building_condition'])
 
     logger.debug('Transform fane 2 (long')
 
-    existing_area = area_forecast['year,building_category,TEK,building_condition,m2'.split(',')].copy()
-    existing_area = existing_area.query('building_condition!="demolition"')
-
-    existing_area = existing_area.groupby(by='year,building_category,TEK'.split(','))[['m2']].sum().rename(columns={'m2': 'area'})
-
-    area_long = existing_area.reset_index().insert(0, 'U', 'm2')
+    area_by_year_category_tek = existing_area.groupby(by='year,building_category,TEK'.split(','))[['m2']].sum()
+    area_by_year_category_tek = area_by_year_category_tek.rename(columns={'m2': 'area'})
+    area_by_year_category_tek.insert(0, 'U', 'm2')
+    area_long = area_by_year_category_tek.reset_index()
 
     logger.debug('Write file area.xlsx')
 

@@ -1,7 +1,6 @@
 import pathlib
 import time
 
-import humanize
 from loguru import logger
 import pandas as pd
 

@@ -10,7 +10,7 @@ from loguru import logger
 from ebm.cmd.helpers import load_environment_from_dotenv
 from ebm.cmd.result_handler import  append_result, \
     transform_model_to_horizontal, EbmDefaultHandler
-from ebm.cmd.run_all import run_energy_use_pipeline
+from ebm.cmd.pipeline import export_energy_model_reports
 from ebm.cmd.run_calculation import validate_years, configure_loglevel
 from ebm.cmd import prepare_main
 from ebm.cmd.initialize import init, create_output_directory
@@ -97,7 +97,7 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
     model = None
 
     if step_choice == 'energy-use':
-        run_energy_use_pipeline(model_years, database_manager, output_file if output_file.is_dir() else output_file.parent)
+        export_energy_model_reports(model_years, database_manager, output_file if output_file.is_dir() else output_file.parent)
     else:
         model = default_handler.extract_model(model_years, building_categories, database_manager, step_choice)
 

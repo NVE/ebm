@@ -125,3 +125,25 @@ def energy_use_kwh(energy_need: pd.DataFrame, efficiency_factor: pd.DataFrame) -
     else:
         df['kwh_m2'] = np.nan
     return df
+
+
+def building_group_energy_use_kwh(heating_systems_parameter: pd.DataFrame, energy_need: pd.DataFrame) -> pd.DataFrame:
+    df = all_purposes(heating_systems_parameter)
+    df.loc[:, 'building_group'] = 'yrkesbygg'
+    df.loc[df.building_category.isin(['house', 'apartment_block']), 'building_group'] = 'bolig'
+
+    efficiency_factor_df = efficiency_factor(df)
+    df = energy_use_kwh(energy_need=energy_need, efficiency_factor=efficiency_factor_df)
+
+    return df
+
+
+def energy_use_gwh_by_building_group(energy_use_kwh: pd.DataFrame) -> pd.DataFrame:
+    energy_use_by_building_group = energy_use_kwh[['building_group', 'year', 'energy_product', 'kwh']].groupby(
+        by=['building_group', 'energy_product', 'year']).sum() / 1_000_000
+    energy_use_wide = energy_use_by_building_group.reset_index().pivot(columns=['year'],
+                                                                       index=['building_group', 'energy_product'],
+                                                                       values=['kwh'])
+    energy_use_wide = energy_use_wide.reset_index()
+    energy_use_wide.columns = ['building_group', 'energy_source'] + [c for c in energy_use_wide.columns.get_level_values(1)[2:]]
+    return energy_use_wide

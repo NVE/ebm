@@ -1,11 +1,12 @@
 import typing
-import pandas as pd
 
+import pandas as pd
 from loguru import logger
 
-from ebm.model.data_classes import TEKParameters,YearRange
-from ebm.model.building_condition import BuildingCondition
 from ebm.model.building_category import BuildingCategory
+from ebm.model.building_condition import BuildingCondition
+from ebm.model.data_classes import TEKParameters, YearRange
+
 
 # Possible issue in the future:
 # - problemer med riving og nybygging kobling dersom tidshorisonten overstiger tidligste alder for riving på nye TEKer
@@ -300,4 +301,3 @@ class AreaForecast():
 
         df = forecast_to_dataframe()
         return df
-

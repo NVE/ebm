@@ -31,19 +31,22 @@ TEK21""".strip().split('\n')
 
 
 @dataclass
-class EbmArguments:
+class EbmConfig:
     """Prototype for an argument or configuation class to be used by main. Its purpose is improved readability."""
-    model_years: YearRange
-    output_filename: pathlib.Path
-    building_categories: typing.List[BuildingCategory]
-    building_conditions = typing.List[BuildingCondition]
-    tek_filter: typing.List[str]
-    force_overwrite: bool
-    open_after_writing: bool
-    horizontal_years: bool
-    input_directory: pathlib.Path
-    create_input: bool
-    csv_delimiter: str
+    default_input: str = None
+    calibration_year: int = 2023
+    years: YearRange = YearRange(2020, 2050)
+    output_directory: pathlib.Path = pathlib.Path('output')
+    input_directory: pathlib.Path = pathlib.Path('input')
+    force_overwrite: bool = False
+    open_after_writing: bool = False
+    csv_delimiter: str = ','
+    always_open: bool = False
+    write_to_disk: bool = False
+
+    #building_categories: typing.List[BuildingCategory]
+    #building_conditions = typing.List[BuildingCondition]
+    #tek_filter: typing.List[str]
 
 
 def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespace:

@@ -17,3 +17,9 @@ The configuration is defined in a `config.yaml` file:
 
    parameter_1: value
    parameter_2: value
+
+.. |date| date::
+
+Last Updated on |date|.
+
+Version: |version|.

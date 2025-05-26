@@ -75,6 +75,8 @@ class EnergyConsumption:
 
         """
         logger.debug('Calculate heating systems')
+        if all([col in energy_requirements.columns for col in ['building_category', 'TEK', 'building_condition', 'year', 'purpose']]):
+            energy_requirements = energy_requirements.set_index(['building_category', 'TEK', 'building_condition', 'year', 'purpose'])
         energy_requirements = self._remove_tek_suffix(energy_requirements)
         energy_requirements = self._group_and_sum_same_tek(energy_requirements)
 

@@ -78,3 +78,9 @@ Once the HTML documentation is built, it needs to be hosted on a web server so t
    Once hosted, the documentation will be accessible via a URL like `http://yourserver.com/docs`. Share this URL with your team so they can access the latest version of the documentation.
 
 By following these steps, you ensure that the project documentation is up-to-date and accessible to everyone involved.
+
+.. |date| date::
+
+Last Updated on |date|.
+
+Version: |version|.

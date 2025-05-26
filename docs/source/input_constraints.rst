@@ -252,60 +252,41 @@ energy_requirement_policy_improvements
  - float using a decimal point ('.') as the separator
  - **0.0** ≤ value ≤ **1.0**
 
-heating_systems
----------------
+energy_need_improvements
+------------------------
 
 ``building_category``
  - required
- - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
+ - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs, default, residential, non_residential
 
 ``TEK``
  - required
  - values: Any string containing ``TEK``
 
-``Oppvarmingstyper``
+``purpose``
  - required
- - string
+ - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling, default'
 
-``tek_share``
+``start_year``
+ - integer
+ - **0** ≤ value ≤ **end_year**
+ - default 2020
+
+``function``
+ - required
+ - values: yearly_reduction, improvement_at_end_year
+
+``value``
  - required
  - float using a decimal point ('.') as the separator
+ - **0.0** ≤ value
 
-``Ekstralast andel``
+``end_year``
  - required
- - float using a decimal point ('.') as the separator
+ - integer
+ - **start_year** ≤ value ≤ **2070**
+ - default 2050
 
-``Ekstralast virkningsgrad``
- - required
- - float using a decimal point ('.') as the separator
-
-``Grunnlast andel``
- - required
- - float using a decimal point ('.') as the separator
-
-``Grunnlast virkningsgrad``
- - required
- - float using a decimal point ('.') as the separator
-
-``Spisslast andel``
- - required
- - float using a decimal point ('.') as the separator
-
-``Spisslast virkningsgrad``
- - required
- - float using a decimal point ('.') as the separator
-
-``Tappevann virkningsgrad``
- - required
- - float using a decimal point ('.') as the separator
-
-``Kjoling virkningsgrad``
- - required
- - float using a decimal point ('.') as the separator
-
-``Spesifikt elforbruk``
- - required
- - float using a decimal point ('.') as the separator
 
 holiday_home_by_year
 --------------------
@@ -357,3 +338,9 @@ heating_systems_shares_start_year
  - required
  - string
  - value: 'Electricity', 'Electricity - Bio', 'Electric boiler', 'Electric boiler - Solar', 'Gas', 'DH', 'DH - Bio
+
+.. |date| date::
+
+Last Updated on |date|.
+
+ Version: |version|.

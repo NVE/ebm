@@ -15,13 +15,16 @@ Submodules
    ebm.model.buildings
    ebm.model.calibrate_energy_requirements
    ebm.model.calibrate_heating_systems
+   ebm.model.column_operations
    ebm.model.construction
    ebm.model.data_classes
    ebm.model.database_manager
+   ebm.model.dataframemodels
    ebm.model.defaults
    ebm.model.energy_purpose
    ebm.model.energy_requirement
    ebm.model.energy_requirement_filter
+   ebm.model.enums
    ebm.model.exceptions
    ebm.model.file_handler
    ebm.model.filter_scurve_params
@@ -38,5 +41,5 @@ Module contents
 
 .. automodule:: ebm.model
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

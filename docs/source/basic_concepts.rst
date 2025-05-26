@@ -21,3 +21,9 @@ Here is a quick example of how to run your first model:
 
    import modelframework
    ...
+
+.. |date| date::
+
+Last Updated on |date|.
+
+Version: |version|.

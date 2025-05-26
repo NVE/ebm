@@ -11,3 +11,9 @@ Common Issues
 -------------
 
 - Error Code 1001: This occurs when ...
+
+.. |date| date::
+
+Last Updated on |date|.
+
+Version: |version|.

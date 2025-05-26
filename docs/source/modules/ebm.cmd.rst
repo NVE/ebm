@@ -1,8 +1,6 @@
 ebm.cmd package
 ===============
 
-say what?
-
 Submodules
 ----------
 
@@ -12,8 +10,9 @@ Submodules
    ebm.cmd.calibrate
    ebm.cmd.calibrate_excel_com_io
    ebm.cmd.heating_systems_by_year
-   ebm.cmd.result_handler
+   ebm.cmd.initialize
    ebm.cmd.prepare_main
+   ebm.cmd.result_handler
    ebm.cmd.run_calculation
 
 Module contents
@@ -21,5 +20,5 @@ Module contents
 
 .. automodule:: ebm.cmd
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

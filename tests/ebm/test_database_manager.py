@@ -1,15 +1,19 @@
 import io
+import itertools
 import pathlib
-from unittest.mock import Mock
+from unittest.mock import Mock, MagicMock
 
 import numpy as np
 import pandas as pd
 import pytest
 
 from ebm.model.building_category import BuildingCategory
+from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.defaults import default_calibrate_heating_rv
+from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.file_handler import FileHandler
+from ebm.validators import behaviour_factor_parser
 
 
 def test_get_area_per_person():
@@ -35,7 +39,7 @@ def test_get_area_per_person():
 
 
 def test_get_energy_req_original_condition():
-    fh = FileHandler(directory=pathlib.Path(__file__).parent / 'data' / 'bema')
+    fh = FileHandler(directory=pathlib.Path(__file__).parent / 'data' / 'ebm')
     dm = DatabaseManager(fh)
 
     cal_df = pd.DataFrame({
@@ -46,6 +50,7 @@ def test_get_energy_req_original_condition():
     cal_mock = Mock()
     cal_mock.return_value = cal_df
     dm.get_calibrate_heating_rv = cal_mock
+    dm.get_tek_list = Mock(return_value=pd.Series(['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17'], name='TEK'))
 
     oc_df = pd.read_csv(io.StringIO("""building_category,TEK,purpose,kwh_m2
 apartment_block,TEK87,heating_rv,100
@@ -56,55 +61,78 @@ apartment_block,TEK97,heating_dhw,29.76
 apartment_block,TEK97,heating_rv,200
 culture,PRE_TEK49,heating_rv,400"""))
 
-    original_condition = Mock()
-    original_condition.return_value = oc_df
-    fh.get_energy_req_original_condition = original_condition
+    get_original_condition = Mock()
+    get_original_condition.return_value = oc_df
+    fh.get_energy_req_original_condition = get_original_condition
+
+    behaviour_factors = itertools.product(['apartment_block', 'culture', 'school'], ['TEK87', 'TEK97', 'PRE_TEK49'],
+                      ['heating_rv', 'cooling', 'electrical_equipment', 'fans_and_pumps', 'heating_dhw'],
+                      [y for y in range(2020, 2051)], [1.0])
+
+    dm.get_behaviour_factor = Mock(return_value=pd.DataFrame(
+        data=behaviour_factors,
+        columns='building_category,TEK,purpose,behaviour_factor,year'.split(',')))
 
     result = dm.get_energy_req_original_condition()
 
+    apartment_block = result.query('building_category=="apartment_block"')
+    culture = result.query('building_category=="culture"')
     # Check heating_rv
-    assert result[(result['TEK'] == 'TEK87') & (result['purpose'] == 'heating_rv')].iloc[0].kwh_m2 == 50
-    assert result[(result['TEK'] == 'TEK97') & (result['purpose'] == 'heating_rv')].iloc[0].kwh_m2 == 100
-    assert result[(result['TEK'] == 'PRE_TEK49') & (result['purpose'] == 'heating_rv')].iloc[0].kwh_m2 == 800
+    assert apartment_block.query("TEK=='TEK87' and purpose=='heating_rv' and year==2020").iloc[0].kwh_m2 == 50
+    assert apartment_block.query("TEK=='TEK97' and purpose=='heating_rv' and year==2020").iloc[0].kwh_m2 == 100
+    assert culture.query("TEK=='PRE_TEK49' and purpose=='heating_rv' and year==2020").iloc[0].kwh_m2 == 800
 
     # Check non-heating_rv
-    assert result[(result['TEK'] == 'TEK97') & (result['purpose'] == 'heating_dhw')].iloc[0].kwh_m2 == 29.76
-    assert result[(result['TEK'] == 'TEK97') & (result['purpose'] == 'fans_and_pumps')].iloc[0].kwh_m2 == 0.43
+    assert apartment_block[(apartment_block['TEK'] == 'TEK97') & (apartment_block['purpose'] == 'heating_dhw')].iloc[0].kwh_m2 == 29.76
+    assert apartment_block[(apartment_block['TEK'] == 'TEK97') & (apartment_block['purpose'] == 'fans_and_pumps')].iloc[0].kwh_m2 == 0.43
 
-    # There should not be any NaNs
-    assert not result['kwh_m2'].isna().any()
+    # Any non apartment_block+culture should be NaNs
+    assert result.query('building_category not in ["apartment_block", "culture"]')['kwh_m2'].isna().any()
 
 
 def test_get_get_energy_req_original_condition_expand_unique_columns():
+    """
+    About this test: Expansion is currently done inside behaviour_factor_parser. This test is probably redundant.
+    The test is kept around in case a refactor of tests or behaviour_factor_parser makes it useful again.
+    """
     mock_file_handler = Mock(spec=FileHandler)
     mock_file_handler.get_energy_req_original_condition = Mock(
         return_value=pd.DataFrame(data=[
             ['residential', 'default', 'lighting', 100.0, 1.1],
             ['house', 'TEK03', 'lighting', 300.0, 1.3]
         ],
-                                  columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behavior_factor']))
+                                  columns=['building_category', 'TEK', 'purpose', 'kwh_m2', 'behaviour_factor']))
     mock_file_handler.get_calibrate_heating_rv = Mock(return_value=default_calibrate_heating_rv())
+
+    behaviour_factors = itertools.product(['apartment_block', 'house'],
+                                          ['TEK01', 'TEK02', 'TEK03'],
+                                          ['lighting'],
+                                          [y for y in range(2020, 2051)], [1.0])
 
     dm = DatabaseManager(file_handler=mock_file_handler)
     dm.get_tek_list = Mock(return_value=pd.DataFrame(['TEK01', 'TEK02', 'TEK03'], columns=['TEK']).TEK.unique())
+    dm.get_behaviour_factor = Mock(return_value=pd.DataFrame(data=itertools.chain.from_iterable([[['apartment_block', 'TEK01', 'lighting', 1.1, y], ['apartment_block', 'TEK02', 'lighting', 1.1, y], ['apartment_block', 'TEK03', 'lighting', 1.1, y], ['house', 'TEK01', 'lighting', 1.1, y], ['house', 'TEK02', 'lighting', 1.1, y], ['house', 'TEK03', 'lighting', 1.3, y]] for y in range(2020, 2050+1)]),
+                                       columns='building_category,TEK,purpose,behaviour_factor,year'.split(',')))
+
 
     df = dm.get_energy_req_original_condition()
-    expected = pd.DataFrame(data=[
-        ['apartment_block', 'lighting', 'TEK01', 100.0, 1.1, 100.0, 100.0],
-        ['apartment_block', 'lighting', 'TEK02', 100.0, 1.1, 100.0, 100.0],
-        ['apartment_block', 'lighting', 'TEK03', 100.0, 1.1, 100.0, 100.0],
-        ['house', 'lighting', 'TEK01', 100.0, 1.1, 100.0, 100.0],
-        ['house', 'lighting', 'TEK02', 100.0, 1.1, 100.0, 100.0],
-        ['house', 'lighting', 'TEK03', 300.0, 1.3, 300.0, 300.0],
-    ],
-                            columns=['building_category', 'purpose', 'TEK', 'kwh_m2', 'behavior_factor', 'uncalibrated_kwh_m2', 'calibrated_kwh_m2'])
+    result = df.query('building_category in ["house", "apartment_block"] and purpose=="lighting" and year==2020')
+    result = result.sort_values(by=['building_category', 'TEK', 'purpose', 'year']).reset_index(drop=True)
 
-    pd.testing.assert_frame_equal(df, expected)
+    expected = pd.DataFrame(
+        data=[
+            ['apartment_block', 'lighting', 'TEK01', 2020, 100.0, 1.1, 1.0, 100.0, 100.0],
+            ['apartment_block', 'lighting', 'TEK02', 2020, 100.0, 1.1, 1.0, 100.0, 100.0],
+            ['apartment_block', 'lighting', 'TEK03', 2020, 100.0, 1.1, 1.0, 100.0, 100.0],
+            ['house', 'lighting', 'TEK01', 2020, 100.0, 1.1, 1.0, 100.0, 100.0],
+            ['house', 'lighting', 'TEK02', 2020, 100.0, 1.1, 1.0, 100.0, 100.0],
+            ['house', 'lighting', 'TEK03', 2020, 300.0, 1.3, 1.0, 300.0, 300.0],],
+        columns=['building_category', 'purpose', 'TEK', 'year', 'kwh_m2', 'behaviour_factor', 'heating_rv_factor', 'uncalibrated_kwh_m2', 'calibrated_kwh_m2'])
+
+    pd.testing.assert_frame_equal(result, expected, check_like=True)
 
 
 @pytest.mark.parametrize('simple_get,unique_columns',[
-    ('get_energy_req_policy_improvements', ('building_category', 'TEK', 'purpose')),
-    ('get_energy_req_yearly_improvements', ('building_category', 'TEK', 'purpose')),
     ('get_energy_req_reduction_per_condition', ('building_category', 'TEK', 'purpose', 'building_condition'))])
 def test_method_use_and_return_through_expand_unique_columns(simple_get, unique_columns):
     file_handler_df = pd.DataFrame(data=[['default', 'default', 'lighting', 2010, 2040, 0.6], ],
@@ -189,6 +217,7 @@ def test_expand_building_category_column_default_and_groups():
         columns=['building_category', 'TEK', 'v'])
     dm = DatabaseManager(Mock())
 
+    dm.get_tek_list = Mock(return_value=['TEK01', 'TEK02', 'TEK03'])
     # explode_tek_column does not change the dataframe
     dm.explode_tek_column = lambda df,c: df
     result = dm.explode_unique_columns(residential, unique_columns=['building_category', 'TEK'])
@@ -206,7 +235,7 @@ def test_expand_building_category_column_default_and_groups():
     assert r.loc[(BuildingCategory.NURSING_HOME, 'TEK01'), 'v'] == 'non_residential-tek01'
     assert r.loc[(BuildingCategory.CULTURE, 'TEK01'), 'v'] == 'non_residential-tek01'
     assert r.loc[(BuildingCategory.SPORTS, 'TEK01'), 'v'] == 'non_residential-tek01'
-    assert r.loc[(BuildingCategory.STORAGE_REPAIRS, 'TEK01'), 'v'] == 'non_residential-tek01'
+    assert r.loc[(BuildingCategory.STORAGE, 'TEK01'), 'v'] == 'non_residential-tek01'
 
     for bc in BuildingCategory:
         assert r.loc[(bc, 'TEK02'), 'v'] == 'default-tek02'
@@ -215,3 +244,56 @@ def test_expand_building_category_column_default_and_groups():
     assert r.loc[(BuildingCategory.HOTEL, 'TEK03'), 'v'] == 'house+hotel-tek03'
 
     assert len(r) == 28
+
+
+def test_make_building_purpose_with_year():
+    mock_fh = MagicMock(spec=FileHandler)
+
+    all_teks = ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17']
+    mock_fh.get_tek_id = lambda: pd.DataFrame(data=all_teks, columns=['TEK'])
+    dm = DatabaseManager(file_handler=mock_fh)
+
+    year_range = YearRange(2020, 2030)
+    result = dm.make_building_purpose(years=year_range)
+    expected_conditions = ['original_condition']
+
+    assert isinstance(result, pd.DataFrame)
+    assert result.columns.to_list() == ['building_category', 'TEK', 'building_condition', 'purpose', 'year']
+
+    for bc in BuildingCategory:
+        assert bc in result['building_category'].unique(), f'{bc} missing from make_building_purpose()'
+    for tek in all_teks:
+        assert tek in result['TEK'].unique(), f'{tek} missing from make_building_purpose()'
+    for condition in expected_conditions:
+        assert condition in result['building_condition'].unique(), f'{condition} missing from make_building_purpose()'
+    for purpose in EnergyPurpose:
+        assert purpose in result['purpose'].unique(), f'{purpose} missing from make_building_purpose()'
+    for year in year_range:
+        assert year in result['year'].unique(), f'{year} missing from make_building_purpose()'
+
+    assert len(result) == len(BuildingCategory) * len(all_teks) * len(expected_conditions) * len(EnergyPurpose) * len(year_range)
+
+
+def test_make_building_purpose():
+    mock_fh = MagicMock(spec=FileHandler)
+
+    all_teks = ['PRE_TEK49', 'TEK49']
+    mock_fh.get_tek_id = lambda: pd.DataFrame(data=all_teks, columns=['TEK'])
+    dm = DatabaseManager(file_handler=mock_fh)
+
+    result = dm.make_building_purpose()
+    expected_conditions = ['original_condition']
+
+    assert isinstance(result, pd.DataFrame)
+    assert result.columns.to_list() == ['building_category', 'TEK', 'building_condition', 'purpose']
+
+    for bc in BuildingCategory:
+        assert bc in result['building_category'].unique(), f'{bc} missing from make_building_purpose()'
+    for tek in all_teks:
+        assert tek in result['TEK'].unique(), f'{tek} missing from make_building_purpose()'
+    for condition in expected_conditions:
+        assert condition in result['building_condition'].unique(), f'{condition} missing from make_building_purpose()'
+    for purpose in EnergyPurpose:
+        assert purpose in result['purpose'].unique(), f'{purpose} missing from make_building_purpose()'
+
+    assert len(result) == len(BuildingCategory) * len(all_teks) * len(expected_conditions) * len(EnergyPurpose)

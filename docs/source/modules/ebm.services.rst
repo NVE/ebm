@@ -18,5 +18,5 @@ Module contents
 
 .. automodule:: ebm.services
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

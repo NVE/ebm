@@ -1,11 +1,16 @@
 """
 Pandera validators for ebm input files.
 """
+import itertools
+
+import numpy as np
 import pandas as pd
 import pandera as pa
 
 from ebm.model.building_category import BuildingCategory, RESIDENTIAL, NON_RESIDENTIAL
 from ebm.model.building_condition import BuildingCondition
+from ebm.model.column_operations import explode_unique_columns, explode_column_alias
+from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.heating_systems import HeatingSystems
 
@@ -241,6 +246,109 @@ def check_sum_of_tek_shares_equal_1(df: pd.DataFrame):
     return return_series
 
 
+def make_building_purpose(years: YearRange | None = None) -> pd.DataFrame:
+    """
+    Returns a dataframe of all combinations building_categories, teks, original_condition, purposes
+    and optionally years.
+
+    Parameters
+    ----------
+    years : YearRange, optional
+
+    Returns
+    -------
+    pd.DataFrame
+    """
+    data = []
+    columns = [list(BuildingCategory),
+               ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17'],
+               EnergyPurpose]
+
+    column_headers = ['building_category', 'TEK', 'building_condition', 'purpose']
+    if years:
+        columns.append(years)
+        column_headers.append('year')
+
+    for bc, tek, purpose, *year in itertools.product(*columns):
+        row = [bc, tek, 'original_condition', purpose]
+        if years:
+            row.append(year[0])
+        data.append(row)
+
+    return pd.DataFrame(data=data, columns=column_headers)
+
+
+def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
+    model_years = YearRange(2020, 2050)
+    all_combinations = make_building_purpose(years=model_years)
+
+    if 'start_year' not in df.columns:
+        df=df.assign(**{'start_year': model_years.start})
+    if 'end_year' not in df.columns:
+        df=df.assign(**{'end_year': model_years.end})
+    if 'function' not in df.columns:
+        df=df.assign(function='noop')
+    else:
+        df['function'] = df.function.fillna('noop')
+    if 'parameter' not in df.columns:
+        df=df.assign(parameter=0.0)
+
+    df['start_year'] = df.start_year.fillna(model_years.start).astype(int)
+    df['end_year'] = df.end_year.fillna(model_years.end).astype(int)
+
+    unique_columns = ['building_category', 'TEK', 'purpose', 'start_year', 'end_year']
+    behaviour_factor = explode_unique_columns(df,
+                                              unique_columns=unique_columns)
+
+    behaviour_factor = explode_column_alias(behaviour_factor,
+                       column='purpose',
+                       values=[p for p in EnergyPurpose],
+                       alias='default',
+                       de_dup_by=unique_columns)
+
+    behaviour_factor['year'] = behaviour_factor.apply(
+        lambda row: range(row.start_year, row.end_year+1), axis=1)
+    behaviour_factor['interpolation'] = behaviour_factor.apply(
+        lambda row: np.linspace(row.behaviour_factor, row.parameter, num=row.end_year+1-row.start_year), axis=1)
+
+    behaviour_factor = behaviour_factor.explode(['year', 'interpolation'])
+
+    behaviour_factor['year'] = behaviour_factor['year'].astype(int)
+
+    interpolation_slice = (behaviour_factor.function == 'improvement_at_end_year') & (~behaviour_factor.interpolation.isna())
+    behaviour_factor.loc[interpolation_slice, 'behaviour_factor'] = behaviour_factor.loc[
+        interpolation_slice, 'interpolation'].astype(float)
+
+    behaviour_factor.sort_values(['building_category', 'TEK', 'purpose', 'year'])
+
+    behaviour_factor = calculate_yearly_reduction(behaviour_factor)
+
+    behaviour_factor=behaviour_factor.set_index(['building_category', 'TEK', 'purpose', 'year'], drop=True)
+    all_combinations=all_combinations.set_index(['building_category', 'TEK', 'purpose', 'year'], drop=True)
+
+    joined = all_combinations.join(behaviour_factor, how='left')
+    joined.behaviour_factor = joined.behaviour_factor.fillna(1.0)
+    return joined.reset_index()
+
+
+def calculate_yearly_reduction(df):
+    reduction_slice = df[df['function'] == 'yearly_reduction'].index
+    df.loc[reduction_slice, 'behaviour_factor'] = df.loc[reduction_slice].behaviour_factor * ((1.0 - df.loc[
+        reduction_slice].parameter) ** (df.loc[reduction_slice].year - df.loc[reduction_slice].start_year))
+    return df
+
+
+energy_need_behaviour_factor = pa.DataFrameSchema(
+    parsers=pa.Parser(behaviour_factor_parser),
+    columns={
+        "building_category": pa.Column(str),
+        "TEK": pa.Column(str), #
+        "purpose": pa.Column(str),
+        'year': pa.Column(int, required=False),
+        'behaviour_factor': pa.Column(float)
+    }
+)
+
 area_parameters = pa.DataFrameSchema(
     columns={
         "building_category": pa.Column(str, checks=[pa.Check(check_building_category)]),
@@ -344,56 +452,19 @@ energy_requirement_reduction_per_condition = pa.DataFrameSchema(
 )
 
 
-energy_requirement_yearly_improvements = pa.DataFrameSchema(
+energy_need_improvements = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
         'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
         'purpose':pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
-        'yearly_efficiency_improvement': pa.Column(float, coerce=True, 
+        'value': pa.Column(float, coerce=True,
                                                    checks=[pa.Check.between(min_value=0.0, include_min=True,
                                                                             max_value=1.0, include_max=True)])
     },
-    unique=['building_category', 'TEK', 'purpose'],
+    unique=['building_category', 'TEK', 'purpose', 'start_year', 'function', 'end_year'],
     report_duplicates='all'
 )
 
-
-# TODO: allow blank value on period_start_year (nullable=True) and implement solution for default value = model_start_year? 
-energy_requirement_policy_improvements = pa.DataFrameSchema(
-    columns={
-        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
-        'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
-        'purpose': pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
-        'period_start_year': pa.Column(int, coerce=True, checks=[pa.Check.greater_than_or_equal_to(0)]),
-        'period_end_year': pa.Column(int, coerce=True,  checks=[pa.Check.greater_than_or_equal_to(0)]),
-        'improvement_at_period_end': pa.Column(float, coerce=True, 
-                                               checks=[pa.Check.between(min_value=0.0, include_min=True,
-                                                                        max_value=1.0, include_max=True)])
-    },
-    checks=[pa.Check(lambda df: df["period_end_year"] > df["period_start_year"],
-                     error="period_end_year should be greater than period_start_year")],
-    unique=['building_category', 'TEK', 'purpose'],
-    report_duplicates='all'
-)
-
-
-heating_systems = pa.DataFrameSchema(
-    columns={
-        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
-        'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
-        'Oppvarmingstyper': pa.Column(str),
-        'tek_share': pa.Column(float, coerce=True),
-        'Ekstralast andel': pa.Column(float, coerce=True),
-        'Ekstralast virkningsgrad': pa.Column(float, coerce=True),
-        'Grunnlast andel': pa.Column(float, coerce=True),
-        'Grunnlast virkningsgrad': pa.Column(float, coerce=True),
-        'Spisslast andel': pa.Column(float, coerce=True),
-        'Spisslast virkningsgrad': pa.Column(float, coerce=True),
-        'Tappevann virkningsgrad': pa.Column(float, coerce=True),
-        'Kjoling virkningsgrad': pa.Column(float, coerce=True),
-        'Spesifikt elforbruk': pa.Column(float, coerce=True)
-    }
-)
 
 holiday_home_by_year = pa.DataFrameSchema(
     columns={
@@ -402,6 +473,8 @@ holiday_home_by_year = pa.DataFrameSchema(
         'Existing buildings Detached houses and farmhouses used as holiday houses': pa.Column(int)
     }
 )
+
+
 holiday_home_energy_consumption = pa.DataFrameSchema(
     columns={
         'year': pa.Column(int),
@@ -492,3 +565,4 @@ __all__ = [area_parameters,
            scurve_parameters,
            new_buildings_house_share,
            energy_requirement_reduction_per_condition]
+

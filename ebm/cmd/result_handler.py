@@ -1,4 +1,5 @@
 import pathlib
+import time
 
 from loguru import logger
 import pandas as pd
@@ -6,7 +7,7 @@ import pandas as pd
 from ebm.cmd.run_calculation import (calculate_building_category_area_forecast,
                                      calculate_building_category_energy_requirements,
                                      calculate_heating_systems)
-from ebm.model.calibrate_heating_systems import transform_heating_systems
+from ebm.model.calibrate_heating_systems import group_heating_systems_by_energy_carrier
 from ebm.model.building_condition import BEMA_ORDER as building_condition_order
 from ebm.model.building_category import BEMA_ORDER as building_category_order, BuildingCategory
 from ebm.model.data_classes import YearRange
@@ -46,31 +47,34 @@ def transform_holiday_homes_to_horizontal(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def transform_to_sorted_heating_systems(df: pd.DataFrame, holiday_homes: pd.DataFrame) -> pd.DataFrame:
-    category_order = {'Bolig': 100, 'Fritidsboliger': 200, 'Yrkesbygg': 300}
+def transform_to_sorted_heating_systems(df: pd.DataFrame, holiday_homes: pd.DataFrame,
+                                        building_column: str='building_category',
+                                        ) -> pd.DataFrame:
+    category_order = {'bloig': 100,
+                      'Bolig': 100,
+                      'Fritidsboliger': 200,
+                      'fritidsboliger': 200,
+                      'yrkesbygg': 300,
+                      'Yrkesbygg': 300}
     energy_source = {'Elektrisitet': 10, 'Fjernvarme': 11,  'Bio': 12, 'Fossil': 13, 'Solar': 13,
                      'Luft/luft': 24,  'Vannbåren varme': 25}
 
     rs = pd.concat([df, holiday_homes]).reindex()
-    rs = rs.sort_values(by=['building_category', 'energy_source'],
-                   key=lambda x: x.map(category_order) if x.name == 'building_category' else x.map(
+    rs = rs.sort_values(by=[building_column, 'energy_source'],
+                   key=lambda x: x.map(category_order) if x.name == building_column else x.map(
                        energy_source) if x.name == 'energy_source' else x)
 
-    hz = pd.concat([rs[~rs.energy_source.isin(['Luft/luft', 'Vannbåren varme'])],
-                      rs[rs.energy_source.isin(['Luft/luft', 'Vannbåren varme'])]])
+    hz = pd.concat([rs[~rs['energy_source'].isin(['Luft/luft', 'Vannbåren varme'])],
+                      rs[rs['energy_source'].isin(['Luft/luft', 'Vannbåren varme'])]])
     hz.insert(2, 'U', 'GWh')
     return hz
 
 
 def transform_heating_systems_to_horizontal(model: pd.DataFrame):
     hs2 = model
-    d = []
-    for year in range(2020, 2051):
-        energy_source_by_building_group = transform_heating_systems(hs2, year)
-        energy_source_by_building_group['year'] = year
-        d.append(energy_source_by_building_group)
-    r = pd.concat(d)
-    r2 = r.reset_index()[['building_category', 'energy_source', 'year', 'energy_use']]
+    energy_carrier_by_building_group = group_heating_systems_by_energy_carrier(hs2)
+
+    r2 = energy_carrier_by_building_group.reset_index()[['building_category', 'energy_source', 'year', 'energy_use']]
     hz = r2.pivot(columns=['year'], index=['building_category', 'energy_source'],
                   values=['energy_use']).reset_index()
 
@@ -80,10 +84,10 @@ def transform_heating_systems_to_horizontal(model: pd.DataFrame):
 
 def write_result(output_file, csv_delimiter, output, sheet_name='area forecast'):
     logger.debug(f'Writing to {output_file}')
+    write_start = time.time()
     if str(output_file) == '-':
         try:
             print(output.to_markdown())
-
         except ImportError:
             print(output.to_string())
     elif output_file.suffix == '.csv':
@@ -94,6 +98,8 @@ def write_result(output_file, csv_delimiter, output, sheet_name='area forecast')
         output.to_excel(excel_writer, sheet_name=sheet_name, merge_cells=False, freeze_panes=(1, 3))
         excel_writer.close()
         logger.info(f'Wrote {output_file}')
+
+    logger.debug(f'  wrote {output_file.stat().st_size/1000:.0} in {time.time() - write_start:.4} seconds')
 
 
 def append_result(output_file: pathlib.Path, df: pd.DataFrame, sheet_name='Sheet 1'):
@@ -225,7 +231,7 @@ class EbmDefaultHandler:
         return df
 
     @staticmethod
-    def write_tqdm_result(output_file: pathlib.Path, output: pd.DataFrame, csv_delimiter: str=','):
+    def write_tqdm_result(output_file: pathlib.Path, output: pd.DataFrame, csv_delimiter: str=',', reset_index=True):
         try:
             from tqdm import tqdm
         except ImportError:
@@ -242,11 +248,16 @@ class EbmDefaultHandler:
                 print(output.to_string())
                 return
 
-        output = output.reset_index()
+        if reset_index:
+            logger.debug('Resetting dataframe index')
+            output = output.reset_index()
+
         chunk_size = 2000
         logger.debug(f'{chunk_size=}')
 
+        closing_file = time.time()
         with tqdm(total=len(output), desc="Writing to spreadsheet") as pbar:
+            write_file = time.time()
             if output_file.suffix == '.csv':
                 for i in range(0, len(output), chunk_size):  # Adjust the chunk size as needed
                     building_category = output.iloc[i].building_category
@@ -254,6 +265,7 @@ class EbmDefaultHandler:
                     output.iloc[i:i + chunk_size].to_csv(output_file, mode='a', header=(i == 0), index=False,
                                                          sep=csv_delimiter)
                     pbar.display(f'Writing {building_category}')
+                closing_file = time.time()
                 pbar.display(f'Wrote {output_file}')
             else:
                 with pd.ExcelWriter(output_file, engine='xlsxwriter') as excel_writer:
@@ -266,8 +278,13 @@ class EbmDefaultHandler:
                         page_end = min(i + chunk_size, len(output))
                         logger.trace(f'{start_row=} {page_start=} {page_end=}')
                         output.iloc[page_start:page_end].to_excel(excel_writer, startrow=start_row, header=(i == 0),
-                                                                  merge_cells=False, index=False)
+                                                                  merge_cells=True, index=not reset_index)
                         pbar.update(chunk_size)
                     pbar.set_description(f'Closing {output_file}')
-        logger.debug(f'Wrote {output_file}')
+                    closing_file = time.time()
+        logger.info(f'Wrote {output_file}')
+        logger.debug(f'  wrote dataframe in { closing_file - write_file:.4} seconds')
+        logger.debug(f'  closed file in {time.time() - closing_file:.4} seconds')
+        logger.debug(f'  wrote {int(output_file.stat().st_size/1_000_000):_d} MB in {time.time() - write_file:.4} seconds')
+
 

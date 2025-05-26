@@ -12,7 +12,7 @@ from ebm.model.file_handler import FileHandler
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.calibrate_energy_requirements import EnergyRequirementCalibrationWriter, \
     EnergyConsumptionCalibrationWriter
-from ebm.model.calibrate_heating_systems import DistributionOfHeatingSystems, transform_heating_systems
+from ebm.model.calibrate_heating_systems import DistributionOfHeatingSystems, group_heating_systems_by_energy_carrier
 from ebm.services.calibration_writer import ComCalibrationReader, ExcelComCalibrationResultWriter
 
 LOG_FORMAT = """
@@ -69,12 +69,12 @@ def main():
 
     logger.info('Calculate calibrated energy use')
     area_forecast = None
-    area_forecast_file = pathlib.Path('kalibrering/area_forecast.csv')
+    area_forecast_file = pathlib.Path('kalibrert/area_forecast.csv')
     if area_forecast_file.is_file():
         logger.info(f'  Using {area_forecast_file}')
         area_forecast = pd.read_csv(area_forecast_file)
 
-    database_manager = DatabaseManager(FileHandler(directory='kalibrering'))
+    database_manager = DatabaseManager(FileHandler(directory='kalibrert'))
 
     df = run_calibration(database_manager, calibration_year=2023,
                          area_forecast=area_forecast, write_to_output=write_to_disk)
@@ -83,7 +83,8 @@ def main():
 
     logger.info('Transform heating systems')
 
-    energy_source_by_building_group = transform_heating_systems(df, calibration_year)
+    energy_source_by_building_group = group_heating_systems_by_energy_carrier(df)
+    energy_source_by_building_group = energy_source_by_building_group.xs(2023, level='year')
 
     if write_to_disk:
         if not output_directory.is_dir():

@@ -6,6 +6,7 @@ import pytest
 import pandas as pd
 
 from ebm.model.building_category import BuildingCategory
+from ebm.model.energy_need_filter import filter_original_condition
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.energy_requirement_filter import EnergyRequirementFilter
 from ebm.model.exceptions import AmbiguousDataError
@@ -62,6 +63,13 @@ def test_yearly_improvements_return_value_for_best_match(default_parameters,
     result = e_r_filter.get_yearly_improvements(tek=tek, purpose=purpose)
     assert result == expected_value
 
+    rs = filter_original_condition(default_parameters.get('yearly_improvements'),
+                              building_category=default_parameters.get('building_category'),
+                              tek=tek,
+                              purpose=purpose)
+    assert len(rs) == 1
+    assert rs.iloc[0].yearly_efficiency_improvement == expected_value
+
 
 def test_get_yearly_improvements_default_value_when_not_found(default_parameters):
     """
@@ -73,6 +81,12 @@ def test_get_yearly_improvements_default_value_when_not_found(default_parameters
                                             'building_category': BuildingCategory.HOUSE})
     result = e_r_filter.get_yearly_improvements(tek='TEK21', purpose=EnergyPurpose.HEATING_RV)
     assert result == 0.9
+    rs = filter_original_condition(default_parameters.get('yearly_improvements'),
+                              building_category=default_parameters.get('building_category'),
+                              tek='TEK21',
+                              purpose=EnergyPurpose.HEATING_RV)
+    assert len(rs) == 1
+    assert rs.iloc[0].yearly_efficiency_improvement == 0.9
 
 
 def test_get_yearly_improvements_return_false_value_when_building_category_not_found(default_parameters,
@@ -89,6 +103,13 @@ def test_get_yearly_improvements_return_false_value_when_building_category_not_f
     result = e_r_filter.get_yearly_improvements(tek='TEK90', purpose=EnergyPurpose.COOLING) 
     assert result == 0.0
 
+    rs = filter_original_condition(default_parameters.get('yearly_improvements'),
+                              building_category=default_parameters.get('building_category'),
+                              tek='TEK90',
+                              purpose=EnergyPurpose.HEATING_RV)
+    assert len(rs) == 0
+
+
 
 def test_get_yearly_improvements_return_false_value_when_purpose_not_found(default_parameters,
                                                                            no_default_df):
@@ -102,6 +123,12 @@ def test_get_yearly_improvements_return_false_value_when_purpose_not_found(defau
     result = e_r_filter.get_yearly_improvements(tek='TEK90', purpose=EnergyPurpose.LIGHTING) 
     assert result == 0.0
 
+    rs = filter_original_condition(default_parameters.get('yearly_improvements'),
+                                   building_category=default_parameters.get('building_category'),
+                                   tek='TEK90',
+                                   purpose=EnergyPurpose.LIGHTING)
+    assert len(rs) == 0
+
 
 def test_get_yearly_improvements_return_false_value_when_tek_not_found(default_parameters,
                                                                            no_default_df):
@@ -114,6 +141,12 @@ def test_get_yearly_improvements_return_false_value_when_tek_not_found(default_p
                                             'yearly_improvements': no_default_df})
     result = e_r_filter.get_yearly_improvements(tek='TEK', purpose=EnergyPurpose.COOLING) 
     assert result == 0.0
+
+    rs = filter_original_condition(no_default_df,
+                                   building_category=default_parameters.get('building_category'),
+                                   tek='TEK',
+                                   purpose=EnergyPurpose.cooling)
+    assert len(rs) == 0
 
 
 def test_get_yearly_improvements_return_value_when_match_has_same_priority(default_parameters):
@@ -135,6 +168,13 @@ def test_get_yearly_improvements_return_value_when_match_has_same_priority(defau
                                             'yearly_improvements': yearly_improvements})
     result = e_r_filter.get_yearly_improvements(tek='TEK01', purpose=EnergyPurpose.LIGHTING) 
     assert result == 0.1
+
+    rs = filter_original_condition(yearly_improvements,
+                              building_category=default_parameters.get('building_category'),
+                              tek='TEK01',
+                              purpose=EnergyPurpose.LIGHTING)
+    assert len(rs) == 1
+    assert rs.iloc[0].yearly_efficiency_improvement == 0.3 # diverging implementation
 
 
 def test_get_yearly_improvements_raise_error_for_duplicate_rows_with_different_values(default_parameters):

@@ -111,6 +111,7 @@ target/
 
 # Pycharm
 .idea/
+*-pycharm-support-libs/
 
 # IPython
 profile_default/
@@ -175,6 +176,8 @@ dmypy.json
 cython_debug/
 modelframework/results/thema/test_performance.ipynb
 modelframework/results/thema/test_aggregations.ipynb
+# Ebm data
 output/
 input/
 kalibrering/
+tests/ebm/data/ebm/

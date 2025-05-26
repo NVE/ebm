@@ -19,15 +19,15 @@ documentation for details.
 
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :titlesonly:
    :caption: Model Functionality
 
    basic_concepts
    model-description
    calculations
-   limitations
    heating_systems
+   limitations
 
 .. toctree::
    :maxdepth: 1

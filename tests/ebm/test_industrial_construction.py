@@ -292,7 +292,7 @@ def test_calculate_industrial_construction_storage_repairs(default_input):
         data={y: 33755.0 for y in year_range})
     population = pd.Series(name='population', data=default_input.get('population')).loc[year_range]
 
-    result = ConCal.calculate_industrial_construction(building_category=BuildingCategory.STORAGE_REPAIRS,
+    result = ConCal.calculate_industrial_construction(building_category=BuildingCategory.STORAGE,
                                                       total_floor_area=total_floor_area,
                                                       constructed_floor_area=constructed_floor_area,
                                                       demolition_floor_area=demolition_floor_area,

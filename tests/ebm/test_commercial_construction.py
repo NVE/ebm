@@ -10,7 +10,7 @@ from ebm.model.database_manager import DatabaseManager
 
 
 def test_calculate_construction_calls_commercial_construction():
-    bc = BuildingCategory.STORAGE_REPAIRS
+    bc = BuildingCategory.STORAGE
     demolition_floor_area = pd.Series([35_500, 35_500, 35_500, 35_500, 35_500,
                                        35_500, 35_500, 35_500],
                                       index=YearRange(2020, 2027).to_index())
@@ -49,7 +49,7 @@ def test_calculate_construction_calls_commercial_construction():
         database_manager=database_manager,
         period=period)
 
-    database_manager.get_area_per_person.assert_called_with(BuildingCategory.STORAGE_REPAIRS)
+    database_manager.get_area_per_person.assert_called_with(BuildingCategory.STORAGE)
     ConCal.calculate_commercial_construction.assert_called_once()
 
     # Unset mock on ConstructionCalculator so that any following test using
@@ -95,10 +95,14 @@ def test_calculate_commercial_construction_with_area_per_person_as_series():
     expected_yearly_construction = pd.Series([0.0, 810_000, 812_000],
                                              index=period.to_index())
     expected_accumulated_construction = pd.Series([0.0, 810_000, 1622_000],
-                                             index=period.to_index())
+                                                  index=period.to_index())
+    expected_demolition = pd.Series([10_000, 12_000, 14_000], index=period.to_index())
+
+
     expected = pd.DataFrame({
+            'demolished_floor_area': expected_demolition,
             "constructed_floor_area": expected_yearly_construction,
-            "accumulated_constructed_floor_area": expected_accumulated_construction
+            "accumulated_constructed_floor_area": expected_accumulated_construction,
         })
 
     result = ConCal.calculate_commercial_construction(
@@ -124,7 +128,11 @@ def test_calculate_commercial_construction_with_area_per_person_as_float():
                                              index=period.to_index())
     expected_accumulated_construction = pd.Series([0.0, 310_000, 622_000],
                                              index=period.to_index())
+    expected_demolition = pd.Series([10_000, 12_000, 14_000],
+                                    index=period.to_index())
+
     expected = pd.DataFrame({
+            "demolished_floor_area": expected_demolition,
             "constructed_floor_area": expected_yearly_construction,
             "accumulated_constructed_floor_area": expected_accumulated_construction
         })

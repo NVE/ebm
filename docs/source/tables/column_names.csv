@@ -1,0 +1,83 @@
+﻿#
+1;Building category;Bygningskategori;Bygningskategoriene som brukes i TEK. ;Building categories used in the building code.    
+;TEK (Energy performance requirements);Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår. ;Building code in construction year. 
+;Area (Floor area)(m2);Areal;Bruksareal (BRA);Useful floor area [m2]. 
+2;Building category ;Bygningskategori;Bygningskategoriene som brukes i TEK. ;Building categories used in the building code.    
+;area per person;Areal per person;Bruksareal (BRA) per person for hver kategori yrkesbygg. ;Useful floor area per person for each category of non-residential buildings. 
+3;Year;År;År i modellen.;Year in the model.
+;House;Småhus;Areal for nybygging I 2020 og 2021.;New useful floor area for houses in 2020 and 2021.
+;Apartment block;Boligblokk;Areal for nybygging I 2020 og 2021.;New useful floor area for apartments in 2020 and 2021
+4;Building category;Bygningskategori;Bygningskategoriene som brukes i TEK. ;Building categories used in the building code.    
+;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår. ;Building code in construction year. 
+;Energy purpose;Energiformål;Type energiformål. Eks. Belysning eller romoppvarming. ;Energy purpose. Ex. Lighting or space heating.
+;Energy need;Energibehov;Beregnet energibehov per kvadratmeter per energiformål fra TEK [kWh/m2];Calculated energy requirement per square meter for a specific purpose from the building code [kWh/m2]
+;Behaviour factor;Adferdsfaktor;Faktor for å justere på energibehovet per formål, Bygningskategori og TEK. ;A factor to change the energy requirement for each energy purpose, building category and building code. 
+5;Building category;Bygningskategori;Bygningskategoriene som brukes i TEK. ;Building categories used in the building code.    
+;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår. ;Building code in construction year. 
+;Energy purpose;Energiformål;Hvilket energiformål skal endres.;Affected energy purpose.
+;Start year;Startår;Startår endring energibehov.;Start year change in energy need.
+;End year;Sluttår;Sluttår endring energibehov.;End year change in energy need. 
+;Improvement at end year;Endring ved sluttår;Prosentvis endring i sluttår sammenlignet med startår.;Percentage change at end year compared to start year.
+6;Building category;Bygningskategori;Bygningskategoriene som brukes i TEK. ;Building categories used in the building code.    
+;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår. ;Building code in construction year. 
+;Energy purpose;Energiformål;Type energiformål.;Energy purpose. 
+;Building condition;Arealtilstand;Arealets rehabiliteringstilstand. Arealet kan ha en av følgende tilstander: uberørt, ENØK, rehabilitering, ENØK og rehabilitering eller revet. ;The condition of the useful floor area in question. It can have one of the following conditions: original, small measures, renovation, small measures and renovation or demolished. 
+;Energy improvement;Energiforbedring;Prosentvis reduksjon i energibehovet til oppvarming [%]. ;Percentage reduction in heating requirement based on condition [%]. 
+7 (5);Building category;Bygningskategori;Bygningskategoriene som brukes i TEK. ;Building categories used in the building code.    
+;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår. ;Building code in construction year. 
+;Energy purpose;Energiformål;Hvilket energiformål skal endres.;Affected energy purpose.
+;Yearly efficiency improvement;Årlig forbedringsrate;Prosentvis årlig reduksjon i energibehov;Yearly reduction in energy requirements for different purposes.
+8;Heating systems;Oppvarmingsløsninger;En av de 12 tilgjengelige oppvarmingsløsningene. Dette kan være en kombinasjon av en til tre ulike oppvarmingsteknologier. ;One of the 12 available heating systems. A combination of up to three different heating technologies.
+;Base load;Grunnlast;Oppvarmingsteknologien som leverer majoriteten av oppvarmingsbehovet fra en gitt oppvarmingsløsning.;The heating technology delivering the majority of the heating demand from a specific heating technology.  
+;Peak load;Spisslast;Oppvarmingsteknologien som leverer en mindre andel av oppvarmingsbehovet fra en gitt oppvarmingsløsning. Når det enten er kaldt, eller for å varme resterende rom som grunnlasten ikke dekker.;The heating technology delivering a smaller share of the heating demand. Either at low temperatures and/or to deliver heating to rooms the base load does not cover.
+;Tertiary load;Ekstralast;En tredje oppvarmingteknologi som kan brukes som et supplement til grunnlast og spisslast.   ;A third heating technology which can supplement the base and peak load.  
+;Base load energy product;Grunnlast energivare;Energivaren til oppvarmingsteknologien.;Energy product used by the heating technology. 
+;Peak load energy product;Spisslast energivare;Energivaren til oppvarmingsteknologien.;Energy product used by the heating technology. 
+;Tertiary load energy product;Ekstralast energivare;Energivaren til oppvarmingsteknologien.;Energy product used by the heating technology. 
+;Tertiary load share;Ekstralast andel;Andelen av oppvarmingsbehovet som dekkes av ekstralasten. ;Share of the heating need covered by the tertiary load.
+;Base load share;Grunnlast andel;Andelen av oppvarmingsbehovet som dekkes av grunnlasten.;Share of the heating need covered by the base load.
+;Peak load share;Spisslast andel;Andelen av oppvarmingsbehovet som dekkes av spisslasten.;Share of the heating need covered by the peak load.
+;Base load efficiency;Grunnlast virkningsgrad;Virkningsgrad, kan være over eller under 1. ;Efficiency factor, can be smaller or larger than 1. 
+;Peak load efficiency;Spisslast virkningsgrad;Virkningsgrad, kan være over eller under 1. ;Efficiency factor, can be smaller or larger than 1.
+;Tertiary load efficiency;Ekstralast virkningsgrad;Virkningsgrad, kan være over eller under 1. ;Efficiency factor, can be smaller or larger than 1.
+;Domestic hot water;Tappevann;Teknologien som brukes for å varme tappevann.;Technology used to provide hot tap water.
+;Domestic hot water energy product;Tappevann energivare;Energivaren som brukes til å varme tappevann.;The energy product used by the technology providing hot tap water.
+;Domestic hot water efficiency;Tappevann virkningsgrad;Virkningsgraden til teknologien som brukes til å varme tappevannet. Kan være over eller under 1. ;Efficiency factor of the technology providing hot tap water. Can be smaller or larger than 1. 
+;Cooling efficiency;Kjoling virkningsgrad;Virkningsgrad til kjølemaskiner. Satt til 4. ;Efficiency factor for cooling machines, set to 4. 
+9;Building category;Bygningskategori;Bygningskategoriene som brukes i TEK. ;Building categories used in the building code.    
+;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår. ;Building code in construction year. 
+;Initital heating systems;Oppvarmingsløsing utgangspunkt;En av de 12 tilgjengelige oppvarmingsløsningene. Oppvarmingsløsningen som er i bruk. ;One of the 12 available heating systems. The initial heating system. 
+;New heating systems;Ny oppvarmingsløsning;En av de 12 tilgjengelige oppvarmingsløsningene. Fremskrevet endring.;One of the 12 available heating systems. Forecasted change. 
+;2024-2050;2024-2050;Hvert år er en kolonne som inneholder andelen som skal gå fra oppvarmingsløsningen i bruk til en ny oppvarmingsløsning. ;Each year is a new column containing the share defining the change from the initial heating system to a new heating system.
+10;Building category;Bygningskategori;Bygningskategoriene som brukes i TEK. ;Building categories used in the building code.    
+;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår. ;Building code in construction year. 
+;Heating systems;Oppvarmingsløsninger;En av de 12 tilgjengelige oppvarmingsløsningene.;One of the 12 available heating systems. 
+;Year;år;Startår;Start year
+;Heating system share;Oppvarmingsløsning andel;Andel av bygningskategori og TEK med den gitte oppvarmingsløsningen. Summeres til 1 innenfor hver bygningskategori og TEK.;Share of building category and TEK with a specific heating system. Adds up to 1 for each TEK and building category.
+11;Number of holiday houses;Antall fritidsboliger;Antall fritidsboliger. Historisk statistikk hentet fra SSB.  ;Historical statistics on number of holiday homes.
+;Detached houses and farmhouses used as holiday houses;Helårsboliger og våningshus benyttet som fritidsbolig;Antall bygg. Historisk statistikk hentet fra SSB.  ;Historical statistics on number of holiday homes.
+12;Year;År;Modellår;
+;Electricity;Elektrisitet;Historisk elektrisitetsbruk i fritidsboliger.;Historical electricity use in holiday homes.
+;Fuelwood;Ved;Historisk vedforbruk i fritidsbolig.;Historical use of fuelwood in holiday homes. 
+;Fossil fuel;Fossil;Historisk fossilt forbruk i fritidsbolig.;Historical use of fossil fuels in holiday homes.
+13;Year;År;Modellår;
+;New house share;Andel nybygg småhus;Andelen av nybygd areal til boliger som er småhus.;House share of total new residential area.
+;New apartment share;Andel nybygg leilighet;Andelen av nybygd areal til boliger som er i boligblokker.;Apartment share of total new residential area.
+;Floor area new house;Areal nytt småhus;Gjennomsnittlig areal for nye småhus (175 m2);Average area for new houses (175 m2).
+;Floor area new apartments;Areal ny leilighet;Gjennomsnittlig areal for nye leiligheter (75 m2).;Average area for new apartments (75 m2).
+14;Year;År;Historisk og framskrevet. ;Historical and future. 
+;Population;Befolkning;Antall personer i Norge;Historical and forecasted population.
+;Household size;Husholdningsstørrelse;Antall personer per husholdning (gjennomsnitt);Average household size, historical and forecasted. 
+15;Building category;Bygningskategori;Bygningskategoriene som brukes i TEK. ;Building categories used in the building code.    
+;Condition;Tilstand;En av tilstandene: ENØK, rehabilitering eller revet.;One of the conditions: small measure, renovation or demolition.  
+;Earliest age for measure;Tidligste alder ved tiltak;Punkt på S-kurven når tiltak kan begynne å gjennomføres. Alder er byggets alder etter TEK. ;A point on the S-curve when the condition/measure can be completed. Age is according to building code. 
+;Middle point rush period;Midtpunkt for hurtigperiode;Midtpunkt for hurtigperiode for s-kurven. ;Middle point for the rush period on the s-curve. 
+;Rush period years;Hurtigperiode;Lengde på perioden når flest bygg gjør tiltak.;Length of a period when the majority of buildings complete a measure. 
+;Last age for measure;Siste alder ved tiltak;Siste mulig alder tiltak gjennomføres. ;Deadline for when a measure can be completed. 
+;Rush share;Andel I hurtigperiode;Hvor stor andel av bygningsmassen som utfører tiltaket i hurtigperioden ;Share of buildings completing the measure during the rush period. 
+;Never share;Andel ingen tiltak;Andel av bygg som aldri gjennomfører et tiltak. ;Share of buildings never completing a measure. 
+16;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår. ;Building code in construction year. 
+18;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår. ;Building code in construction year. 
+;Building year;Byggeår;Gjennomsnittlig byggeår for bygg innenfor en TEK;Average year of construction for buildings in a building code.  
+;Period start year;Periodestart;Startår for en spesifikk TEK.;Start year for a building code category.
+;Period end year;Periodeslutt;Sluttår for en spesifikk TEK. ;End year for a building code category. 

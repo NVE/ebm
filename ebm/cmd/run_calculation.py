@@ -1,4 +1,5 @@
 import os
+import pathlib
 import sys
 from typing import Dict
 
@@ -7,7 +8,7 @@ from loguru import logger
 
 from ebm.holiday_home_energy import HolidayHomeEnergy
 from ebm.model.building_category import BuildingCategory
-from ebm.model.building_condition import BuildingCondition
+
 from ebm.model.buildings import Buildings
 from ebm.model.construction import ConstructionCalculator
 from ebm.model.data_classes import YearRange
@@ -61,9 +62,9 @@ def result_to_horizontal_dataframe(result: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def validate_years(end_year: int, start_year: int):
+def validate_years(start_year: int, end_year: int) -> YearRange:
     """
-    Validates the start and end year arguments.
+    Validates the start and end year arguments and returns a YearRange
 
     Parameters
     ----------
@@ -71,6 +72,11 @@ def validate_years(end_year: int, start_year: int):
         The end year to validate.
     start_year : int
         The start year to validate.
+
+    Returns
+    -------
+    YearRange
+        from start_year to end_year
 
     Raises
     ------
@@ -88,6 +94,7 @@ def validate_years(end_year: int, start_year: int):
     if end_year > 2070:
         msg = f'Unexpected end_year={end_year}. Max end_year year is 2070'
         raise ValueError(msg)
+    return YearRange(start_year, end_year)
 
 
 def calculate_building_category_energy_requirements(building_category: BuildingCategory,
@@ -99,9 +106,11 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
     """
     Calculate energy need by building_category, TEK, building_condition and purpose.
 
+    The parameter building_category is not used and should be removed.
+
     Parameters
     ----------
-    building_category : BuildingCategory
+    building_category : BuildingCategory, unused
     area_forecast : pd.DataFrame
     database_manager : DatabaseManager
     start_year : int
@@ -116,8 +125,7 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
         period=YearRange(start_year, end_year),
         calibration_year=calibration_year if calibration_year > start_year else start_year,
         database_manager=database_manager)
-    df = energy_requirement.calculate_for_building_category(building_category=building_category,
-                                                            database_manager=database_manager)
+    df = energy_requirement.calculate_for_building_category(database_manager=database_manager)
 
     df = df.set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year'])
 
@@ -131,14 +139,22 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
     return merged
 
 
-def write_to_disk(df, constructed_floor_area, building_category: BuildingCategory):
+def write_to_disk(constructed_floor_area, building_category: BuildingCategory):
     """Writes constructed_floor_area to disk if the environment variable EBM_WRITE_TO_DISK is True"""
     if os.environ.get('EBM_WRITE_TO_DISK', 'False').upper() == 'TRUE':
         df = result_to_horizontal_dataframe(constructed_floor_area)
-        df.index.name = building_category
-        df.to_excel(f'output/constructed_{building_category}.xlsx')
+        df.insert(0, 'building_category', building_category)
+        file_path = pathlib.Path('output/construction.xlsx')
+        df.index.name = 'series'
 
-
+        if building_category == BuildingCategory.HOUSE or not file_path.is_file():
+            df.to_excel(file_path, sheet_name='construction')
+            logger.debug(f'Wrote {file_path}')
+        else:
+            with pd.ExcelWriter(file_path, engine='openpyxl', mode='a', if_sheet_exists='overlay') as writer:
+                start_row = writer.sheets['construction'].max_row
+                df.to_excel(writer, sheet_name='construction', index=True, header=False, startrow=start_row)
+            logger.debug(f'Added {building_category} to {file_path}')
 
 
 def calculate_building_category_area_forecast(building_category: BuildingCategory,
@@ -181,24 +197,14 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
                                                                            demolition_floor_area,
                                                                            database_manager,
                                                                            period=years)
-    forecast: Dict[str, Dict[BuildingCondition, pd.Series]] = area_forecast.calc_area(
-        constructed_floor_area['accumulated_constructed_floor_area'])
+    forecast: pd.DataFrame = area_forecast.calc_area(constructed_floor_area['accumulated_constructed_floor_area'])
+    forecast['building_category'] = building_category
 
-    # Temporary method to convert series to list
-    def forecast_to_dataframe():
-        def flatten_forecast():
-            for tek, conditions in forecast.items():
-                for condition, floor_area in conditions.items():
-                    for year, value in floor_area.items():
-                        yield building_category, tek, condition, year, value,
-
-        flat = pd.DataFrame(flatten_forecast(),
-                            columns=['building_category', 'TEK', 'building_condition', 'year', 'm2'])
-        return flat
-
-    df = forecast_to_dataframe()
-    write_to_disk(df, constructed_floor_area, building_category)
-    return df
+    try:
+        write_to_disk(constructed_floor_area, building_category)
+    except (PermissionError, IOError) as ex:
+        logger.debug(ex)
+    return forecast
 
 
 def calculate_heating_systems(energy_requirements, database_manager: DatabaseManager) -> pd.DataFrame:

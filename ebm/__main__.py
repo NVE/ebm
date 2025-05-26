@@ -4,20 +4,18 @@ import pathlib
 import sys
 import typing
 
-import dotenv
 import pandas as pd
-from dotenv import load_dotenv
 from loguru import logger
 
-from ebm.cmd.result_handler import transform_heating_systems_to_horizontal, append_result, \
-    transform_model_to_horizontal, EbmDefaultHandler, transform_holiday_homes_to_horizontal, \
-    transform_to_sorted_heating_systems
-from ebm.cmd.run_calculation import validate_years, calculate_energy_use, configure_loglevel
+from ebm.cmd.helpers import load_environment_from_dotenv
+from ebm.cmd.result_handler import  append_result, \
+    transform_model_to_horizontal, EbmDefaultHandler
+from ebm.cmd.pipeline import export_energy_model_reports
+from ebm.cmd.run_calculation import validate_years, configure_loglevel
 from ebm.cmd import prepare_main
 from ebm.cmd.initialize import init, create_output_directory
 
 from ebm.model.building_category import BuildingCategory
-from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.enums import ReturnCode
 from ebm.model.file_handler import FileHandler
@@ -37,13 +35,7 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
     exit code : tuple[ReturnCode, pd.DataFrame]
         zero when the program exits gracefully
     """
-    env_file = pathlib.Path(dotenv.find_dotenv(usecwd=True))
-    if env_file.is_file():
-        logger.debug(f'Loading environment from {env_file}')
-        load_dotenv(pathlib.Path('.env').absolute())
-    else:
-        logger.debug(f'.env not found in {env_file.absolute()}')
-
+    load_environment_from_dotenv()
     configure_loglevel(os.environ.get('LOG_FORMAT', None))
 
     logger.debug(f'Starting {sys.executable} {__file__}')
@@ -63,7 +55,7 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
     csv_delimiter = arguments.csv_delimiter if arguments.csv_delimiter else ';'
 
     # Make sure everything is working as expected
-    validate_years(end_year=arguments.end_year, start_year=arguments.start_year)
+    model_years = validate_years(start_year=arguments.start_year, end_year=arguments.end_year)
 
     input_directory = arguments.input
     logger.info(f'Using data from "{input_directory}"')
@@ -102,36 +94,32 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
 
     default_handler = EbmDefaultHandler()
 
-    year_range = YearRange(arguments.start_year, arguments.end_year)
-    model = default_handler.extract_model(year_range, building_categories, database_manager, step_choice)
+    model = None
 
     if step_choice == 'energy-use':
-        logger.debug('Transform heating systems')
-        holiday_homes = transform_holiday_homes_to_horizontal(calculate_energy_use(database_manager))
-        hz = transform_heating_systems_to_horizontal(model)
-        heating_systems_hz = transform_to_sorted_heating_systems(hz, holiday_homes)
-        if output_file.name == '-':
-            print(heating_systems_hz.to_markdown(index=False))
-        append_result(output_file, heating_systems_hz, 'energy-use')
-    elif convert_result_to_horizontal and (step_choice in ['area-forecast', 'energy-requirements']) and output_file.suffix=='.xlsx':
-        sheet_name_prefix = 'area' if step_choice == 'area-forecast' else 'energy'
-        logger.debug(f'Transform heating {step_choice}')
-
-        df = transform_model_to_horizontal(model.reset_index())
-        append_result(output_file, df, f'{sheet_name_prefix} condition')
-
-        model = model.reset_index()
-        # Demolition should not be summed any further
-        model = model[model.building_condition!='demolition']
-        model['building_condition'] = 'all'
-        df = transform_model_to_horizontal(model)
-        append_result(output_file, df, f'{sheet_name_prefix} TEK')
-
-        model['TEK'] = 'all'
-        df = transform_model_to_horizontal(model)
-        append_result(output_file, df, f'{sheet_name_prefix} category')
+        export_energy_model_reports(model_years, database_manager, output_file if output_file.is_dir() else output_file.parent)
     else:
-        default_handler.write_tqdm_result(output_file, model, csv_delimiter)
+        model = default_handler.extract_model(model_years, building_categories, database_manager, step_choice)
+
+        if convert_result_to_horizontal and (step_choice in ['area-forecast', 'energy-requirements']) and output_file.suffix=='.xlsx':
+            sheet_name_prefix = 'area' if step_choice == 'area-forecast' else 'energy'
+            logger.debug(f'Transform heating {step_choice}')
+
+            df = transform_model_to_horizontal(model.reset_index())
+            append_result(output_file, df, f'{sheet_name_prefix} condition')
+
+            model = model.reset_index()
+            # Demolition should not be summed any further
+            model = model[model.building_condition!='demolition']
+            model['building_condition'] = 'all'
+            df = transform_model_to_horizontal(model)
+            append_result(output_file, df, f'{sheet_name_prefix} TEK')
+
+            model['TEK'] = 'all'
+            df = transform_model_to_horizontal(model)
+            append_result(output_file, df, f'{sheet_name_prefix} category')
+        else:
+            default_handler.write_tqdm_result(output_file, model, csv_delimiter)
 
 
     if arguments.open or os.environ.get('EBM_ALWAYS_OPEN', 'FALSE').upper() == 'TRUE':

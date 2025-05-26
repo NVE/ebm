@@ -32,10 +32,10 @@ def main():
 
     file_handler = FileHandler(directory=input_path)
     database_manager = DatabaseManager(file_handler=file_handler)
-    run_all(years, database_manager, output_path)
+    export_energy_model_reports(years, database_manager, output_path)
 
 
-def run_all(years: YearRange, database_manager: DatabaseManager, output_path: pathlib.Path):
+def export_energy_model_reports(years: YearRange, database_manager: DatabaseManager, output_path: pathlib.Path):
     logger.info('Area to area.xlsx')
     logger.debug('Extract area')
 

@@ -4,7 +4,7 @@ from enum import StrEnum, unique, auto
 
 import pandas as pd
 
-from ebm.model.building_category import BuildingCategory, BEMA_ORDER as building_category_order
+from ebm.model.building_category import BEMA_ORDER as building_category_order
 from ebm.model.tek import BEMA_ORDER as tek_order
 
 

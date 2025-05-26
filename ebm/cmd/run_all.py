@@ -32,7 +32,10 @@ def main():
 
     file_handler = FileHandler(directory=input_path)
     database_manager = DatabaseManager(file_handler=file_handler)
+    run_all(years, database_manager, output_path)
 
+
+def run_all(years: YearRange, database_manager: DatabaseManager, output_path: pathlib.Path):
     logger.info('Area to area.xlsx')
     logger.debug('Extract area')
 
@@ -177,11 +180,6 @@ def main():
     logger.debug(f'Adding top row filter to {demolition_construction_file}')
     add_top_row_filter(workbook_file=demolition_construction_file, sheet_names=['long'])
     logger.info(f'Wrote {demolition_construction_file.name}')
-
-    logger.info('❌ raw data')
-    logger.debug('❌ area')
-    logger.debug('❌ energy_need')
-    logger.debug('❌ energy_use')
 
 
 def load_config():

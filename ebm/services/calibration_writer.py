@@ -56,9 +56,9 @@ class ComCalibrationReader:
                     if not extra or extra.strip() in ('?', ''):
                         extra = HeatingSystems.ELECTRICITY
 
-                    if variabel not in HeatingSystems:
+                    if variabel not in [h for h in HeatingSystems]:
                         unknown_heating_systems.add(variabel)
-                    if extra not in HeatingSystems:
+                    if extra not in [h for h in HeatingSystems]:
                         unknown_heating_systems.add(extra)
                 yield bc, erq, variabel, row[3], extra
             if len(unknown_heating_systems) > 0:

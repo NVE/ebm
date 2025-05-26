@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 from ebm.cmd import initialize
 from ebm.model.file_handler import FileHandler
+from ebm.__version__ import version
 
 
 @pytest.fixture
@@ -174,7 +175,8 @@ def test_create_output_raises_value_error_on_empty_arguments():
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Test only runs on Windows")
 def test_default_input_override():
-    assert initialize.DEFAULT_INPUT == pathlib.Path('X:\\NAS\\Data\\ebm\\default-input')
+    expected_path = f'X:\\NAS\\Data\\ebm\\default-input-{".".join(version.split(".")[:2])}'
+    assert initialize.DEFAULT_INPUT == pathlib.Path(expected_path)
 
 
 if __name__ == "__main__":

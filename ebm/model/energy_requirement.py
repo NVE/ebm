@@ -176,13 +176,13 @@ class EnergyRequirement:
         """
         required_in_yearly_improvement = {'yearly_efficiency_improvement', 'start_year', 'end_year'}
         if not required_in_yearly_improvement.issubset(yearly_improvement.columns):
-            logger.debug(f'Got columns {', '.join(yearly_improvement.columns)}')
+            logger.debug(f'Got columns {", ".join(yearly_improvement.columns)}')
             missing = required_in_yearly_improvement.difference(yearly_improvement.columns)
             raise ValueError('Required column{} not found in yearly_improvement: {}'.format(
                 's' if len(missing) != 1 else '', missing
             ))
         if 'year' not in df_years:
-            logger.debug(f'Got columns {', '.join(df_years.columns)}')
+            logger.debug(f'Got columns {", ".join(df_years.columns)}')
             raise ValueError('df_years does not contain column year')
 
         years = pd.DataFrame(data=[y for y in df_years.year.unique()], columns=['year'])

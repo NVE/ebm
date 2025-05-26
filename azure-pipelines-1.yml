@@ -18,6 +18,8 @@ jobs:
     matrix:
       Python312:
         python.version: '3.12'
+      Python311:
+        python.version: '3.11'
   steps:
     - task: UsePythonVersion@0
       inputs:
@@ -45,6 +47,8 @@ jobs:
     matrix:
       Python312:
         python.version: '3.12'
+      Python311:
+        python.version: '3.11'
   steps:
     - task: UsePythonVersion@0
       inputs:

@@ -10,7 +10,7 @@ def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame) -> pd.Da
     df = df.set_index(['building_category', 'TEK', 'year', 'building_condition']).unstack()
     df.columns=df.columns.get_level_values(1)
     df['total']=df.sum(axis=1)
-    df['m2'] = df['total'] - df['total'].shift()
+    df['m2'] = df.groupby(level=['building_category', 'TEK'])['total'].diff()
 
     df['demolition_construction'] = 'construction'
 

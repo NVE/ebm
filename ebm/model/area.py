@@ -8,37 +8,43 @@ from ebm.model.building_condition import BuildingCondition
 
 def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame,
                                            tek_parameters: pd.DataFrame | None=None) -> pd.DataFrame:
+    construction_by_year = transform_construction_by_year(area_forecast, tek_parameters)
+    demolition_by_year = transform_demolition_by_year(area_forecast)
+
+    demolition_by_year.loc[:, 'demolition_construction'] = 'demolition'
+    construction_by_year.loc[:, 'demolition_construction'] = 'construction'
+
+    area_change = pd.concat([
+        demolition_by_year[['building_category', 'TEK', 'year', 'demolition_construction', 'm2']],
+        construction_by_year.reset_index()[['building_category', 'TEK', 'year', 'demolition_construction', 'm2']]
+    ])
+    return area_change.fillna(0.0)
+
+
+def transform_demolition_by_year(area_forecast):
+    demolition = area_forecast[area_forecast['building_condition'] == BuildingCondition.DEMOLITION].copy()
+    demolition.loc[:, 'm2'] = -demolition.loc[:, 'm2']
+    return demolition
+
+
+def transform_construction_by_year(area_forecast, tek_parameters):
     tek_params = tek_parameters
     if tek_params is None:
         tek_params = pd.DataFrame(
             data=[['TEK17', 2025, 2020, 2050]],
             columns=['TEK', 'building_year', 'period_start_year', 'period_end_year'])
         logger.warning('Using default TEK17 for construction')
-
     area_forecast = area_forecast.merge(tek_params, on='TEK', how='left')
-
     constructed = area_forecast.query(
         'year>=period_start_year and year <=period_end_year and building_condition!="demolition"').copy()
-
     constructed = constructed.set_index(['building_category', 'TEK', 'year', 'building_condition']).unstack()
-    constructed.columns=constructed.columns.get_level_values(1)
-    constructed['total']=constructed.sum(axis=1)
+    constructed.columns = constructed.columns.get_level_values(1)
+    constructed['total'] = constructed.sum(axis=1)
     constructed['m2'] = constructed.groupby(level=['building_category', 'TEK'])['total'].diff()
+    construction = constructed[['m2']].copy()
 
-    constructed['demolition_construction'] = 'construction'
-
-    construction = constructed[['demolition_construction','m2']].copy()
     construction['m2'] = construction['m2'].clip(lower=np.nan)
-
-    demolition = area_forecast[area_forecast['building_condition']==BuildingCondition.DEMOLITION].copy()
-    demolition.loc[:, 'demolition_construction'] = 'demolition'
-    demolition.loc[:, 'm2'] = -demolition.loc[:, 'm2']
-
-    area_change = pd.concat([
-        demolition[['building_category', 'TEK', 'year', 'demolition_construction', 'm2']],
-        construction.reset_index()[['building_category', 'TEK', 'year', 'demolition_construction', 'm2']]
-    ])
-    return area_change.fillna(0.0)
+    return construction
 
 
 def transform_demolition_construction(energy_use: pd.DataFrame, area_change: pd.DataFrame) -> pd.DataFrame:

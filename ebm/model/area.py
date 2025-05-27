@@ -5,7 +5,7 @@ from ebm.model.building_condition import BuildingCondition
 
 
 def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame) -> pd.DataFrame:
-    df = area_forecast[area_forecast.TEK=='TEK17'].copy()
+    df = area_forecast[(area_forecast.TEK=='TEK17') & (area_forecast.building_condition!='demolition')].copy()
 
     df = df.set_index(['building_category', 'TEK', 'year', 'building_condition']).unstack()
     df.columns=df.columns.get_level_values(1)

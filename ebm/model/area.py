@@ -25,7 +25,7 @@ def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame) -> pd.Da
         demolition[['building_category', 'TEK', 'year', 'demolition_construction', 'm2']],
         construction.reset_index()[['building_category', 'TEK', 'year', 'demolition_construction', 'm2']]
     ])
-    return area_change
+    return area_change.fillna(0.0)
 
 
 def transform_demolition_construction(energy_use: pd.DataFrame, area_change: pd.DataFrame) -> pd.DataFrame:

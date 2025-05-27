@@ -20,9 +20,9 @@ def test_transform_area_forecast_to_area_change():
 
     expected = pd.DataFrame(
         [('house', 'TEK97', y, 'demolition', m2) for y, m2 in enumerate((0.0, -4.0, -8.0), start=2020)]+
-        [('office', 'TEK17', y, 'demolition', m2) for y, m2 in enumerate((np.nan, np.nan, -1.0), start=2020)]+
-        [('house', 'TEK17', y, 'construction', m2) for y, m2 in enumerate((np.nan, 21.0, 20.0), start=2020)]+
-        [('office', 'TEK17', y, 'construction', m2) for y, m2 in enumerate((np.nan, 2.0, 3.0), start=2020)]
+        [('office', 'TEK17', y, 'demolition', m2) for y, m2 in enumerate((0.0, 0.0, -1.0), start=2020)]+
+        [('house', 'TEK17', y, 'construction', m2) for y, m2 in enumerate((0.0, 21.0, 20.0), start=2020)]+
+        [('office', 'TEK17', y, 'construction', m2) for y, m2 in enumerate((0.0, 2.0, 3.0), start=2020)]
     , columns=['building_category', 'TEK', 'year', 'demolition_construction', 'm2'])
 
     assert len(result) == 12

@@ -164,7 +164,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     add_top_row_filter(workbook_file=energy_purpose_output, sheet_names=['long'])
     logger.info(f'Wrote {energy_purpose_output.name}')
 
-    area_change = a_f.transform_area_forecast_to_area_change(area_forecast=area_forecast)
+    area_change = a_f.transform_area_forecast_to_area_change(area_forecast=area_forecast, tek_parameters=None)
 
     logger.info('demolition_construction')
     logger.debug('Transform demolition_construction')

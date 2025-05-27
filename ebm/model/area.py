@@ -1,20 +1,33 @@
+
+from loguru import logger
 import numpy as np
 import pandas as pd
 
 from ebm.model.building_condition import BuildingCondition
 
 
-def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame) -> pd.DataFrame:
-    df = area_forecast[(area_forecast.TEK=='TEK17') & (area_forecast.building_condition!='demolition')].copy()
+def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame,
+                                           tek_parameters: pd.DataFrame | None=None) -> pd.DataFrame:
+    tek_params = tek_parameters
+    if tek_params is None:
+        tek_params = pd.DataFrame(
+            data=[['TEK17', 2025, 2020, 2050]],
+            columns=['TEK', 'building_year', 'period_start_year', 'period_end_year'])
+        logger.warning('Using default TEK17 for construction')
 
-    df = df.set_index(['building_category', 'TEK', 'year', 'building_condition']).unstack()
-    df.columns=df.columns.get_level_values(1)
-    df['total']=df.sum(axis=1)
-    df['m2'] = df.groupby(level=['building_category', 'TEK'])['total'].diff()
+    area_forecast = area_forecast.merge(tek_params, on='TEK', how='left')
 
-    df['demolition_construction'] = 'construction'
+    constructed = area_forecast.query(
+        'year>=period_start_year and year <=period_end_year and building_condition!="demolition"').copy()
 
-    construction = df[['demolition_construction','m2']].copy()
+    constructed = constructed.set_index(['building_category', 'TEK', 'year', 'building_condition']).unstack()
+    constructed.columns=constructed.columns.get_level_values(1)
+    constructed['total']=constructed.sum(axis=1)
+    constructed['m2'] = constructed.groupby(level=['building_category', 'TEK'])['total'].diff()
+
+    constructed['demolition_construction'] = 'construction'
+
+    construction = constructed[['demolition_construction','m2']].copy()
     construction['m2'] = construction['m2'].clip(lower=np.nan)
 
     demolition = area_forecast[area_forecast['building_condition']==BuildingCondition.DEMOLITION].copy()

@@ -12,6 +12,7 @@ def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame,
     demolition_by_year = transform_demolition_by_year(area_forecast)
 
     demolition_by_year.loc[:, 'demolition_construction'] = 'demolition'
+    demolition_by_year.loc[:, 'm2'] = -demolition_by_year.loc[:, 'm2']
     construction_by_year.loc[:, 'demolition_construction'] = 'construction'
 
     area_change = pd.concat([
@@ -23,7 +24,6 @@ def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame,
 
 def transform_demolition_by_year(area_forecast):
     demolition = area_forecast[area_forecast['building_condition'] == BuildingCondition.DEMOLITION].copy()
-    demolition.loc[:, 'm2'] = -demolition.loc[:, 'm2']
     return demolition
 
 

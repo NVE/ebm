@@ -6,7 +6,7 @@ from ebm.model.area import transform_area_forecast_to_area_change
 
 def test_transform_area_forecast_to_area_change():
     """
-    Test that construction is the change in sum of area, demolition is used as is (possibly wrong). When no
+    Test that construction is the change in sum of area, demolition is a negative value. When no
     tek_parameters are provided, construction is assumed to be of TEK17.
     """
     area = pd.DataFrame(

@@ -5,7 +5,10 @@ from ebm.model.area import transform_area_forecast_to_area_change
 
 
 def test_transform_area_forecast_to_area_change():
-    """Test that construction is the sum of area"""
+    """
+    Test that construction is the change in sum of area, demolition is used as is (possibly wrong). When no
+    tek_parameters are provided, construction is assumed to be of TEK17.
+    """
     area = pd.DataFrame(
         data=[('house', 'TEK97', 'original_condition', y, m2) for y, m2 in [(2020, 100), (2021, 90), (2022, 80)]]+
              [('house', 'TEK97', 'renovation', y, m2 ) for y, m2 in [(2020, 0), (2021, 6), (2022, 12)]]+
@@ -31,7 +34,10 @@ def test_transform_area_forecast_to_area_change():
 
 
 def test_transform_area_forecast_to_area_change_use_correct_tek_for_construction():
-    """Test that construction is the sum of area"""
+    """
+    Test that tek_parameters is used to figure out the correct TEK for construction In this case we expect that TEK21
+    is used.
+    """
     area = pd.DataFrame(
         data=[('house', 'TEK97', 'original_condition', y, m2) for y, m2 in [(2020, 100), (2021, 90), (2022, 80)]]+
              [('house', 'TEK97', 'demolition', y, m2 ) for y, m2 in [(2020, 0), (2021, 10), (2022, 20)]]+

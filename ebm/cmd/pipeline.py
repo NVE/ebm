@@ -39,6 +39,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     logger.info('Area to area.xlsx')
     logger.debug('Extract area')
 
+    tek_parameters = database_manager.file_handler.get_tek_params() # 📍
     area_forecast = extractors.extract_area_forecast(years, database_manager) # 📍
     energy_need_kwh_m2 = extractors.extract_energy_need(years, database_manager) # 📍
     heating_systems_projection = extractors.extract_heating_systems_projection(years, database_manager) # 📍
@@ -164,7 +165,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     add_top_row_filter(workbook_file=energy_purpose_output, sheet_names=['long'])
     logger.info(f'Wrote {energy_purpose_output.name}')
 
-    area_change = a_f.transform_area_forecast_to_area_change(area_forecast=area_forecast, tek_parameters=None)
+    area_change = a_f.transform_area_forecast_to_area_change(area_forecast=area_forecast, tek_parameters=tek_parameters)
 
     logger.info('demolition_construction')
     logger.debug('Transform demolition_construction')

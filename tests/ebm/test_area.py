@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import pytest
 
 from ebm.model.area import (transform_area_forecast_to_area_change,
                             transform_construction_by_year,
@@ -113,4 +114,14 @@ def test_transform_accumulated_to_yearly_demolition_handle_disorganized_area():
         , columns=['building_category', 'TEK', 'year', 'm2']).set_index(['building_category', 'TEK', 'year'])
 
     pd.testing.assert_frame_equal(result, expected)
+
+
+def test_transform_accumulated_to_yearly_demolition_expect_columns():
+    area = pd.DataFrame(
+        data=[('house', 'TEK21', 'demolition', y, m2) for y, m2 in [(2020, np.nan), (2021, np.nan), (2022, 0.0)]],
+        columns=['building_category', 'TEK', 'building_condition', 'year', 'm2'])
+
+    for expected_column in area.columns:
+        with pytest.raises(ValueError):
+            transform_cumulative_demolition_to_yearly_demolition(area.drop(columns=[expected_column]))
 

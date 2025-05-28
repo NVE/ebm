@@ -50,6 +50,7 @@ def transform_cumulative_demolition_to_yearly_demolition(area_forecast: pd.DataF
         raise ValueError(f'Column {', '.join(missing)} not found in area_forecast')
     df = area_forecast[area_forecast['building_condition'] == BuildingCondition.DEMOLITION].copy()
     df = df.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+    df = df.sort_index(level=['building_category', 'TEK', 'year'])
     df['m2'] = df['m2'].fillna(0)
     df['diff'] = df.groupby(by=['building_category', 'TEK', 'building_condition']).diff()['m2']
 

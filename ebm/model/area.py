@@ -45,6 +45,8 @@ def transform_cumulative_demolition_to_yearly_demolition(area_forecast: pd.DataF
     - The function assumes that the input data is cumulative and sorted by year.
     - The first year in each group will have a demolition value of 0.
     """
+    if area_forecast is None:
+        raise ValueError('Expected area_forecast of type pandas DataFrame. Got «None» instead.')
     expected_columns = ('building_category', 'TEK', 'building_condition', 'year', 'm2')
     missing_columns = [c for c in expected_columns if c not in area_forecast.columns]
     if missing_columns:
@@ -91,6 +93,9 @@ def transform_construction_by_year(area_forecast: pd.DataFrame,
     - Construction is defined as all building conditions except 'demolition'.
     - If no TEK parameters are provided, a default TEK17 range is used.
     """
+    if area_forecast is None:
+        raise ValueError('Expected area_forecast of type pandas DataFrame. Got «None» instead.')
+
     expected_columns = ('building_category', 'TEK', 'building_condition', 'year', 'm2')
     missing_columns = [c for c in expected_columns if c not in area_forecast.columns]
     if missing_columns:

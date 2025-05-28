@@ -1,3 +1,4 @@
+# noinspection PyTypeChecker
 import numpy as np
 import pandas as pd
 import pytest
@@ -35,6 +36,18 @@ def test_transform_area_forecast_to_area_change():
     assert len(result) == 12
 
     pd.testing.assert_frame_equal(result, expected)
+
+
+def test_transform_area_forecast_to_area_change_raises_value_error():
+    """
+    transform_area_forecast_to_area_change raise ValueError when area_forecast is None
+    """
+
+    tek_parameters = pd.DataFrame(data=[['TEK17', 2017, 2011, 2019]],
+                                  columns=['TEK', 'building_year', 'period_start_year', 'period_end_year'])
+    with pytest.raises(ValueError):
+        # noinspection PyTypeChecker
+        transform_area_forecast_to_area_change(None, tek_parameters=tek_parameters)
 
 
 def test_transform_construction_by_year():
@@ -80,6 +93,10 @@ def test_transform_construction_by_year_expect_columns():
     for expected_column in area.columns:
         with pytest.raises(ValueError):
             transform_construction_by_year(area.drop(columns=[expected_column]))
+
+    with pytest.raises(ValueError):
+        # noinspection PyTypeChecker
+        transform_construction_by_year(area_forecast=None)
 
     for expected_column in tek_parameters.columns:
         with pytest.raises(ValueError):
@@ -147,3 +164,12 @@ def test_transform_accumulated_to_yearly_demolition_expect_columns():
     for expected_column in area.columns:
         with pytest.raises(ValueError):
             transform_cumulative_demolition_to_yearly_demolition(area.copy().drop(columns=[expected_column]))
+
+    with pytest.raises(ValueError):
+        # noinspection PyTypeChecker
+        transform_cumulative_demolition_to_yearly_demolition(None)
+
+
+if __name__ == "__main__":
+    import os
+    pytest.main([os.path.abspath(__file__)])

@@ -1,6 +1,4 @@
-
 from loguru import logger
-import numpy as np
 import pandas as pd
 
 from ebm.model.building_condition import BuildingCondition
@@ -24,7 +22,9 @@ def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame,
 
 def transform_demolition_by_year(area_forecast):
     demolition = area_forecast[area_forecast['building_condition'] == BuildingCondition.DEMOLITION].copy()
-    return demolition
+    demolition['m2'] = demolition['m2'].fillna(0)
+    demolition['diff'] = demolition.groupby(by=['building_category', 'TEK', 'building_condition'], as_index=False).diff()['m2']
+    return demolition[['building_category', 'TEK', 'year', 'diff']].rename(columns={'diff': 'm2'})
 
 
 def transform_construction_by_year(area_forecast, tek_parameters):

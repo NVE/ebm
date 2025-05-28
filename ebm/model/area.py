@@ -9,11 +9,11 @@ from ebm.model.building_condition import BuildingCondition
 def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame,
                                            tek_parameters: pd.DataFrame | None=None) -> pd.DataFrame:
     construction_by_year = transform_construction_by_year(area_forecast, tek_parameters)
-    demolition_by_year = transform_demolition_by_year(area_forecast)
+    construction_by_year.loc[:, 'demolition_construction'] = 'construction'
 
+    demolition_by_year = transform_demolition_by_year(area_forecast)
     demolition_by_year.loc[:, 'demolition_construction'] = 'demolition'
     demolition_by_year.loc[:, 'm2'] = -demolition_by_year.loc[:, 'm2']
-    construction_by_year.loc[:, 'demolition_construction'] = 'construction'
 
     area_change = pd.concat([
         demolition_by_year[['building_category', 'TEK', 'year', 'demolition_construction', 'm2']],
@@ -37,14 +37,15 @@ def transform_construction_by_year(area_forecast, tek_parameters):
     area_forecast = area_forecast.merge(tek_params, on='TEK', how='left')
     constructed = area_forecast.query(
         'year>=period_start_year and year <=period_end_year and building_condition!="demolition"').copy()
-    constructed = constructed.set_index(['building_category', 'TEK', 'year', 'building_condition']).unstack()
-    constructed.columns = constructed.columns.get_level_values(1)
-    constructed['total'] = constructed.sum(axis=1)
-    constructed['m2'] = constructed.groupby(level=['building_category', 'TEK'])['total'].diff()
-    construction = constructed[['m2']].copy()
+    constructed = constructed[['building_category', 'TEK', 'year', 'building_condition', 'm2']]
+    constructed = constructed.set_index(['building_category', 'TEK', 'year', 'building_condition'])[['m2']].unstack()
 
-    construction['m2'] = construction['m2'].clip(lower=np.nan)
-    return construction
+    constructed['total'] = constructed.sum(axis=1)
+
+    constructed=constructed.groupby(by=['building_category', 'TEK'], as_index=False).diff()
+    constructed = constructed.reset_index()[['building_category', 'TEK', 'year', 'total']]
+    constructed.columns = ['building_category', 'TEK', 'year', 'm2']
+    return constructed
 
 
 def transform_demolition_construction(energy_use: pd.DataFrame, area_change: pd.DataFrame) -> pd.DataFrame:

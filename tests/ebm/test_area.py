@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from ebm.model.area import transform_area_forecast_to_area_change
+from ebm.model.area import transform_area_forecast_to_area_change, transform_construction_by_year
 
 
 def test_transform_area_forecast_to_area_change():
@@ -19,6 +19,7 @@ def test_transform_area_forecast_to_area_change():
              [('office', 'TEK17', 'demolition', y, m2) for y, m2 in [(2020, np.nan), (2021, np.nan), (2022, 1.0)]] +
              [('office', 'TEK17', 'original_condition', y, m2 ) for y, m2 in [(2020, 20), (2021, 22), (2022, 25)]]
         ,columns=['building_category', 'TEK', 'building_condition', 'year', 'm2'])
+
     result  = transform_area_forecast_to_area_change(area, None).reset_index(drop=True)
 
     expected = pd.DataFrame(
@@ -33,7 +34,7 @@ def test_transform_area_forecast_to_area_change():
     pd.testing.assert_frame_equal(result, expected)
 
 
-def test_transform_area_forecast_to_area_change_use_correct_tek_for_construction():
+def test_transform_construction_by_year():
     """
     Test that tek_parameters is used to figure out the correct TEK for construction In this case we expect that TEK21
     is used.
@@ -44,6 +45,7 @@ def test_transform_area_forecast_to_area_change_use_correct_tek_for_construction
              [('house', 'TEK17', 'original_condition', y, m2 ) for y, m2 in [(2020, 100), (2021, 100), (2022, 100)]]+
              [('house', 'TEK17', 'demolition', y, m2 ) for y, m2 in [(2020, 0.0), (2021, 0.0), (2022, 0.0)]]+
              [('house', 'TEK21', 'demolition', y, m2) for y, m2 in [(2020, np.nan), (2021, np.nan), (2022, 0.0)]] +
+             [('house', 'TEK21', 'renovation', y, m2) for y, m2 in [(2020, np.nan), (2021, np.nan), (2022, 1.0)]] +
              [('house', 'TEK21', 'original_condition', y, m2 ) for y, m2 in [(2020, 10.0), (2021, 20.0), (2022, 33.0)]]
         ,columns=['building_category', 'TEK', 'building_condition', 'year', 'm2'])
 
@@ -51,13 +53,11 @@ def test_transform_area_forecast_to_area_change_use_correct_tek_for_construction
         data=[['TEK97', 2012, 0, 2010], ['TEK17', 2017, 2011, 2019], ['TEK21', 2021, 2020, 2050]],
         columns=['TEK', 'building_year', 'period_start_year', 'period_end_year'])
 
-    result  = transform_area_forecast_to_area_change(area, tek_parameters).reset_index(drop=True)
+    result  = transform_construction_by_year(area, tek_parameters).reset_index().set_index(
+        ['building_category', 'TEK', 'year'])[['m2']]
 
     expected = pd.DataFrame(
-        [('house', 'TEK97', y, 'demolition', m2) for y, m2 in enumerate((0.0, -10.0, -20.0), start=2020)]+
-        [('house', 'TEK17', y, 'demolition', m2) for y, m2 in enumerate((0.0, 0.0, 0.0), start=2020)]+
-        [('house', 'TEK21', y, 'demolition', m2) for y, m2 in enumerate((0.0, 0.0, 0.0), start=2020)]+
-        [('house', 'TEK21', y, 'construction', m2) for y, m2 in enumerate((0.0, 10.0, 13.0), start=2020)]
-    , columns=['building_category', 'TEK', 'year', 'demolition_construction', 'm2'])
+        data=[('house', 'TEK21', y, m2) for y, m2 in enumerate((np.nan, 10.0, 14.0), start=2020)],
+        columns=['building_category', 'TEK', 'year', 'm2']).set_index(['building_category', 'TEK', 'year'])
 
     pd.testing.assert_frame_equal(result, expected)

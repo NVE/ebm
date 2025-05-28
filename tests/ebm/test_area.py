@@ -117,11 +117,17 @@ def test_transform_accumulated_to_yearly_demolition_handle_disorganized_area():
 
 
 def test_transform_accumulated_to_yearly_demolition_expect_columns():
+    """
+    transform_cumulative_demolition_to_yearly_demolition should raise ValueError when expected columns are missing
+    """
     area = pd.DataFrame(
         data=[('house', 'TEK21', 'demolition', y, m2) for y, m2 in [(2020, np.nan), (2021, np.nan), (2022, 0.0)]],
         columns=['building_category', 'TEK', 'building_condition', 'year', 'm2'])
 
     for expected_column in area.columns:
         with pytest.raises(ValueError):
-            transform_cumulative_demolition_to_yearly_demolition(area.drop(columns=[expected_column]))
+            transform_cumulative_demolition_to_yearly_demolition(area.copy().drop(columns=[expected_column]))
+
+
+
 

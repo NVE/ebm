@@ -66,6 +66,26 @@ def test_transform_construction_by_year():
     pd.testing.assert_frame_equal(result, expected)
 
 
+def test_transform_construction_by_year_expect_columns():
+    """
+    transform_construction_by_year should raise ValueError when expected columns are missing
+    """
+    area = pd.DataFrame(
+        data=[('house', 'TEK21', 'construction', y, m2) for y, m2 in [(2020, np.nan), (2021, np.nan), (2022, 0.0)]],
+        columns=['building_category', 'TEK', 'building_condition', 'year', 'm2'])
+    tek_parameters = pd.DataFrame(
+        data=[['TEK97', 2012, 0, 2010], ['TEK17', 2017, 2011, 2019], ['TEK21', 2021, 2020, 2050]],
+        columns=['TEK', 'building_year', 'period_start_year', 'period_end_year'])
+
+    for expected_column in area.columns:
+        with pytest.raises(ValueError):
+            transform_construction_by_year(area.drop(columns=[expected_column]))
+
+    for expected_column in tek_parameters.columns:
+        with pytest.raises(ValueError):
+            transform_construction_by_year(area, tek_parameters.drop(columns=[expected_column]))
+
+
 def test_transform_accumulated_to_yearly_demolition():
     """
     Test transform_cumulative_demolition_to_yearly_demolition. Make sure any other condition is ignored. Input accumulated demolition, output
@@ -127,7 +147,3 @@ def test_transform_accumulated_to_yearly_demolition_expect_columns():
     for expected_column in area.columns:
         with pytest.raises(ValueError):
             transform_cumulative_demolition_to_yearly_demolition(area.copy().drop(columns=[expected_column]))
-
-
-
-

@@ -58,13 +58,56 @@ def transform_cumulative_demolition_to_yearly_demolition(area_forecast: pd.DataF
     return df.reset_index()[['building_category', 'TEK', 'year', 'diff']].rename(columns={'diff': 'm2'})
 
 
-def transform_construction_by_year(area_forecast, tek_parameters):
+def transform_construction_by_year(area_forecast: pd.DataFrame,
+                                   tek_parameters: pd.DataFrame | None = None) -> pd.DataFrame:
+    """
+    Calculate yearly constructed building area based on TEK parameters.
+
+    This function filters the input forecast data to include only construction (non-demolition)
+    within the TEK-defined construction period. It then calculates the yearly change in constructed
+    area (m2) for each combination of building category and TEK standard.
+
+    Parameters
+    ----------
+    area_forecast : pandas.DataFrame
+        A DataFrame containing forecasted building area data. Must include the columns:
+        'building_category', 'TEK', 'year', 'building_condition', and 'm2'.
+
+    tek_parameters : pandas.DataFrame or None, optional
+        A DataFrame containing TEK construction period definitions with columns:
+        ['TEK', 'building_year', 'period_start_year', 'period_end_year'].
+        If None, a default TEK17 period is used (2020–2050 with building year 2025).
+
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame with columns ['building_category', 'TEK', 'year', 'm2'], where 'm2' represents
+        the yearly constructed area in square meters.
+
+    Notes
+    -----
+    - The function assumes that the input data is cumulative and calculates the difference
+      between consecutive years to derive yearly values.
+    - Construction is defined as all building conditions except 'demolition'.
+    - If no TEK parameters are provided, a default TEK17 range is used.
+    """
+    expected_columns = ('building_category', 'TEK', 'building_condition', 'year', 'm2')
+    missing_columns = [c for c in expected_columns if c not in area_forecast.columns]
+    if missing_columns:
+        raise ValueError(f'Column {", ".join(missing_columns)} not found in area_forecast')
+
     tek_params = tek_parameters
     if tek_params is None:
         tek_params = pd.DataFrame(
             data=[['TEK17', 2025, 2020, 2050]],
             columns=['TEK', 'building_year', 'period_start_year', 'period_end_year'])
         logger.warning('Using default TEK17 for construction')
+
+    expected_columns = ('TEK', 'building_year', 'period_start_year', 'period_end_year')
+    missing_columns = [c for c in expected_columns if c not in tek_params.columns]
+    if missing_columns:
+        raise ValueError(f'Column {", ".join(missing_columns)} not found in tek_parameters')
+
     area_forecast = area_forecast.merge(tek_params, on='TEK', how='left')
     constructed = area_forecast.query(
         'year>=period_start_year and year <=period_end_year and building_condition!="demolition"').copy()

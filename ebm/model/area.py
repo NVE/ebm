@@ -46,12 +46,12 @@ def transform_cumulative_demolition_to_yearly_demolition(area_forecast: pd.DataF
     - The first year in each group will have a demolition value of 0.
     """
 
-    cumulative_demolition = area_forecast[area_forecast['building_condition'] == BuildingCondition.DEMOLITION].copy()
-    cumulative_demolition['m2'] = cumulative_demolition['m2'].fillna(0)
-    grouped_demolition = cumulative_demolition.groupby(by=['building_category', 'TEK', 'building_condition'], as_index=False)
-    yearly_demolition = cumulative_demolition
-    yearly_demolition['diff'] = grouped_demolition.diff()['m2']
-    return yearly_demolition[['building_category', 'TEK', 'year', 'diff']].rename(columns={'diff': 'm2'})
+    df = area_forecast[area_forecast['building_condition'] == BuildingCondition.DEMOLITION].copy()
+    df = df.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+    df['m2'] = df['m2'].fillna(0)
+    df['diff'] = df.groupby(by=['building_category', 'TEK', 'building_condition'], as_index=False).diff()['m2']
+
+    return df.reset_index()[['building_category', 'TEK', 'year', 'diff']].rename(columns={'diff': 'm2'})
 
 
 def transform_construction_by_year(area_forecast, tek_parameters):

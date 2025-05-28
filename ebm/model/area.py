@@ -45,11 +45,13 @@ def transform_cumulative_demolition_to_yearly_demolition(area_forecast: pd.DataF
     - The function assumes that the input data is cumulative and sorted by year.
     - The first year in each group will have a demolition value of 0.
     """
-
+    expected_columns = ('building_category', 'TEK', 'building_condition', 'year', 'm2')
+    if missing:=[c for c in expected_columns if c not in area_forecast.columns]:
+        raise ValueError(f'Column {', '.join(missing)} not found in area_forecast')
     df = area_forecast[area_forecast['building_condition'] == BuildingCondition.DEMOLITION].copy()
     df = df.set_index(['building_category', 'TEK', 'building_condition', 'year'])
     df['m2'] = df['m2'].fillna(0)
-    df['diff'] = df.groupby(by=['building_category', 'TEK', 'building_condition'], as_index=False).diff()['m2']
+    df['diff'] = df.groupby(by=['building_category', 'TEK', 'building_condition']).diff()['m2']
 
     return df.reset_index()[['building_category', 'TEK', 'year', 'diff']].rename(columns={'diff': 'm2'})
 

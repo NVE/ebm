@@ -84,9 +84,33 @@ def test_transform_accumulated_to_yearly_demolition():
         ['building_category', 'TEK', 'year'])[['m2']]
 
     expected = pd.DataFrame(
-        data=[('house', 'TEK97', y, m2) for y, m2 in enumerate((np.nan, 10.0, 11), start=2020)]+
+        data=
              [('house', 'TEK17', y, m2) for y, m2 in enumerate((np.nan, 2.0, 2.0), start=2020)]+
-             [('house', 'TEK21', y, m2) for y, m2 in enumerate((np.nan, 0.0, 0.0), start=2020)],
+             [('house', 'TEK21', y, m2) for y, m2 in enumerate((np.nan, 0.0, 0.0), start=2020)]+
+             [('house', 'TEK97', y, m2) for y, m2 in enumerate((np.nan, 10.0, 11), start=2020)],
         columns=['building_category', 'TEK', 'year', 'm2']).set_index(['building_category', 'TEK', 'year'])
 
     pd.testing.assert_frame_equal(result, expected)
+
+
+def test_transform_accumulated_to_yearly_demolition_handle_disorganized_area():
+    """
+    Make sure transform_cumulative_demolition_to_yearly_demolition handle disorganized input
+    """
+    area = pd.DataFrame(
+        data=[('house', 'TEK97', 'demolition', y, m2 ) for y, m2 in [(2020, 0),  (2022, 21), (2021, 10)]]+
+             [('house', 'TEK17', 'demolition', y, m2 ) for y, m2 in [(2021, 2.0), (2020, 0.0), (2022, 4.0)]]+
+             [('house', 'TEK21', 'demolition', y, m2) for y, m2 in [(2022, 0.0), (2021, np.nan), (2020, np.nan)]]
+        ,columns=['building_category', 'TEK', 'building_condition', 'year', 'm2'])
+
+    result  = transform_cumulative_demolition_to_yearly_demolition(area).reset_index().set_index(
+        ['building_category', 'TEK', 'year'])[['m2']]
+
+    expected = pd.DataFrame(
+        data=[('house', 'TEK17', y, m2) for y, m2 in enumerate((np.nan, 2.0, 2.0), start=2020)]+
+             [('house', 'TEK21', y, m2) for y, m2 in enumerate((np.nan, 0.0, 0.0), start=2020)]+
+             [('house', 'TEK97', y, m2) for y, m2 in enumerate((np.nan, 10.0, 11), start=2020)]
+        , columns=['building_category', 'TEK', 'year', 'm2']).set_index(['building_category', 'TEK', 'year'])
+
+    pd.testing.assert_frame_equal(result, expected)
+

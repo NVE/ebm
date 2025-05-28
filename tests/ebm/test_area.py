@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 
-from ebm.model.area import transform_area_forecast_to_area_change, transform_construction_by_year, \
-    transform_demolition_by_year
+from ebm.model.area import (transform_area_forecast_to_area_change,
+                            transform_construction_by_year,
+                            transform_cumulative_demolition_to_yearly_demolition)
 
 
 def test_transform_area_forecast_to_area_change():
@@ -63,10 +64,11 @@ def test_transform_construction_by_year():
 
     pd.testing.assert_frame_equal(result, expected)
 
-def test_transform_demolition_by_year():
+
+def test_transform_accumulated_to_yearly_demolition():
     """
-    Test that tek_parameters is used to figure out the correct TEK for construction In this case we expect that TEK21
-    is used.
+    Test transform_cumulative_demolition_to_yearly_demolition. Make sure any other condition is ignored. Input accumulated demolition, output
+    yearly demolition
     """
     area = pd.DataFrame(
         data=[('house', 'TEK97', 'original_condition', y, m2) for y, m2 in [(2020, 100), (2021, 90), (2022, 80)]]+
@@ -78,7 +80,7 @@ def test_transform_demolition_by_year():
              [('house', 'TEK21', 'original_condition', y, m2 ) for y, m2 in [(2020, 10.0), (2021, 20.0), (2022, 33.0)]]
         ,columns=['building_category', 'TEK', 'building_condition', 'year', 'm2'])
 
-    result  = transform_demolition_by_year(area).reset_index().set_index(
+    result  = transform_cumulative_demolition_to_yearly_demolition(area).reset_index().set_index(
         ['building_category', 'TEK', 'year'])[['m2']]
 
     expected = pd.DataFrame(

@@ -71,14 +71,6 @@ class BuildingCondition(StrEnum):
         """
         yield from (b for b in BuildingCondition if b != BuildingCondition.DEMOLITION)
 
-BEMA_ORDER = {
-    BuildingCondition.ORIGINAL_CONDITION: 1,
-    BuildingCondition.SMALL_MEASURE: 2,
-    BuildingCondition.RENOVATION: 3,
-    BuildingCondition.RENOVATION_AND_SMALL_MEASURE: 4,
-    BuildingCondition.DEMOLITION: 5
-}
-
 
 if __name__ == '__main__':
     for building_condition in BuildingCondition:

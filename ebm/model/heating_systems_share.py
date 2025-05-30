@@ -1,6 +1,6 @@
 import pandas as pd
 
-from ebm.model.building_category import BEMA_ORDER as building_category_order
+from ebm.model.bema import BUILDING_CATEGORY_ORDER
 
 
 def transform_heating_systems_share_long(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:
@@ -20,7 +20,7 @@ def transform_heating_systems_share_wide(heating_systems_share_long: pd.DataFram
     df = df.pivot(columns=['year'], index=['building_category', 'heating_systems'], values=[value_column]).reset_index()
 
     df = df.sort_values(by=['building_category', 'heating_systems'],
-                        key=lambda x: x.map(building_category_order) if x.name == 'building_category' else x)
+                        key=lambda x: x.map(BUILDING_CATEGORY_ORDER) if x.name == 'building_category' else x)
     df.insert(2, 'U', value_column)
     df['U'] = '%'
 

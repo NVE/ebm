@@ -4,8 +4,8 @@ from enum import StrEnum, unique, auto
 
 import pandas as pd
 
-from ebm.model.building_category import BEMA_ORDER as building_category_order
-from ebm.model.tek import BEMA_ORDER as tek_order
+from ebm.model.bema import BUILDING_CATEGORY_ORDER
+from ebm.model.bema import TEK_ORDER
 
 
 @unique
@@ -82,8 +82,8 @@ def group_energy_use_kwh_by_building_group_purpose_year_wide(energy_use_kwh: pd.
 
     hz = summed.pivot(columns=['year'], index=['building_group', 'purpose'], values=['GWh']).reset_index()
     hz = hz.sort_values(by=['building_group', 'purpose'],
-                        key=lambda x: x.map(building_category_order) if x.name == 'building_group' else x.map(
-                            tek_order) if x.name == 'TEK' else x.map(
+                        key=lambda x: x.map(BUILDING_CATEGORY_ORDER) if x.name == 'building_group' else x.map(
+                            TEK_ORDER) if x.name == 'TEK' else x.map(
                             {'heating_rv': 1, 'heating_dhw': 2, 'fans_and_pumps': 3, 'lighting': 4,
                              'electrical_equipment': 5, 'cooling': 6}) if x.name == 'purpose' else x)
 
@@ -103,9 +103,9 @@ def group_energy_use_by_year_category_tek_purpose(energy_use_kwh: pd.DataFrame) 
     df = df.reset_index().groupby(by=['year', 'building_category', 'TEK', 'purpose'], as_index=False).sum()
     df = df[['year', 'building_category', 'TEK', 'purpose', 'GWh']]
     df = df.sort_values(by=['year', 'building_category', 'TEK', 'purpose'],
-                        key=lambda x: x.map(building_category_order) if x.name == 'building_category' else x.map(
-                            tek_order) if x.name == 'building_category' else x.map(
-                            tek_order) if x.name == 'TEK' else x.map(
+                        key=lambda x: x.map(BUILDING_CATEGORY_ORDER) if x.name == 'building_category' else x.map(
+                            TEK_ORDER) if x.name == 'building_category' else x.map(
+                            TEK_ORDER) if x.name == 'TEK' else x.map(
                             {'heating_rv': 1, 'heating_dhw': 2, 'fans_and_pumps': 3, 'lighting': 4,
                              'electrical_equipment': 5, 'cooling': 6}) if x.name == 'purpose' else x)
 

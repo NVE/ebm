@@ -61,7 +61,7 @@ def test_sort_lookup_by_building_category():
     result = df.sort_values(by=['building_category'], key=sort_lookup)
     expected = [
         'house', 'apartment_block', 'retail', 'office', 'kindergarten', 'school', 'university', 'hospital',
-        'nursing_home', 'hotel', 'sports', 'culture', 'storage', 'storage', 'default', 'all']
+        'nursing_home', 'hotel', 'sports', 'culture', 'storage', 'storage_repairs', 'default', 'all']
     assert result['building_category'].tolist() == expected
 
 
@@ -168,6 +168,27 @@ def test_sort_lookup_by_faulty_tek():
     expected = ['TEK97', 'TEK25', 'TEK29']
 
     assert result['TEK'].tolist() == expected
+
+
+def test_sort_lookup_by_building_mix():
+    df = pd.DataFrame(
+        data=[
+            ('house', 1),
+            ('apartment_block', 2),
+            ('residential', 3),
+            ('holiday_home', 4),
+            ('kindergarten', 5),
+            ('non_residential', 6),
+            ('all', 7),
+        ],
+        columns=['building_category', 'value'])
+
+    result = df.sort_values(by=['building_category'], key=sort_lookup)
+
+    expected = ['house', 'apartment_block', 'residential', 'holiday_home', 'kindergarten', 'non_residential', 'all']
+
+    assert result['building_category'].tolist() == expected
+    assert result['value'].tolist() == [1, 2, 3, 4, 5, 6, 7]
 
 
 if __name__ == "__main__":

@@ -1,16 +1,27 @@
 from types import MappingProxyType
 
-from ebm.model.building_category import BuildingCategory
+from ebm.model.building_category import BuildingCategory, RESIDENTIAL, NON_RESIDENTIAL
 from ebm.model.building_condition import BuildingCondition
 
-_building_category_order = {BuildingCategory.HOUSE: 1, BuildingCategory.APARTMENT_BLOCK: 2, BuildingCategory.RETAIL: 3,
-    BuildingCategory.OFFICE: 4, BuildingCategory.KINDERGARTEN: 5, BuildingCategory.SCHOOL: 6,
-    BuildingCategory.UNIVERSITY: 7, BuildingCategory.HOSPITAL: 8, BuildingCategory.NURSING_HOME: 9,
-    BuildingCategory.HOTEL: 10, BuildingCategory.SPORTS: 11, BuildingCategory.CULTURE: 12, BuildingCategory.STORAGE: 13,
-                            'storage_repairs': 13}
+_building_category_order = {
+    BuildingCategory.HOUSE: 101, BuildingCategory.APARTMENT_BLOCK: 102, RESIDENTIAL: 199,
+    'holiday_home': 299,
+    BuildingCategory.RETAIL: 301, BuildingCategory.OFFICE: 302, BuildingCategory.KINDERGARTEN: 303, BuildingCategory.SCHOOL: 304,
+    BuildingCategory.UNIVERSITY: 305, BuildingCategory.HOSPITAL: 306, BuildingCategory.NURSING_HOME: 307,
+    BuildingCategory.HOTEL: 308, BuildingCategory.SPORTS: 309, BuildingCategory.CULTURE: 310,
+    BuildingCategory.STORAGE: 312, 'storage': 311, NON_RESIDENTIAL: 399}
 
 BUILDING_CATEGORY_ORDER = MappingProxyType(_building_category_order)
-"""A immutable dict of BeMa sorting order for building_category"""
+"""An immutable dict of BeMa sorting order for building_category"""
+
+_building_group_order = {'residential': 199, 'holiday_home': 299, 'non_residential': 399}
+
+BUILDING_GROUP_ORDER = MappingProxyType(_building_group_order)
+"""An immutable dict of BeMa sorting order for building_group"""
+
+
+_building_mix_order = _building_group_order| _building_category_order
+
 
 _tek_order = {'PRE_TEK49': 1814, 'TEK49': 1949, 'TEK69': 1969, 'TEK87': 1987, 'TEK97': 1997,
               'TEK07': 2007, 'TEK10': 2010, 'TEK17': 2017,
@@ -33,7 +44,6 @@ _start_row_building_category_construction = {BuildingCategory.HOUSE: 11, Buildin
 
 START_ROWS_CONSTRUCTION_BUILDING_CATEGORY = MappingProxyType(_start_row_building_category_construction)
 """A dict of BeMa sorting order for start row of each building category in the sheet `nybygging`"""
-
 
 
 def get_building_category_sheet(building_category: BuildingCategory, area_sheet: bool = True) -> str:
@@ -69,7 +79,7 @@ def sort_lookup(column):
     if column.name=='building_category':
         return column.map(BUILDING_CATEGORY_ORDER)
     if column.name=='building_group':
-        return column.map({'residential': 9997, 'holiday_home': 9998, 'non_residential': 9999})
+        return column.map(_building_mix_order)
     if column.name=='building_condition':
         return column.map(BUILDING_CONDITION_ORDER)
     if column.name=='purpose':

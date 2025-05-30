@@ -13,7 +13,7 @@ BUILDING_CATEGORY_ORDER = MappingProxyType(_building_category_order)
 
 _tek_order = {'PRE_TEK49': 1814, 'TEK49': 1949, 'TEK69': 1969, 'TEK87': 1987, 'TEK97': 1997,
               'TEK07': 2007, 'TEK10': 2010, 'TEK17': 2017,
-              'TEK21': 2021}
+              'TEK21': 2021, 'default': 9998, 'all': 9999}
 
 TEK_ORDER = MappingProxyType(_tek_order)
 """A dict of BeMa sorting order for TEK"""

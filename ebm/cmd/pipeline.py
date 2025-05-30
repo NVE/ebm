@@ -182,6 +182,13 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     add_top_row_filter(workbook_file=demolition_construction_file, sheet_names=['long'])
     logger.info(f'Wrote {demolition_construction_file.name}')
 
+    return [area_output,
+            heating_system_share_file,
+            heat_prod_hp_file,
+            energy_use_file,
+            energy_purpose_output,
+            demolition_construction_file]
+
 
 def load_config():
     try:

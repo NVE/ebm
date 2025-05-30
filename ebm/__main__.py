@@ -99,8 +99,8 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
     files_to_open = [output_file]
 
     if step_choice == 'energy-use':
-        files_to_open = [output_file if output_file.is_dir() else output_file.parent]
-        export_energy_model_reports(model_years, database_manager, files_to_open[0])
+        output_directory = output_file if output_file.is_dir() else output_file.parent
+        files_to_open = export_energy_model_reports(model_years, database_manager, output_directory)
     else:
         model = default_handler.extract_model(model_years, building_categories, database_manager, step_choice)
 

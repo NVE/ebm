@@ -6,7 +6,8 @@ from ebm.model.building_condition import BuildingCondition
 _building_category_order = {BuildingCategory.HOUSE: 1, BuildingCategory.APARTMENT_BLOCK: 2, BuildingCategory.RETAIL: 3,
     BuildingCategory.OFFICE: 4, BuildingCategory.KINDERGARTEN: 5, BuildingCategory.SCHOOL: 6,
     BuildingCategory.UNIVERSITY: 7, BuildingCategory.HOSPITAL: 8, BuildingCategory.NURSING_HOME: 9,
-    BuildingCategory.HOTEL: 10, BuildingCategory.SPORTS: 11, BuildingCategory.CULTURE: 12, BuildingCategory.STORAGE: 13}
+    BuildingCategory.HOTEL: 10, BuildingCategory.SPORTS: 11, BuildingCategory.CULTURE: 12, BuildingCategory.STORAGE: 13,
+                            'storage_repairs': 13}
 
 BUILDING_CATEGORY_ORDER = MappingProxyType(_building_category_order)
 """A immutable dict of BeMa sorting order for building_category"""

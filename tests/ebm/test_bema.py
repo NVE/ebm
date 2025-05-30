@@ -50,6 +50,7 @@ def test_sort_lookup_by_building_category():
             ('retail', 1),
             ('office', 2),
             ('university', 5),
+            ('storage', 11),
             ('storage_repairs', 11),
             ('sports', 9),
             ('school', 4),
@@ -60,7 +61,7 @@ def test_sort_lookup_by_building_category():
     result = df.sort_values(by=['building_category'], key=sort_lookup)
     expected = [
         'house', 'apartment_block', 'retail', 'office', 'kindergarten', 'school', 'university', 'hospital',
-        'nursing_home', 'hotel', 'sports', 'culture', 'storage_repairs', 'default', 'all']
+        'nursing_home', 'hotel', 'sports', 'culture', 'storage', 'storage', 'default', 'all']
     assert result['building_category'].tolist() == expected
 
 

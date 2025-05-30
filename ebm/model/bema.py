@@ -11,8 +11,9 @@ _building_category_order = {BuildingCategory.HOUSE: 1, BuildingCategory.APARTMEN
 BUILDING_CATEGORY_ORDER = MappingProxyType(_building_category_order)
 """A immutable dict of BeMa sorting order for building_category"""
 
-_tek_order = {'PRE_TEK49': 1, 'TEK49': 2, 'TEK69': 3, 'TEK87': 4, 'TEK97': 5, 'TEK07': 6, 'TEK10': 7, 'TEK17': 8,
-              9: 'TEK21'}
+_tek_order = {'PRE_TEK49': 1814, 'TEK49': 1949, 'TEK69': 1969, 'TEK87': 1987, 'TEK97': 1997,
+              'TEK07': 2007, 'TEK10': 2010, 'TEK17': 2017,
+              'TEK21': 2021}
 
 TEK_ORDER = MappingProxyType(_tek_order)
 """A dict of BeMa sorting order for TEK"""
@@ -61,3 +62,18 @@ def get_building_category_sheet(building_category: BuildingCategory, area_sheet:
         sheet = building_category_sheets[building_category][1]
 
     return sheet
+
+
+def sort_lookup(column):
+    if column.name=='building_category':
+        return column.map(BUILDING_CATEGORY_ORDER)
+    if column.name=='building_group':
+        return column.map({'residential': 9997, 'holiday_home': 9998, 'non_residential': 9999})
+    if column.name=='building_condition':
+        return column.map(BUILDING_CONDITION_ORDER)
+    if column.name=='purpose':
+        return column.map({'heating_rv': 1, 'heating_dhw': 2, 'fans_and_pumps': 3, 'lighting': 4,
+                             'electrical_equipment': 5, 'cooling': 6})
+    if column.name=='TEK':
+        return column.map(TEK_ORDER)
+    return column

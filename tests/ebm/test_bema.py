@@ -1,10 +1,10 @@
 import pandas as pd
 import pytest
 
-from ebm.model.bema import sort_lookup
+from ebm.model.bema import map_sort_order
 
 
-def test_sort_lookup_by_tek():
+def test_map_sort_order_by_tek():
     """
     BEMA TEK must be chronological ordered
         PRE_TEK49, TEK49, TEK69, TEK87, TEK97, TEK07, TEK17, (TEK21), default, all
@@ -24,13 +24,13 @@ def test_sort_lookup_by_tek():
             ('TEK21', 9),
         ], columns=['TEK', 'value'])
 
-    result = df.sort_values(by=['TEK'], key=sort_lookup)
+    result = df.sort_values(by=['TEK'], key=map_sort_order)
     expected = ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17', 'TEK21', 'default', 'all']
     assert result['TEK'].tolist() == expected
 
-def test_sort_lookup_by_building_category():
+def test_map_sort_order_by_building_category():
     """
-    sort_lookup return building_category in expected order:
+    map_sort_order return building_category in expected order:
     ```[
         'house', 'apartment_block', 'retail', 'office', 'kindergarten', 'school', 'university', 'hospital',
         'nursing_home', 'hotel', 'sports', 'culture', 'storage_repairs']
@@ -58,16 +58,16 @@ def test_sort_lookup_by_building_category():
         ],
         columns=['building_category', 'value'])
 
-    result = df.sort_values(by=['building_category'], key=sort_lookup)
+    result = df.sort_values(by=['building_category'], key=map_sort_order)
     expected = [
         'house', 'apartment_block', 'retail', 'office', 'kindergarten', 'school', 'university', 'hospital',
         'nursing_home', 'hotel', 'sports', 'culture', 'storage', 'storage_repairs', 'default', 'all']
     assert result['building_category'].tolist() == expected
 
 
-def test_sort_lookup_by_building_group():
+def test_map_sort_order_by_building_group():
     """
-    sort_lookup map building_group order as residential, holiday_home, non_residential, all
+    map_sort_order map building_group order as residential, holiday_home, non_residential, all
     """
     df = pd.DataFrame(
         data=[
@@ -78,14 +78,14 @@ def test_sort_lookup_by_building_group():
         ],
         columns=['building_group', 'value'])
 
-    result = df.sort_values(by=['building_group'], key=sort_lookup)
+    result = df.sort_values(by=['building_group'], key=map_sort_order)
     expected = ['residential', 'holiday_home', 'non_residential', 'all']
     assert result['building_group'].tolist() == expected
 
 
-def test_sort_lookup_by_building_condition():
+def test_map_sort_order_by_building_condition():
     """
-    sort_lookup return bema order of building conditions
+    map_sort_order return bema order of building conditions
     `['original_condition', 'small_measure', 'renovation', 'renovation_and_small_measure', 'demolition']`
     """
     df = pd.DataFrame(
@@ -98,14 +98,14 @@ def test_sort_lookup_by_building_condition():
         ],
         columns=['building_condition', 'value'])
 
-    result = df.sort_values(by=['building_condition'], key=sort_lookup)
+    result = df.sort_values(by=['building_condition'], key=map_sort_order)
     expected = ['original_condition', 'small_measure', 'renovation', 'renovation_and_small_measure', 'demolition']
     assert result['building_condition'].tolist() == expected
 
 
-def test_sort_lookup_by_purpose():
+def test_map_sort_order_by_purpose():
     """
-sort_lookup return bema order of purpose
+map_sort_order return bema order of purpose
 `['heating_rv', 'heating_dhw', 'fans_and_pumps', 'lighting', 'electrical_equipment', 'cooling']` + default
     """
     df = pd.DataFrame(
@@ -120,14 +120,14 @@ sort_lookup return bema order of purpose
         ],
         columns=['purpose', 'value'])
 
-    result = df.sort_values(by=['purpose'], key=sort_lookup)
+    result = df.sort_values(by=['purpose'], key=map_sort_order)
     expected = ['heating_rv', 'heating_dhw', 'fans_and_pumps', 'lighting', 'electrical_equipment', 'cooling', 'default']
     assert result['purpose'].tolist() == expected
 
 
-def test_sort_lookup_multiple_columns_including_year():
+def test_map_sort_order_multiple_columns_including_year():
     """
-    Make sure sort_lookup return the correct order when ordering by building_category, TEK, purpose and year
+    Make sure map_sort_order return the correct order when ordering by building_category, TEK, purpose and year
     """
     df = pd.DataFrame(
         data=[
@@ -143,16 +143,17 @@ def test_sort_lookup_multiple_columns_including_year():
         ],
         columns=['building_category', 'TEK', 'purpose', 'year', 'value'])
 
-    result = df.sort_values(by=['building_category', 'TEK', 'purpose', 'year'], key=sort_lookup)
+    result = df.sort_values(by=['building_category', 'TEK', 'purpose', 'year'], key=map_sort_order)
     expected = [1, 2, 3, 4, 5, 6, 7, 8, 99]
     assert result['value'].tolist() == expected
 
-    indexed = df.set_index(['building_category', 'TEK', 'purpose', 'year']).sort_index(key=sort_lookup)
+    # noinspection PyTypeChecker
+    indexed = df.set_index(['building_category', 'TEK', 'purpose', 'year']).sort_index(key=map_sort_order)
     expected = [1, 2, 3, 4, 5, 6, 7, 8, 99]
     assert indexed['value'].tolist() == expected
 
 
-def test_sort_lookup_by_faulty_tek():
+def test_map_sort_order_by_faulty_tek():
     """
     Non-existing TEK should be sorted last
     """
@@ -163,14 +164,14 @@ def test_sort_lookup_by_faulty_tek():
             ('TEK97', 1),
         ], columns=['TEK', 'value'])
 
-    result = df.sort_values(by=['TEK'], key=sort_lookup)
+    result = df.sort_values(by=['TEK'], key=map_sort_order)
 
     expected = ['TEK97', 'TEK25', 'TEK29']
 
     assert result['TEK'].tolist() == expected
 
 
-def test_sort_lookup_by_building_mix():
+def test_map_sort_order_by_building_mix():
     df = pd.DataFrame(
         data=[
             ('house', 1),
@@ -183,7 +184,7 @@ def test_sort_lookup_by_building_mix():
         ],
         columns=['building_category', 'value'])
 
-    result = df.sort_values(by=['building_category'], key=sort_lookup)
+    result = df.sort_values(by=['building_category'], key=map_sort_order)
 
     expected = ['house', 'apartment_block', 'residential', 'holiday_home', 'kindergarten', 'non_residential', 'all']
 

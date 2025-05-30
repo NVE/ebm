@@ -23,11 +23,15 @@ _building_condition_order = {BuildingCondition.ORIGINAL_CONDITION: 1, BuildingCo
 BUILDING_CONDITION_ORDER = MappingProxyType(_building_condition_order)
 """A dict of BeMa sorting order for building_condition"""
 
-START_ROWS_CONSTRUCTION_BUILDING_CATEGORY = {BuildingCategory.HOUSE: 11, BuildingCategory.APARTMENT_BLOCK: 23,
+_start_row_building_category_construction = {BuildingCategory.HOUSE: 11, BuildingCategory.APARTMENT_BLOCK: 23,
     BuildingCategory.KINDERGARTEN: 41, BuildingCategory.SCHOOL: 55, BuildingCategory.UNIVERSITY: 69,
     BuildingCategory.OFFICE: 83, BuildingCategory.RETAIL: 97, BuildingCategory.HOTEL: 111,
     BuildingCategory.HOSPITAL: 125, BuildingCategory.NURSING_HOME: 139, BuildingCategory.CULTURE: 153,
     BuildingCategory.SPORTS: 167, BuildingCategory.STORAGE: 182}
+
+START_ROWS_CONSTRUCTION_BUILDING_CATEGORY = MappingProxyType(_start_row_building_category_construction)
+"""A dict of BeMa sorting order for start row of each building category in the sheet `nybygging`"""
+
 
 
 def get_building_category_sheet(building_category: BuildingCategory, area_sheet: bool = True) -> str:

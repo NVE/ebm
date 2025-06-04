@@ -96,8 +96,11 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
 
     model = None
 
+    files_to_open = [output_file]
+
     if step_choice == 'energy-use':
-        export_energy_model_reports(model_years, database_manager, output_file if output_file.is_dir() else output_file.parent)
+        output_directory = output_file if output_file.is_dir() else output_file.parent
+        files_to_open = export_energy_model_reports(model_years, database_manager, output_directory)
     else:
         model = default_handler.extract_model(model_years, building_categories, database_manager, step_choice)
 
@@ -123,7 +126,8 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
 
 
     if arguments.open or os.environ.get('EBM_ALWAYS_OPEN', 'FALSE').upper() == 'TRUE':
-        os.startfile(output_file, 'open')
+        for file_to_open in files_to_open:
+            os.startfile(file_to_open, 'open', show_cmd=1)
 
     return ReturnCode.OK, model
 

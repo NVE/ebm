@@ -29,6 +29,16 @@ First of all, you need to create a directory with the necessary input files. To 
 
 
 
+.. note::
+
+   You can use ``ebm --help`` for more information about using ebm from the command line
+
+
+.. seealso::
+
+    Refer to the :doc:`user_guide` for an overview of more options for running ebm.
+
+
 .. |date| date::
 
 Last Updated on |date|.

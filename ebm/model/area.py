@@ -2,6 +2,7 @@ from loguru import logger
 import pandas as pd
 
 from ebm.model.building_condition import BuildingCondition
+from ebm.model.scurve import SCurve
 
 
 def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame,
@@ -283,3 +284,48 @@ def filter_existing_area(area_forecast: pd.DataFrame) -> pd.DataFrame:
     existing_area = area_forecast.query('building_condition!="demolition"').copy()
     existing_area = existing_area[['year','building_category','TEK','building_condition']+['m2']]
     return existing_area
+
+
+def building_condition_scurves(scurve_parameters: pd.DataFrame) -> pd.DataFrame:
+    scurves = []
+
+    for r, v in scurve_parameters.iterrows():
+        scurve = SCurve(earliest_age=v.earliest_age_for_measure,
+                        average_age=v.average_age_for_measure,
+                        last_age=v.last_age_for_measure,
+                        rush_years=v.rush_period_years,
+                        never_share=v.never_share,
+                        rush_share=v.rush_share)
+
+        rate = scurve.get_rates_per_year_over_building_lifetime().to_frame().reset_index()
+        rate.loc[:, 'building_category'] = v['building_category']
+        rate.loc[:, 'building_condition'] = v['condition']
+
+        scurves.append(rate)
+
+
+    df = pd.concat(scurves).set_index(['building_category', 'age', 'building_condition'])
+
+    return df
+
+
+def building_condition_accumulated_scurves(scurve_parameters: pd.DataFrame) -> pd.DataFrame:
+    scurves = []
+
+    for r, v in scurve_parameters.iterrows():
+        scurve = SCurve(earliest_age=v.earliest_age_for_measure,
+                        average_age=v.average_age_for_measure,
+                        last_age=v.last_age_for_measure,
+                        rush_years=v.rush_period_years,
+                        never_share=v.never_share,
+                        rush_share=v.rush_share)
+
+        acc = scurve.calc_scurve().to_frame().reset_index()
+        acc.loc[:, 'building_category'] = v['building_category']
+        acc.loc[:, 'building_condition'] = v['condition'] + '_acc'
+
+        scurves.append(acc)
+
+    df = pd.concat(scurves).set_index(['building_category', 'age', 'building_condition'])
+
+    return df

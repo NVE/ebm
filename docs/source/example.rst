@@ -23,6 +23,17 @@ euismod mi eros, cursus ornare odio accumsan eu.
 
 Etiam quis purus in lacus molestie venenatis. Vestibulum feugiat non lorem non tristique. In nec viverra augue.
 
+.. note::
+
+   Simple "inclusion" of one file in another can be done with the
+   :dudir:`include` directive.
+
+
+.. seealso::
+
+    `»Using Sphinx »reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
+
+
 
 
 Autonummerert liste

@@ -10,4 +10,4 @@ def load_environment_from_dotenv():
         logger.debug(f'Loading environment from {env_file}')
         load_dotenv(pathlib.Path('.env').absolute())
     else:
-        logger.debug(f'.env not found in {env_file.absolute()}')
+        logger.trace(f'.env not found in {env_file.absolute()}')

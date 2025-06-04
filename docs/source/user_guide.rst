@@ -1,18 +1,18 @@
 User Guide
 ==========
 
-Basic Concepts
---------------
-- Methods and calculations: :doc:`calculations`
+.. Basic Concepts
+.. --------------
+.. - Methods and calculations: :doc:`calculations`
 
-- Models
-- Parameters
-- Workflows
+.. - Models
+.. - Parameters
+.. - Workflows
 
-Tutorials
----------
-
-- Running multiple workflows
+.. Tutorials
+.. ---------
+..
+.. - Running multiple workflows
 
 
 Setting-up your first model (tutorial)

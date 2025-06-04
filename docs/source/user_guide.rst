@@ -69,13 +69,12 @@ Typing `ebm --help` will give you a list of most parameters:
 
   ebm --help
 
-  usage: ebm [-h] [--version] [--debug] [--categories [CATEGORIES ...]] [--input [INPUT]] [--force] [--open] [--csv-delimiter CSV_DELIMITER]
-           [--create-input] [--horizontal-years][{area-forecast,energy-requirements,heating-systems,energy-use}] [output_file]
+  usage: ebm [-h] [--version] [--debug] [--categories [CATEGORIES ...]] [--input [INPUT]] [--force] [--open] [--csv-delimiter CSV_DELIMITER] [--create-input] [--horizontal-years] [{area-forecast,energy-requirements,heating-systems,energy-use}] [output_file]
 
-  Calculate EBM energy use 1.0.0
+Calculate EBM energy use 1.1.10
 
-  positional arguments:
-    {area-forecast,energy-requirements,heating-systems,energy-use}
+positional arguments:
+  {area-forecast,energy-requirements,heating-systems,energy-use}
 
                         The calculation step you want to run. The steps are sequential. Any prerequisite to the chosen step will run
                             automatically.
@@ -83,23 +82,24 @@ Typing `ebm --help` will give you a list of most parameters:
                             If the file already exists the program will terminate without overwriting.
                             Use "-" to output to the console instead
 
-  options:
-    -h, --help            show this help message and exit
-    --version, -v         show program's version number and exit
-    --debug               Run in debug mode. (Extra information written to stdout)
-    --categories [CATEGORIES ...], --building-categories [CATEGORIES ...], -c [CATEGORIES ...]
+options:
+  -h, --help            show this help message and exit
+  --version, -v         show program's version number and exit
+  --debug               Run in debug mode. (Extra information written to stdout)
+  --categories [CATEGORIES ...], --building-categories [CATEGORIES ...], -c [CATEGORIES ...]
 
-                          One or more of the following building categories:
-                              house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs.
-                              The default is to use all categories.
-    --input [INPUT], --input-directory [INPUT], -i [INPUT]
+                        One or more of the following building categories:
+                            house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs.
+                            The default is to use all categories.
+  --input [INPUT], --input-directory [INPUT], -i [INPUT]
                         path to the directory with input files
-    --force, -f           Write to <filename> even if it already exists
-    --open, -o            Open <filename> with default application after writing. (Usually Excel)
-    --csv-delimiter CSV_DELIMITER, --delimiter CSV_DELIMITER, -e CSV_DELIMITER
+  --force, -f           Write to <filename> even if it already exists
+  --open, -o            Open <filename> with default application after writing. (Usually Excel)
+  --csv-delimiter CSV_DELIMITER, --delimiter CSV_DELIMITER, -e CSV_DELIMITER
                         A single character to be used for separating columns when writing csv. Default: "," Special characters like ; should be quoted ";"
-    --create-input      Create input directory containing all required files in the current working directory
-    --horizontal-years, --horizontal, --horisontal
+  --create-input
+                        Create input directory containing all required files in the current working directory
+  --horizontal-years, --horizontal, --horisontal
                         Show years horizontal (left to right)
 
 

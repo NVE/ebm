@@ -110,7 +110,7 @@ The calculation step you want to run. The steps are sequential. Any prerequisite
     arg_parser.add_argument('--force', '-f', action='store_true',
                             help='Write to <filename> even if it already exists')
     arg_parser.add_argument('--open', '-o', action='store_true',
-                            help='Open <filename> with default application after writing. (Usually Excel)')
+                            help='Open output file(s) automatically when finished writing. (Usually Excel)')
     arg_parser.add_argument('--csv-delimiter', '--delimiter', '-e', type=str, default=',',
                             help='A single character to be used for separating columns when writing csv. ' +
                                  'Default: "," Special characters like ; should be quoted ";"')

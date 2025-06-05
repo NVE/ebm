@@ -2,11 +2,9 @@ pandas==2.2.3
 openpyxl
 loguru
 python-dotenv
-ipython
 numpy
 rich
 pandera==0.20.4
-pyperclip
 sphinx[docs]
 sphinx-rtd-theme[docs]
 sphinx-autodoc-typehints[docs]

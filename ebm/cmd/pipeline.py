@@ -9,7 +9,7 @@ from ebm import extractors
 from ebm.cmd.helpers import load_environment_from_dotenv
 from ebm.cmd.result_handler import transform_model_to_horizontal, transform_to_sorted_heating_systems
 from ebm.cmd.run_calculation import configure_loglevel
-from ebm.model import area as a_f
+from ebm.model import area as a_f, bema
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model import energy_need as e_n
@@ -61,7 +61,8 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     area_by_year_category_tek = existing_area.groupby(by='year,building_category,TEK'.split(','))[['m2']].sum()
     area_by_year_category_tek = area_by_year_category_tek.rename(columns={'m2': 'area'})
     area_by_year_category_tek.insert(0, 'U', 'm2')
-    area_long = area_by_year_category_tek.reset_index()
+    area_long = area_by_year_category_tek.reset_index().sort_values(
+        by=['building_category', 'TEK', 'year'], key=bema.map_sort_order)
 
     logger.debug('Write file area.xlsx')
 
@@ -134,6 +135,8 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     energy_use_long = energy_use_kwh[column_order].groupby(
         by=['building_category', 'TEK', 'energy_product', 'year']).sum() / 1_000_000
     energy_use_long = energy_use_long.reset_index()[column_order].rename(columns={'kwh': 'energy_use'})
+    energy_use_long = energy_use_long.sort_values(
+        by=['building_category', 'TEK', 'year'], key=bema.map_sort_order)
 
     logger.debug('Transform fane 1')
     logger.debug('Group by group, product year')
@@ -172,6 +175,8 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     demolition_construction_long = a_f.transform_demolition_construction(energy_use_kwh, area_change)
     demolition_construction_long = demolition_construction_long.rename(columns={'m2': 'Area [m2]',
                                                                       'gwh': 'Energy use [GWh]'})
+    demolition_construction_long = demolition_construction_long.sort_values(
+        by=['building_category', 'TEK', 'year', 'demolition_construction'], key=bema.map_sort_order)
 
     logger.debug('Write file demolition_construction.xlsx')
     demolition_construction_file = output_path / 'demolition_construction.xlsx'

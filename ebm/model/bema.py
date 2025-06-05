@@ -87,7 +87,7 @@ def map_sort_order(column):
     Map the sort order from bema to a DataFrame. The function is meant to be used as the key parameter for
     a pandas DataFrame methods sort_values and sort_index.
 
-    Example bellow.
+    Example below.
 
     Parameters
     ----------

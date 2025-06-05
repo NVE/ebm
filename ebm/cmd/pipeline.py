@@ -32,7 +32,7 @@ def main():
 
     file_handler = FileHandler(directory=input_path)
     database_manager = DatabaseManager(file_handler=file_handler)
-    export_energy_model_reports(years, database_manager, output_path)
+    list(export_energy_model_reports(years, database_manager, output_path))
 
 
 def export_energy_model_reports(years: YearRange, database_manager: DatabaseManager, output_path: pathlib.Path):
@@ -74,6 +74,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     logger.debug(f'Adding top row filter to {area_output}')
     make_pretty(area_output)
     add_top_row_filter(workbook_file=area_output, sheet_names=['long'])
+    yield area_output
 
     logger.info(f'Wrote {area_output}')
 
@@ -101,6 +102,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     logger.debug(f'Adding top row filter to {heating_system_share_file}')
     add_top_row_filter(workbook_file=heating_system_share_file, sheet_names=['long'])
     logger.info(f'Wrote {heating_system_share_file.name}')
+    yield heating_system_share_file
 
     logger.info('heat_prod_hp')
     logger.debug('Transform heating_system_parameters')
@@ -120,6 +122,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
         heat_prod_hp_wide.to_excel(writer, sheet_name='wide', index=False) # 💾
     make_pretty(heat_prod_hp_file)
     logger.info(f'Wrote {heat_prod_hp_file.name}')
+    yield heat_prod_hp_file
 
     logger.info('Energy_use')
 
@@ -151,6 +154,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     logger.debug(f'Adding top row filter to {energy_use_file}')
     add_top_row_filter(workbook_file=energy_use_file, sheet_names=['long'])
     logger.info(f'Wrote {energy_use_file.name}')
+    yield energy_use_file
 
     logger.debug('Transform fane 1')
     energy_purpose_wide = e_p.group_energy_use_kwh_by_building_group_purpose_year_wide(energy_use_kwh=energy_use_kwh)
@@ -167,6 +171,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     logger.debug(f'Adding top row filter to {energy_purpose_output}')
     add_top_row_filter(workbook_file=energy_purpose_output, sheet_names=['long'])
     logger.info(f'Wrote {energy_purpose_output.name}')
+    yield energy_purpose_output
 
     area_change = a_f.transform_area_forecast_to_area_change(area_forecast=area_forecast, tek_parameters=tek_parameters)
 
@@ -187,12 +192,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     add_top_row_filter(workbook_file=demolition_construction_file, sheet_names=['long'])
     logger.info(f'Wrote {demolition_construction_file.name}')
 
-    return [area_output,
-            heating_system_share_file,
-            heat_prod_hp_file,
-            energy_use_file,
-            energy_purpose_output,
-            demolition_construction_file]
+    yield demolition_construction_file
 
 
 def load_config():

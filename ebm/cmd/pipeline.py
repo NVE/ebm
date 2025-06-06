@@ -68,6 +68,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     area_output = output_path / 'area.xlsx'
 
     with pd.ExcelWriter(area_output, engine='xlsxwriter') as writer:
+        # Write wide first order matters
         area_wide.to_excel(writer, sheet_name='wide', index=False) # 💾
         area_long.to_excel(writer, sheet_name='long', index=False) # 💾
     logger.debug(f'Adding top row filter to {area_output}')
@@ -94,8 +95,9 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     logger.debug('Write file heating_system_share.xlsx')
     heating_system_share_file = output_path / 'heating_system_share.xlsx'
     with pd.ExcelWriter(heating_system_share_file, engine='xlsxwriter') as writer:
-        heating_systems_share_long.to_excel(writer, sheet_name='long', merge_cells=False) # 💾
+        # Write wide first order matters
         heating_systems_share_wide.to_excel(writer, sheet_name='wide', merge_cells=False, index=False) # 💾
+        heating_systems_share_long.to_excel(writer, sheet_name='long', merge_cells=False) # 💾
     make_pretty(heating_system_share_file)
     logger.debug(f'Adding top row filter to {heating_system_share_file}')
     add_top_row_filter(workbook_file=heating_system_share_file, sheet_names=['long'])
@@ -142,8 +144,9 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     logger.debug('Write file energy_use')
     energy_use_file = output_path / 'energy_use.xlsx'
     with pd.ExcelWriter(energy_use_file, engine='xlsxwriter') as writer:
-        energy_use_long.to_excel(writer, sheet_name='long', index=False) # 💾
+        # Write wide first order matters
         energy_use_wide.to_excel(writer, sheet_name='wide', index=False) # 💾
+        energy_use_long.to_excel(writer, sheet_name='long', index=False) # 💾
     make_pretty(energy_use_file)
     logger.debug(f'Adding top row filter to {energy_use_file}')
     add_top_row_filter(workbook_file=energy_use_file, sheet_names=['long'])
@@ -158,6 +161,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     logger.debug('Write file energy_purpose.xlsx')
     energy_purpose_output = output_path / 'energy_purpose.xlsx'
     with pd.ExcelWriter(energy_purpose_output, engine='xlsxwriter') as writer:
+        # Write wide first order matters
         energy_purpose_wide.to_excel(writer, sheet_name='wide', index=False) # 💾
         energy_purpose_long.to_excel(writer, sheet_name='long', index=False) # 💾
     make_pretty(energy_purpose_output)

@@ -181,6 +181,7 @@ class EbmDefaultHandler:
                                                database_manager=database_manager)
         return df
 
+    # noinspection PyTypeChecker
     @staticmethod
     def extract_energy_requirements(building_categories,
                                     database_manager: DatabaseManager,

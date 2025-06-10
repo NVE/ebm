@@ -7,8 +7,8 @@ import pandas as pd
 from ebm.cmd.run_calculation import (calculate_building_category_area_forecast,
                                      calculate_building_category_energy_requirements,
                                      calculate_heating_systems)
+from ebm.model import bema
 from ebm.model.calibrate_heating_systems import group_heating_systems_by_energy_carrier
-from ebm.model.bema import BUILDING_CONDITION_ORDER, BUILDING_CATEGORY_ORDER, TEK_ORDER
 from ebm.model.building_category import BuildingCategory
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
@@ -26,10 +26,7 @@ def transform_model_to_horizontal(model):
     hz = hz.pivot(columns=['year'], index=['building_category', 'TEK', 'building_condition'], values=[
         value_column]).reset_index()
 
-    hz = hz.sort_values(by=['building_category', 'TEK', 'building_condition'],
-                        key=lambda x: x.map(BUILDING_CATEGORY_ORDER) if x.name == 'building_category' else x.map(
-                            TEK_ORDER) if x.name == 'TEK' else x.map(
-                            BUILDING_CONDITION_ORDER) if x.name == 'building_condition' else x)
+    hz = hz.sort_values(by=['building_category', 'TEK', 'building_condition'], key=bema.map_sort_order)
     hz.insert(3, 'U', value_column)
     hz.columns = ['building_category', 'TEK', 'building_condition', 'U'] + [y for y in range(2020, 2051)]
 

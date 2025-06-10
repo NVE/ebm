@@ -5,7 +5,7 @@ import pandas as pd
 
 from dotenv import load_dotenv
 
-from ebm.model.building_category import BEMA_ORDER as custom_building_category_order
+from ebm.model.bema import map_sort_order
 
 from ebm.model.calibrate_heating_systems import extract_area_forecast, extract_energy_requirements, \
     extract_heating_systems
@@ -47,11 +47,11 @@ def run_calibration(database_manager,
     energy_requirements = extract_energy_requirements(area_forecast, database_manager)
     if write_to_output:
         en_req = energy_requirements.xs(2023, level='year').reset_index().sort_values(
-            by='building_category', key=lambda x: x.map(custom_building_category_order))
+            by='building_category', key=lambda x: x.map(map_sort_order))
         write_dataframe(en_req, 'energy_requirements')
         grouped = en_req[['building_category', 'm2', 'kwh_m2', 'energy_requirement']].groupby(
             by=['building_category'], as_index=False).agg({'m2': 'first', 'kwh_m2': 'first', 'energy_requirement': 'sum'})
-        grouped = grouped.sort_values(by='building_category', key=lambda x: x.map(custom_building_category_order))
+        grouped = grouped.sort_values(by='building_category', key=lambda x: x.map(map_sort_order))
         write_dataframe(grouped, 'energy_requirements_sum', sheet_name='sum')
 
     logger.info('Extract heating systems')

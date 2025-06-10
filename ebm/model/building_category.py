@@ -148,9 +148,3 @@ def expand_building_categories(df: pd.DataFrame, unique_columns: typing.List[str
     return pd.concat(filtered + [specific]).reindex()
 
 
-BEMA_ORDER = {
-    BuildingCategory.HOUSE: 1, BuildingCategory.APARTMENT_BLOCK: 2, BuildingCategory.RETAIL: 3,
-    BuildingCategory.OFFICE: 4, BuildingCategory.KINDERGARTEN: 5, BuildingCategory.SCHOOL: 6,
-    BuildingCategory.UNIVERSITY: 7, BuildingCategory.HOSPITAL: 8, BuildingCategory.NURSING_HOME: 9,
-    BuildingCategory.HOTEL: 10, BuildingCategory.SPORTS: 11, BuildingCategory.CULTURE: 12,
-    BuildingCategory.STORAGE: 13}

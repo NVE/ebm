@@ -24,13 +24,9 @@ from ebm.model.database_manager import DatabaseManager, FileHandler
 from ebm.model.construction import ConstructionCalculator
 
 
-def calc_area():
-    global start_time, input_directory, demolition_by_year
-    start_time = time.time()
-    years = YearRange(2020, 2050)
-    # # S-kurve
-    # In[428]:
-    input_directory = pathlib.Path('t2734_input')
+def calculate_area_by_condition(years: YearRange, database_manager: DatabaseManager):
+    input_directory = database_manager.file_handler.input_directory
+
     scurve_parameters_path = input_directory / 'scurve_parameters.csv'
     scurve_parameters = pd.read_csv(scurve_parameters_path)
     # area_parameters = area_parameters.query('building_category=="house"')
@@ -250,5 +246,21 @@ def dataframe_to_excel(area_unstacked, target_file):
             logger.info(f'Wrote {output_file.absolute()}')
             break
 
+
+def main():
+    years = YearRange(2020, 2050)
+    dm = DatabaseManager(FileHandler(directory='t2734_input'))
+
+    area_by_condition = calculate_area_by_condition(years, dm)
+
+    area_unstacked = area_by_condition.rename(columns={'demolition_acc': 'demolition',
+                                                       'shares_renovation': 'renovation',
+                                                       'shares_small_measure': 'small_measure'}).stack().reset_index()
+    area_unstacked = area_unstacked.rename(columns={'level_3': 'building_condition', 0: 'm²'})
+
+    dataframe_to_excel(area_unstacked, pathlib.Path('output/area_dataframes.xlsx'))
+
+
+
 if __name__ == '__main__':
-    calc_area()
+    main()

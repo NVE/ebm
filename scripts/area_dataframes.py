@@ -17,6 +17,7 @@ from ebm.model.construction import ConstructionCalculator
 
 def calculate_area_by_condition(years: YearRange, scurve_parameters, tek_parameters, area_parameters,
                                 database_manager):
+    logger.debug('Calculating area by condition')
     scurve_normal = building_condition_scurves(scurve_parameters)
     scurve_acc = building_condition_accumulated_scurves(scurve_parameters)
     s_curves = pd.concat([scurve_normal, scurve_acc])
@@ -32,7 +33,7 @@ def calculate_area_by_condition(years: YearRange, scurve_parameters, tek_paramet
 
     df = s_df.reset_index().join(tek_parameters, how='cross')
     df['year'] = df['building_year'] + df['age']
-    scurve_by_tek = df.copy()
+    scurve_by_tek = df
 
     # In[442]:
     r = scurve_by_tek.reset_index()
@@ -41,17 +42,17 @@ def calculate_area_by_condition(years: YearRange, scurve_parameters, tek_paramet
     # ## Calculate new cumulative demolition with zero demolition in start year
     # In[446]:
 
-    df = df_p.copy()
+    df = df_p
     pd.set_option('display.float_format', '{:.6f}'.format)
     df.loc[df.query(f'year<={years.start}').index, 'demolition'] = 0.0
     df['demolition_acc'] = df.groupby(by=['building_category', 'TEK'])[['demolition']].cumsum()[['demolition']]
     # df=df.query(f'year>={years.start}')
 
-    df_p = df.copy()
+    df_p = df
 
     # ## Load construction
     # In[447]:
-    df_ap = area_parameters.set_index(['building_category', 'TEK']).copy()
+    df_ap = area_parameters.set_index(['building_category', 'TEK'])
     demolition_by_year = (df_ap.loc[:, 'area'] * df.loc[:, 'demolition'])
     demolition_by_year.name = 'demolition'
     demolition_by_year = demolition_by_year.to_frame().loc[(slice(None), slice(None), slice(2020, 2050))]
@@ -83,7 +84,7 @@ def calculate_area_by_condition(years: YearRange, scurve_parameters, tek_paramet
         period=years)
 
     logger.warning('Cheating by assuming TEK17')
-    constructed_tek17 = construction.copy()
+    constructed_tek17 = construction
     constructed_tek17['TEK'] = 'TEK17'
     construction_by_building_category_yearly = constructed_tek17.set_index(
         ['building_category', 'TEK', 'year']).accumulated_constructed_floor_area
@@ -92,7 +93,7 @@ def calculate_area_by_condition(years: YearRange, scurve_parameters, tek_paramet
     # In[457]:
     total_area_by_year = pd.concat([existing_area.drop(columns=['year_r'], errors='ignore'), construction_by_building_category_yearly])
 
-    df = total_area_by_year.copy()
+    df = total_area_by_year
 
     with_area = df.join(df_p, how='left').fillna(0.0)
 
@@ -108,7 +109,7 @@ def calculate_area_by_condition(years: YearRange, scurve_parameters, tek_paramet
 
     # ## set max values
 
-    df = with_area.copy()
+    df = with_area
     df.loc[:, 'renovation_max'] = 1.0 - df.loc[:, 'demolition_acc'] - df.loc[:, 'renovation_nvr']
     df.loc[:, 'small_measure_max'] = 1.0 - df.loc[:, 'demolition_acc'] - df.loc[:, 'small_measure_nvr']
 
@@ -154,7 +155,7 @@ def calculate_area_by_condition(years: YearRange, scurve_parameters, tek_paramet
     df.loc[:, 'original_condition'] = 1.0 - df.loc[:, 'demolition_acc'] - df.loc[:, 'shares_renovation'] - df.loc[:, 'renovation_and_small_measure'] - df.loc[:, 'shares_small_measure']
 
     # ## join calculated scurves on area
-    scurved = df.copy()
+    scurved = df
     # sca.loc[:, ['demolition', 'shares_small_measure_total', 'RN', 'both']] * sca['area', 'area', 'area', 'area']]
 
     a_mul = scurved[['original_condition', 'demolition_acc', 'shares_small_measure', 'shares_renovation', 'renovation_and_small_measure', 'area']]

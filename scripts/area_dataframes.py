@@ -15,24 +15,8 @@ from ebm.model.database_manager import DatabaseManager, FileHandler
 from ebm.model.construction import ConstructionCalculator
 
 
-def calculate_area_by_condition(years: YearRange, database_manager: DatabaseManager):
-    input_directory = database_manager.file_handler.input_directory
-
-    scurve_parameters_path = input_directory / 'scurve_parameters.csv'
-    scurve_parameters = pd.read_csv(scurve_parameters_path)
-    # area_parameters = area_parameters.query('building_category=="house"')
-
-    # ### area_parameters
-    area_parameters_path = input_directory / 'area_parameters.csv'
-    area_parameters = pd.read_csv(area_parameters_path)
-    area_parameters['year'] = years.start
-    area_parameters = area_parameters[['building_category', 'TEK', 'year', 'area']]
-
-    # ### tek_parameters
-    tek_parameters_path = input_directory / 'tek_parameters.csv'
-    tek_parameters = pd.read_csv(tek_parameters_path)
-    tek_parameters = tek_parameters[['TEK', 'period_start_year', 'building_year', 'period_end_year']]
-
+def calculate_area_by_condition(years: YearRange, scurve_parameters, tek_parameters, area_parameters,
+                                database_manager):
     scurve_normal = building_condition_scurves(scurve_parameters)
     scurve_acc = building_condition_accumulated_scurves(scurve_parameters)
     s_curves = pd.concat([scurve_normal, scurve_acc])
@@ -93,10 +77,9 @@ def calculate_area_by_condition(years: YearRange, database_manager: DatabaseMana
     existing_area = pd.merge(left=ap_df, right=area, on=['building_category', 'TEK'], suffixes=['_r', ''])
     existing_area = existing_area.set_index(['building_category', 'TEK', 'year'])
 
-    dm = DatabaseManager(FileHandler(directory=input_directory))
     construction = ConstructionCalculator.calculate_all_construction(
         demolition_by_year=demolition_by_building_category_year,
-        database_manager=dm,
+        database_manager=database_manager,
         period=years)
 
     logger.warning('Cheating by assuming TEK17')
@@ -206,7 +189,14 @@ def main():
     years = YearRange(2020, 2050)
     dm = DatabaseManager(FileHandler(directory='t2734_input'))
 
-    area_by_condition = calculate_area_by_condition(years, dm)
+    scurve_parameters = dm.get_scurve_params()
+
+    area_parameters = dm.get_area_parameters()
+    area_parameters['year'] = years.start
+
+    tek_parameters = dm.file_handler.get_tek_params()
+
+    area_by_condition = calculate_area_by_condition(years, scurve_parameters, tek_parameters, area_parameters, dm)
 
     area_unstacked = area_by_condition.rename(columns={'demolition_acc': 'demolition',
                                                        'shares_renovation': 'renovation',

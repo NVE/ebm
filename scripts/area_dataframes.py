@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 # coding: utf-8
 import itertools
+import os
 import pathlib
 
 from loguru import logger
 import pandas as pd
 
+from ebm.cmd.helpers import load_environment_from_dotenv
+from ebm.cmd.run_calculation import configure_loglevel
 from ebm.model.area import building_condition_scurves, building_condition_accumulated_scurves
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager, FileHandler
@@ -197,6 +200,9 @@ def dataframe_to_excel(area_unstacked, target_file):
 
 
 def main():
+    load_environment_from_dotenv()
+    configure_loglevel(log_format=os.environ.get('LOG_FORMAT'))
+
     years = YearRange(2020, 2050)
     dm = DatabaseManager(FileHandler(directory='t2734_input'))
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
+import itertools
 import pathlib
 
 # In[426]:
@@ -9,6 +10,7 @@ import pandas as pd
 
 import time
 
+from ebm.model.area import building_condition_scurves, building_condition_accumulated_scurves
 
 pd.set_option('display.float_format', '{:.9f}'.format)
 
@@ -17,7 +19,6 @@ pd.set_option('display.float_format', '{:.9f}'.format)
 
 
 from ebm.model.data_classes import YearRange
-from ebm.model.area import building_condition_scurves, building_condition_accumulated_scurves
 
 from ebm.model.database_manager import DatabaseManager, FileHandler
 from ebm.model.construction import ConstructionCalculator
@@ -41,16 +42,7 @@ scurve_parameters = pd.read_csv(scurve_parameters_path)
 
 scurve_parameters
 
-
-# In[ ]:
-
-
-
-
-
 # ### area_parameters
-
-# In[429]:
 
 
 area_parameters_path = input_directory / 'area_parameters.csv'
@@ -63,99 +55,22 @@ area_parameters
 
 # ### tek_parameters
 
-# In[430]:
-
 
 tek_parameters_path = input_directory / 'tek_parameters.csv'
 tek_parameters = pd.read_csv(tek_parameters_path)
 tek_parameters = tek_parameters[['TEK', 'period_start_year', 'building_year', 'period_end_year']]
 tek_parameters
 
-
-# #### Filter parameters
-
-# In[ ]:
-
-
-
-
-
-# In[431]:
-
-
-if False:
-    area_parameters=area_parameters.query('building_category=="house"')
-    tek_parameters=tek_parameters.query('TEK=="PRE_TEK49"')
-    scurve_parameters=scurve_parameters.query('building_category=="house"')
-
-
-# ## Make building_condition scurves
-
-# In[ ]:
-
-
-
-
-
-# In[432]:
-
-
 scurve_normal = building_condition_scurves(scurve_parameters)
 scurve_max = building_condition_accumulated_scurves(scurve_parameters)
 
 s_df = pd.concat([scurve_normal, scurve_max])
 
-
-s_df
-
-
-# #### renovation scurve
-
-# In[433]:
-
-
-s_df.query('building_category=="house" and building_condition=="renovation_acc"')
-
-
-# In[434]:
-
-
 df_never_share = pd.DataFrame([(r.building_category, i, r.condition + '_nvr', r.never_share) for i in range(-130, 131) for r in scurve_parameters.itertuples()],
              columns=['building_category', 'age', 'building_condition', 'scurve']).sort_values(['building_category', 'building_condition', 'age']).set_index(['building_category', 'age', 'building_condition'])
-df_never_share
-
-
-# In[435]:
 
 
 s_df = pd.concat([s_df, df_never_share])
-s_df
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[436]:
-
-
-s_df.query(f'building_category=="house" and building_condition=="renovation" and age >= {2020-1945}')
-
-
-# ## Join scurve and tek parameters into scurve_by_tek
-# 
-# 
-
-# In[437]:
-
 
 df = s_df.reset_index().join(tek_parameters, how='cross')
 #df = s_df.reset_index().join(left=s_df.reset_index(), right=tek_parameters, how=['cross'])
@@ -165,80 +80,22 @@ df['year'] = df['building_year'] + df['age']
 scurve_by_tek = df.copy()
 df
 
-
-
-
-# In[438]:
-
-
-df.query('TEK=="TEK17"')
-
-
-# In[439]:
-
-
-s_df.reset_index().sample(7)
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[440]:
-
-
-r=scurve_by_tek.reset_index()
-r
-
-
-# In[441]:
-
-
-r.query('TEK=="TEK17"')
-
-q=r.pivot(index=['building_category', 'TEK', 'year'], columns=['building_condition'], values='scurve')
-q
-
-
 # In[442]:
-
+r=scurve_by_tek.reset_index()
 
 df_p = r.pivot(index=['building_category', 'TEK', 'year'], columns=['building_condition'], values='scurve')
 
 
-df_p
 
-
-# In[443]:
-
-
-df_p.xs(level='TEK', key='TEK17', drop_level=False)
-
-
-# In[444]:
-
-
-#.rename_axis(None, axis=1)
 df_p = df_p.reset_index().set_index(['building_category', 'TEK', 'year'], drop=True).rename_axis(None, axis=1)
-df_p.query('building_category=="house"')
 
-
-# In[445]:
-
-
-df = df_p.copy() #.loc['house']
-
-df
 
 
 # ## Calculate new cumulative demolition with zero demolition in start year
 
 # In[446]:
 
+df = df_p.copy()
 
 pd.set_option('display.float_format', '{:.6f}'.format)
 
@@ -261,9 +118,6 @@ df_p
 df_ap = area_parameters.set_index(['building_category', 'TEK']).copy()
 demolition_by_year = (df_ap.loc[:, 'area'] * df.loc[:, 'demolition'])
 
-print('demolition_floor_area.describe()=\n', demolition_by_year.describe())
-print('demolition_floor_area.sum()=\n', demolition_by_year.sum())
-#df[['demolition_acc']] * .area
 demolition_by_year.name = 'demolition'
 demolition_by_year = demolition_by_year.to_frame().loc[(slice(None), slice(None), slice(2020, 2050))]
 demolition_by_year.loc[(slice(None), slice(None), [2020, 2021, 2030, 2049, 2050])]
@@ -276,12 +130,6 @@ demolition_by_year.loc[(slice(None), slice(None), [2020, 2021, 2030, 2049, 2050]
 demolition_by_building_category_year = demolition_by_year.groupby(by=['building_category', 'year']).sum()
 demolition_by_building_category_year
 #demolition_floor_area.loc[(['apartment_block'], slice(None), [2050])]
-
-
-# In[449]:
-
-
-#demolition_by_building_category_year.loc[(['culture'])]
 
 
 # ## Make area
@@ -311,36 +159,10 @@ existing_area = existing_area.set_index(['building_category', 'TEK', 'year'])
 existing_area
 
 
-# In[451]:
-
-
-existing_area.loc[(['culture',], slice(None), slice(None))]
-
-
-# In[452]:
-
-
-area_parameters
-
-
-# In[453]:
-
-
-demolition_by_building_category_year
-
-
-# In[454]:
-
-
 dm = DatabaseManager(FileHandler(directory=input_directory))
-construction = ConstructionCalculator.calculate_all_construction(demolition_by_building_category_year, database_manager=dm, period=years)
-
-construction
-#df.query('building_category=="house" and TEK=="PRE_TEK49" and year > 2018')
-
-
-# In[455]:
-
+construction = ConstructionCalculator.calculate_all_construction(demolition_by_year=demolition_by_building_category_year,
+                                                                 database_manager=dm,
+                                                                 period=years)
 
 logger.warning('Cheating by assuming TEK17')
 constructed_tek17 = construction.copy()
@@ -349,20 +171,7 @@ construction_by_building_category_yearly = constructed_tek17.set_index(['buildin
 construction_by_building_category_yearly.name = 'area'
 construction_by_building_category_yearly
 
-
-# In[456]:
-
-
-construction_by_building_category_yearly.loc['university']
-
-
 # In[457]:
-
-
-existing_area
-
-
-# In[458]:
 
 
 total_area_by_year = pd.concat([existing_area.drop(columns=['year_r'], errors='ignore'), construction_by_building_category_yearly])
@@ -521,18 +330,6 @@ scurved
 scurved.loc[(slice(None), ['TEK17'], slice(None))]
 
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
 # In[474]:
 
 
@@ -576,3 +373,26 @@ print(area_by_condition.sort_index(level=['building_category','year',  'TEK']).l
 
 
 print('diff', area_by_condition.sum(axis=1).sum() -17717147447.0043000000)
+
+area_unstacked = area_by_condition.rename(columns={'demolition_acc': 'demolition',
+                                                   'shares_renovation': 'renovation',
+                                                   'shares_small_measure': 'small_measure'}).stack().reset_index()
+area_unstacked = area_unstacked.rename(columns={'level_3': 'building_condition', 0: 'm²'})
+
+
+def increment_filename(filename: pathlib.Path):
+    yield filename
+    for i in itertools.count(1):
+        yield filename.parent / f'{filename.stem}-{i}{filename.suffix}'
+
+
+for output_file in increment_filename(pathlib.Path('output/area_dataframes.xlsx')):
+    logger.debug(f'Writing to {output_file}')
+    try:
+        area_unstacked.to_excel(output_file, merge_cells=False, index=False)
+    except IOError as io_error:
+        logger.debug(io_error)
+        logger.debug(f'IOError writing to {output_file}')
+    else:
+        logger.info(f'Wrote {output_file.absolute()}')
+        break

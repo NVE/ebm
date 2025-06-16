@@ -13,16 +13,19 @@ from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager, FileHandler
 
 
-def dataframe_to_excel(area_unstacked, target_file):
+def dataframe_to_csv(area_unstacked, target_file):
     def increment_filename(filename: pathlib.Path):
         yield filename
-        for i in itertools.count(1):
+        for i in range(1, 100):
             yield filename.parent / f'{filename.stem}-{i}{filename.suffix}'
 
     for output_file in increment_filename(target_file):
         logger.debug(f'Writing to {output_file}')
         try:
-            area_unstacked.to_excel(output_file, merge_cells=False, index=False)
+            area_unstacked.to_csv(output_file,
+                                  index=False,
+                                  sep=os.environ.get('EBM_CSV_DELIMITER', ';'),
+                                  decimal=os.environ.get('EBM_CSV_DECIMAL_POINT', '.'))
         except IOError as io_error:
             logger.debug(io_error)
             logger.debug(f'IOError writing to {output_file}')
@@ -47,7 +50,7 @@ def main():
 
     area_by_condition = extract_area_forecast(years, scurve_parameters, tek_parameters, area_parameters, dm)
 
-    dataframe_to_excel(area_by_condition, pathlib.Path('output/area_dataframes.xlsx'))
+    dataframe_to_csv(area_by_condition, pathlib.Path('output/area_dataframes.csv'))
 
 
 

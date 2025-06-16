@@ -15,12 +15,14 @@ from ebm.model.energy_requirement import EnergyRequirement
 def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek_parameters: pd.DataFrame, area_parameters: pd.DataFrame, database_manager:DatabaseManager):
     logger.debug('Calculating area by condition')
 
-    scurve_normal = building_condition_scurves(scurve_parameters)
-    scurve_acc = building_condition_accumulated_scurves(scurve_parameters)
-    s_curves = pd.concat([scurve_normal, scurve_acc])
+    scurve_by_year = building_condition_scurves(scurve_parameters)
+    scurve_accumulated = building_condition_accumulated_scurves(scurve_parameters)
 
+    s_curves = pd.concat([scurve_by_year, scurve_accumulated])
+
+    max_age = s_curves.index.get_level_values(level='age').max()
     df_never_share = pd.DataFrame(
-        [(r.building_category, i, r.condition + '_nvr', r.never_share) for i in range(-130, 131) for r in
+        [(r.building_category, i, r.condition + '_nvr', r.never_share) for i in range(-max_age, max_age+1) for r in
          scurve_parameters.itertuples()],
         columns=['building_category', 'age', 'building_condition', 'scurve']).sort_values(
         ['building_category', 'building_condition', 'age']).set_index(
@@ -28,25 +30,19 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
 
     s_df = pd.concat([s_curves, df_never_share])
 
-    df = s_df.reset_index().join(tek_parameters, how='cross')
-    df['year'] = df['building_year'] + df['age']
-    scurve_by_tek = df
+    s_curves_by_tek = s_df.reset_index().join(tek_parameters, how='cross')
+    s_curves_by_tek['year'] = s_curves_by_tek['building_year'] + s_curves_by_tek['age']
 
-    r = scurve_by_tek.reset_index()
-    df_p = r.pivot(index=['building_category', 'TEK', 'year'], columns=['building_condition'], values='scurve')
-    df_p = df_p.reset_index().set_index(['building_category', 'TEK', 'year'], drop=True).rename_axis(None, axis=1)
+    s_curves_long = s_curves_by_tek.pivot(index=['building_category', 'TEK', 'year'], columns=['building_condition'], values='scurve').reset_index()
+    s_curves_long = s_curves_long.reset_index().set_index(['building_category', 'TEK', 'year'], drop=True).rename_axis(None, axis=1)
 
-
-    df = df_p
-    pd.set_option('display.float_format', '{:.6f}'.format)
-    df.loc[df.query(f'year<={years.start}').index, 'demolition'] = 0.0
-    df['demolition_acc'] = df.groupby(by=['building_category', 'TEK'])[['demolition']].cumsum()[['demolition']]
-
-    df_p = df
+    demolition_acc = s_curves_long
+    demolition_acc.loc[demolition_acc.query(f'year<={years.start}').index, 'demolition'] = 0.0
+    demolition_acc['demolition_acc'] = demolition_acc.groupby(by=['building_category', 'TEK'])[['demolition']].cumsum()[['demolition']]
 
     # ## Load construction
     area_parameters = area_parameters.set_index(['building_category', 'TEK'])
-    demolition_by_year = area_parameters.loc[:, 'area'] * df.loc[:, 'demolition']
+    demolition_by_year = area_parameters.loc[:, 'area'] * demolition_acc.loc[:, 'demolition']
     demolition_by_year.name = 'demolition'
     demolition_by_year = demolition_by_year.to_frame().loc[(slice(None), slice(None), slice(2020, 2050))]
 
@@ -63,7 +59,6 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
         ['building_category', 'TEK', 'year']).accumulated_constructed_floor_area
     construction_by_building_category_yearly.name = 'area'
 
-    # demolition_floor_area.loc[(['apartment_block'], slice(None), [2050])]
     # ## Make area
     # Define the range of years
     index = pd.MultiIndex.from_product(
@@ -81,7 +76,7 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     total_area_by_year = pd.concat([existing_area.drop(columns=['year_r'], errors='ignore'),
                                     construction_by_building_category_yearly])
 
-    with_area = total_area_by_year.join(df_p, how='left').fillna(0.0)
+    with_area = total_area_by_year.join(demolition_acc, how='left').fillna(0.0)
 
     with_area.index.get_level_values(level='TEK').unique()
     with_area.index.get_level_values(level='building_category').unique()

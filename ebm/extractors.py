@@ -176,7 +176,11 @@ def main():
     fh = FileHandler(directory='input')
     dm = DatabaseManager(fh)
     years = YearRange(2020, 2050)
-    area_forecast = extract_area_forecast(years, dm=dm)
+    area_forecast = extract_area_forecast(years,
+                                          tek_parameters=fh.get_tek_params(),
+                                          area_parameters=dm.get_area_parameters(),
+                                          scurve_parameters=dm.get_scurve_params(),
+                                          database_manager=dm)
 
     print(area_forecast)
 

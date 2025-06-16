@@ -35,7 +35,7 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     r = scurve_by_tek.reset_index()
     df_p = r.pivot(index=['building_category', 'TEK', 'year'], columns=['building_condition'], values='scurve')
     df_p = df_p.reset_index().set_index(['building_category', 'TEK', 'year'], drop=True).rename_axis(None, axis=1)
-    # ## Calculate new cumulative demolition with zero demolition in start year
+
 
     df = df_p
     pd.set_option('display.float_format', '{:.6f}'.format)
@@ -45,8 +45,8 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     df_p = df
 
     # ## Load construction
-    df_ap = area_parameters.set_index(['building_category', 'TEK'])
-    demolition_by_year = (df_ap.loc[:, 'area'] * df.loc[:, 'demolition'])
+    area_parameters = area_parameters.set_index(['building_category', 'TEK'])
+    demolition_by_year = area_parameters.loc[:, 'area'] * df.loc[:, 'demolition']
     demolition_by_year.name = 'demolition'
     demolition_by_year = demolition_by_year.to_frame().loc[(slice(None), slice(None), slice(2020, 2050))]
 
@@ -74,9 +74,8 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     area = index.to_frame().set_index(['building_category', 'TEK', 'year']).reindex(index).reset_index()
 
     # Optional: Fill missing values with a default, e.g., 0
-    ap_df = area_parameters.set_index(['building_category', 'TEK'])
 
-    existing_area = pd.merge(left=ap_df, right=area, on=['building_category', 'TEK'], suffixes=['_r', ''])
+    existing_area = pd.merge(left=area_parameters, right=area, on=['building_category', 'TEK'], suffixes=['_r', ''])
     existing_area = existing_area.set_index(['building_category', 'TEK', 'year'])
 
     total_area_by_year = pd.concat([existing_area.drop(columns=['year_r'], errors='ignore'),

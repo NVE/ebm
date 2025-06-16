@@ -14,6 +14,7 @@ from ebm.model.energy_requirement import EnergyRequirement
 
 def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek_parameters: pd.DataFrame, area_parameters: pd.DataFrame, database_manager:DatabaseManager):
     logger.debug('Calculating area by condition')
+
     scurve_normal = building_condition_scurves(scurve_parameters)
     scurve_acc = building_condition_accumulated_scurves(scurve_parameters)
     s_curves = pd.concat([scurve_normal, scurve_acc])
@@ -40,7 +41,6 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     pd.set_option('display.float_format', '{:.6f}'.format)
     df.loc[df.query(f'year<={years.start}').index, 'demolition'] = 0.0
     df['demolition_acc'] = df.groupby(by=['building_category', 'TEK'])[['demolition']].cumsum()[['demolition']]
-    # df=df.query(f'year>={years.start}')
 
     df_p = df
 
@@ -51,6 +51,17 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     demolition_by_year = demolition_by_year.to_frame().loc[(slice(None), slice(None), slice(2020, 2050))]
 
     demolition_by_building_category_year = demolition_by_year.groupby(by=['building_category', 'year']).sum()
+
+    construction = ConstructionCalculator.calculate_all_construction(
+        demolition_by_year=demolition_by_building_category_year,
+        database_manager=database_manager,
+        period=years)
+
+    logger.warning('Cheating by assuming TEK17')
+    construction['TEK'] = 'TEK17'
+    construction_by_building_category_yearly = construction.set_index(
+        ['building_category', 'TEK', 'year']).accumulated_constructed_floor_area
+    construction_by_building_category_yearly.name = 'area'
 
     # demolition_floor_area.loc[(['apartment_block'], slice(None), [2050])]
     # ## Make area
@@ -68,24 +79,10 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     existing_area = pd.merge(left=ap_df, right=area, on=['building_category', 'TEK'], suffixes=['_r', ''])
     existing_area = existing_area.set_index(['building_category', 'TEK', 'year'])
 
-    construction = ConstructionCalculator.calculate_all_construction(
-        demolition_by_year=demolition_by_building_category_year,
-        database_manager=database_manager,
-        period=years)
+    total_area_by_year = pd.concat([existing_area.drop(columns=['year_r'], errors='ignore'),
+                                    construction_by_building_category_yearly])
 
-    logger.warning('Cheating by assuming TEK17')
-    constructed_tek17 = construction
-    constructed_tek17['TEK'] = 'TEK17'
-    construction_by_building_category_yearly = constructed_tek17.set_index(
-        ['building_category', 'TEK', 'year']).accumulated_constructed_floor_area
-    construction_by_building_category_yearly.name = 'area'
-
-    total_area_by_year = pd.concat(
-        [existing_area.drop(columns=['year_r'], errors='ignore'), construction_by_building_category_yearly])
-
-    df = total_area_by_year
-
-    with_area = df.join(df_p, how='left').fillna(0.0)
+    with_area = total_area_by_year.join(df_p, how='left').fillna(0.0)
 
     with_area.index.get_level_values(level='TEK').unique()
     with_area.index.get_level_values(level='building_category').unique()

@@ -11,6 +11,7 @@ from ebm.cmd.run_calculation import configure_loglevel
 from ebm.extractors import extract_area_forecast
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager, FileHandler
+import pandas as pd
 
 
 def dataframe_to_csv(area_unstacked, target_file):
@@ -35,6 +36,7 @@ def dataframe_to_csv(area_unstacked, target_file):
 
 
 def main():
+    pd.set_option('display.float_format', '{:.6f}'.format)
     load_environment_from_dotenv()
     configure_loglevel(log_format=os.environ.get('LOG_FORMAT'))
 
@@ -48,8 +50,10 @@ def main():
 
     tek_parameters = dm.file_handler.get_tek_params()
 
+    logger.info('Call extract_area_forecast')
     area_by_condition = extract_area_forecast(years, scurve_parameters, tek_parameters, area_parameters, dm)
 
+    logger.info('Write output')
     dataframe_to_csv(area_by_condition, pathlib.Path('output/area_dataframes.csv'))
 
 

@@ -31,12 +31,10 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     df['year'] = df['building_year'] + df['age']
     scurve_by_tek = df
 
-    # In[442]:
     r = scurve_by_tek.reset_index()
     df_p = r.pivot(index=['building_category', 'TEK', 'year'], columns=['building_condition'], values='scurve')
     df_p = df_p.reset_index().set_index(['building_category', 'TEK', 'year'], drop=True).rename_axis(None, axis=1)
     # ## Calculate new cumulative demolition with zero demolition in start year
-    # In[446]:
 
     df = df_p
     pd.set_option('display.float_format', '{:.6f}'.format)
@@ -47,28 +45,24 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     df_p = df
 
     # ## Load construction
-    # In[447]:
     df_ap = area_parameters.set_index(['building_category', 'TEK'])
     demolition_by_year = (df_ap.loc[:, 'area'] * df.loc[:, 'demolition'])
     demolition_by_year.name = 'demolition'
     demolition_by_year = demolition_by_year.to_frame().loc[(slice(None), slice(None), slice(2020, 2050))]
 
-    # In[448]:
     demolition_by_building_category_year = demolition_by_year.groupby(by=['building_category', 'year']).sum()
 
     # demolition_floor_area.loc[(['apartment_block'], slice(None), [2050])]
     # ## Make area
-    # In[450]:
-
     # Define the range of years
-    # Create a MultiIndex with all combinations of cat_a, cat_b, and year
     index = pd.MultiIndex.from_product(
         [scurve_parameters['building_category'].unique(), tek_parameters.TEK.unique(), years],
         names=['building_category', 'TEK', 'year'])
+
     # Reindex the DataFrame to include all combinations, filling missing values with NaN
     area = index.to_frame().set_index(['building_category', 'TEK', 'year']).reindex(index).reset_index()
+
     # Optional: Fill missing values with a default, e.g., 0
-    # df_full['value'] = df_full['value'].fillna(0)
     ap_df = area_parameters.set_index(['building_category', 'TEK'])
 
     existing_area = pd.merge(left=ap_df, right=area, on=['building_category', 'TEK'], suffixes=['_r', ''])
@@ -86,7 +80,6 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
         ['building_category', 'TEK', 'year']).accumulated_constructed_floor_area
     construction_by_building_category_yearly.name = 'area'
 
-    # In[457]:
     total_area_by_year = pd.concat(
         [existing_area.drop(columns=['year_r'], errors='ignore'), construction_by_building_category_yearly])
 
@@ -105,10 +98,6 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     df.loc[:, 'renovation_max'] = (1.0 - df.loc[:, 'demolition_acc'] - df.loc[:, 'renovation_nvr'])
     df.loc[:, 'small_measure_max'] = 1.0 - df.loc[:, 'demolition_acc'] - df.loc[:, 'small_measure_nvr']
 
-    # In[465]:
-    # hus=df.query('building_category=="house" and year > 2018')
-    # hus.loc[:, 'sm2'] = hus['small_measure_acc'] - hus['demolition_acc']
-    # hus[['sm2', 'small_measure_max']]
     # ## small_measure and renovation to shares_small_measure_total, RN
     # ## SharesPerCondition calc_renovation
     #
@@ -123,19 +112,14 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     df.loc[:, 'shares_total'] = (df.loc[:, 'shares_small_measure_total'] +
                                  df.loc[:, 'shares_renovation_total']).clip(lower=0.0)
 
-    # SharesPerCondition -> calc_renovation 273:285
     df.loc[df[df.shares_total < df.renovation_max].index, 'shares_renovation'] = df.loc[df[df.shares_total < df.renovation_max].index, 'shares_renovation_total']
 
     # ### SharesPerCondition calc_renovation_and_Small_measure
-    #
     #  - ❌ Sette til 0 før byggeår
-    #
-    #
     df.loc[:, 'renovation_and_small_measure'] = (df.loc[:, 'shares_renovation_total'] -
                                                  df.loc[:, 'shares_renovation'])
 
     # ### SharesPerCondition calc_small_measure
-    #
     #  - ❌   sette til 0 før byggeår
     # ```python
     #     construction_year = self.tek_params[tek].building_year
@@ -154,15 +138,11 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
 
     # ## join calculated scurves on area
     scurved = df
-    # sca.loc[:, ['demolition', 'shares_small_measure_total', 'RN', 'both']] * sca['area', 'area', 'area', 'area']]
 
     a_mul = scurved[['original_condition', 'demolition_acc', 'shares_small_measure', 'shares_renovation',
                      'renovation_and_small_measure', 'area']]
     area_by_condition = a_mul[['original_condition', 'demolition_acc', 'shares_small_measure', 'shares_renovation',
                                'renovation_and_small_measure']].multiply(a_mul['area'], axis=0)
-
-    # # SUMS
-    # In[475]:
 
     area_unstacked = area_by_condition.rename(columns={'demolition_acc': 'demolition',
                                                        'shares_renovation': 'renovation',

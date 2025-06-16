@@ -39,8 +39,14 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     logger.info('Area to area.xlsx')
     logger.debug('Extract area')
 
+    scurve_parameters = database_manager.get_scurve_params() # 📍
+
+    area_parameters = database_manager.get_area_parameters() # 📍
+    area_parameters['year'] = years.start
+
     tek_parameters = database_manager.file_handler.get_tek_params() # 📍
-    area_forecast = extractors.extract_area_forecast(years, database_manager) # 📍
+
+    area_forecast = extractors.extract_area_forecast(years, scurve_parameters, tek_parameters, area_parameters, database_manager) # 📍
     energy_need_kwh_m2 = extractors.extract_energy_need(years, database_manager) # 📍
     heating_systems_projection = extractors.extract_heating_systems_projection(years, database_manager) # 📍
     energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(database_manager) # 📍

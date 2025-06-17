@@ -135,12 +135,15 @@ def merge_s_curves_and_tek(s_curves, df_never_share, tek_parameters):
 
 
 def transform_to_dataframe(s_curve_cumulative_demolition, s_curve_original_condition, s_curve_renovation,
-                           s_curve_renovation_and_small_measure, s_curve_small_measure):
+                           s_curve_renovation_and_small_measure, s_curve_small_measure, s_curve_demolition):
     s_curves_by_condition = pd.DataFrame({
         'original_condition': s_curve_original_condition,
         'demolition': s_curve_cumulative_demolition,
         'small_measure': s_curve_small_measure,
         'renovation': s_curve_renovation,
-        'renovation_and_small_measure': s_curve_renovation_and_small_measure
+        'renovation_and_small_measure': s_curve_renovation_and_small_measure,
+        's_curve_demolition': s_curve_demolition
     })
     return s_curves_by_condition
+
+

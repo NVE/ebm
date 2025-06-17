@@ -2,10 +2,11 @@ import pandas as pd
 from loguru import logger
 
 from ebm import s_curve
+from ebm.model import area
 from ebm.cmd.result_handler import transform_holiday_homes_to_horizontal
 from ebm.cmd.run_calculation import calculate_energy_use
 from ebm.heating_systems_projection import HeatingSystemsProjection
-from ebm.model.construction import ConstructionCalculator
+
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement
@@ -14,14 +15,48 @@ from ebm.model.energy_requirement import EnergyRequirement
 def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek_parameters: pd.DataFrame, area_parameters: pd.DataFrame, database_manager:DatabaseManager):
     logger.debug('Calculating area by condition')
 
+    s_curves_by_condition = calculate_s_curves(scurve_parameters, tek_parameters, years)
+
+    # write_scurve(s_curves_by_condition)
+
+    area_parameters = area_parameters.set_index(['building_category', 'TEK'])
+
+    demolition_floor_area_by_year = area.calculate_demolition_floor_area_by_year(area_parameters, s_curves_by_condition.s_curve_demolition)
+
+    building_category_demolition_by_year = area.sum_building_category_demolition_by_year(demolition_floor_area_by_year)
+
+    construction_by_building_category_and_year = area.calculate_construction_by_building_category(building_category_demolition_by_year, database_manager, years)
+
+    existing_area = area.calculate_existing_area(area_parameters, tek_parameters, years)
+
+    total_area_floor_by_year = area.merge_total_area_by_year(construction_by_building_category_and_year, existing_area)
+
+    floor_area_forecast = area.multiply_s_curves_with_floor_area(s_curves_by_condition, total_area_floor_by_year)
+
+    return floor_area_forecast
+
+
+def write_scurve(s_curves_by_condition):
+    try:
+        output_file = 'output/s_curves.xlsx'
+        with pd.ExcelWriter(output_file, engine='xlsxwriter') as writer:
+            s_curves_by_condition.to_excel(writer, sheet_name='s_curves_by_condition', merge_cells=False)  # 💾
+            # s_curve_demolition.to_excel(writer, sheet_name='s_curve_demolition', merge_cells=False) # 💾
+    except IOError as ex:
+        logger.exception(ex)
+        logger.info(f'There was an IOError while writing to {output_file}. Moving on!')
+
+
+def calculate_s_curves(scurve_parameters, tek_parameters, years):
     s_curves = s_curve.scurve_parameters_to_scurve(scurve_parameters)
     df_never_share = s_curve.scurve_parameters_to_never_share(s_curves, scurve_parameters)
 
     s_curves_with_tek = s_curve.merge_s_curves_and_tek(s_curves, df_never_share, tek_parameters)
+
     cumulative_demolition = s_curve.accumulate_demolition(s_curves_with_tek, years)
+    s_curve_demolition = s_curve.transform_demolition(cumulative_demolition, years)
 
     s_curve_cumulative_demolition = s_curve.transform_to_cumulative_demolition(cumulative_demolition, years)
-    s_curve_demolition = s_curve.transform_demolition(cumulative_demolition, years)
     s_curve_renovation_never_share = s_curve.renovation_never_share(s_curves_with_tek, years)
     s_curve_small_measure_never_share = s_curve.small_measure_never_share(s_curves_with_tek, years)
     s_curve_cumulative_small_measure = s_curve.cumulative_small_measure(s_curves_with_tek, years)
@@ -36,90 +71,26 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     scurve_total = s_curve.total(s_curve_renovation_total, s_curve_small_measure_total)
 
     s_curve_renovation = s_curve.renovation_from_small_measure(s_curve_renovation_max, s_curve_small_measure_total)
-
-
     s_curve_renovation = s_curve.trim_renovation_from_renovation_total(s_curve_renovation, s_curve_renovation_max,
                                                                        s_curve_renovation_total, scurve_total)
 
-    s_curve_renovation_and_small_measure = s_curve.renovation_and_small_measure(s_curve_renovation, s_curve_renovation_total)
+    s_curve_renovation_and_small_measure = s_curve.renovation_and_small_measure(s_curve_renovation,
+                                                                                s_curve_renovation_total)
+
     s_curve_small_measure = s_curve.small_measure(s_curve_renovation_and_small_measure, s_curve_small_measure_total)
+
     s_curve_original_condition = s_curve.original_condition(s_curve_cumulative_demolition, s_curve_renovation,
                                                             s_curve_renovation_and_small_measure,
                                                             s_curve_small_measure)
 
-    s_curves_by_condition = s_curve.transform_to_dataframe(s_curve_cumulative_demolition, s_curve_original_condition,
-                                                   s_curve_renovation, s_curve_renovation_and_small_measure,
-                                                   s_curve_small_measure)
+    s_curves_by_condition = s_curve.transform_to_dataframe(s_curve_cumulative_demolition,
+                                                           s_curve_original_condition,
+                                                           s_curve_renovation,
+                                                           s_curve_renovation_and_small_measure,
+                                                           s_curve_small_measure,
+                                                           s_curve_demolition)
 
-    area_parameters = area_parameters.set_index(['building_category', 'TEK'])
-
-    demolition_floor_area_by_year = calculate_demolition_floor_area_by_year(area_parameters, s_curve_demolition)
-
-    building_category_demolition_by_year = sum_building_category_demolition_by_year(demolition_floor_area_by_year)
-
-    construction_by_building_category_and_year = calculate_construction_by_building_category(building_category_demolition_by_year, database_manager, years)
-
-    existing_area = calculate_existing_area(area_parameters, tek_parameters, years)
-
-    total_area_floor_by_year = merge_total_area_by_year(construction_by_building_category_and_year, existing_area)
-
-    floor_area_forecast = multiply_s_curves_with_floor_area(s_curves_by_condition, total_area_floor_by_year)
-
-    return floor_area_forecast
-
-
-def multiply_s_curves_with_floor_area(s_curves_by_condition, with_area):
-    floor_area_by_condition = s_curves_by_condition.multiply(with_area['area'], axis=0)
-    floor_area_forecast = floor_area_by_condition.stack().reset_index()
-    floor_area_forecast = floor_area_forecast.rename(columns={'level_3': 'building_condition', 0: 'm2'})  # m²
-    return floor_area_forecast
-
-
-def merge_total_area_by_year(construction_by_building_category_yearly, existing_area):
-    total_area_by_year = pd.concat([existing_area.drop(columns=['year_r'], errors='ignore'),
-                                    construction_by_building_category_yearly])
-    return total_area_by_year
-
-
-def calculate_existing_area(area_parameters, tek_parameters, years):
-    # ## Make area
-    # Define the range of years
-    index = pd.MultiIndex.from_product(
-        [area_parameters.index.get_level_values(level='building_category').unique(), tek_parameters.TEK.unique(),
-         years],
-        names=['building_category', 'TEK', 'year'])
-    # Reindex the DataFrame to include all combinations, filling missing values with NaN
-    area = index.to_frame().set_index(['building_category', 'TEK', 'year']).reindex(index).reset_index()
-    # Optional: Fill missing values with a default, e.g., 0
-    existing_area = pd.merge(left=area_parameters, right=area, on=['building_category', 'TEK'], suffixes=['_r', ''])
-    existing_area = existing_area.set_index(['building_category', 'TEK', 'year'])
-    return existing_area
-
-
-def calculate_construction_by_building_category(building_category_demolition_by_year, database_manager, years):
-    construction = ConstructionCalculator.calculate_all_construction(
-        demolition_by_year=building_category_demolition_by_year,
-        database_manager=database_manager,
-        period=years)
-    logger.warning('Cheating by assuming TEK17')
-    construction['TEK'] = 'TEK17'
-    construction_by_building_category_yearly = construction.set_index(
-        ['building_category', 'TEK', 'year']).accumulated_constructed_floor_area
-    construction_by_building_category_yearly.name = 'area'
-    return construction_by_building_category_yearly
-
-
-def sum_building_category_demolition_by_year(demolition_by_year):
-    demolition_by_building_category_year = demolition_by_year.groupby(by=['building_category', 'year']).sum()
-    return demolition_by_building_category_year
-
-
-def calculate_demolition_floor_area_by_year(
-        area_parameters: pd.DataFrame, s_curve_cumulative_demolition: pd.Series) -> pd.Series:
-    demolition_by_year = area_parameters.loc[:, 'area'] * s_curve_cumulative_demolition.loc[:]
-    demolition_by_year.name = 'demolition'
-    demolition_by_year = demolition_by_year.to_frame().loc[(slice(None), slice(None), slice(2020, 2050))]
-    return demolition_by_year.demolition
+    return s_curves_by_condition
 
 
 def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:

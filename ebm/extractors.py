@@ -71,18 +71,12 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     shares_total = (shares_small_measure_total +
                                  shares_renovation_total).clip(lower=0.0)
 
-    df.loc[:, 'shares_renovation_total'] = shares_renovation_total # ✂️
-    df.loc[:, 'shares_total'] = shares_total # ✂️
-    df.loc[:, 'shares_renovation'] = shares_renovation # ✂🦟
-
     # Filter rows where shares_total is smaller than renovation_max and merge those values into shares_renovation
     shares_total_smaller_than_max_renovation = shares_renovation_total.loc[shares_total < renovation_max]
     shares_renovation = shares_total_smaller_than_max_renovation.combine_first(shares_renovation)
 
-    # ### SharesPerCondition calc_renovation_and_Small_measure
+    # ### SharesPerCondition calc_renovation_and_small_measure
     #  - ❌ Sette til 0 før byggeår
-    renovation_and_small_measure = (shares_renovation_total -
-                                                 shares_renovation)
 
     # ### SharesPerCondition calc_small_measure
     #  - ❌   sette til 0 før byggeår
@@ -90,10 +84,9 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     #     construction_year = self.tek_params[tek].building_year
     #     shares.loc[self.period_index <= construction_year] = 0
     # ```
-    shares_small_measure = (shares_small_measure_total -
-                                         renovation_and_small_measure)
 
-    # ### SharesPerCondition calc_original_condition
+    renovation_and_small_measure = (shares_renovation_total - shares_renovation)
+    shares_small_measure = (shares_small_measure_total - renovation_and_small_measure)
     original_condition = (1.0 - demolition_acc - shares_renovation - renovation_and_small_measure - shares_small_measure)
 
     df['renovation_and_small_measure'] = renovation_and_small_measure # 🦟

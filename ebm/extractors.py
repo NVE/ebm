@@ -88,8 +88,11 @@ def multiply_s_curves_with_floor_area(s_curves_by_condition, with_area):
 
 def calculate_s_curve_original_condition(s_curve_cumulative_demolition, s_curve_renovation,
                                          s_curve_renovation_and_small_measure, s_curve_small_measure):
-    return (
-                1.0 - s_curve_cumulative_demolition - s_curve_renovation - s_curve_renovation_and_small_measure - s_curve_small_measure)
+    return (1.0 -
+            s_curve_cumulative_demolition -
+            s_curve_renovation -
+            s_curve_renovation_and_small_measure -
+            s_curve_small_measure)
 
 
 def calculate_s_curve_small_measure(s_curve_renovation_and_small_measure, s_curve_small_measure_total):
@@ -141,7 +144,7 @@ def calculate_s_curve_small_measure_max(s_curve_cumulative_demolition, s_curve_s
 
 
 def calculate_s_curve_renovation_max(s_curve_cumulative_demolition, s_curve_renovation_never_share):
-    return (1.0 - s_curve_cumulative_demolition - s_curve_renovation_never_share)
+    return 1.0 - s_curve_cumulative_demolition - s_curve_renovation_never_share
 
 
 def calculate_s_curve_cumulative_renovation(s_curves_with_tek, years):
@@ -203,10 +206,13 @@ def merge_s_curves_and_tek(s_curves, df_never_share, tek_parameters):
 
     s_curves_by_tek = s_curves.reset_index().join(tek_parameters, how='cross')
     s_curves_by_tek['year'] = s_curves_by_tek['building_year'] + s_curves_by_tek['age']
-    s_curves_long = s_curves_by_tek.pivot(index=['building_category', 'TEK', 'year'], columns=['building_condition'],
+    s_curves_long = s_curves_by_tek.pivot(index=['building_category', 'TEK', 'year'],
+                                          columns=['building_condition'],
                                           values='scurve').reset_index()
-    s_curves_long = s_curves_long.reset_index(drop=True).set_index(['building_category', 'TEK', 'year'], drop=True).rename_axis(
-        None, axis=1)
+    s_curves_long = (s_curves_long
+        .reset_index(drop=True)
+        .set_index(['building_category', 'TEK', 'year'], drop=True)
+        .rename_axis(None, axis=1))
     return s_curves_long
 
 

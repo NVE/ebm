@@ -28,8 +28,8 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
         ['building_category', 'building_condition', 'age']).set_index(
         ['building_category', 'age', 'building_condition'])
 
-    s_curves_long = calculate_scurves_by_tek(s_curves, df_never_share, tek_parameters)
-    demolition_acc_ = accumulate_demolition(s_curves_long, years)
+    s_curves_with_tek = merge_s_curves_and_tek(s_curves, df_never_share, tek_parameters)
+    demolition_acc_ = accumulate_demolition(s_curves_with_tek, years)
 
     # ## Load construction
     area_parameters = area_parameters.set_index(['building_category', 'TEK'])
@@ -108,14 +108,14 @@ def accumulate_demolition(s_curves_long, years):
     return demolition_acc
 
 
-def calculate_scurves_by_tek(s_curves, df_never_share, tek_parameters):
+def merge_s_curves_and_tek(s_curves, df_never_share, tek_parameters):
     s_curves = pd.concat([s_curves, df_never_share])
 
     s_curves_by_tek = s_curves.reset_index().join(tek_parameters, how='cross')
     s_curves_by_tek['year'] = s_curves_by_tek['building_year'] + s_curves_by_tek['age']
     s_curves_long = s_curves_by_tek.pivot(index=['building_category', 'TEK', 'year'], columns=['building_condition'],
                                           values='scurve').reset_index()
-    s_curves_long = s_curves_long.reset_index().set_index(['building_category', 'TEK', 'year'], drop=True).rename_axis(
+    s_curves_long = s_curves_long.reset_index(drop=True).set_index(['building_category', 'TEK', 'year'], drop=True).rename_axis(
         None, axis=1)
     return s_curves_long
 

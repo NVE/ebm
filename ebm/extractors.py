@@ -16,12 +16,14 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     logger.debug('Calculating area by condition')
 
     s_curves_by_condition = calculate_s_curves(scurve_parameters, tek_parameters, years)
-
-    # write_scurve(s_curves_by_condition)
+    s_curve_demolition = s_curves_by_condition['s_curve_demolition']
+    s_curves_by_condition = s_curves_by_condition[[
+        'original_condition',  'demolition', 'small_measure', 'renovation', 'renovation_and_small_measure'
+    ]]
 
     area_parameters = area_parameters.set_index(['building_category', 'TEK'])
 
-    demolition_floor_area_by_year = area.calculate_demolition_floor_area_by_year(area_parameters, s_curves_by_condition.s_curve_demolition)
+    demolition_floor_area_by_year = area.calculate_demolition_floor_area_by_year(area_parameters, s_curve_demolition)
 
     building_category_demolition_by_year = area.sum_building_category_demolition_by_year(demolition_floor_area_by_year)
 

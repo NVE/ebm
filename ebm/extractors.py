@@ -31,20 +31,6 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     s_curves_with_tek = merge_s_curves_and_tek(s_curves, df_never_share, tek_parameters)
     cumulative_demolition = accumulate_demolition(s_curves_with_tek, years)
 
-    # ## Load construction
-    area_parameters = area_parameters.set_index(['building_category', 'TEK'])
-    demolition_by_year = calculate_demolition_floor_area_by_year(area_parameters, cumulative_demolition)
-
-    building_category_demolition_by_year = sum_building_category_demolition_by_year(demolition_by_year)
-
-    construction_by_building_category_and_year = calculate_construction_by_building_category(building_category_demolition_by_year, database_manager, years)
-
-    existing_area = calculate_existing_area(area_parameters, tek_parameters, years)
-
-    total_area_by_year = merge_total_area_by_year(construction_by_building_category_and_year, existing_area)
-
-    with_area = total_area_by_year.join(cumulative_demolition, how='left').fillna(0.0).sort_index()
-
     s_curve_cumulative_demolition = cumulative_demolition.demolition_acc.loc[(slice(None), slice(None), list(years.year_range))].fillna(0.0)
     s_curve_renovation_never_share = s_curves_with_tek.renovation_nvr.loc[(slice(None), slice(None), list(years.year_range))]
     s_curve_small_measure_never_share = s_curves_with_tek.small_measure_nvr.loc[(slice(None), slice(None), list(years.year_range))]
@@ -85,13 +71,30 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     s_curve_small_measure = (s_curve_small_measure_total - s_curve_renovation_and_small_measure)
     s_curve_original_condition = (1.0 - s_curve_cumulative_demolition - s_curve_renovation - s_curve_renovation_and_small_measure - s_curve_small_measure)
 
-    floor_area_by_condition = pd.DataFrame({
-        'original_condition': s_curve_original_condition * with_area.area,
-        'demolition': s_curve_cumulative_demolition * with_area.area,
-        'small_measure': s_curve_small_measure * with_area.area,
-        'renovation': s_curve_renovation * with_area.area,
-        'renovation_and_small_measure': s_curve_renovation_and_small_measure * with_area.area,
+    s_curves_by_condition = pd.DataFrame({
+        'original_condition': s_curve_original_condition,
+        'demolition': s_curve_cumulative_demolition,
+        'small_measure': s_curve_small_measure,
+        'renovation': s_curve_renovation,
+        'renovation_and_small_measure': s_curve_renovation_and_small_measure
     })
+
+    # ## Add floor area and calculate construction
+    area_parameters = area_parameters.set_index(['building_category', 'TEK'])
+    demolition_by_year = calculate_demolition_floor_area_by_year(area_parameters, cumulative_demolition)
+
+    building_category_demolition_by_year = sum_building_category_demolition_by_year(demolition_by_year)
+
+    # ### construction
+    construction_by_building_category_and_year = calculate_construction_by_building_category(building_category_demolition_by_year, database_manager, years)
+
+    existing_area = calculate_existing_area(area_parameters, tek_parameters, years)
+
+    total_area_by_year = merge_total_area_by_year(construction_by_building_category_and_year, existing_area)
+
+    with_area = total_area_by_year.join(cumulative_demolition, how='left').fillna(0.0).sort_index()
+
+    floor_area_by_condition = s_curves_by_condition.multiply(with_area['area'], axis=0)
 
     area_unstacked = floor_area_by_condition.stack().reset_index()
     area_unstacked = area_unstacked.rename(columns={'level_3': 'building_condition', 0: 'm2'}) # m²

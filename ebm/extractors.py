@@ -45,11 +45,11 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
 
     with_area = total_area_by_year.join(cumulative_demolition, how='left').fillna(0.0).sort_index()
 
-    s_curve_cumulative_demolition = with_area['demolition_acc'] # 🦟
-    s_curve_renovation_never_share = with_area.loc[:, 'renovation_nvr']
-    s_curve_small_measure_never_share = with_area.loc[:, 'small_measure_nvr']
-    s_curve_cumulative_small_measure = with_area['small_measure_acc'] # 🦟
-    s_curve_cumulative_renovation = with_area['renovation_acc']# 🦟
+    s_curve_cumulative_demolition = cumulative_demolition.demolition_acc.loc[(slice(None), slice(None), list(years.year_range))].fillna(0.0)
+    s_curve_renovation_never_share = s_curves_with_tek.renovation_nvr.loc[(slice(None), slice(None), list(years.year_range))]
+    s_curve_small_measure_never_share = s_curves_with_tek.small_measure_nvr.loc[(slice(None), slice(None), list(years.year_range))]
+    s_curve_cumulative_small_measure = s_curves_with_tek.small_measure_acc.loc[(slice(None), slice(None), list(years.year_range))].fillna(0.0)
+    s_curve_cumulative_renovation = s_curves_with_tek.renovation_acc.loc[(slice(None), slice(None), list(years.year_range))].fillna(0.0)
 
     s_curve_renovation_max = (1.0 - s_curve_cumulative_demolition - s_curve_renovation_never_share)
     s_curve_small_measure_max = 1.0 - s_curve_cumulative_demolition - s_curve_small_measure_never_share
@@ -104,6 +104,7 @@ def accumulate_demolition(s_curves_long, years):
     demolition_acc.loc[demolition_acc.query(f'year<={years.start}').index, 'demolition'] = 0.0
     demolition_acc['demolition_acc'] = demolition_acc.groupby(by=['building_category', 'TEK'])[['demolition']].cumsum()[
         ['demolition']]
+
     return demolition_acc
 
 

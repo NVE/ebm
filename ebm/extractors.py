@@ -14,52 +14,42 @@ from ebm.model.energy_requirement import EnergyRequirement
 def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek_parameters: pd.DataFrame, area_parameters: pd.DataFrame, database_manager:DatabaseManager):
     logger.debug('Calculating area by condition')
 
-    s_curves = s_curve.transform_scurve_parameters_to_scurve(scurve_parameters)
-    df_never_share = s_curve.transform_scurve_parameters_never_share(s_curves, scurve_parameters)
+    s_curves = s_curve.scurve_parameters_to_scurve(scurve_parameters)
+    df_never_share = s_curve.scurve_parameters_to_never_share(s_curves, scurve_parameters)
 
     s_curves_with_tek = s_curve.merge_s_curves_and_tek(s_curves, df_never_share, tek_parameters)
     cumulative_demolition = s_curve.accumulate_demolition(s_curves_with_tek, years)
 
-    s_curve_cumulative_demolition = s_curve.calculate_s_curve_cumulative_demolition(cumulative_demolition, years)
-    s_curve_demolition = s_curve.calculate_s_curve_demolition(cumulative_demolition, years)
-    s_curve_renovation_never_share = s_curve.calculate_s_curve_renovation_never_share(s_curves_with_tek, years)
-    s_curve_small_measure_never_share = s_curve.calculate_s_curve_small_measure_never_share(s_curves_with_tek, years)
-    s_curve_cumulative_small_measure = s_curve.calculate_s_curve_cumulative_small_measure(s_curves_with_tek, years)
-    s_curve_cumulative_renovation = s_curve.calculate_s_curve_cumulative_renovation(s_curves_with_tek, years)
+    s_curve_cumulative_demolition = s_curve.transform_to_cumulative_demolition(cumulative_demolition, years)
+    s_curve_demolition = s_curve.transform_demolition(cumulative_demolition, years)
+    s_curve_renovation_never_share = s_curve.renovation_never_share(s_curves_with_tek, years)
+    s_curve_small_measure_never_share = s_curve.small_measure_never_share(s_curves_with_tek, years)
+    s_curve_cumulative_small_measure = s_curve.cumulative_small_measure(s_curves_with_tek, years)
+    s_curve_cumulative_renovation = s_curve.cumulative_renovation(s_curves_with_tek, years)
 
-    s_curve_renovation_max = s_curve.calculate_s_curve_renovation_max(s_curve_cumulative_demolition, s_curve_renovation_never_share)
-    s_curve_small_measure_max = s_curve.calculate_s_curve_small_measure_max(s_curve_cumulative_demolition,
-                                                                    s_curve_small_measure_never_share)
+    s_curve_renovation_max = s_curve.renovation_max(s_curve_cumulative_demolition, s_curve_renovation_never_share)
+    s_curve_small_measure_max = s_curve.small_measure_max(s_curve_cumulative_demolition,
+                                                          s_curve_small_measure_never_share)
+
+    s_curve_small_measure_total = s_curve.trim_max_value(s_curve_cumulative_small_measure, s_curve_small_measure_max)
+    s_curve_renovation_total = s_curve.trim_max_value(s_curve_cumulative_renovation, s_curve_renovation_max)
+    scurve_total = s_curve.total(s_curve_renovation_total, s_curve_small_measure_total)
+
+    s_curve_renovation = s_curve.renovation_from_small_measure(s_curve_renovation_max, s_curve_small_measure_total)
 
 
-    s_curve_small_measure_total = s_curve.trim_scurve_max_value(s_curve_cumulative_small_measure, s_curve_small_measure_max)
-
-    s_curve_renovation_total = s_curve.trim_scurve_max_value(s_curve_cumulative_renovation, s_curve_renovation_max)
-
-    scurve_total = s_curve.calculate_s_curve_total(s_curve_renovation_total, s_curve_small_measure_total)
-
-    s_curve_renovation = s_curve.calculate_s_curve_renovation_from_small_measure(s_curve_renovation_max, s_curve_small_measure_total)
-
-    # Filter rows where shares_total is smaller than scurve_renovation_max and merge those values into scurve_renovation
-    s_curve_renovation = s_curve.trim_s_curve_renovation_from_renovation_total(s_curve_renovation, s_curve_renovation_max,
+    s_curve_renovation = s_curve.trim_renovation_from_renovation_total(s_curve_renovation, s_curve_renovation_max,
                                                                        s_curve_renovation_total, scurve_total)
 
+    s_curve_renovation_and_small_measure = s_curve.renovation_and_small_measure(s_curve_renovation, s_curve_renovation_total)
+    s_curve_small_measure = s_curve.small_measure(s_curve_renovation_and_small_measure, s_curve_small_measure_total)
+    s_curve_original_condition = s_curve.original_condition(s_curve_cumulative_demolition, s_curve_renovation,
+                                                            s_curve_renovation_and_small_measure,
+                                                            s_curve_small_measure)
 
-    s_curve_renovation_and_small_measure = s_curve.calculate_s_curve_renovation_and_small_measure(s_curve_renovation, s_curve_renovation_total)
-
-    s_curve_small_measure = s_curve.calculate_s_curve_small_measure(s_curve_renovation_and_small_measure, s_curve_small_measure_total)
-
-    s_curve_original_condition = s_curve.calculate_s_curve_original_condition(s_curve_cumulative_demolition, s_curve_renovation,
-                                                                      s_curve_renovation_and_small_measure,
-                                                                      s_curve_small_measure)
-
-    s_curves_by_condition = pd.DataFrame({
-        'original_condition': s_curve_original_condition,
-        'demolition': s_curve_cumulative_demolition,
-        'small_measure': s_curve_small_measure,
-        'renovation': s_curve_renovation,
-        'renovation_and_small_measure': s_curve_renovation_and_small_measure
-    })
+    s_curves_by_condition = s_curve.transform_to_dataframe(s_curve_cumulative_demolition, s_curve_original_condition,
+                                                   s_curve_renovation, s_curve_renovation_and_small_measure,
+                                                   s_curve_small_measure)
 
     area_parameters = area_parameters.set_index(['building_category', 'TEK'])
 

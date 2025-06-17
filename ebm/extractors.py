@@ -76,27 +76,27 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
         'renovation_and_small_measure': s_curve_renovation_and_small_measure
     })
 
-    # ## Add floor area and calculate construction
     area_parameters = area_parameters.set_index(['building_category', 'TEK'])
 
     demolition_floor_area_by_year = calculate_demolition_floor_area_by_year(area_parameters, s_curve_demolition)
 
     building_category_demolition_by_year = sum_building_category_demolition_by_year(demolition_floor_area_by_year)
 
-    # ### construction
     construction_by_building_category_and_year = calculate_construction_by_building_category(building_category_demolition_by_year, database_manager, years)
 
     existing_area = calculate_existing_area(area_parameters, tek_parameters, years)
 
-    total_area_by_year = merge_total_area_by_year(construction_by_building_category_and_year, existing_area)
+    total_area_floor_by_year = merge_total_area_by_year(construction_by_building_category_and_year, existing_area)
 
-    with_area = total_area_by_year.join(cumulative_demolition, how='left').fillna(0.0).sort_index()
+    floor_area_forecast = multiply_s_curves_with_floor_area(s_curves_by_condition, total_area_floor_by_year)
 
+    return floor_area_forecast
+
+
+def multiply_s_curves_with_floor_area(s_curves_by_condition, with_area):
     floor_area_by_condition = s_curves_by_condition.multiply(with_area['area'], axis=0)
-
     floor_area_forecast = floor_area_by_condition.stack().reset_index()
-    floor_area_forecast = floor_area_forecast.rename(columns={'level_3': 'building_condition', 0: 'm2'}) # m²
-
+    floor_area_forecast = floor_area_forecast.rename(columns={'level_3': 'building_condition', 0: 'm2'})  # m²
     return floor_area_forecast
 
 

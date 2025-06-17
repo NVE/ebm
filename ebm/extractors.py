@@ -32,11 +32,6 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     s_curve_small_measure_max = calculate_s_curve_small_measure_max(s_curve_cumulative_demolition,
                                                                     s_curve_small_measure_never_share)
 
-    # ## small_measure and renovation to scurve_small_measure_total, RN
-    # ## SharesPerCondition calc_renovation
-    #
-    #  - ❌ Ser ut som det er edge case for byggeår.
-    #  - ❌ Årene før byggeår må settes til 0 for scurve_renovation?
 
     s_curve_small_measure_total = trim_scurve_max_value(s_curve_cumulative_small_measure, s_curve_small_measure_max)
 
@@ -50,15 +45,6 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     s_curve_renovation = trim_s_curve_renovation_from_renovation_total(s_curve_renovation, s_curve_renovation_max,
                                                                        s_curve_renovation_total, scurve_total)
 
-    # ### SharesPerCondition calc_renovation_and_small_measure
-    #  - ❌ Sette til 0 før byggeår
-
-    # ### SharesPerCondition calc_small_measure
-    #  - ❌   sette til 0 før byggeår
-    # ```python
-    #     construction_year = self.tek_params[tek].building_year
-    #     shares.loc[self.period_index <= construction_year] = 0
-    # ```
 
     s_curve_renovation_and_small_measure = calculate_s_curve_renovation_and_small_measure(s_curve_renovation, s_curve_renovation_total)
 
@@ -107,11 +93,22 @@ def calculate_s_curve_original_condition(s_curve_cumulative_demolition, s_curve_
 
 
 def calculate_s_curve_small_measure(s_curve_renovation_and_small_measure, s_curve_small_measure_total):
-    return (s_curve_small_measure_total - s_curve_renovation_and_small_measure)
+
+    # ### SharesPerCondition calc_small_measure
+    #  - ❌   sette til 0 før byggeår
+    # ```python
+    #     construction_year = self.tek_params[tek].building_year
+    #     shares.loc[self.period_index <= construction_year] = 0
+    # ```
+
+    return s_curve_small_measure_total - s_curve_renovation_and_small_measure
 
 
 def calculate_s_curve_renovation_and_small_measure(s_curve_renovation, s_curve_renovation_total):
-    return (s_curve_renovation_total - s_curve_renovation)
+    # ### SharesPerCondition calc_renovation_and_small_measure
+    #  - ❌ Sette til 0 før byggeår
+
+    return s_curve_renovation_total - s_curve_renovation
 
 
 def trim_s_curve_renovation_from_renovation_total(s_curve_renovation, s_curve_renovation_max, s_curve_renovation_total,
@@ -122,6 +119,12 @@ def trim_s_curve_renovation_from_renovation_total(s_curve_renovation, s_curve_re
 
 
 def calculate_s_curve_renovation_from_small_measure(s_curve_renovation_max, s_curve_small_measure_total):
+    # ## small_measure and renovation to scurve_small_measure_total, RN
+    # ## SharesPerCondition calc_renovation
+    #
+    #  - ❌ Ser ut som det er edge case for byggeår.
+    #  - ❌ Årene før byggeår må settes til 0 for scurve_renovation?
+
     return (s_curve_renovation_max - s_curve_small_measure_total).clip(lower=0.0)
 
 

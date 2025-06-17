@@ -65,12 +65,9 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
 
     shares_renovation_total = renovation_acc.combine(renovation_max, min).clip(0)
 
-    shares_renovation = (renovation_max -
-                                      shares_small_measure_total).clip(lower=0.0)
+    shares_total = (shares_small_measure_total + shares_renovation_total).clip(lower=0.0)
 
-    shares_total = (shares_small_measure_total +
-                                 shares_renovation_total).clip(lower=0.0)
-
+    shares_renovation = (renovation_max - shares_small_measure_total).clip(lower=0.0)
     # Filter rows where shares_total is smaller than renovation_max and merge those values into shares_renovation
     shares_total_smaller_than_max_renovation = shares_renovation_total.loc[shares_total < renovation_max]
     shares_renovation = shares_total_smaller_than_max_renovation.combine_first(shares_renovation)
@@ -89,19 +86,15 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     shares_small_measure = (shares_small_measure_total - renovation_and_small_measure)
     original_condition = (1.0 - demolition_acc - shares_renovation - renovation_and_small_measure - shares_small_measure)
 
-    df['renovation_and_small_measure'] = renovation_and_small_measure # 🦟
-    df['shares_small_measure'] = shares_small_measure # 🦟
-    df['original_condition'] = original_condition # 🦟
-    df['demolition_acc'] = demolition_acc # 🦟
-    df['shares_renovation'] = shares_renovation # 🦟
+    floor_area_by_condition = pd.DataFrame({
+        'original_condition': original_condition * df.area,
+        'demolition': demolition_acc * df.area,
+        'small_measure': shares_small_measure * df.area,
+        'renovation': shares_renovation * df.area,
+        'renovation_and_small_measure': renovation_and_small_measure * df.area,
+    })
 
-    # ## join calculated scurves on area
-    area_by_condition = df[['original_condition', 'demolition_acc', 'shares_small_measure', 'shares_renovation',
-                               'renovation_and_small_measure']].multiply(df['area'], axis=0)
-
-    area_unstacked = area_by_condition.rename(columns={'demolition_acc': 'demolition',
-                                                       'shares_renovation': 'renovation',
-                                                       'shares_small_measure': 'small_measure'}).stack().reset_index()
+    area_unstacked = floor_area_by_condition.stack().reset_index()
     area_unstacked = area_unstacked.rename(columns={'level_3': 'building_condition', 0: 'm2'}) # m²
 
     return area_unstacked

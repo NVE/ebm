@@ -30,7 +30,10 @@ def test_extract_area_forecast():
         ['building_category', 'TEK', 'year', 'building_condition'], drop=True)
 
     assert isinstance(res, pd.DataFrame)
+    # assert res.m2.sum() == expected.m2.sum()
+    # assert len(res) == len(expected)
 
+    pd.testing.assert_index_equal(res.index, expected.index)
     pd.testing.assert_frame_equal(res, expected)
 
 

@@ -29,11 +29,11 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
         ['building_category', 'age', 'building_condition'])
 
     s_curves_with_tek = merge_s_curves_and_tek(s_curves, df_never_share, tek_parameters)
-    demolition_acc_ = accumulate_demolition(s_curves_with_tek, years)
+    accumulated_demolition = accumulate_demolition(s_curves_with_tek, years)
 
     # ## Load construction
     area_parameters = area_parameters.set_index(['building_category', 'TEK'])
-    demolition_by_year = calculate_demolition_floor_area_by_year(area_parameters, demolition_acc_)
+    demolition_by_year = calculate_demolition_floor_area_by_year(area_parameters, accumulated_demolition)
 
     building_category_demolition_by_year = sum_building_category_demolition_by_year(demolition_by_year)
 
@@ -43,7 +43,7 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
 
     total_area_by_year = merge_total_area_by_year(construction_by_building_category_and_year, existing_area)
 
-    with_area = total_area_by_year.join(demolition_acc_, how='left').fillna(0.0).sort_index()
+    with_area = total_area_by_year.join(accumulated_demolition, how='left').fillna(0.0).sort_index()
 
     # ## set max values
     df = with_area

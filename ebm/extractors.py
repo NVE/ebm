@@ -29,11 +29,11 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
         ['building_category', 'age', 'building_condition'])
 
     s_curves_with_tek = merge_s_curves_and_tek(s_curves, df_never_share, tek_parameters)
-    accumulated_demolition = accumulate_demolition(s_curves_with_tek, years)
+    cumulative_demolition = accumulate_demolition(s_curves_with_tek, years)
 
     # ## Load construction
     area_parameters = area_parameters.set_index(['building_category', 'TEK'])
-    demolition_by_year = calculate_demolition_floor_area_by_year(area_parameters, accumulated_demolition)
+    demolition_by_year = calculate_demolition_floor_area_by_year(area_parameters, cumulative_demolition)
 
     building_category_demolition_by_year = sum_building_category_demolition_by_year(demolition_by_year)
 
@@ -43,34 +43,33 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
 
     total_area_by_year = merge_total_area_by_year(construction_by_building_category_and_year, existing_area)
 
-    with_area = total_area_by_year.join(accumulated_demolition, how='left').fillna(0.0).sort_index()
+    with_area = total_area_by_year.join(cumulative_demolition, how='left').fillna(0.0).sort_index()
 
-    # ## set max values
-    df = with_area
+    s_curve_cumulative_demolition = with_area['demolition_acc'] # 🦟
+    s_curve_renovation_never_share = with_area.loc[:, 'renovation_nvr']
+    s_curve_small_measure_never_share = with_area.loc[:, 'small_measure_nvr']
+    s_curve_cumulative_small_measure = with_area['small_measure_acc'] # 🦟
+    s_curve_cumulative_renovation = with_area['renovation_acc']# 🦟
 
-    demolition_acc = with_area['demolition_acc'] # 🦟
+    s_curve_renovation_max = (1.0 - s_curve_cumulative_demolition - s_curve_renovation_never_share)
+    s_curve_small_measure_max = 1.0 - s_curve_cumulative_demolition - s_curve_small_measure_never_share
 
-    renovation_max = (1.0 - demolition_acc - df.loc[:, 'renovation_nvr'])
-    small_measure_max = 1.0 - demolition_acc - df.loc[:, 'small_measure_nvr']
-
-    # ## small_measure and renovation to shares_small_measure_total, RN
+    # ## small_measure and renovation to scurve_small_measure_total, RN
     # ## SharesPerCondition calc_renovation
     #
     #  - ❌ Ser ut som det er edge case for byggeår.
-    #  - ❌ Årene før byggeår må settes til 0 for shares_renovation?
-    small_measure_acc = df['small_measure_acc'] # 🦟
-    renovation_acc = df['renovation_acc']# 🦟
+    #  - ❌ Årene før byggeår må settes til 0 for scurve_renovation?
 
-    shares_small_measure_total = small_measure_acc.combine(small_measure_max, min).clip(0)
+    s_curve_small_measure_total = s_curve_cumulative_small_measure.combine(s_curve_small_measure_max, min).clip(0)
 
-    shares_renovation_total = renovation_acc.combine(renovation_max, min).clip(0)
+    s_curve_renovation_total = s_curve_cumulative_renovation.combine(s_curve_renovation_max, min).clip(0)
 
-    shares_total = (shares_small_measure_total + shares_renovation_total).clip(lower=0.0)
+    scurve_total = (s_curve_small_measure_total + s_curve_renovation_total).clip(lower=0.0)
 
-    shares_renovation = (renovation_max - shares_small_measure_total).clip(lower=0.0)
-    # Filter rows where shares_total is smaller than renovation_max and merge those values into shares_renovation
-    shares_total_smaller_than_max_renovation = shares_renovation_total.loc[shares_total < renovation_max]
-    shares_renovation = shares_total_smaller_than_max_renovation.combine_first(shares_renovation)
+    s_curve_renovation = (s_curve_renovation_max - s_curve_small_measure_total).clip(lower=0.0)
+    # Filter rows where shares_total is smaller than scurve_renovation_max and merge those values into scurve_renovation
+    s_curve_total_smaller_than_max_renovation = s_curve_renovation_total.loc[scurve_total < s_curve_renovation_max]
+    s_curve_renovation = s_curve_total_smaller_than_max_renovation.combine_first(s_curve_renovation)
 
     # ### SharesPerCondition calc_renovation_and_small_measure
     #  - ❌ Sette til 0 før byggeår
@@ -82,16 +81,16 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     #     shares.loc[self.period_index <= construction_year] = 0
     # ```
 
-    renovation_and_small_measure = (shares_renovation_total - shares_renovation)
-    shares_small_measure = (shares_small_measure_total - renovation_and_small_measure)
-    original_condition = (1.0 - demolition_acc - shares_renovation - renovation_and_small_measure - shares_small_measure)
+    s_curve_renovation_and_small_measure = (s_curve_renovation_total - s_curve_renovation)
+    s_curve_small_measure = (s_curve_small_measure_total - s_curve_renovation_and_small_measure)
+    s_curve_original_condition = (1.0 - s_curve_cumulative_demolition - s_curve_renovation - s_curve_renovation_and_small_measure - s_curve_small_measure)
 
     floor_area_by_condition = pd.DataFrame({
-        'original_condition': original_condition * df.area,
-        'demolition': demolition_acc * df.area,
-        'small_measure': shares_small_measure * df.area,
-        'renovation': shares_renovation * df.area,
-        'renovation_and_small_measure': renovation_and_small_measure * df.area,
+        'original_condition': s_curve_original_condition * with_area.area,
+        'demolition': s_curve_cumulative_demolition * with_area.area,
+        'small_measure': s_curve_small_measure * with_area.area,
+        'renovation': s_curve_renovation * with_area.area,
+        'renovation_and_small_measure': s_curve_renovation_and_small_measure * with_area.area,
     })
 
     area_unstacked = floor_area_by_condition.stack().reset_index()

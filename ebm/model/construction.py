@@ -823,10 +823,10 @@ class ConstructionCalculator:
 
         construction = []
         for building_category in demolition_by_year.index.get_level_values(level='building_category').unique():
-            demolition = demolition_by_year.query(f'building_category=="{building_category}"').reset_index().set_index(['year']).demolition
+            df = demolition_by_year.to_frame().query(f'building_category=="{building_category}"').reset_index().set_index(['year'])
             c = ConstructionCalculator.calculate_construction(
                 BuildingCategory.from_string(building_category),
-                demolition,
+                df.demolition,
                 database_manager,
                 period)
             c['building_category'] = building_category

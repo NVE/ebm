@@ -32,6 +32,7 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     cumulative_demolition = accumulate_demolition(s_curves_with_tek, years)
 
     s_curve_cumulative_demolition = cumulative_demolition.demolition_acc.loc[(slice(None), slice(None), list(years.year_range))].fillna(0.0)
+    s_curve_demolition = cumulative_demolition.demolition.loc[(slice(None), slice(None), list(years.year_range))].fillna(0.0)
     s_curve_renovation_never_share = s_curves_with_tek.renovation_nvr.loc[(slice(None), slice(None), list(years.year_range))]
     s_curve_small_measure_never_share = s_curves_with_tek.small_measure_nvr.loc[(slice(None), slice(None), list(years.year_range))]
     s_curve_cumulative_small_measure = s_curves_with_tek.small_measure_acc.loc[(slice(None), slice(None), list(years.year_range))].fillna(0.0)
@@ -81,9 +82,10 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
 
     # ## Add floor area and calculate construction
     area_parameters = area_parameters.set_index(['building_category', 'TEK'])
-    demolition_by_year = calculate_demolition_floor_area_by_year(area_parameters, cumulative_demolition)
 
-    building_category_demolition_by_year = sum_building_category_demolition_by_year(demolition_by_year)
+    demolition_floor_area_by_year = calculate_demolition_floor_area_by_year(area_parameters, s_curve_demolition)
+
+    building_category_demolition_by_year = sum_building_category_demolition_by_year(demolition_floor_area_by_year)
 
     # ### construction
     construction_by_building_category_and_year = calculate_construction_by_building_category(building_category_demolition_by_year, database_manager, years)
@@ -96,10 +98,10 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
 
     floor_area_by_condition = s_curves_by_condition.multiply(with_area['area'], axis=0)
 
-    area_unstacked = floor_area_by_condition.stack().reset_index()
-    area_unstacked = area_unstacked.rename(columns={'level_3': 'building_condition', 0: 'm2'}) # m²
+    floor_area_forecast = floor_area_by_condition.stack().reset_index()
+    floor_area_forecast = floor_area_forecast.rename(columns={'level_3': 'building_condition', 0: 'm2'}) # m²
 
-    return area_unstacked
+    return floor_area_forecast
 
 
 def accumulate_demolition(s_curves_long, years):
@@ -162,11 +164,12 @@ def sum_building_category_demolition_by_year(demolition_by_year):
     return demolition_by_building_category_year
 
 
-def calculate_demolition_floor_area_by_year(area_parameters, demolition_acc):
-    demolition_by_year = area_parameters.loc[:, 'area'] * demolition_acc.loc[:, 'demolition']
+def calculate_demolition_floor_area_by_year(
+        area_parameters: pd.DataFrame, s_curve_cumulative_demolition: pd.Series) -> pd.Series:
+    demolition_by_year = area_parameters.loc[:, 'area'] * s_curve_cumulative_demolition.loc[:]
     demolition_by_year.name = 'demolition'
     demolition_by_year = demolition_by_year.to_frame().loc[(slice(None), slice(None), slice(2020, 2050))]
-    return demolition_by_year
+    return demolition_by_year.demolition
 
 
 def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:

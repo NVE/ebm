@@ -14,7 +14,7 @@ def test_extract_area_forecast():
     """
     Integration test to keep area working while doing refactor.
 
-    Should not run on azure, currently.
+    This test will not run on azure, currently.
     """
 
     dm: DatabaseManager = DatabaseManager(FileHandler(directory=r'C:\Users\kenord\pyc\workspace\t2734_input'))

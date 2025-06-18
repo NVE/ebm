@@ -197,7 +197,7 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
                                                                            demolition_floor_area,
                                                                            database_manager,
                                                                            period=years)
-    forecast: pd.DataFrame = area_forecast.calc_area(constructed_floor_area['accumulated_constructed_floor_area'])
+    forecast: pd.DataFrame = area_forecast.calc_area(constructed_floor_area['accumulated_constructed_floor_area']) # type: ignore
     forecast['building_category'] = building_category
 
     try:

@@ -1,11 +1,13 @@
 # noinspection PyTypeChecker
+import io
+
 import numpy as np
 import pandas as pd
 import pytest
 
 from ebm.model.area import (transform_area_forecast_to_area_change,
                             transform_construction_by_year,
-                            transform_cumulative_demolition_to_yearly_demolition)
+                            transform_cumulative_demolition_to_yearly_demolition, building_condition_scurves)
 
 
 def test_transform_area_forecast_to_area_change():
@@ -168,6 +170,19 @@ def test_transform_accumulated_to_yearly_demolition_expect_columns():
     with pytest.raises(ValueError):
         # noinspection PyTypeChecker
         transform_cumulative_demolition_to_yearly_demolition(None)
+
+
+def test_building_condition_scurves():
+    house_csv = io.StringIO("""building_category,condition,earliest_age_for_measure,average_age_for_measure,rush_period_years,last_age_for_measure,rush_share,never_share
+    house,small_measure,3,23,30,80,0.8,0.01
+    house,renovation,10,37,24,75,0.65,0.05
+    house,demolition,60,90,40,150,0.7,0.05""".strip())
+
+    house_parameters = pd.read_csv(house_csv)
+
+    res = building_condition_scurves(house_parameters)
+
+    assert isinstance(res, pd.DataFrame)
 
 
 if __name__ == "__main__":

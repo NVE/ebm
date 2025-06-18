@@ -802,3 +802,34 @@ class ConstructionCalculator:
                                                                         population=new_buildings_population[
                                                                             'population'],
                                                                         period=period)
+
+
+    @staticmethod
+    def calculate_all_construction(demolition_by_year: Union[pd.Series, list],
+                                   database_manager: DatabaseManager, period: YearRange) -> pd.DataFrame:
+        """
+
+        Parameters
+        ----------
+        demolition_by_year : pd.Series, List[float]
+        database_manager : DatabaseManager
+        period : YearRange
+
+        Returns
+        -------
+        DataFrame:
+            with building_category and area
+        """
+
+        construction = []
+        for building_category in demolition_by_year.index.get_level_values(level='building_category').unique():
+            df = demolition_by_year.to_frame().query(f'building_category=="{building_category}"').reset_index().set_index(['year'])
+            c = ConstructionCalculator.calculate_construction(
+                BuildingCategory.from_string(building_category),
+                df.demolition,
+                database_manager,
+                period)
+            c['building_category'] = building_category
+            construction.append(c.reset_index())
+
+        return pd.concat(construction)

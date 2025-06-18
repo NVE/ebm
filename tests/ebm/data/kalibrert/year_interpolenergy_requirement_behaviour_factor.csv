@@ -1,0 +1,16 @@
+building_category,TEK,purpose,behaviour_factor,year
+residential,default,default,1.0,
+house,PRE_TEK49+TEK69+TEK87+TEK49+TEK97,default,0.85,
+house,default,lighting,0.85,
+non_residential,default,default,1.15,
+retail,default,electrical_equipment,2.0,
+school,TEK17,lighting,1.1,2020
+school,TEK17,lighting,1.1,2021
+…,…,…,…,…
+school,TEK17,lighting,1.1,2026
+school,TEK17,lighting,1.2,2027
+school,TEK17,lighting,1.3,2028
+school,TEK17,lighting,1.4,2029
+school,TEK17,lighting,1.4,2030
+…,…,…,…,…
+school,TEK17,lighting,1.4,2050

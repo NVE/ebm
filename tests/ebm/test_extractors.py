@@ -1,4 +1,4 @@
-import socket
+import pathlib
 
 import pandas as pd
 import pytest
@@ -9,28 +9,39 @@ from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
 
+test_data = pathlib.Path(__file__).parent / 'data'
 
-@pytest.mark.skipif(socket.gethostname()!='JDJSBS3', reason='Test is only useable locally')
-def test_extract_area_forecast():
+@pytest.fixture
+def extract_area_forecast_csv():
+    """
+    Load and decompress (revert column merge) extract_area_forecast.csv
+    """
+    df = pd.read_csv(test_data / 'extract_area_forecast.csv', sep=';')
+    df = df.ffill()
+    df['TEK'] = df['TEK'].str.replace('T', 'TEK').str.replace('P', 'PRE_')
+    df['year'] = df['year'].astype(int)
+
+    return df
+
+
+def test_extract_area_forecast(extract_area_forecast_csv: pd.DataFrame):
     """
     Integration test to keep area working while doing refactor.
-
-    This test will not run on azure, currently.
     """
 
-    dm: DatabaseManager = DatabaseManager(FileHandler(directory=r'C:\Users\kenord\pyc\workspace\t2734_input'))
+    input_directory = test_data / 'kalibrert'
+
+    dm: DatabaseManager = DatabaseManager(FileHandler(directory=input_directory))
     years: YearRange = YearRange(2020, 2050)
     scurve_parameters: pd.DataFrame = dm.get_scurve_params()
     tek_parameters: pd.DataFrame = dm.file_handler.get_tek_params()
     area_parameters: pd.DataFrame = dm.get_area_parameters()
 
-    result = (extract_area_forecast(years, scurve_parameters, tek_parameters, area_parameters, dm)
-           .set_index(['building_category', 'TEK', 'year', 'building_condition'], drop=True)
-           .sort_index(key=map_sort_order))
+    index_columns = ['year', 'building_category', 'building_condition', 'TEK']
+    result = extract_area_forecast(years, scurve_parameters, tek_parameters, area_parameters, dm)
+    result = result.set_index(index_columns, drop=True).sort_index(key=map_sort_order)
 
-    expected = (pd.read_csv(r'C:\Users\kenord\pyc\workspace\output\area_dataframes.csv', sep=';')
-                .set_index(['building_category', 'TEK', 'year', 'building_condition'], drop=True)
-                .sort_index(key=map_sort_order))
+    expected = extract_area_forecast_csv.set_index(index_columns, drop=True).sort_index(key=map_sort_order) # type: ignore
 
     assert isinstance(result, pd.DataFrame)
     # assert result.m2.sum() == expected.m2.sum()
@@ -38,5 +49,10 @@ def test_extract_area_forecast():
 
     pd.testing.assert_index_equal(result.index, expected.index)
     pd.testing.assert_frame_equal(result, expected)
+
+
+def decompress(expected):
+
+    return expected
 
 

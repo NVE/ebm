@@ -7,12 +7,11 @@ import pandas as pd
 from ebm.cmd.run_calculation import (calculate_building_category_area_forecast,
                                      calculate_building_category_energy_requirements,
                                      calculate_heating_systems)
+from ebm.model import bema
 from ebm.model.calibrate_heating_systems import group_heating_systems_by_energy_carrier
-from ebm.model.building_condition import BEMA_ORDER as building_condition_order
-from ebm.model.building_category import BEMA_ORDER as building_category_order, BuildingCategory
+from ebm.model.building_category import BuildingCategory
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
-from ebm.model.tek import BEMA_ORDER as tek_order
 from ebm.services.spreadsheet import detect_format_from_values, find_max_column_width
 
 
@@ -27,10 +26,7 @@ def transform_model_to_horizontal(model):
     hz = hz.pivot(columns=['year'], index=['building_category', 'TEK', 'building_condition'], values=[
         value_column]).reset_index()
 
-    hz = hz.sort_values(by=['building_category', 'TEK', 'building_condition'],
-                        key=lambda x: x.map(building_category_order) if x.name == 'building_category' else x.map(
-                            tek_order) if x.name == 'TEK' else x.map(
-                            building_condition_order) if x.name == 'building_condition' else x)
+    hz = hz.sort_values(by=['building_category', 'TEK', 'building_condition'], key=bema.map_sort_order)
     hz.insert(3, 'U', value_column)
     hz.columns = ['building_category', 'TEK', 'building_condition', 'U'] + [y for y in range(2020, 2051)]
 
@@ -185,6 +181,7 @@ class EbmDefaultHandler:
                                                database_manager=database_manager)
         return df
 
+    # noinspection PyTypeChecker
     @staticmethod
     def extract_energy_requirements(building_categories,
                                     database_manager: DatabaseManager,

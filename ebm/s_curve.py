@@ -260,42 +260,6 @@ def cumulative_small_measure(s_curves_with_tek: Series, years: YearRange) -> Ser
     return s_curves_with_tek.small_measure_acc.loc[(slice(None), slice(None), list(years.year_range))].fillna(0.0)
 
 
-def small_measure_never_share(s_curves_with_tek: Series, years: YearRange) -> Series:
-    """
-    Extract yearly never share from s_curves_with_tek
-
-    Parameters
-    ----------
-    s_curves_with_tek : pandas.Series
-    years : YearRange
-        years to return
-
-    Returns
-    -------
-    pandas.Series
-        yearly never share for small_measure
-    """
-    return s_curves_with_tek.small_measure_nvr.loc[(slice(None), slice(None), list(years.year_range))]
-
-
-def renovation_never_share(s_curves_with_tek: Series, years: YearRange) -> Series:
-    """
-    Extract renovation yearly never share from s_curves_with_tek
-
-    Parameters
-    ----------
-    s_curves_with_tek : pandas.Series
-    years : YearRange
-        years to return
-
-    Returns
-    -------
-    pandas.Series
-        yearly never share for renovation
-    """
-    return s_curves_with_tek.renovation_nvr.loc[(slice(None), slice(None), list(years.year_range))]
-
-
 def transform_demolition(demolition: Series, years: YearRange) -> Series:
     """
     Filter yearly demolition for years
@@ -351,7 +315,7 @@ def scurve_parameters_to_never_share(s_curves: pd.DataFrame, scurve_parameters: 
     max_age = s_curves.index.get_level_values(level='age').max()
     df_never_share = pd.DataFrame(
         # noinspection PyTypeChecker
-        [(row.building_category, idx, row.condition + '_nvr', row.never_share) for idx in range(-max_age, max_age + 1)
+        [(row.building_category, idx, row.condition + '_never_share', row.never_share) for idx in range(-max_age, max_age + 1)
          for row in
          scurve_parameters.itertuples()],
         columns=['building_category', 'age', 'building_condition', 'scurve']).sort_values(

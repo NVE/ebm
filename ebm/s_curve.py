@@ -276,12 +276,12 @@ def transform_demolition(demolition: Series, years: YearRange) -> Series:
     return demolition.demolition.loc[(slice(None), slice(None), list(years.year_range))].fillna(0.0)
 
 
-def transform_to_cumulative_demolition(cumulative_demolition: Series, years:YearRange) -> Series:
+def transform_to_cumulative_demolition(cumulative_demolition: pd.DataFrame, years:YearRange) -> Series:
     """
     Filter yearly cumulative demolition for years
     Parameters
     ----------
-    cumulative_demolition : pandas.Series
+    cumulative_demolition : pandas.DataFrame
     years : YearRange
 
     Returns
@@ -364,7 +364,7 @@ def accumulate_demolition(s_curves_long: pd.DataFrame, years: YearRange) -> pd.D
 
     return demolition_acc
 
-
+# noinspection PyTypeChecker
 def merge_s_curves_and_tek(s_curves: pd.DataFrame, df_never_share: pd.DataFrame, tek_parameters: pd.DataFrame) -> pd.DataFrame:
     """
     Cross merge s_curves and df_never_share with all TEK in tek_parameters
@@ -389,7 +389,7 @@ def merge_s_curves_and_tek(s_curves: pd.DataFrame, df_never_share: pd.DataFrame,
     s_curves_long = (s_curves_long
         .reset_index(drop=True)
         .set_index(['building_category', 'TEK', 'year'], drop=True)
-        .rename_axis(None, axis=1)) # noinspection PyTypeChecker
+        .rename_axis(None, axis=1))
     return s_curves_long
 
 

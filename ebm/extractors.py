@@ -18,7 +18,7 @@ def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek
     s_curves_by_condition = calculate_s_curves(scurve_parameters, tek_parameters, years)
     s_curve_demolition = s_curves_by_condition['s_curve_demolition']
     s_curves_by_condition = s_curves_by_condition[[
-        'original_condition',  'demolition', 'small_measure', 'renovation', 'renovation_and_small_measure'
+        'original_condition',  'small_measure', 'renovation', 'renovation_and_small_measure', 'demolition'
     ]]
 
     area_parameters = area_parameters.set_index(['building_category', 'TEK'])

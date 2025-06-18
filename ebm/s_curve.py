@@ -439,3 +439,49 @@ def transform_to_long(s_curves_by_condition: pd.DataFrame) -> pd.DataFrame:
     df_long.index.names = ['building_category', 'TEK', 'year', 'building_condition']
     return df_long
 
+
+def calculate_s_curves(scurve_parameters, tek_parameters, years):
+    s_curves = scurve_parameters_to_scurve(scurve_parameters)
+    df_never_share = scurve_parameters_to_never_share(s_curves, scurve_parameters)
+
+    s_curves_with_tek = merge_s_curves_and_tek(s_curves, df_never_share, tek_parameters)
+    s_curves_with_tek = s_curves_with_tek.loc[(slice(None), slice(None), [y for y in years])]
+
+    s_curves_with_demolition_acc = accumulate_demolition(s_curves_with_tek, years)
+    s_curve_demolition = s_curves_with_tek.demolition
+
+    s_curve_cumulative_demolition = transform_to_cumulative_demolition(s_curves_with_demolition_acc, years)
+    s_curve_renovation_never_share = s_curves_with_tek.renovation_never_share
+    s_curve_small_measure_never_share = s_curves_with_tek.small_measure_never_share
+    s_curve_cumulative_small_measure = cumulative_small_measure(s_curves_with_tek, years)
+    s_curve_cumulative_renovation = cumulative_renovation(s_curves_with_tek, years)
+
+    s_curve_renovation_max = renovation_max(s_curve_cumulative_demolition, s_curve_renovation_never_share)
+    s_curve_small_measure_max = small_measure_max(s_curve_cumulative_demolition,
+                                                          s_curve_small_measure_never_share)
+
+    s_curve_small_measure_total = trim_max_value(s_curve_cumulative_small_measure, s_curve_small_measure_max)
+    s_curve_renovation_total = trim_max_value(s_curve_cumulative_renovation, s_curve_renovation_max)
+    scurve_total = total(s_curve_renovation_total, s_curve_small_measure_total)
+
+    s_curve_renovation = renovation_from_small_measure(s_curve_renovation_max, s_curve_small_measure_total)
+    s_curve_renovation = trim_renovation_from_renovation_total(s_curve_renovation, s_curve_renovation_max,
+                                                                       s_curve_renovation_total, scurve_total)
+
+    s_curve_renovation_and_small_measure = renovation_and_small_measure(s_curve_renovation,
+                                                                                s_curve_renovation_total)
+
+    s_curve_small_measure = small_measure(s_curve_renovation_and_small_measure, s_curve_small_measure_total)
+
+    s_curve_original_condition = original_condition(s_curve_cumulative_demolition, s_curve_renovation,
+                                                            s_curve_renovation_and_small_measure,
+                                                            s_curve_small_measure)
+
+    s_curves_by_condition = transform_to_dataframe(s_curve_cumulative_demolition,
+                                                           s_curve_original_condition,
+                                                           s_curve_renovation,
+                                                           s_curve_renovation_and_small_measure,
+                                                           s_curve_small_measure,
+                                                           s_curve_demolition)
+
+    return s_curves_by_condition

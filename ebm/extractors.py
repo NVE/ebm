@@ -1,7 +1,6 @@
 import pandas as pd
 from loguru import logger
 
-from ebm import s_curve
 from ebm.model import area
 from ebm.cmd.result_handler import transform_holiday_homes_to_horizontal
 from ebm.cmd.run_calculation import calculate_energy_use
@@ -10,6 +9,7 @@ from ebm.heating_systems_projection import HeatingSystemsProjection
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement
+from ebm.s_curve import calculate_s_curves
 
 
 def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek_parameters: pd.DataFrame, area_parameters: pd.DataFrame, database_manager:DatabaseManager):
@@ -47,53 +47,6 @@ def write_scurve(s_curves_by_condition):
     except IOError as ex:
         logger.exception(ex)
         logger.info(f'There was an IOError while writing to {output_file}. Moving on!')
-
-
-def calculate_s_curves(scurve_parameters, tek_parameters, years):
-    s_curves = s_curve.scurve_parameters_to_scurve(scurve_parameters)
-    df_never_share = s_curve.scurve_parameters_to_never_share(s_curves, scurve_parameters)
-
-    s_curves_with_tek = s_curve.merge_s_curves_and_tek(s_curves, df_never_share, tek_parameters)
-    s_curves_with_tek = s_curves_with_tek.loc[(slice(None), slice(None), [y for y in years])]
-
-    s_curves_with_demolition_acc = s_curve.accumulate_demolition(s_curves_with_tek, years)
-    s_curve_demolition = s_curves_with_tek.demolition
-
-    s_curve_cumulative_demolition = s_curve.transform_to_cumulative_demolition(s_curves_with_demolition_acc, years)
-    s_curve_renovation_never_share = s_curves_with_tek.renovation_never_share
-    s_curve_small_measure_never_share = s_curves_with_tek.small_measure_never_share
-    s_curve_cumulative_small_measure = s_curve.cumulative_small_measure(s_curves_with_tek, years)
-    s_curve_cumulative_renovation = s_curve.cumulative_renovation(s_curves_with_tek, years)
-
-    s_curve_renovation_max = s_curve.renovation_max(s_curve_cumulative_demolition, s_curve_renovation_never_share)
-    s_curve_small_measure_max = s_curve.small_measure_max(s_curve_cumulative_demolition,
-                                                          s_curve_small_measure_never_share)
-
-    s_curve_small_measure_total = s_curve.trim_max_value(s_curve_cumulative_small_measure, s_curve_small_measure_max)
-    s_curve_renovation_total = s_curve.trim_max_value(s_curve_cumulative_renovation, s_curve_renovation_max)
-    scurve_total = s_curve.total(s_curve_renovation_total, s_curve_small_measure_total)
-
-    s_curve_renovation = s_curve.renovation_from_small_measure(s_curve_renovation_max, s_curve_small_measure_total)
-    s_curve_renovation = s_curve.trim_renovation_from_renovation_total(s_curve_renovation, s_curve_renovation_max,
-                                                                       s_curve_renovation_total, scurve_total)
-
-    s_curve_renovation_and_small_measure = s_curve.renovation_and_small_measure(s_curve_renovation,
-                                                                                s_curve_renovation_total)
-
-    s_curve_small_measure = s_curve.small_measure(s_curve_renovation_and_small_measure, s_curve_small_measure_total)
-
-    s_curve_original_condition = s_curve.original_condition(s_curve_cumulative_demolition, s_curve_renovation,
-                                                            s_curve_renovation_and_small_measure,
-                                                            s_curve_small_measure)
-
-    s_curves_by_condition = s_curve.transform_to_dataframe(s_curve_cumulative_demolition,
-                                                           s_curve_original_condition,
-                                                           s_curve_renovation,
-                                                           s_curve_renovation_and_small_measure,
-                                                           s_curve_small_measure,
-                                                           s_curve_demolition)
-
-    return s_curves_by_condition
 
 
 def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:

@@ -54,11 +54,12 @@ def calculate_s_curves(scurve_parameters, tek_parameters, years):
     df_never_share = s_curve.scurve_parameters_to_never_share(s_curves, scurve_parameters)
 
     s_curves_with_tek = s_curve.merge_s_curves_and_tek(s_curves, df_never_share, tek_parameters)
+    s_curves_with_tek = s_curves_with_tek.loc[(slice(None), slice(None), [y for y in years])]
 
-    cumulative_demolition = s_curve.accumulate_demolition(s_curves_with_tek, years)
-    s_curve_demolition = s_curve.transform_demolition(cumulative_demolition, years)
+    s_curves_with_demolition_acc = s_curve.accumulate_demolition(s_curves_with_tek, years)
+    s_curve_demolition = s_curve.transform_demolition(s_curves_with_demolition_acc, years)
 
-    s_curve_cumulative_demolition = s_curve.transform_to_cumulative_demolition(cumulative_demolition, years)
+    s_curve_cumulative_demolition = s_curve.transform_to_cumulative_demolition(s_curves_with_demolition_acc, years)
     s_curve_renovation_never_share = s_curve.renovation_never_share(s_curves_with_tek, years)
     s_curve_small_measure_never_share = s_curve.small_measure_never_share(s_curves_with_tek, years)
     s_curve_cumulative_small_measure = s_curve.cumulative_small_measure(s_curves_with_tek, years)

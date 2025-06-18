@@ -422,3 +422,20 @@ def transform_to_dataframe(s_curve_cumulative_demolition: Series, s_curve_origin
     return s_curves_by_condition
 
 
+def transform_to_long(s_curves_by_condition: pd.DataFrame) -> pd.DataFrame:
+    """
+    
+    Parameters
+    ----------
+    s_curves_by_condition : pandas.DataFrame 
+
+    Returns
+    -------
+    pandas.DataFrame
+        transformed to long, on condition for each row
+    """
+    df_long = s_curves_by_condition.stack().to_frame(name='s_curve')
+
+    df_long.index.names = ['building_category', 'TEK', 'year', 'building_condition']
+    return df_long
+

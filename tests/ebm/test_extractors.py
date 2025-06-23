@@ -8,7 +8,6 @@ from ebm.model.bema import map_sort_order
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
-from ebm.s_curve import calculate_s_curves
 
 test_data = pathlib.Path(__file__).parent / 'data'
 
@@ -34,11 +33,11 @@ def test_extract_area_forecast(extract_area_forecast_csv: pd.DataFrame):
 
     dm: DatabaseManager = DatabaseManager(FileHandler(directory=input_directory))
     years: YearRange = YearRange(2020, 2050)
-    scurve_parameters: pd.DataFrame = dm.get_scurve_params()
     tek_parameters: pd.DataFrame = dm.file_handler.get_tek_params()
     area_parameters: pd.DataFrame = dm.get_area_parameters()
 
-    s_curves_by_condition = calculate_s_curves(scurve_parameters, tek_parameters, years)
+    s_curves_by_condition = pd.read_csv(test_data / 's_curves_by_condition.csv').set_index(['building_category','TEK','year'])
+
     index_columns = ['year', 'building_category', 'building_condition', 'TEK']
     result = extract_area_forecast(years, s_curves_by_condition, tek_parameters, area_parameters, dm)
     result = result.set_index(index_columns, drop=True).sort_index(key=map_sort_order)

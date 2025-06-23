@@ -63,7 +63,7 @@ def small_measure(s_curve_renovation_and_small_measure: Series, s_curve_small_me
 
 def renovation_and_small_measure(s_curve_renovation: Series, s_curve_renovation_total: Series) -> Series:
     """
-    Calculates the remaining small renovation_and_small_measure share by subtracting renovation
+    Calculates the remaining renovation_and_small_measure share by subtracting renovation
     from the total renovation total curve.
 
     Parameters

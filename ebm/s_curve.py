@@ -324,10 +324,12 @@ def scurve_parameters_to_never_share(s_curves: pd.DataFrame, scurve_parameters: 
     return df_never_share
 
 
-def scurve_parameters_to_scurve(scurve_parameters: pd.DataFrame) -> pd.DataFrame:
+def scurve_parameters_to_scurve(scurve_parameters: pd.DataFrame) -> Series:
     """
     Create scurve new dataframe from scurve_parameters using ebm.model.area.building_condition_scurves and
         ebm.model.area.building_condition_accumulated_scurves
+
+    Each row represent a building_category and building_condition at a certain age.
 
     Parameters
     ----------
@@ -335,7 +337,7 @@ def scurve_parameters_to_scurve(scurve_parameters: pd.DataFrame) -> pd.DataFrame
 
     Returns
     -------
-    pandas.DataFrame
+    pandas.Series
     """
     scurve_by_year = building_condition_scurves(scurve_parameters)
     scurve_accumulated = building_condition_accumulated_scurves(scurve_parameters)

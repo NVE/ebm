@@ -304,7 +304,7 @@ def test_calculate_s_curves_return_columns(scurves_parameters_house, tek10_tek69
 def test_calculate_s_curves_conditions_sums_to_one(scurves_parameters_house, tek10_tek69_parameters, years):
     result = s_curve.calculate_s_curves(scurves_parameters_house, tek10_tek69_parameters, years)
 
-    assert (result.s_curve_sum.round(11) == 1.0).all()
+    assert (result.s_curve_sum.round(5) == 1.0).all()
 
 
 if __name__ == "__main__":

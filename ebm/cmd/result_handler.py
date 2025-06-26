@@ -15,9 +15,8 @@ from ebm.model.database_manager import DatabaseManager
 from ebm.services.spreadsheet import detect_format_from_values, find_max_column_width
 
 
-def transform_model_to_horizontal(model):
+def transform_model_to_horizontal(model, value_column = 'm2'):
     hz = model.reset_index().copy()
-    value_column = 'm2'
     if 'energy_requirement' in hz.columns:
         value_column = 'GWh'
         hz['GWh'] = hz['energy_requirement'] / 10**6

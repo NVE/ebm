@@ -304,7 +304,44 @@ def test_calculate_s_curves_return_columns(scurves_parameters_house, tek10_tek69
 def test_calculate_s_curves_conditions_sums_to_one(scurves_parameters_house, tek10_tek69_parameters, years):
     result = s_curve.calculate_s_curves(scurves_parameters_house, tek10_tek69_parameters, years)
 
-    assert (result.s_curve_sum.round(5) == 1.0).all()
+    assert pd.Series(result.s_curve_sum.round(5) == 1.0).all()
+
+
+def test_calculate_s_curves_just_demolition(tek10_tek69_parameters, years):
+    scurve_parameters_house_csv = """
+building_category,condition,earliest_age_for_measure,average_age_for_measure,rush_period_years,last_age_for_measure,rush_share,never_share
+house,small_measure,3,23,30,80,0.0,1.0
+house,renovation,10,37,24,75,0.0,1.0
+house,demolition,60,90,40,150,0.7,0.05""".strip()
+    scurves_parameters_house = pd.read_csv(io.StringIO(scurve_parameters_house_csv))
+
+    result = s_curve.calculate_s_curves(scurves_parameters_house, tek10_tek69_parameters, years)
+
+    expected_demolition = pd.Series(
+        data=
+        [0.0] * 17 + [0.0125, 0.025, 0.0375, 0.05, 0.0625, 0.075, 0.0875, 0.1, 0.1125, 0.125, 0.1425, 0.16, 0.1775,
+                      0.195] +  # TEK69
+        [0.0] * 31,  # TEK10
+        name='demolition',
+        index=pd.MultiIndex.from_product([['house'], ['TEK1969', 'TEK2010'], years],
+                                         names=['building_category', 'TEK', 'year'])
+    )
+
+    pd.testing.assert_series_equal(result.demolition, expected_demolition)
+
+    expected_original_condition = pd.Series(
+        data=[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0] +
+             [0.9875, 0.975, 0.9625, 0.95, 0.9375, 0.925, 0.9125, 0.9, 0.8875, 0.875] +
+             [0.8574999999999999, 0.84, 0.8225, 0.8049999999999999] + # TEK69
+             [1.0]*31, # TEK10
+
+        name='original_condition',
+        index=pd.MultiIndex.from_product([['house'], ['TEK1969', 'TEK2010'], years],
+                                         names=['building_category', 'TEK', 'year'])
+    )
+    pd.testing.assert_series_equal(result.original_condition, expected_original_condition)
+
+    assert (result.original_condition + result.demolition == 1.0).all()
 
 
 if __name__ == "__main__":

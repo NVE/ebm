@@ -455,20 +455,20 @@ def calculate_s_curves(scurve_parameters, tek_parameters, years, **kwargs):
 
     s_curve_cumulative_demolition = transform_to_cumulative_demolition(s_curves_with_demolition_acc, years)
     s_curve_renovation_never_share = s_curves_with_tek.renovation_never_share
-    s_curve_small_measure_never_share = s_curves_with_tek.small_measure_never_share
-    s_curve_cumulative_small_measure = cumulative_small_measure(s_curves_with_tek, years)
+    s_curve_small_measure_never_share = kwargs.get('small_measure_never_share', s_curves_with_tek.small_measure_never_share)
+    s_curve_cumulative_small_measure = kwargs.get('cumulative_small_measure', cumulative_small_measure(s_curves_with_tek, years))
     s_curve_cumulative_renovation = cumulative_renovation(s_curves_with_tek, years)
 
     s_curve_renovation_max = renovation_max(s_curve_cumulative_demolition, s_curve_renovation_never_share)
-    s_curve_small_measure_max = small_measure_max(s_curve_cumulative_demolition,
-                                                          s_curve_small_measure_never_share)
+    s_curve_small_measure_max = kwargs.get('s_curve_small_measure_max', small_measure_max(s_curve_cumulative_demolition, s_curve_small_measure_never_share))
+
 
     s_curve_small_measure_total = trim_max_value(s_curve_cumulative_small_measure, s_curve_small_measure_max)
     s_curve_renovation_total = trim_max_value(s_curve_cumulative_renovation, s_curve_renovation_max)
     scurve_total = total(s_curve_renovation_total, s_curve_small_measure_total)
 
-    s_curve_renovation = renovation_from_small_measure(s_curve_renovation_max, s_curve_small_measure_total)
-    s_curve_renovation = trim_renovation_from_renovation_total(s_curve_renovation, s_curve_renovation_max,
+    s_curve_renovation_sm = renovation_from_small_measure(s_curve_renovation_max, s_curve_small_measure_total)
+    s_curve_renovation = trim_renovation_from_renovation_total(s_curve_renovation_sm, s_curve_renovation_max,
                                                                        s_curve_renovation_total, scurve_total)
 
     s_curve_renovation_and_small_measure = renovation_and_small_measure(s_curve_renovation,
@@ -507,5 +507,6 @@ def calculate_s_curves(scurve_parameters, tek_parameters, years, **kwargs):
     s_curves_by_condition['s_curve_cumulative_renovation'] = s_curve_cumulative_renovation
     s_curves_by_condition['s_curve_renovation_total'] =  s_curve_renovation_total
     s_curves_by_condition['renovation_never_share'] = s_curve_renovation_never_share
+
 
     return s_curves_by_condition

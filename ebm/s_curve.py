@@ -442,7 +442,8 @@ def transform_to_long(s_curves_by_condition: pd.DataFrame) -> pd.DataFrame:
     return df_long
 
 
-def calculate_s_curves(scurve_parameters, tek_parameters, years):
+def calculate_s_curves(scurve_parameters, tek_parameters, years, **kwargs):
+    # Transform s_curve_parameters into long form with each row representing a building_condition at a certain age
     s_curves = scurve_parameters_to_scurve(scurve_parameters)
     df_never_share = scurve_parameters_to_never_share(s_curves, scurve_parameters)
 

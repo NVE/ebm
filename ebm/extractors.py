@@ -12,10 +12,9 @@ from ebm.model.energy_requirement import EnergyRequirement
 from ebm.s_curve import calculate_s_curves
 
 
-def extract_area_forecast(years: YearRange, scurve_parameters: pd.DataFrame, tek_parameters: pd.DataFrame, area_parameters: pd.DataFrame, database_manager:DatabaseManager):
+def extract_area_forecast(years: YearRange, s_curves_by_condition: pd.DataFrame, tek_parameters: pd.DataFrame, area_parameters: pd.DataFrame, database_manager:DatabaseManager):
     logger.debug('Calculating area by condition')
 
-    s_curves_by_condition = calculate_s_curves(scurve_parameters, tek_parameters, years)
     s_curve_demolition = s_curves_by_condition['s_curve_demolition']
     s_curves_by_condition = s_curves_by_condition[[
         'original_condition',  'small_measure', 'renovation', 'renovation_and_small_measure', 'demolition'
@@ -82,10 +81,15 @@ def main():
     fh = FileHandler(directory='input')
     dm = DatabaseManager(fh)
     years = YearRange(2020, 2050)
+
+    tek_parameters = fh.get_tek_params()
+    scurve_params = dm.get_scurve_params()
+    s_curves_by_condition = calculate_s_curves(scurve_params, tek_parameters, years)
+
     area_forecast = extract_area_forecast(years,
-                                          tek_parameters=fh.get_tek_params(),
+                                          tek_parameters=tek_parameters,
                                           area_parameters=dm.get_area_parameters(),
-                                          scurve_parameters=dm.get_scurve_params(),
+                                          s_curves_by_condition=s_curves_by_condition,
                                           database_manager=dm)
 
     print(area_forecast)

@@ -131,7 +131,8 @@ def trim_renovation_from_renovation_total(s_curve_renovation: Series,
     adjusted_values = np.where(scurve_total < s_curve_renovation_max,
                                s_curve_renovation_total,
                                s_curve_renovation)
-    return pd.Series(adjusted_values, index=s_curve_renovation.index).rename('renovation')
+    trimmed_renovation = pd.Series(adjusted_values, index=s_curve_renovation.index).rename('renovation')
+    return trimmed_renovation
 
 
 def renovation_from_small_measure(s_curve_renovation_max: Series, s_curve_small_measure_total: Series) -> Series:
@@ -179,7 +180,8 @@ def total(s_curve_renovation_total: Series, s_curve_small_measure_total: Series)
 
 
 def trim_max_value(s_curve_cumulative_small_measure: Series, s_curve_small_measure_max: Series) ->Series:
-    return s_curve_cumulative_small_measure.combine(s_curve_small_measure_max, min).clip(0) # type: ignore
+    s_curve_cumulative_small_measure_max = s_curve_cumulative_small_measure.combine(s_curve_small_measure_max, min)
+    return s_curve_cumulative_small_measure_max.clip(0) # type: ignore
 
 
 def small_measure_max(s_curve_cumulative_demolition: Series, s_curve_small_measure_never_share: Series):
@@ -257,7 +259,8 @@ def cumulative_small_measure(s_curves_with_tek: Series, years: YearRange) -> Ser
     -----
     NaN values are replaced by float 0.0
     """
-    return s_curves_with_tek.small_measure_acc.loc[(slice(None), slice(None), list(years.year_range))].fillna(0.0)
+    s_curve_cumulative_small_measure = s_curves_with_tek.small_measure_acc.loc[(slice(None), slice(None), list(years.year_range))].fillna(0.0)
+    return s_curve_cumulative_small_measure
 
 
 def transform_demolition(demolition: Series, years: YearRange) -> Series:
@@ -467,12 +470,13 @@ def calculate_s_curves(scurve_parameters, tek_parameters, years, **kwargs):
     s_curve_renovation_total = trim_max_value(s_curve_cumulative_renovation, s_curve_renovation_max)
     scurve_total = total(s_curve_renovation_total, s_curve_small_measure_total)
 
-    s_curve_renovation_sm = renovation_from_small_measure(s_curve_renovation_max, s_curve_small_measure_total)
-    s_curve_renovation = trim_renovation_from_renovation_total(s_curve_renovation_sm, s_curve_renovation_max,
-                                                                       s_curve_renovation_total, scurve_total)
+    s_curve_renovation_from_small_measure = renovation_from_small_measure(s_curve_renovation_max, s_curve_small_measure_total)
+    s_curve_renovation = trim_renovation_from_renovation_total(s_curve_renovation=s_curve_renovation_from_small_measure,
+                                                               s_curve_renovation_max=s_curve_renovation_max,
+                                                               s_curve_renovation_total=s_curve_renovation_total,
+                                                               scurve_total=scurve_total)
 
-    s_curve_renovation_and_small_measure = renovation_and_small_measure(s_curve_renovation,
-                                                                                s_curve_renovation_total)
+    s_curve_renovation_and_small_measure = renovation_and_small_measure(s_curve_renovation, s_curve_renovation_total)
 
     s_curve_small_measure = small_measure(s_curve_renovation_and_small_measure, s_curve_small_measure_total)
 

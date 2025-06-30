@@ -264,7 +264,6 @@ def make_pretty(workbook_name: pathlib.Path|str):
             values = [int(r.value) for r in col[1:] if r.value and r.data_type == 'n']
             if values:
                 max_min = max(values), min(values)
-                logger.info(f'{max_min=}')
                 number_format = ''
                 if max_min[0] > 1000:
                     number_format = r'_-* #,##0_-;\-* #,##0_-;_-* "-"??_-;_-@_-'

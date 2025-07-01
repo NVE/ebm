@@ -491,7 +491,7 @@ area_per_person = pa.DataFrameSchema(
 )
 
 
-heating_systems_shares_start_year = pa.DataFrameSchema(
+heating_system_initial_shares = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=pa.Check(check_building_category)),
         'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),

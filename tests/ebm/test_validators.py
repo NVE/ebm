@@ -21,7 +21,7 @@ from ebm.validators import (tek_parameters,
                             energy_need_improvements,
                             area_per_person,
                             check_overlapping_tek_periods,
-                            heating_systems_shares_start_year,
+                            heating_system_initial_shares,
                             heating_system_forecast,
                             heating_systems_efficiencies,
                             energy_need_behaviour_factor)
@@ -607,7 +607,7 @@ invalid_category,0.6
         area_per_person.validate(pd.read_csv(io.StringIO(area_per_person_csv)))
 
 
-def test_heating_systems_shares_start_year_ok():
+def test_heating_system_initial_shares_ok():
     shares_start_year = pd.read_csv(io.StringIO("""
 building_category,TEK,heating_systems,year,TEK_shares
 apartment_block,TEK17,DH,2023,0.2067590404511288
@@ -634,7 +634,7 @@ university,TEK97,HP Central heating - Electric boiler,2023,0.3640435119049470
 university,TEK97,HP Central heating - Gas,2023,0.0000719616069676                                                                                                                                             
 """.strip()), skipinitialspace=True) 
     
-    heating_systems_shares_start_year.validate(shares_start_year)
+    heating_system_initial_shares.validate(shares_start_year)
 
 
 def test_heating_systems_shares_require_same_start_year():
@@ -645,7 +645,7 @@ apartment_block,TEK07,DH - Bio,2021,0.003305887353335002
 """.strip()), skipinitialspace=True) 
     
     with pytest.raises(pa.errors.SchemaError):
-        heating_systems_shares_start_year.validate(shares_start_year)
+        heating_system_initial_shares.validate(shares_start_year)
 
 
 def test_heating_systems_shares_between_zero_and_one():
@@ -655,7 +655,7 @@ apartment_block,TEK07,DH,2020,-1
 """.strip()), skipinitialspace=True) 
     
     with pytest.raises(pa.errors.SchemaError):
-        heating_systems_shares_start_year.validate(shares_start_year)
+        heating_system_initial_shares.validate(shares_start_year)
 
     shares_start_year = pd.read_csv(io.StringIO("""
 building_category,TEK,heating_systems,year,TEK_shares
@@ -663,10 +663,10 @@ apartment_block,TEK07,DH,2020,2
 """.strip()), skipinitialspace=True) 
     
     with pytest.raises(pa.errors.SchemaError):
-        heating_systems_shares_start_year.validate(shares_start_year)
+        heating_system_initial_shares.validate(shares_start_year)
 
 
-def test_heating_systems_shares_start_year_sum_shares_equal_1():
+def test_heating_system_initial_shares_sum_shares_equal_1():
 
     df = pd.read_csv(io.StringIO("""
 building_category,TEK,heating_systems,year,TEK_shares
@@ -678,7 +678,7 @@ university,TEK97,Electricity - Bio,2023,0.4
     
     with warnings.catch_warnings(record=True) as caught_warnings:
         warnings.simplefilter("always")
-        validated_df = heating_systems_shares_start_year.validate(df, lazy=True)
+        validated_df = heating_system_initial_shares.validate(df, lazy=True)
         expected_in_error="<Check check_sum_of_tek_shares_equal_1:"
         for warning in caught_warnings:
             assert expected_in_error in str(warning.message)

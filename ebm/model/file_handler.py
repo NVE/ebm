@@ -32,7 +32,7 @@ class FileHandler:
     HOLIDAY_HOME_BY_YEAR = 'holiday_home_by_year.csv'
     HOLIDAY_HOME_ENERGY_CONSUMPTION = 'holiday_home_energy_consumption.csv'
     AREA_PER_PERSON = 'area_per_person.csv'
-    HS_SHARES_START_YEAR = 'heating_systems_shares_start_year.csv'
+    HEATING_SYSTEM_INITIAL_SHARES = 'heating_system_initial_shares.csv'
     HS_EFFICIENCIES = 'heating_systems_efficiencies.csv'
     HEATING_SYSTEM_FORECAST = 'heating_system_forecast.csv'
     CALIBRATE_ENERGY_REQUIREMENT = 'calibrate_heating_rv.xlsx'
@@ -60,7 +60,7 @@ class FileHandler:
                                self.AREA, self.BEHAVIOUR_FACTOR, self.ENERGY_NEED_ORIGINAL_CONDITION,
                                self.IMPROVEMENT_BUILDING_UPGRADE, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
                                self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_BY_YEAR,
-                               self.AREA_PER_PERSON, self.HS_SHARES_START_YEAR, self.HS_EFFICIENCIES, self.HEATING_SYSTEM_FORECAST]
+                               self.AREA_PER_PERSON, self.HEATING_SYSTEM_INITIAL_SHARES, self.HS_EFFICIENCIES, self.HEATING_SYSTEM_FORECAST]
 
     def __repr__(self):
         return f'FileHandler(input_directory="{self.input_directory}")'
@@ -285,7 +285,7 @@ class FileHandler:
     def get_heating_systems_shares_start_year(self) -> pd.DataFrame:
         """
         """
-        return self.get_file(self.HS_SHARES_START_YEAR)
+        return self.get_file(self.HEATING_SYSTEM_INITIAL_SHARES)
     
     def get_heating_systems_efficiencies(self) -> pd.DataFrame:
         """

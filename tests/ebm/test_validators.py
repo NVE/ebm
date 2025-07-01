@@ -11,7 +11,7 @@ from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
 from ebm.model.dataframemodels import PolicyImprovement
 from ebm.validators import (tek_parameters,
-                            area_parameters,
+                            area,
                             construction_building_category_yearly,
                             new_buildings_house_share,
                             population,
@@ -105,7 +105,7 @@ def test_area_parameters_building_categories():
     rows = [[str(building_category), 'TEK10', float(10000)] for building_category in BuildingCategory]
     df = pd.DataFrame(data=rows, columns=['building_category', 'TEK', 'area'])
 
-    area_parameters.validate(df)
+    area.validate(df)
 
 
 def test_area_parameters_raises_schema_error_on_unknown_building_category():
@@ -113,7 +113,7 @@ def test_area_parameters_raises_schema_error_on_unknown_building_category():
     df = pd.DataFrame(data=rows, columns=['building_category', 'TEK', 'area'])
 
     with pytest.raises(pa.errors.SchemaError):
-        area_parameters.validate(df)
+        area.validate(df)
 
 
 def test_area_parameters_raises_schema_error_on_illegal_area():
@@ -121,7 +121,7 @@ def test_area_parameters_raises_schema_error_on_illegal_area():
     df = pd.DataFrame(data=rows, columns=['building_category', 'TEK', 'area'])
 
     with pytest.raises(pa.errors.SchemaError):
-        area_parameters.validate(df)
+        area.validate(df)
 
 
 @pytest.fixture

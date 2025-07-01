@@ -35,7 +35,7 @@ def test_check_for_missing_files_return_list(tmp_path):
     assert 'population.csv' in missing_files
     assert 'new_buildings_house_share.csv' in missing_files
     assert 'construction_building_category_yearly.csv' in missing_files
-    assert 'area_parameters.csv' in missing_files
+    assert 'area.csv' in missing_files
     assert 'energy_need_behaviour_factor.csv' in missing_files
     assert 'energy_requirement_original_condition.csv' in missing_files
     assert 'energy_requirement_reduction_per_condition.csv' in missing_files
@@ -111,7 +111,7 @@ def test_filehandler_create_missing_input_files(tmp_path):
     assert (input_directory / 'population.csv').is_file()
     assert (input_directory / 'new_buildings_house_share.csv').is_file()
     assert (input_directory / 'construction_building_category_yearly.csv').is_file()
-    assert (input_directory / 'area_parameters.csv').is_file()
+    assert (input_directory / 'area.csv').is_file()
     assert (input_directory / 'energy_requirement_original_condition.csv').is_file()
     assert (input_directory / 'energy_requirement_reduction_per_condition.csv').is_file()
     assert (input_directory / 'energy_need_improvements.csv').is_file()
@@ -154,7 +154,7 @@ def test_filehandler_validate_created_input_file(tmp_file_handler):
     tmp_file_handler.validate_input_files()
 
 
-@pytest.mark.parametrize('input_file_name', [FileHandler.AREA_PARAMETERS,
+@pytest.mark.parametrize('input_file_name', [FileHandler.AREA,
                                              FileHandler.TEK_PARAMS,
                                              FileHandler.CONSTRUCTION_BUILDING_CATEGORY_AREA,
                                              FileHandler.CONSTRUCTION_BUILDING_CATEGORY_SHARE,
@@ -182,11 +182,11 @@ def test_filehandler_validate_created_input_file_raises_schemaerrors_on_fail(tmp
      Ensure pa.DataFrameSchema::validate is invoked lazy by checking for SchemaErrors
     (as opposed to SchemaError without a trailing s)
      """
-    df = tmp_file_handler.get_file(FileHandler.AREA_PARAMETERS)
+    df = tmp_file_handler.get_file(FileHandler.AREA)
     df.loc[0, 'building_category'] = 'småhus'
     df.loc[0, 'TEK'] = 'TAKK42'
     df.loc[0, 'area'] = -1
-    df.to_csv(tmp_file_handler.input_directory / FileHandler.AREA_PARAMETERS)
+    df.to_csv(tmp_file_handler.input_directory / FileHandler.AREA)
 
     with pytest.raises(pa.errors.SchemaErrors):
         tmp_file_handler.validate_input_files()

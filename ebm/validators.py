@@ -349,7 +349,7 @@ energy_need_behaviour_factor = pa.DataFrameSchema(
     }
 )
 
-area_parameters = pa.DataFrameSchema(
+area = pa.DataFrameSchema(
     columns={
         "building_category": pa.Column(str, checks=[pa.Check(check_building_category)]),
         "TEK": pa.Column(str, checks=[pa.Check(check_tek, element_wise=True)]),
@@ -557,7 +557,7 @@ heating_systems_efficiencies = pa.DataFrameSchema(
     }
 )
 
-__all__ = [area_parameters,
+__all__ = [area,
            tek_parameters,
            construction_building_category_yearly,
            new_buildings_house_share,

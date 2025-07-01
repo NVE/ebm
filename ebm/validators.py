@@ -466,7 +466,7 @@ energy_need_improvements = pa.DataFrameSchema(
 )
 
 
-holiday_home_by_year = pa.DataFrameSchema(
+holiday_home_stock = pa.DataFrameSchema(
     columns={
         'year': pa.Column(int),
         'Existing buildings Chalet, summerhouses and other holiday houses': pa.Column(int),

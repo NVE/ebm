@@ -23,7 +23,7 @@ class FileHandler:
     SCURVE_PARAMETERS = 'scurve_parameters.csv'
     CONSTRUCTION_POPULATION = 'population.csv'
     CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'new_buildings_house_share.csv'
-    CONSTRUCTION_BUILDING_CATEGORY_AREA = 'construction_building_category_yearly.csv'
+    AREA_NEW_RESIDENTIAL_BUILDINGS = 'area_new_residential_buildings.csv'
     AREA = 'area.csv'
     BEHAVIOUR_FACTOR = 'energy_need_behaviour_factor.csv'
     ENERGY_REQ_ORIGINAL_CONDITION = 'energy_requirement_original_condition.csv'
@@ -56,7 +56,7 @@ class FileHandler:
 
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
         self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
-                               self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
+                               self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.AREA_NEW_RESIDENTIAL_BUILDINGS,
                                self.AREA, self.BEHAVIOUR_FACTOR, self.ENERGY_REQ_ORIGINAL_CONDITION,
                                self.ENERGY_REQ_REDUCTION_CONDITION, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
                                self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_BY_YEAR,
@@ -198,7 +198,7 @@ class FileHandler:
         - construction_population (pd.DataFrame): Dataframe containing population numbers
           "area","type of building","2010","2011"
         """
-        file_path = self.input_directory / self.CONSTRUCTION_BUILDING_CATEGORY_AREA
+        file_path = self.input_directory / self.AREA_NEW_RESIDENTIAL_BUILDINGS
         logger.debug(f'{file_path=}')
         return pd.read_csv(file_path,
                            index_col=0, header=0)

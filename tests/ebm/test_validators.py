@@ -12,7 +12,7 @@ from ebm.model.data_classes import YearRange
 from ebm.model.dataframemodels import PolicyImprovement
 from ebm.validators import (tek_parameters,
                             area,
-                            construction_building_category_yearly,
+                            area_new_residential_buildings,
                             new_buildings_house_share,
                             population,
                             scurve_parameters,
@@ -149,7 +149,7 @@ def test_construction_building_category_yearly(ok_construction_building_category
         - empty value for house and apartment_block
     """
 
-    result: pd.DataFrame = construction_building_category_yearly.validate(ok_construction_building_category_yearly)
+    result: pd.DataFrame = area_new_residential_buildings.validate(ok_construction_building_category_yearly)
     assert result['year'].dtype == np.int64
     pd.testing.assert_series_equal(left=result['year'],
                                    right=pd.Series([2010, 2011, 2012, 2013]),
@@ -186,7 +186,7 @@ def test_construction_building_category_yearly_commercial_area(ok_construction_b
 
     ok_construction_building_category_yearly.loc[row, building_category] = -0.1
     with pytest.raises(pa.errors.SchemaError):
-        construction_building_category_yearly.validate(ok_construction_building_category_yearly)
+        area_new_residential_buildings.validate(ok_construction_building_category_yearly)
     
 
 
@@ -201,11 +201,11 @@ def test_construction_building_category_yearly_residential_area(
     df1 = ok_construction_building_category_yearly.copy()
     last_row = len(df1)-1
     df1.loc[last_row, building_category] = None
-    construction_building_category_yearly.validate(df1)
+    area_new_residential_buildings.validate(df1)
 
     df1.loc[last_row, building_category] = 1
     with pytest.raises(pa.errors.SchemaError):
-        construction_building_category_yearly.validate(df1)
+        area_new_residential_buildings.validate(df1)
 
 
 @pytest.fixture

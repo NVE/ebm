@@ -378,7 +378,7 @@ tek_parameters = pa.DataFrameSchema(columns={
 )
 
 
-construction_building_category_yearly = pa.DataFrameSchema(
+area_new_residential_buildings = pa.DataFrameSchema(
     columns={
         'year': pa.Column(int),
         'house': pa.Column(pa.Float64, nullable=True, checks=create_residential_area_checks()),
@@ -559,7 +559,7 @@ heating_systems_efficiencies = pa.DataFrameSchema(
 
 __all__ = [area,
            tek_parameters,
-           construction_building_category_yearly,
+           area_new_residential_buildings,
            new_buildings_house_share,
            population,
            scurve_parameters,

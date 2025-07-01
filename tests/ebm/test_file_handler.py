@@ -28,13 +28,13 @@ def test_check_for_missing_files_return_list(tmp_path):
     """
     os.chdir(tmp_path)
     fh = FileHandler(directory=tmp_path)
-    missing_files = fh.check_for_missing_files()
+    missing_files = set(fh.check_for_missing_files())
     assert 'TEK_ID.csv' in missing_files
     assert 'TEK_parameters.csv' in missing_files
     assert 'scurve_parameters.csv' in missing_files
     assert 'population.csv' in missing_files
     assert 'new_buildings_house_share.csv' in missing_files
-    assert 'construction_building_category_yearly.csv' in missing_files
+    assert 'area_new_residential_buildings.csv' in missing_files
     assert 'area.csv' in missing_files
     assert 'energy_need_behaviour_factor.csv' in missing_files
     assert 'energy_requirement_original_condition.csv' in missing_files
@@ -110,7 +110,7 @@ def test_filehandler_create_missing_input_files(tmp_path):
     assert (input_directory / 'scurve_parameters.csv').is_file()
     assert (input_directory / 'population.csv').is_file()
     assert (input_directory / 'new_buildings_house_share.csv').is_file()
-    assert (input_directory / 'construction_building_category_yearly.csv').is_file()
+    assert (input_directory / 'area_new_residential_buildings.csv').is_file()
     assert (input_directory / 'area.csv').is_file()
     assert (input_directory / 'energy_requirement_original_condition.csv').is_file()
     assert (input_directory / 'energy_requirement_reduction_per_condition.csv').is_file()
@@ -156,7 +156,7 @@ def test_filehandler_validate_created_input_file(tmp_file_handler):
 
 @pytest.mark.parametrize('input_file_name', [FileHandler.AREA,
                                              FileHandler.TEK_PARAMS,
-                                             FileHandler.CONSTRUCTION_BUILDING_CATEGORY_AREA,
+                                             FileHandler.AREA_NEW_RESIDENTIAL_BUILDINGS,
                                              FileHandler.CONSTRUCTION_BUILDING_CATEGORY_SHARE,
                                              FileHandler.CONSTRUCTION_POPULATION,
                                              FileHandler.SCURVE_PARAMETERS])

@@ -426,7 +426,7 @@ scurve_parameters = pa.DataFrameSchema(
 
 
 ### TODO: remove strong restrictions on float values and add warnings (should be able to be neg values)
-energy_requirement_original_condition = pa.DataFrameSchema(
+energy_need_original_condition = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=[pa.Check(check_default_building_category)]),
         'TEK': pa.Column(str, checks=[pa.Check(check_default_tek, element_wise=True)]),

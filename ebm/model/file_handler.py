@@ -26,7 +26,7 @@ class FileHandler:
     AREA_NEW_RESIDENTIAL_BUILDINGS = 'area_new_residential_buildings.csv'
     AREA = 'area.csv'
     BEHAVIOUR_FACTOR = 'energy_need_behaviour_factor.csv'
-    ENERGY_REQ_ORIGINAL_CONDITION = 'energy_requirement_original_condition.csv'
+    ENERGY_NEED_ORIGINAL_CONDITION = 'energy_need_original_condition.csv'
     ENERGY_REQ_REDUCTION_CONDITION = 'energy_requirement_reduction_per_condition.csv'
     ENERGY_NEED_YEARLY_IMPROVEMENTS = 'energy_need_improvements.csv'
     HOLIDAY_HOME_BY_YEAR = 'holiday_home_by_year.csv'
@@ -57,7 +57,7 @@ class FileHandler:
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
         self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
                                self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.AREA_NEW_RESIDENTIAL_BUILDINGS,
-                               self.AREA, self.BEHAVIOUR_FACTOR, self.ENERGY_REQ_ORIGINAL_CONDITION,
+                               self.AREA, self.BEHAVIOUR_FACTOR, self.ENERGY_NEED_ORIGINAL_CONDITION,
                                self.ENERGY_REQ_REDUCTION_CONDITION, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
                                self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_BY_YEAR,
                                self.AREA_PER_PERSON, self.HS_SHARES_START_YEAR, self.HS_EFFICIENCIES, self.HS_PROJECTION]
@@ -223,7 +223,7 @@ class FileHandler:
             Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
             per building category and purpose.
         """
-        return self.get_file(self.ENERGY_REQ_ORIGINAL_CONDITION)
+        return self.get_file(self.ENERGY_NEED_ORIGINAL_CONDITION)
     
     def get_energy_req_reduction_per_condition(self) -> pd.DataFrame:
         """

@@ -16,7 +16,7 @@ from ebm.validators import (tek_parameters,
                             new_buildings_house_share,
                             population,
                             scurve_parameters,
-                            energy_requirement_original_condition,
+                            energy_need_original_condition,
                             energy_requirement_reduction_per_condition,
                             energy_need_improvements,
                             area_per_person,
@@ -335,35 +335,35 @@ def energy_by_floor_area_df():
 
 
 def test_energy_by_floor_area(energy_by_floor_area_df):
-    energy_requirement_original_condition.validate(energy_by_floor_area_df)
+    energy_need_original_condition.validate(energy_by_floor_area_df)
 
 
 def test_energy_by_floor_area_raise_schema_error_on_unknown_building_category(energy_by_floor_area_df):
     energy_by_floor_area_df.loc[:, 'building_category'] = 'småhus'
 
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_original_condition.validate(energy_by_floor_area_df)
+        energy_need_original_condition.validate(energy_by_floor_area_df)
 
 
 def test_energy_by_floor_area_raise_schema_error_on_unknown_tek(energy_by_floor_area_df):
     energy_by_floor_area_df.loc[:, 'TEK'] = 'TAKK'
 
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_original_condition.validate(energy_by_floor_area_df)
+        energy_need_original_condition.validate(energy_by_floor_area_df)
 
 
 def test_energy_by_floor_area_raise_schema_error_on_illegal_kwhm(energy_by_floor_area_df):
     energy_by_floor_area_df.loc[0, 'kwh_m2'] = -0.1
 
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_original_condition.validate(energy_by_floor_area_df)
+        energy_need_original_condition.validate(energy_by_floor_area_df)
 
 
 def test_energy_by_floor_area_raise_schema_error_on_unknown_purpose(energy_by_floor_area_df):
     energy_by_floor_area_df.loc[0, 'purpose'] = 'lys og varme'
 
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_original_condition.validate(energy_by_floor_area_df)
+        energy_need_original_condition.validate(energy_by_floor_area_df)
 
 
 @pytest.fixture
@@ -380,35 +380,35 @@ def original_condition_df():
                         ])
 
 
-def test_energy_req_original_condition(original_condition_df):
-    energy_requirement_original_condition.validate(original_condition_df)
+def test_energy_need_original_condition(original_condition_df):
+    energy_need_original_condition.validate(original_condition_df)
 
 
-def test_energy_req_original_condition_require_valid_building_cat(original_condition_df):
+def test_energy_need_original_condition_require_valid_building_cat(original_condition_df):
     original_condition_df.loc[0, 'building_category'] = 'not_a_building_category'
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_original_condition.validate(original_condition_df)
+        energy_need_original_condition.validate(original_condition_df)
 
 
-def test_energy_req_original_condition_require_valid_tek(original_condition_df):
+def test_energy_need_original_condition_require_valid_tek(original_condition_df):
     original_condition_df.loc[0, 'TEK'] = 'TAKK'
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_original_condition.validate(original_condition_df)
+        energy_need_original_condition.validate(original_condition_df)
 
 
-def test_energy_req_original_condition_require_valid_purpose(original_condition_df):
+def test_energy_need_original_condition_require_valid_purpose(original_condition_df):
     original_condition_df.loc[0, 'purpose'] = 'not_a_purpose'
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_original_condition.validate(original_condition_df)
+        energy_need_original_condition.validate(original_condition_df)
 
 
-def test_energy_req_original_condition_require_value_greater_than_or_equal_to_zero(original_condition_df):
+def test_energy_need_original_condition_require_value_greater_than_or_equal_to_zero(original_condition_df):
     original_condition_df.loc[0, 'kwh_m2'] = -1
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_original_condition.validate(original_condition_df)
+        energy_need_original_condition.validate(original_condition_df)
 
 
-def test_energy_req_original_condition_require_unique_rows():
+def test_energy_need_original_condition_require_unique_rows():
     duplicate_df = pd.DataFrame(columns=['building_category', 'TEK', 'purpose', 'kwh_m2'],
                                 data=[
                                     ['apartment_block', 'PRE_TEK49_RES_1950', 'cooling', 1.1],
@@ -416,7 +416,7 @@ def test_energy_req_original_condition_require_unique_rows():
                                     ['apartment_block', 'PRE_TEK49_RES_1950', 'cooling', 2.1],
                                 ])
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_original_condition.validate(duplicate_df)
+        energy_need_original_condition.validate(duplicate_df)
 
 
 # TODO: add test for special case with conditions

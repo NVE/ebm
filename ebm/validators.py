@@ -513,7 +513,7 @@ heating_systems_shares_start_year = pa.DataFrameSchema(
 
 #TODO: 
 # - add check on years. Parse to make long format and check years and values? years must be in order, max limit (2070) etc.
-heating_systems_projection = pa.DataFrameSchema(
+heating_system_forecast = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=pa.Check(check_default_building_category_with_group)),
         'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),

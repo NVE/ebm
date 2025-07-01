@@ -22,7 +22,7 @@ from ebm.validators import (tek_parameters,
                             area_per_person,
                             check_overlapping_tek_periods,
                             heating_systems_shares_start_year,
-                            heating_systems_projection,
+                            heating_system_forecast,
                             heating_systems_efficiencies,
                             energy_need_behaviour_factor)
     
@@ -686,7 +686,7 @@ university,TEK97,Electricity - Bio,2023,0.4
         assert caught_warnings
 
 
-def test_heating_systems_projection_ok():
+def test_heating_system_forecast_ok():
     projection = pd.read_csv(io.StringIO("""
 building_category,TEK,heating_systems,new_heating_systems,2024,2025
 apartment_block,default,Electricity - Bio,HP Central heating - Bio,0.1,0.1
@@ -701,10 +701,10 @@ office,TEK97,Electricity,DH,0.1,0.1
 residential,default,HP - Electricity,HP - Bio - Electricity,0.1,0.1                                                                                                                                                                                                                                                                             
 """.strip()), skipinitialspace=True) 
 
-    heating_systems_projection.validate(projection)
+    heating_system_forecast.validate(projection)
 
 
-def test_heating_systems_projection_unique_columns():
+def test_heating_system_forecast_unique_columns():
     projection = pd.read_csv(io.StringIO("""
 building_category,TEK,heating_systems,new_heating_systems,2021,2022
 default,default,Gas,Electric boiler,0.05,0.06
@@ -712,7 +712,7 @@ default,default,Gas,Electric boiler,0.05,0.05
 """.strip()), skipinitialspace=True) 
 
     with pytest.raises(pa.errors.SchemaError):
-        heating_systems_projection.validate(projection)
+        heating_system_forecast.validate(projection)
 
 
 def test_heating_systems_efficiencies_ok():

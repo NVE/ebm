@@ -34,7 +34,7 @@ class FileHandler:
     AREA_PER_PERSON = 'area_per_person.csv'
     HS_SHARES_START_YEAR = 'heating_systems_shares_start_year.csv'
     HS_EFFICIENCIES = 'heating_systems_efficiencies.csv'
-    HS_PROJECTION = 'heating_systems_projection.csv'
+    HEATING_SYSTEM_FORECAST = 'heating_system_forecast.csv'
     CALIBRATE_ENERGY_REQUIREMENT = 'calibrate_heating_rv.xlsx'
     CALIBRATE_ENERGY_CONSUMPTION = 'calibrate_energy_consumption.xlsx'
 
@@ -60,7 +60,7 @@ class FileHandler:
                                self.AREA, self.BEHAVIOUR_FACTOR, self.ENERGY_NEED_ORIGINAL_CONDITION,
                                self.IMPROVEMENT_BUILDING_UPGRADE, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
                                self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_BY_YEAR,
-                               self.AREA_PER_PERSON, self.HS_SHARES_START_YEAR, self.HS_EFFICIENCIES, self.HS_PROJECTION]
+                               self.AREA_PER_PERSON, self.HS_SHARES_START_YEAR, self.HS_EFFICIENCIES, self.HEATING_SYSTEM_FORECAST]
 
     def __repr__(self):
         return f'FileHandler(input_directory="{self.input_directory}")'
@@ -295,7 +295,7 @@ class FileHandler:
     def get_heating_systems_projection(self) -> pd.DataFrame:
         """
         """
-        return self.get_file(self.HS_PROJECTION)
+        return self.get_file(self.HEATING_SYSTEM_FORECAST)
 
     def _check_is_file(self, filename: str) -> bool:
         """

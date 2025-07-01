@@ -22,7 +22,7 @@ class FileHandler:
     TEK_PARAMS = 'TEK_parameters.csv'
     SCURVE_PARAMETERS = 'scurve_parameters.csv'
     CONSTRUCTION_POPULATION = 'population.csv'
-    CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'new_buildings_house_share.csv'
+    NEW_BUILDINGS_RESIDENTIAL = 'new_buildings_residential.csv'
     AREA_NEW_RESIDENTIAL_BUILDINGS = 'area_new_residential_buildings.csv'
     AREA = 'area.csv'
     BEHAVIOUR_FACTOR = 'energy_need_behaviour_factor.csv'
@@ -56,7 +56,7 @@ class FileHandler:
 
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
         self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
-                               self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.AREA_NEW_RESIDENTIAL_BUILDINGS,
+                               self.NEW_BUILDINGS_RESIDENTIAL, self.AREA_NEW_RESIDENTIAL_BUILDINGS,
                                self.AREA, self.BEHAVIOUR_FACTOR, self.ENERGY_NEED_ORIGINAL_CONDITION,
                                self.IMPROVEMENT_BUILDING_UPGRADE, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
                                self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_STOCK,
@@ -188,7 +188,7 @@ class FileHandler:
         - construction_population (pd.DataFrame): Dataframe containing population numbers
           "year", "Andel nye småhus", "Andel nye leiligheter", "Areal nye småhus", "Areal nye leiligheter"
         """
-        return self.get_file(self.CONSTRUCTION_BUILDING_CATEGORY_SHARE)
+        return self.get_file(self.NEW_BUILDINGS_RESIDENTIAL)
 
     def get_building_category_area(self) -> pd.DataFrame:
         """

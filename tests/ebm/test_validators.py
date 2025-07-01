@@ -13,7 +13,7 @@ from ebm.model.dataframemodels import PolicyImprovement
 from ebm.validators import (tek_parameters,
                             area,
                             area_new_residential_buildings,
-                            new_buildings_house_share,
+                            new_buildings_residential,
                             population,
                             scurve_parameters,
                             energy_need_original_condition,
@@ -209,7 +209,7 @@ def test_construction_building_category_yearly_residential_area(
 
 
 @pytest.fixture
-def new_buildings_house_share_df():
+def new_buildings_residential_df():
     return pd.DataFrame(
         data=[[2010, 0.6131112606550, 0.3868887393450, 175, 75], [2011, 0.6284545545246, 0.3715454454754, 175, 75]],
         columns=['year',
@@ -220,8 +220,8 @@ def new_buildings_house_share_df():
     )
 
 
-def test_new_buildings_house_share_ok(new_buildings_house_share_df):
-    new_buildings_house_share.validate(new_buildings_house_share_df)
+def test_new_buildings_residential_ok(new_buildings_residential_df):
+    new_buildings_residential.validate(new_buildings_residential_df)
 
 
 @pytest.mark.parametrize('column, too_low, too_high',
@@ -230,24 +230,24 @@ def test_new_buildings_house_share_ok(new_buildings_house_share_df):
                           ('new_apartment_block_share', -0.01, 1.01),
                           ('floor_area_new_house', 0, 1001),
                           ('flood_area_new_apartment_block', 0, 1001)])
-def test_new_buildings_house_share_value_ranges(new_buildings_house_share_df, column, too_low, too_high):
-    new_buildings_house_share.validate(new_buildings_house_share_df)
+def test_new_buildings_residential_value_ranges(new_buildings_residential_df, column, too_low, too_high):
+    new_buildings_residential.validate(new_buildings_residential_df)
 
-    new_buildings_house_share_df.loc[0, column] = too_low
+    new_buildings_residential_df.loc[0, column] = too_low
     with pytest.raises(pa.errors.SchemaError):
-        new_buildings_house_share.validate(new_buildings_house_share_df)
+        new_buildings_residential.validate(new_buildings_residential_df)
 
-    new_buildings_house_share_df.loc[0, column] = too_high
+    new_buildings_residential_df.loc[0, column] = too_high
     with pytest.raises(pa.errors.SchemaError):
-        new_buildings_house_share.validate(new_buildings_house_share_df)
+        new_buildings_residential.validate(new_buildings_residential_df)
 
 
-def test_new_buildings_house_share_sum_of_share_should_be_1(new_buildings_house_share_df):
-    new_buildings_house_share_df.loc[0, 'new_apartment_block_share'] = 1.0
-    new_buildings_house_share_df.loc[0, 'new_house_share'] = 1.0
+def test_new_buildings_residential_sum_of_share_should_be_1(new_buildings_residential_df):
+    new_buildings_residential_df.loc[0, 'new_apartment_block_share'] = 1.0
+    new_buildings_residential_df.loc[0, 'new_house_share'] = 1.0
 
     with pytest.raises(pa.errors.SchemaError):
-        new_buildings_house_share.validate(new_buildings_house_share_df)
+        new_buildings_residential.validate(new_buildings_residential_df)
 
 
 def test_population_coerce_values():
@@ -258,7 +258,7 @@ def test_population_coerce_values():
     population.validate(df, lazy=True)
 
 
-def test_population_ok(new_buildings_house_share_df):
+def test_population_ok(new_buildings_residential_df):
     standard_years = [(y, 4858199, 2.22) for y in YearRange(2001, 2070)]
 
     df = pd.DataFrame(data=[(2000, 4000000, np.nan, )] + standard_years,

@@ -388,7 +388,7 @@ area_new_residential_buildings = pa.DataFrameSchema(
 )
 
 
-new_buildings_house_share = pa.DataFrameSchema(
+new_buildings_residential = pa.DataFrameSchema(
     columns={
         'year': pa.Column(int, checks=[pa.Check.between(2010, 2070)]),
         'new_house_share': pa.Column(float, checks=[pa.Check.between(0.0, 1.0)]),
@@ -560,9 +560,9 @@ heating_systems_efficiencies = pa.DataFrameSchema(
 __all__ = [area,
            tek_parameters,
            area_new_residential_buildings,
-           new_buildings_house_share,
+           new_buildings_residential,
            population,
            scurve_parameters,
-           new_buildings_house_share,
+           new_buildings_residential,
            improvement_building_upgrade]
 

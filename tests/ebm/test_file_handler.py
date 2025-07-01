@@ -33,7 +33,7 @@ def test_check_for_missing_files_return_list(tmp_path):
     assert 'TEK_parameters.csv' in missing_files
     assert 'scurve_parameters.csv' in missing_files
     assert 'population.csv' in missing_files
-    assert 'new_buildings_house_share.csv' in missing_files
+    assert 'new_buildings_residential.csv' in missing_files
     assert 'area_new_residential_buildings.csv' in missing_files
     assert 'area.csv' in missing_files
     assert 'energy_need_behaviour_factor.csv' in missing_files
@@ -109,7 +109,7 @@ def test_filehandler_create_missing_input_files(tmp_path):
     assert (input_directory / 'TEK_parameters.csv').is_file()
     assert (input_directory / 'scurve_parameters.csv').is_file()
     assert (input_directory / 'population.csv').is_file()
-    assert (input_directory / 'new_buildings_house_share.csv').is_file()
+    assert (input_directory / 'new_buildings_residential.csv').is_file()
     assert (input_directory / 'area_new_residential_buildings.csv').is_file()
     assert (input_directory / 'area.csv').is_file()
     assert (input_directory / 'energy_need_original_condition.csv').is_file()
@@ -157,7 +157,7 @@ def test_filehandler_validate_created_input_file(tmp_file_handler):
 @pytest.mark.parametrize('input_file_name', [FileHandler.AREA,
                                              FileHandler.TEK_PARAMS,
                                              FileHandler.AREA_NEW_RESIDENTIAL_BUILDINGS,
-                                             FileHandler.CONSTRUCTION_BUILDING_CATEGORY_SHARE,
+                                             FileHandler.NEW_BUILDINGS_RESIDENTIAL,
                                              FileHandler.CONSTRUCTION_POPULATION,
                                              FileHandler.SCURVE_PARAMETERS])
 def test_validate_input_file_validates_expected_files(tmp_file_handler, input_file_name):

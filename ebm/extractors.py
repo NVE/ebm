@@ -82,7 +82,7 @@ def main():
     dm = DatabaseManager(fh)
     years = YearRange(2020, 2050)
 
-    tek_parameters = fh.get_tek_params()
+    tek_parameters = fh.get_building_code()
     scurve_params = dm.get_scurve_params()
     s_curves_by_condition = calculate_s_curves(scurve_params, tek_parameters, years)
 

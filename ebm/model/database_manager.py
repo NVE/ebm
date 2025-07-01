@@ -100,7 +100,7 @@ class DatabaseManager:
                             parameters for that TEK ID.
         """
         tek_params = {}
-        tek_params_df = self.file_handler.get_tek_params()
+        tek_params_df = self.file_handler.get_building_code()
 
         for tek in tek_list:
             # Filter on TEK ID

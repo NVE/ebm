@@ -10,7 +10,7 @@ from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
 from ebm.model.dataframemodels import PolicyImprovement
-from ebm.validators import (tek_parameters,
+from ebm.validators import (building_code,
                             area,
                             area_new_residential_buildings,
                             new_buildings_residential,
@@ -28,7 +28,7 @@ from ebm.validators import (tek_parameters,
     
     
 @pytest.fixture
-def ok_tek_parameters() -> pd.DataFrame:
+def ok_building_code() -> pd.DataFrame:
     return pd.DataFrame({
         'TEK': ['PRE_TEK49_1940', 'TEK69_COM', 'TEK07'],
         'building_year': [1940, 1978, 1990],
@@ -46,10 +46,10 @@ def test_tek_overlapping_periods():
     })
     
     with pytest.raises(pa.errors.SchemaError):
-        tek_parameters.validate(df)
+        building_code.validate(df)
 
 
-def test_tek_overlapping_periods_when_tek_parameters_are_unsorted():
+def test_tek_overlapping_periods_when_building_code_are_unsorted():
     df = pd.DataFrame([{'TEK':'TEK3', 'building_year': 1955, 'period_start_year': 1951, 'period_end_year': 2050},
                        {'TEK':'TEK2', 'building_year': 1945, 'period_start_year': 1940, 'period_end_year': 1950}])
     
@@ -58,47 +58,47 @@ def test_tek_overlapping_periods_when_tek_parameters_are_unsorted():
         pd.Series([True, True]), check_index=False)
     
 
-def test_tek_parameters_when_all_are_correct(ok_tek_parameters: pd.DataFrame):
-    tek_parameters.validate(ok_tek_parameters)
+def test_building_code_when_all_are_correct(ok_building_code: pd.DataFrame):
+    building_code.validate(ok_building_code)
 
 
-def test_tek_parameters_require_tek(ok_tek_parameters: pd.DataFrame):
-    ok_tek_parameters.loc[len(ok_tek_parameters)] = ['', 2030, 2025, 2071]
+def test_building_code_require_tek(ok_building_code: pd.DataFrame):
+    ok_building_code.loc[len(ok_building_code)] = ['', 2030, 2025, 2071]
 
     with pytest.raises(pa.errors.SchemaError):
-        tek_parameters.validate(ok_tek_parameters)
+        building_code.validate(ok_building_code)
 
 
 @pytest.mark.parametrize('building_year', [-1, None, 'building_year', 2071])
-def test_tek_parameters_building_year(ok_tek_parameters: pd.DataFrame, building_year):
-    ok_tek_parameters.loc[len(ok_tek_parameters)] = ['TEK10', building_year, 2007, 2025]
+def test_building_code_building_year(ok_building_code: pd.DataFrame, building_year):
+    ok_building_code.loc[len(ok_building_code)] = ['TEK10', building_year, 2007, 2025]
 
     with pytest.raises(pa.errors.SchemaError):
-        tek_parameters.validate(ok_tek_parameters)
+        building_code.validate(ok_building_code)
 
 
 @pytest.mark.parametrize('start_year', ['period_start_year', -1, 2071])
-def test_tek_parameters_period_start_year(ok_tek_parameters: pd.DataFrame, start_year):
-    ok_tek_parameters.loc[len(ok_tek_parameters)] = ['TEK10', 2011, start_year, 2070]
+def test_building_code_period_start_year(ok_building_code: pd.DataFrame, start_year):
+    ok_building_code.loc[len(ok_building_code)] = ['TEK10', 2011, start_year, 2070]
 
     with pytest.raises(pa.errors.SchemaError):
-        tek_parameters.validate(ok_tek_parameters)
+        building_code.validate(ok_building_code)
 
 
 @pytest.mark.parametrize('start_year,end_year', [(2007, -1), (2007, None), (2007, 'period_end_year'), (2024, 2007)])
-def test_tek_parameters_period_end_year(ok_tek_parameters: pd.DataFrame, start_year, end_year):
-    ok_tek_parameters.loc[len(ok_tek_parameters)] = ['TEK10', 2011, start_year, end_year]
+def test_building_code_period_end_year(ok_building_code: pd.DataFrame, start_year, end_year):
+    ok_building_code.loc[len(ok_building_code)] = ['TEK10', 2011, start_year, end_year]
 
     with pytest.raises(pa.errors.SchemaError):
-        tek_parameters.validate(ok_tek_parameters)
+        building_code.validate(ok_building_code)
 
 
-def test_tek_parameters_duplicate_tek(ok_tek_parameters):
-    ok_tek_parameters.loc[len(ok_tek_parameters)] = ['TEK10', 2011, 2000, 2020]
-    ok_tek_parameters.loc[len(ok_tek_parameters)] = ['TEK10', 2012, 2001, 2021]
+def test_building_code_duplicate_tek(ok_building_code):
+    ok_building_code.loc[len(ok_building_code)] = ['TEK10', 2011, 2000, 2020]
+    ok_building_code.loc[len(ok_building_code)] = ['TEK10', 2012, 2001, 2021]
 
     with pytest.raises(pa.errors.SchemaError):
-        tek_parameters.validate(ok_tek_parameters)
+        building_code.validate(ok_building_code)
 
 
 def test_area_parameters_building_categories():

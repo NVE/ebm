@@ -45,7 +45,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     area_parameters = database_manager.get_area_parameters() # 📍
     area_parameters['year'] = years.start
 
-    tek_parameters = database_manager.file_handler.get_tek_params() # 📍
+    tek_parameters = database_manager.file_handler.get_building_code() # 📍
 
     s_curves_by_condition = calculate_s_curves(scurve_parameters, tek_parameters, years) # 📌
     area_forecast = extractors.extract_area_forecast(years, s_curves_by_condition, tek_parameters, area_parameters, database_manager) # 📍

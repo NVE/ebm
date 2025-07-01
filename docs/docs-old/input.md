@@ -141,7 +141,7 @@ TEK21
  - TEK 
 
 
-## TEK_parameters.csv
+## building_code.csv
 
 This file contain assumed building year, period start year and period end year for every TEK. Every TEK in the model 
 must have a entry here. Currently, the TEK21 end year must be the same as model end year. TEK07 building_year cannot be

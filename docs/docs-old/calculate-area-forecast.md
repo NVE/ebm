@@ -121,7 +121,7 @@ Det er mulig å endre oppsett som
 - Nybygget areal per år `construction_building_category_yearly.csv`  
 - befolkning og husholdningstørrelse (2010 - 2050), `new_buildings_population.csv`  
 - andel hus og leilighet `new_buildings_house_share.csv`  
-- periode og byggeår per tek `TEK_parameters.csv`  
+- periode og byggeår per tek `building_code.csv`  
 - Hvilket år man starter riving for gitt byggkategori og TEK `scurve_parameters.csv`  
   
 Forbedret dokumentasjon for input og datamodellen vil komme senere.  

@@ -357,7 +357,7 @@ area = pa.DataFrameSchema(
     name='area_parameters'
 )
 
-tek_parameters = pa.DataFrameSchema(columns={
+building_code = pa.DataFrameSchema(columns={
         "TEK": pa.Column(str, unique=True, checks=[pa.Check(check_tek, element_wise=True)]),
         'building_year': pa.Column(int, checks=[
             pa.Check.greater_than_or_equal_to(1940),
@@ -558,7 +558,7 @@ heating_systems_efficiencies = pa.DataFrameSchema(
 )
 
 __all__ = [area,
-           tek_parameters,
+           building_code,
            area_new_residential_buildings,
            new_buildings_residential,
            population,

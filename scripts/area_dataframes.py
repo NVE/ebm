@@ -48,7 +48,7 @@ def main():
     area_parameters = dm.get_area_parameters()
     area_parameters['year'] = years.start
 
-    tek_parameters = dm.file_handler.get_tek_params()
+    tek_parameters = dm.file_handler.get_building_code()
 
     logger.info('Call extract_area_forecast')
     area_by_condition = extract_area_forecast(years, scurve_parameters, tek_parameters, area_parameters, dm)

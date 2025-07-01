@@ -19,7 +19,7 @@ class FileHandler:
     # Filenames
     BUILDING_CONDITIONS = 'building_conditions.csv'
     TEK_ID = 'TEK_ID.csv'
-    TEK_PARAMS = 'TEK_parameters.csv'
+    BUILDING_CODE = 'building_code.csv'
     SCURVE_PARAMETERS = 'scurve_parameters.csv'
     CONSTRUCTION_POPULATION = 'population.csv'
     NEW_BUILDINGS_RESIDENTIAL = 'new_buildings_residential.csv'
@@ -55,7 +55,7 @@ class FileHandler:
             directory = os.environ.get('EBM_INPUT_DIRECTORY', 'input')
 
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
-        self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
+        self.files_to_check = [self.TEK_ID, self.BUILDING_CODE, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
                                self.NEW_BUILDINGS_RESIDENTIAL, self.AREA_NEW_RESIDENTIAL_BUILDINGS,
                                self.AREA, self.BEHAVIOUR_FACTOR, self.ENERGY_NEED_ORIGINAL_CONDITION,
                                self.IMPROVEMENT_BUILDING_UPGRADE, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
@@ -132,14 +132,14 @@ class FileHandler:
         tek_id = self.get_file(self.TEK_ID)
         return tek_id
 
-    def get_tek_params(self) -> pd.DataFrame:
+    def get_building_code(self) -> pd.DataFrame:
         """
         Get TEK parameters DataFrame.
 
         Returns:
         - tek_params (pd.DataFrame): DataFrame containing TEK parameters.
         """
-        tek_params = self.get_file(self.TEK_PARAMS)
+        tek_params = self.get_file(self.BUILDING_CODE)
         return tek_params
     
     def get_scurve_params(self) -> pd.DataFrame:

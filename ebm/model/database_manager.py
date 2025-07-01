@@ -131,7 +131,7 @@ class DatabaseManager:
         Returns:
         - scurve_params (pd.DataFrame): DataFrame with S-curve parameters.
         """
-        scurve_params = self.file_handler.get_scurve_params()
+        scurve_params = self.file_handler.get_s_curve()
         return scurve_params
 
     def get_construction_population(self) -> pd.DataFrame:

@@ -31,7 +31,7 @@ def test_check_for_missing_files_return_list(tmp_path):
     missing_files = set(fh.check_for_missing_files())
     assert 'TEK_ID.csv' in missing_files
     assert 'building_code.csv' in missing_files
-    assert 'scurve_parameters.csv' in missing_files
+    assert 's_curve.csv' in missing_files
     assert 'population.csv' in missing_files
     assert 'new_buildings_residential.csv' in missing_files
     assert 'area_new_residential_buildings.csv' in missing_files
@@ -88,7 +88,7 @@ def test_filehandler_init_support_input_directory_from_environment_variable(tmp_
     os.environ['EBM_INPUT_DIRECTORY'] = str(tmp_path / 'special_directory_from_env')
 
     fh = FileHandler(directory=None)
-    assert fh.input_directory == pathlib.Path(tmp_path) / 'special_directory_fr|om_env'
+    assert fh.input_directory == pathlib.Path(tmp_path) / 'special_directory_from_env'
 
 
 def test_filehandler_create_missing_input_files(tmp_path):
@@ -107,7 +107,7 @@ def test_filehandler_create_missing_input_files(tmp_path):
 
     assert (input_directory / 'TEK_ID.csv').is_file()
     assert (input_directory / 'building_code.csv').is_file()
-    assert (input_directory / 'scurve_parameters.csv').is_file()
+    assert (input_directory / 's_curve.csv').is_file()
     assert (input_directory / 'population.csv').is_file()
     assert (input_directory / 'new_buildings_residential.csv').is_file()
     assert (input_directory / 'area_new_residential_buildings.csv').is_file()
@@ -159,7 +159,7 @@ def test_filehandler_validate_created_input_file(tmp_file_handler):
                                              FileHandler.AREA_NEW_RESIDENTIAL_BUILDINGS,
                                              FileHandler.NEW_BUILDINGS_RESIDENTIAL,
                                              FileHandler.CONSTRUCTION_POPULATION,
-                                             FileHandler.SCURVE_PARAMETERS])
+                                             FileHandler.S_CURVE])
 def test_validate_input_file_validates_expected_files(tmp_file_handler, input_file_name):
     """
     Ensure all files are validated in validate_input_files()

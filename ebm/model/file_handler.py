@@ -20,7 +20,7 @@ class FileHandler:
     BUILDING_CONDITIONS = 'building_conditions.csv'
     TEK_ID = 'TEK_ID.csv'
     BUILDING_CODE = 'building_code.csv'
-    SCURVE_PARAMETERS = 'scurve_parameters.csv'
+    S_CURVE = 's_curve.csv'
     CONSTRUCTION_POPULATION = 'population.csv'
     NEW_BUILDINGS_RESIDENTIAL = 'new_buildings_residential.csv'
     AREA_NEW_RESIDENTIAL_BUILDINGS = 'area_new_residential_buildings.csv'
@@ -55,7 +55,7 @@ class FileHandler:
             directory = os.environ.get('EBM_INPUT_DIRECTORY', 'input')
 
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
-        self.files_to_check = [self.TEK_ID, self.BUILDING_CODE, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
+        self.files_to_check = [self.TEK_ID, self.BUILDING_CODE, self.S_CURVE, self.CONSTRUCTION_POPULATION,
                                self.NEW_BUILDINGS_RESIDENTIAL, self.AREA_NEW_RESIDENTIAL_BUILDINGS,
                                self.AREA, self.BEHAVIOUR_FACTOR, self.ENERGY_NEED_ORIGINAL_CONDITION,
                                self.IMPROVEMENT_BUILDING_UPGRADE, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
@@ -142,14 +142,14 @@ class FileHandler:
         tek_params = self.get_file(self.BUILDING_CODE)
         return tek_params
     
-    def get_scurve_params(self) -> pd.DataFrame:
+    def get_s_curve(self) -> pd.DataFrame:
         """
         Get S-curve parameters DataFrame.
 
         Returns:
         - scurve_params (pd.DataFrame): DataFrame containing S-curve parameters.
         """
-        scurve_params = self.get_file(self.SCURVE_PARAMETERS)
+        scurve_params = self.get_file(self.S_CURVE)
         return scurve_params
 
     def get_construction_population(self) -> pd.DataFrame:

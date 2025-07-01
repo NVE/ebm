@@ -15,7 +15,7 @@ from ebm.validators import (building_code,
                             area_new_residential_buildings,
                             new_buildings_residential,
                             population,
-                            scurve_parameters,
+                            s_curve,
                             energy_need_original_condition,
                             improvement_building_upgrade,
                             energy_need_improvements,
@@ -290,20 +290,20 @@ def s_curves() -> pd.DataFrame:
 
 
 def test_scurve_parameters_ok(s_curves):
-    scurve_parameters.validate(s_curves)
+    s_curve.validate(s_curves)
 
 
 def test_scurve_parameters_reject_invalid_building_category(s_curves):
     s_curves.loc[0, 'building_category'] = 'småhus'
 
     with pytest.raises(pa.errors.SchemaError):
-        scurve_parameters.validate(s_curves)
+        s_curve.validate(s_curves)
 
 
 def test_scurve_parameters_reject_invalid_condition(s_curves):
     s_curves.loc[0, 'condition'] = 'INVALID'
     with pytest.raises(pa.errors.SchemaError):
-        scurve_parameters.validate(s_curves)
+        s_curve.validate(s_curves)
 
 
 @pytest.mark.parametrize('attribute', ('earliest_age_for_measure',
@@ -313,17 +313,17 @@ def test_scurve_parameters_reject_invalid_condition(s_curves):
 def test_scurve_parameters_reject_invalid_age(s_curves, attribute):
     s_curves.loc[0, attribute] = 0
     with pytest.raises(pa.errors.SchemaError):
-        scurve_parameters.validate(s_curves)
+        s_curve.validate(s_curves)
 
 
 @pytest.mark.parametrize('attribute', ('rush_share', 'never_share'))
 def test_scurve_parameters_reject_invalid_share(s_curves, attribute):
     s_curves.loc[0, attribute] = 0
     with pytest.raises(pa.errors.SchemaError):
-        scurve_parameters.validate(s_curves)
+        s_curve.validate(s_curves)
     s_curves.loc[0, attribute] = 1.01
     with pytest.raises(pa.errors.SchemaError):
-        scurve_parameters.validate(s_curves)
+        s_curve.validate(s_curves)
 
 
 @pytest.fixture

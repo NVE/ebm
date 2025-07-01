@@ -207,8 +207,8 @@ class SCurve:
 
 def main():
     import pathlib
-    logger.info('Calculate all scurves from data/scurve_parameters.csv')
-    area_parameters_path = pathlib.Path(__file__).parent.parent / 'data/scurve_parameters.csv'
+    logger.info('Calculate all scurves from data/s_curve.csv')
+    area_parameters_path = pathlib.Path(__file__).parent.parent / 'data/s_curve.csv'
     df = pd.read_csv(area_parameters_path)
     for r, v in df.iterrows():
         scurve = SCurve(earliest_age=v.earliest_age_for_measure,

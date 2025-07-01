@@ -411,7 +411,7 @@ population = pa.DataFrameSchema(
 
 
 #TODO: evaluete if restrictions on rush and never share make sense (if the program crashes unless they are there)
-scurve_parameters = pa.DataFrameSchema(
+s_curve = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=[pa.Check(check_building_category)]),
         'condition': pa.Column(str, checks=[pa.Check(check_building_condition)]),
@@ -562,7 +562,7 @@ __all__ = [area,
            area_new_residential_buildings,
            new_buildings_residential,
            population,
-           scurve_parameters,
+           s_curve,
            new_buildings_residential,
            improvement_building_upgrade]
 

@@ -17,7 +17,7 @@ from ebm.validators import (tek_parameters,
                             population,
                             scurve_parameters,
                             energy_need_original_condition,
-                            energy_requirement_reduction_per_condition,
+                            improvement_building_upgrade,
                             energy_need_improvements,
                             area_per_person,
                             check_overlapping_tek_periods,
@@ -434,62 +434,62 @@ def reduction_per_condition_df():
 
 
 def test_energy_req_reduction_per_condition(reduction_per_condition_df):
-    energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
+    improvement_building_upgrade.validate(reduction_per_condition_df)
 
 
 def test_energy_req_reduction_per_condition_require_valid_building_cat(reduction_per_condition_df):
     reduction_per_condition_df.loc[0, 'building_category'] = 'not_a_building_category'
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
+        improvement_building_upgrade.validate(reduction_per_condition_df)
 
 
 def test_energy_req_reduction_per_condition_allows_default_building_cat(reduction_per_condition_df):
     reduction_per_condition_df.iloc[0:4, reduction_per_condition_df.columns.get_loc('building_category')] = 'default'
-    energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
+    improvement_building_upgrade.validate(reduction_per_condition_df)
 
 
 def test_energy_req_reduction_per_condition_require_valid_tek(reduction_per_condition_df):
     reduction_per_condition_df.loc[0, 'TEK'] = 'TAKK'
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
+        improvement_building_upgrade.validate(reduction_per_condition_df)
 
 
 def test_energy_req_reduction_per_condition_allows_default_tek(reduction_per_condition_df):
     reduction_per_condition_df.iloc[0:4, reduction_per_condition_df.columns.get_loc('TEK')] = 'default'
-    energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
+    improvement_building_upgrade.validate(reduction_per_condition_df)
 
 
 def test_energy_req_reduction_per_condition_require_valid_purpose(reduction_per_condition_df):
     reduction_per_condition_df.loc[0, 'purpose'] = 'not_a_purpose'
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
+        improvement_building_upgrade.validate(reduction_per_condition_df)
 
 
 def test_energy_req_reduction_per_condition_allows_default_purpose(reduction_per_condition_df):
     reduction_per_condition_df.iloc[0:4, reduction_per_condition_df.columns.get_loc('purpose')] = 'default'
-    energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
+    improvement_building_upgrade.validate(reduction_per_condition_df)
 
 
 def test_energy_req_reduction_per_condition_require_valid_building_condition(reduction_per_condition_df):
     reduction_per_condition_df.loc[0, 'building_condition'] = 'not_a_condition'
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
+        improvement_building_upgrade.validate(reduction_per_condition_df)
 
 
 def test_energy_req_reduction_per_condition_require_exisiting_building_condition(reduction_per_condition_df):
     reduction_per_condition_df.loc[0, 'building_condition'] = 'demolition'
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
+        improvement_building_upgrade.validate(reduction_per_condition_df)
 
 
 def test_energy_req_reduction_per_condition_value_between_zero_and_one(reduction_per_condition_df):
     reduction_per_condition_df.loc[0, 'reduction_share'] = -1
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
+        improvement_building_upgrade.validate(reduction_per_condition_df)
 
     reduction_per_condition_df.loc[0, 'reduction_share'] = 1.01
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
+        improvement_building_upgrade.validate(reduction_per_condition_df)
 
 
 def test_energy_req_reduction_per_condition_require_unique_rows():
@@ -500,12 +500,12 @@ def test_energy_req_reduction_per_condition_require_unique_rows():
                                       ['house', 'default', 'heating_rv', 'original_condition', 0.2]
                                       ])
     with pytest.raises(pa.errors.SchemaError):
-        energy_requirement_reduction_per_condition.validate(duplicate_df)
+        improvement_building_upgrade.validate(duplicate_df)
 
 
 def test_energy_req_reduction_per_condition_allow_missing_building_conditions(reduction_per_condition_df):
     reduction_per_condition_df.drop(index=0, inplace=True)
-    energy_requirement_reduction_per_condition.validate(reduction_per_condition_df)
+    improvement_building_upgrade.validate(reduction_per_condition_df)
 
 
 @pytest.fixture

@@ -27,7 +27,7 @@ class FileHandler:
     AREA = 'area.csv'
     BEHAVIOUR_FACTOR = 'energy_need_behaviour_factor.csv'
     ENERGY_NEED_ORIGINAL_CONDITION = 'energy_need_original_condition.csv'
-    ENERGY_REQ_REDUCTION_CONDITION = 'energy_requirement_reduction_per_condition.csv'
+    IMPROVEMENT_BUILDING_UPGRADE = 'improvement_building_upgrade.csv'
     ENERGY_NEED_YEARLY_IMPROVEMENTS = 'energy_need_improvements.csv'
     HOLIDAY_HOME_BY_YEAR = 'holiday_home_by_year.csv'
     HOLIDAY_HOME_ENERGY_CONSUMPTION = 'holiday_home_energy_consumption.csv'
@@ -58,7 +58,7 @@ class FileHandler:
         self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
                                self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.AREA_NEW_RESIDENTIAL_BUILDINGS,
                                self.AREA, self.BEHAVIOUR_FACTOR, self.ENERGY_NEED_ORIGINAL_CONDITION,
-                               self.ENERGY_REQ_REDUCTION_CONDITION, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
+                               self.IMPROVEMENT_BUILDING_UPGRADE, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
                                self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_BY_YEAR,
                                self.AREA_PER_PERSON, self.HS_SHARES_START_YEAR, self.HS_EFFICIENCIES, self.HS_PROJECTION]
 
@@ -235,7 +235,7 @@ class FileHandler:
             Dataframe containing energy requirement reduction shares for the different building conditions, 
             per building category, TEK and purpose.
         """
-        return self.get_file(self.ENERGY_REQ_REDUCTION_CONDITION)
+        return self.get_file(self.IMPROVEMENT_BUILDING_UPGRADE)
     
     def get_energy_need_yearly_improvements(self) -> pd.DataFrame:
         """

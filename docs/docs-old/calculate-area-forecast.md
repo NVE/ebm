@@ -102,27 +102,27 @@ Filter kan kombineres
   
 ## Endre input  
   
-Framskriving utføres basert på filene i underkatalogen input. Beregningen kan påvirkes ved å gjøre endringer i input. I eksempelet under er årlig nybygget areal for barnehager (kindergarten) endret for årene 2010 til 2014. Endringen er utført i filen `construction_building_category_yearly.csv`.  
+Framskriving utføres basert på filene i underkatalogen input. Beregningen kan påvirkes ved å gjøre endringer i input. I eksempelet under er årlig nybygget areal for barnehager (kindergarten) endret for årene 2010 til 2014. Endringen er utført i filen `area_new_residential_buildings.csv`.  
 #### Før endring  
   
 ![Changed input](images/caf-10-input-original.png)  
   
-`input/construction_building_category_yearly.csv` til venstre  
+`input/area_new_residential_buildings.csv` til venstre  
 `output/ebm_area_forecast.xlsx` til høyre  
   
 #### Etter endring  
   
 ![Changed input](images/caf-11-input-changed.png)  
   
-`input/construction_building_category_yearly.csv` til venstre  
+`input/area_new_residential_buildings.csv` til venstre  
 `output/ebm_area_forecast.xlsx` til høyre  
   
 Det er mulig å endre oppsett som  
-- Nybygget areal per år `construction_building_category_yearly.csv`  
+- Nybygget areal per år `area_new_residential_buildings.csv`  
 - befolkning og husholdningstørrelse (2010 - 2050), `new_buildings_population.csv`  
 - andel hus og leilighet `new_buildings_house_share.csv`  
-- periode og byggeår per tek `TEK_parameters.csv`  
-- Hvilket år man starter riving for gitt byggkategori og TEK `scurve_parameters.csv`  
+- periode og byggeår per tek `building_code.csv`  
+- Hvilket år man starter riving for gitt byggkategori og TEK `s_curve.csv`  
   
 Forbedret dokumentasjon for input og datamodellen vil komme senere.  
   

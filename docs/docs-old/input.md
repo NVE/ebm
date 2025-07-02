@@ -5,7 +5,7 @@ different calculations, statistics and assumptions. As a rule of thumb most valu
 it is important the keep in mind what columns are used as identifiers. Apart from years, identifiers should remain
 unchanged.
 
-## area_parameters.csv
+## area.csv
 
 This file contain the total floor area (meters squared) built for each building category and TEK.
 
@@ -26,18 +26,18 @@ building_category and TEK are jointly used as identifiers. All values must be kn
 
 #### Available building categories
 
-house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
+house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage
 
 ### values
 
 #### area
 
 area is modifiable. area is expected to be represented by a whole number (integer). Floor area is combined with 
-scurve_parameters.csv and used to predict the total floor area for each building category and building condition for a 
+s_curve.csv and used to predict the total floor area for each building category and building condition for a 
 given year. 
 
 
-## construction_building_category_yearly.csv
+## area_new_residential_buildings.csv
 
 Lists built floor area for each building category by year. House and apartment block for the first two years. Other 
 categories should define built floor area for the first 5 years.
@@ -64,7 +64,7 @@ be five years for commercial buildings. There must be two years for residential 
 is expected for house and apartment_block.
 
 
-## new_buildings_house_share.csv
+## new_buildings_residential.csv
 
 This file contain the share between house and apartment block and square meter floor area for building categories for  
 every year from the third model year until the end. The spelling mistake in flood_area_new_apartment_block must be left
@@ -111,7 +111,7 @@ This file contain the total population and average household size per year.
  - population is a whole number (integer)
  - area is a decimal number 
 
-## scurve_parameters.csv
+## s_curve.csv
 
 ## TEK_ID.csv
 
@@ -141,7 +141,7 @@ TEK21
  - TEK 
 
 
-## TEK_parameters.csv
+## building_code.csv
 
 This file contain assumed building year, period start year and period end year for every TEK. Every TEK in the model 
 must have a entry here. Currently, the TEK21 end year must be the same as model end year. TEK07 building_year cannot be

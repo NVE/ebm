@@ -349,7 +349,7 @@ energy_need_behaviour_factor = pa.DataFrameSchema(
     }
 )
 
-area_parameters = pa.DataFrameSchema(
+area = pa.DataFrameSchema(
     columns={
         "building_category": pa.Column(str, checks=[pa.Check(check_building_category)]),
         "TEK": pa.Column(str, checks=[pa.Check(check_tek, element_wise=True)]),
@@ -357,7 +357,7 @@ area_parameters = pa.DataFrameSchema(
     name='area_parameters'
 )
 
-tek_parameters = pa.DataFrameSchema(columns={
+building_code = pa.DataFrameSchema(columns={
         "TEK": pa.Column(str, unique=True, checks=[pa.Check(check_tek, element_wise=True)]),
         'building_year': pa.Column(int, checks=[
             pa.Check.greater_than_or_equal_to(1940),
@@ -378,7 +378,7 @@ tek_parameters = pa.DataFrameSchema(columns={
 )
 
 
-construction_building_category_yearly = pa.DataFrameSchema(
+area_new_residential_buildings = pa.DataFrameSchema(
     columns={
         'year': pa.Column(int),
         'house': pa.Column(pa.Float64, nullable=True, checks=create_residential_area_checks()),
@@ -388,7 +388,7 @@ construction_building_category_yearly = pa.DataFrameSchema(
 )
 
 
-new_buildings_house_share = pa.DataFrameSchema(
+new_buildings_residential = pa.DataFrameSchema(
     columns={
         'year': pa.Column(int, checks=[pa.Check.between(2010, 2070)]),
         'new_house_share': pa.Column(float, checks=[pa.Check.between(0.0, 1.0)]),
@@ -402,7 +402,7 @@ new_buildings_house_share = pa.DataFrameSchema(
 )
 
 
-population = pa.DataFrameSchema(
+population_forecast = pa.DataFrameSchema(
     columns={
         'year': pa.Column(int, coerce=True, checks=[pa.Check.between(1900, 2070)]),
         'population': pa.Column(int, coerce=True, checks=[pa.Check.greater_than_or_equal_to(0)]),
@@ -411,7 +411,7 @@ population = pa.DataFrameSchema(
 
 
 #TODO: evaluete if restrictions on rush and never share make sense (if the program crashes unless they are there)
-scurve_parameters = pa.DataFrameSchema(
+s_curve = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=[pa.Check(check_building_category)]),
         'condition': pa.Column(str, checks=[pa.Check(check_building_condition)]),
@@ -426,7 +426,7 @@ scurve_parameters = pa.DataFrameSchema(
 
 
 ### TODO: remove strong restrictions on float values and add warnings (should be able to be neg values)
-energy_requirement_original_condition = pa.DataFrameSchema(
+energy_need_original_condition = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=[pa.Check(check_default_building_category)]),
         'TEK': pa.Column(str, checks=[pa.Check(check_default_tek, element_wise=True)]),
@@ -438,7 +438,7 @@ energy_requirement_original_condition = pa.DataFrameSchema(
 )
 
 
-energy_requirement_reduction_per_condition = pa.DataFrameSchema(
+improvement_building_upgrade = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
         'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
@@ -466,7 +466,7 @@ energy_need_improvements = pa.DataFrameSchema(
 )
 
 
-holiday_home_by_year = pa.DataFrameSchema(
+holiday_home_stock = pa.DataFrameSchema(
     columns={
         'year': pa.Column(int),
         'Existing buildings Chalet, summerhouses and other holiday houses': pa.Column(int),
@@ -491,7 +491,7 @@ area_per_person = pa.DataFrameSchema(
 )
 
 
-heating_systems_shares_start_year = pa.DataFrameSchema(
+heating_system_initial_shares = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=pa.Check(check_building_category)),
         'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
@@ -513,7 +513,7 @@ heating_systems_shares_start_year = pa.DataFrameSchema(
 
 #TODO: 
 # - add check on years. Parse to make long format and check years and values? years must be in order, max limit (2070) etc.
-heating_systems_projection = pa.DataFrameSchema(
+heating_system_forecast = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=pa.Check(check_default_building_category_with_group)),
         'TEK': pa.Column(str, checks=pa.Check(check_default_tek, element_wise=True)),
@@ -557,12 +557,12 @@ heating_systems_efficiencies = pa.DataFrameSchema(
     }
 )
 
-__all__ = [area_parameters,
-           tek_parameters,
-           construction_building_category_yearly,
-           new_buildings_house_share,
-           population,
-           scurve_parameters,
-           new_buildings_house_share,
-           energy_requirement_reduction_per_condition]
+__all__ = [area,
+           building_code,
+           area_new_residential_buildings,
+           new_buildings_residential,
+           population_forecast,
+           s_curve,
+           new_buildings_residential,
+           improvement_building_upgrade]
 

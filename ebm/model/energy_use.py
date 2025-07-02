@@ -7,6 +7,7 @@ from ebm.energy_consumption import TEK_SHARES, GRUNNLAST_ANDEL, GRUNNLAST_VIRKNI
     EKSTRALAST_ENERGIVARE, KJOLING_VIRKNINGSGRAD, DHW_EFFICIENCY, TAPPEVANN_ENERGIVARE
 from ebm.model import energy_need as e_n, heating_systems_parameter as h_s_param
 from ebm.model.data_classes import YearRange
+from ebm.model.database_manager import DatabaseManager
 from ebm.s_curve import calculate_s_curves
 
 
@@ -153,39 +154,49 @@ def energy_use_gwh_by_building_group(energy_use_kwh: pd.DataFrame) -> pd.DataFra
     return energy_use_wide
 
 
-def calculate_energy_use(database_manager,
+def calculate_energy_use(database_manager: 'DatabaseManager',
                          years: YearRange|None=YearRange(2020, 2050),
                          area_parameters:pd.DataFrame|None=None,
                          scurve_parameters: pd.DataFrame|None=None,
                          tek_parameters:pd.DataFrame|None=None) -> pd.DataFrame:
     """
-    calculates energy use bla bla bla
+    calculates energy use in KWh by building_category, TEK, building_condition, year, purpose.
+
+    The dataframe is index by row index. (subject to change)
+
+    extra columns
+    m2, original_kwh_m2, reduction_yearly, reduction_policy, reduction_condition, reduced_kwh_m2,
+       behaviour_factor, kwh_m2, energy_requirement, heating_systems,
+       TEK_shares, load_share, load_efficiency, energy_product,
+       heating_system, load, building_group, efficiency_factor
 
     Parameters
     ----------
-    database_manager :
-    years :
-    area_parameters :
-    scurve_parameters :
-    tek_parameters :
+    database_manager : pd.DataFrame
+    years : YearRange, optional
+    area_parameters : pd.DataFrame, optional
+    scurve_parameters : pd.DataFrame, optional
+    tek_parameters : pd.DataFrame, optional
 
     Returns
     -------
-
+    pd.DataFrame
+        energy use in KWh by building_category, TEK, building_condition, year, purpose
+        ,
     """
     scurve_parameters = database_manager.get_scurve_params() if scurve_parameters is None else scurve_parameters
     area_parameters = database_manager.get_area_parameters() if area_parameters is None else area_parameters
     area_parameters['year'] = years.start
     tek_parameters = database_manager.file_handler.get_building_code() if tek_parameters is None else tek_parameters
 
-
     s_curves_by_condition = calculate_s_curves(scurve_parameters, tek_parameters, years)  # 📌
+    area_forecast = extractors.extract_area_forecast(years, s_curves_by_condition, tek_parameters, area_parameters, database_manager)  # 📍
+
     energy_need_kwh_m2 = extractors.extract_energy_need(years, database_manager)  # 📍
-    heating_systems_projection = extractors.extract_heating_systems_projection(years, database_manager)  # 📍
-    area_forecast = extractors.extract_area_forecast(years, s_curves_by_condition, tek_parameters, area_parameters,
-                                                     database_manager)  # 📍
     total_energy_need = e_n.transform_total_energy_need(energy_need_kwh_m2, area_forecast)  # 📌
+
+    heating_systems_projection = extractors.extract_heating_systems_projection(years, database_manager)  # 📍
     heating_systems_parameter = h_s_param.heating_systems_parameter_from_projection(heating_systems_projection)  # 📌
-    energy_use_kwh_with_building_group = building_group_energy_use_kwh(heating_systems_parameter,
-                                                                           total_energy_need)  # 📌
+    energy_use_kwh_with_building_group = building_group_energy_use_kwh(heating_systems_parameter, total_energy_need)
+
     return energy_use_kwh_with_building_group

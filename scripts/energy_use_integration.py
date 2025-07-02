@@ -32,8 +32,11 @@ def test_energy_use():
 
     tek_parameters = database_manager.file_handler.get_building_code() # 📍
 
-    energy_use_kwh_with_building_group = calculate_energy_use(database_manager, years, area_parameters,
-                                                              scurve_parameters, tek_parameters)
+    energy_use_kwh_with_building_group = calculate_energy_use(database_manager=database_manager,
+                                                              years=years,
+                                                              area_parameters=area_parameters,
+                                                              scurve_parameters=scurve_parameters,
+                                                              tek_parameters=tek_parameters)
 
     building_group_energy_use_by_year = energy_use_kwh_with_building_group[['building_group', 'energy_product', 'year', 'kwh']].groupby(
         by=['building_group', 'energy_product', 'year']).sum()

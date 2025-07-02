@@ -402,7 +402,7 @@ new_buildings_residential = pa.DataFrameSchema(
 )
 
 
-population = pa.DataFrameSchema(
+population_forecast = pa.DataFrameSchema(
     columns={
         'year': pa.Column(int, coerce=True, checks=[pa.Check.between(1900, 2070)]),
         'population': pa.Column(int, coerce=True, checks=[pa.Check.greater_than_or_equal_to(0)]),
@@ -561,7 +561,7 @@ __all__ = [area,
            building_code,
            area_new_residential_buildings,
            new_buildings_residential,
-           population,
+           population_forecast,
            s_curve,
            new_buildings_residential,
            improvement_building_upgrade]

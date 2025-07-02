@@ -32,7 +32,7 @@ def test_check_for_missing_files_return_list(tmp_path):
     assert 'TEK_ID.csv' in missing_files
     assert 'building_code.csv' in missing_files
     assert 's_curve.csv' in missing_files
-    assert 'population.csv' in missing_files
+    assert 'population_forecast.csv' in missing_files
     assert 'new_buildings_residential.csv' in missing_files
     assert 'area_new_residential_buildings.csv' in missing_files
     assert 'area.csv' in missing_files
@@ -108,7 +108,7 @@ def test_filehandler_create_missing_input_files(tmp_path):
     assert (input_directory / 'TEK_ID.csv').is_file()
     assert (input_directory / 'building_code.csv').is_file()
     assert (input_directory / 's_curve.csv').is_file()
-    assert (input_directory / 'population.csv').is_file()
+    assert (input_directory / 'population_forecast.csv').is_file()
     assert (input_directory / 'new_buildings_residential.csv').is_file()
     assert (input_directory / 'area_new_residential_buildings.csv').is_file()
     assert (input_directory / 'area.csv').is_file()
@@ -158,7 +158,7 @@ def test_filehandler_validate_created_input_file(tmp_file_handler):
                                              FileHandler.BUILDING_CODE,
                                              FileHandler.AREA_NEW_RESIDENTIAL_BUILDINGS,
                                              FileHandler.NEW_BUILDINGS_RESIDENTIAL,
-                                             FileHandler.CONSTRUCTION_POPULATION,
+                                             FileHandler.POPULATION_FORECAST,
                                              FileHandler.S_CURVE])
 def test_validate_input_file_validates_expected_files(tmp_file_handler, input_file_name):
     """

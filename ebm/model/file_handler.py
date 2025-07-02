@@ -21,7 +21,7 @@ class FileHandler:
     TEK_ID = 'TEK_ID.csv'
     BUILDING_CODE = 'building_code.csv'
     S_CURVE = 's_curve.csv'
-    CONSTRUCTION_POPULATION = 'population.csv'
+    POPULATION_FORECAST = 'population_forecast.csv'
     NEW_BUILDINGS_RESIDENTIAL = 'new_buildings_residential.csv'
     AREA_NEW_RESIDENTIAL_BUILDINGS = 'area_new_residential_buildings.csv'
     AREA = 'area.csv'
@@ -55,7 +55,7 @@ class FileHandler:
             directory = os.environ.get('EBM_INPUT_DIRECTORY', 'input')
 
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
-        self.files_to_check = [self.TEK_ID, self.BUILDING_CODE, self.S_CURVE, self.CONSTRUCTION_POPULATION,
+        self.files_to_check = [self.TEK_ID, self.BUILDING_CODE, self.S_CURVE, self.POPULATION_FORECAST,
                                self.NEW_BUILDINGS_RESIDENTIAL, self.AREA_NEW_RESIDENTIAL_BUILDINGS,
                                self.AREA, self.BEHAVIOUR_FACTOR, self.ENERGY_NEED_ORIGINAL_CONDITION,
                                self.IMPROVEMENT_BUILDING_UPGRADE, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
@@ -160,7 +160,7 @@ class FileHandler:
         - construction_population (pd.DataFrame): Dataframe containing population numbers
           year population household_size
         """
-        return self.get_file(self.CONSTRUCTION_POPULATION)
+        return self.get_file(self.POPULATION_FORECAST)
 
     def get_population(self) -> pd.DataFrame:
         """
@@ -173,7 +173,7 @@ class FileHandler:
         -------
 
         """
-        file_path = self.input_directory / self.CONSTRUCTION_POPULATION
+        file_path = self.input_directory / self.POPULATION_FORECAST
         logger.debug(f'{file_path=}')
         return pd.read_csv(file_path, dtype={"household_size": "float64"})
 

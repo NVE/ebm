@@ -66,7 +66,7 @@ class HolidayHomeEnergy:
         # logging.warning('Loading fossil_fuel_usage_stats from hard coded data')
         # fossil_fuel_usage_stats = pd.Series(data=[100], index=YearRange(2006, 2006).to_index(), name='kwh')
 
-        population = dm.file_handler.get_file(dm.file_handler.CONSTRUCTION_POPULATION).set_index('year').population
+        population = dm.file_handler.get_file(dm.file_handler.POPULATION_FORECAST).set_index('year').population_forecast
 
         return HolidayHomeEnergy(population,
                                  holiday_homes,

@@ -14,7 +14,7 @@ from ebm.validators import (building_code,
                             area,
                             area_new_residential_buildings,
                             new_buildings_residential,
-                            population,
+                            population_forecast,
                             s_curve,
                             energy_need_original_condition,
                             improvement_building_upgrade,
@@ -255,7 +255,7 @@ def test_population_coerce_values():
     df = pd.DataFrame(data=rows,
                       columns=['year', 'population', 'household_size'])
 
-    population.validate(df, lazy=True)
+    population_forecast.validate(df, lazy=True)
 
 
 def test_population_ok(new_buildings_residential_df):
@@ -264,17 +264,17 @@ def test_population_ok(new_buildings_residential_df):
     df = pd.DataFrame(data=[(2000, 4000000, np.nan, )] + standard_years,
                       columns=['year', 'population', 'household_size'])
 
-    population.validate(df)
+    population_forecast.validate(df)
 
     household_df = df.copy()
     household_df.loc[0, 'household_size'] = -1.0
     with pytest.raises(pa.errors.SchemaError):
-        population.validate(household_df)
+        population_forecast.validate(household_df)
 
     population_df = df.copy()
     population_df.loc[0, 'population'] = -1.0
     with pytest.raises(pa.errors.SchemaError):
-        population.validate(population_df)
+        population_forecast.validate(population_df)
 
 
 

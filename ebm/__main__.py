@@ -124,10 +124,11 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
         else:
             default_handler.write_tqdm_result(output_file, model, csv_delimiter)
 
-
-    if arguments.open or os.environ.get('EBM_ALWAYS_OPEN', 'FALSE').upper() == 'TRUE':
-        for file_to_open in files_to_open:
+    for file_to_open in files_to_open:
+        if arguments.open or os.environ.get('EBM_ALWAYS_OPEN', 'FALSE').upper() == 'TRUE':
             os.startfile(file_to_open, 'open')
+        else:
+            logger.info(f'wrote {file_to_open}')
 
     return ReturnCode.OK, model
 

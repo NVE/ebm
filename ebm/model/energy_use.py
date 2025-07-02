@@ -1,9 +1,12 @@
 import numpy as np
 import pandas as pd
 
+from ebm import extractors
 from ebm.energy_consumption import TEK_SHARES, GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE, \
     SPISSLAST_ENERGIVARE, SPISSLAST_ANDEL, SPISSLAST_VIRKNINGSGRAD, EKSTRALAST_ANDEL, EKSTRALAST_VIRKNINGSGRAD, \
     EKSTRALAST_ENERGIVARE, KJOLING_VIRKNINGSGRAD, DHW_EFFICIENCY, TAPPEVANN_ENERGIVARE
+from ebm.model import energy_need as e_n, heating_systems_parameter as h_s_param
+from ebm.s_curve import calculate_s_curves
 
 
 def base_load(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:
@@ -147,3 +150,31 @@ def energy_use_gwh_by_building_group(energy_use_kwh: pd.DataFrame) -> pd.DataFra
     energy_use_wide = energy_use_wide.reset_index()
     energy_use_wide.columns = ['building_group', 'energy_source'] + [c for c in energy_use_wide.columns.get_level_values(1)[2:]]
     return energy_use_wide
+
+
+def calculate_energy_use(database_manager, years, area_parameters, scurve_parameters, tek_parameters):
+    """
+    calculates energy use bla bla bla
+
+    Parameters
+    ----------
+    database_manager :
+    years :
+    area_parameters :
+    scurve_parameters :
+    tek_parameters :
+
+    Returns
+    -------
+
+    """
+    s_curves_by_condition = calculate_s_curves(scurve_parameters, tek_parameters, years)  # 📌
+    energy_need_kwh_m2 = extractors.extract_energy_need(years, database_manager)  # 📍
+    heating_systems_projection = extractors.extract_heating_systems_projection(years, database_manager)  # 📍
+    area_forecast = extractors.extract_area_forecast(years, s_curves_by_condition, tek_parameters, area_parameters,
+                                                     database_manager)  # 📍
+    total_energy_need = e_n.transform_total_energy_need(energy_need_kwh_m2, area_forecast)  # 📌
+    heating_systems_parameter = h_s_param.heating_systems_parameter_from_projection(heating_systems_projection)  # 📌
+    energy_use_kwh_with_building_group = building_group_energy_use_kwh(heating_systems_parameter,
+                                                                           total_energy_need)  # 📌
+    return energy_use_kwh_with_building_group

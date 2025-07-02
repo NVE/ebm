@@ -3,17 +3,12 @@ import pathlib
 
 import pytest
 
-from ebm import extractors
 from ebm.cmd.helpers import load_environment_from_dotenv
 from ebm.cmd.pipeline import load_config
 from ebm.cmd.run_calculation import configure_loglevel
-from ebm.model import bema
-from ebm.model import energy_need as e_n
-from ebm.model import energy_use as e_u
-from ebm.model import heating_systems_parameter as h_s_param
 from ebm.model.database_manager import DatabaseManager
+from ebm.model.energy_use import calculate_energy_use
 from ebm.model.file_handler import FileHandler
-from ebm.s_curve import calculate_s_curves
 
 
 def test_energy_use():
@@ -37,13 +32,8 @@ def test_energy_use():
 
     tek_parameters = database_manager.file_handler.get_building_code() # 📍
 
-    s_curves_by_condition = calculate_s_curves(scurve_parameters, tek_parameters, years) # 📌
-    energy_need_kwh_m2 = extractors.extract_energy_need(years, database_manager)  # 📍
-    heating_systems_projection = extractors.extract_heating_systems_projection(years, database_manager)  # 📍
-    area_forecast = extractors.extract_area_forecast(years, s_curves_by_condition, tek_parameters, area_parameters, database_manager) # 📍
-    total_energy_need = e_n.transform_total_energy_need(energy_need_kwh_m2, area_forecast)  # 📌
-    heating_systems_parameter = h_s_param.heating_systems_parameter_from_projection(heating_systems_projection) # 📌
-    energy_use_kwh_with_building_group = e_u.building_group_energy_use_kwh(heating_systems_parameter, total_energy_need)  # 📌
+    energy_use_kwh_with_building_group = calculate_energy_use(database_manager, years, area_parameters,
+                                                              scurve_parameters, tek_parameters)
 
     building_group_energy_use_by_year = energy_use_kwh_with_building_group[['building_group', 'energy_product', 'year', 'kwh']].groupby(
         by=['building_group', 'energy_product', 'year']).sum()
@@ -71,7 +61,6 @@ def test_energy_use():
     # assert building_group_energy_use_by_year.loc[('Fritidsboliger', 'Bio', 2050)].iloc[0] ==  1_510_492_631.92574
     # assert building_group_energy_use_by_year.loc[('Fritidsboliger', 'Fossil', 2050)].iloc[0] == 100_00_000
     # assert building_group_energy_use_by_year.loc[('Fritidsboliger', 'Electricity', 2050)].iloc[0] ==  3_156_584_204.21808
-
 
 
 if __name__ == "__main__":

@@ -7,9 +7,9 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   ebm.model.area
    ebm.model.area_forecast
    ebm.model.bema
-   ebm.model.bema_validation
    ebm.model.building_category
    ebm.model.building_condition
    ebm.model.buildings
@@ -21,16 +21,22 @@ Submodules
    ebm.model.database_manager
    ebm.model.dataframemodels
    ebm.model.defaults
+   ebm.model.energy_need
+   ebm.model.energy_need_filter
    ebm.model.energy_purpose
    ebm.model.energy_requirement
    ebm.model.energy_requirement_filter
+   ebm.model.energy_use
    ebm.model.enums
    ebm.model.exceptions
    ebm.model.file_handler
    ebm.model.filter_scurve_params
    ebm.model.filter_tek
+   ebm.model.heat_pump
    ebm.model.heating_systems
-   ebm.model.legg_til_kolonne_fossil_oppvarming
+   ebm.model.heating_systems_parameter
+   ebm.model.heating_systems_projection
+   ebm.model.heating_systems_share
    ebm.model.scurve
    ebm.model.scurve_processor
    ebm.model.shares_per_condition

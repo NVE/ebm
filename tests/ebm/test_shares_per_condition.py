@@ -166,6 +166,20 @@ def test_calc_demolition(default_params, tek, period):
     pd.testing.assert_series_equal(result,expected)
 
 
+@pytest.mark.skip
+def test_calc_demolition2(default_params, tek, period):
+    """
+    Test that the method returns the expected result when ran with valid input (default_params).
+    """
+    from ebm.s_curve import calculate_s_curves
+    s_curves = calculate_s_curves(default_params['scurve_parameters'], default_params['tek_parameters'], period)
+    result = s_curves.get('demolition')
+
+    expected = pd.Series([0.0,0.1,0.2,0.3,0.4], index= period.year_range)
+    expected.index.name = 'year'
+    pd.testing.assert_series_equal(result,expected)
+
+
 def test_calc_demolition_with_tek_construction_year_in_period(default_params, period, scurves):
     """
     Test that the method adjusts the calculation method when the construction year of the given

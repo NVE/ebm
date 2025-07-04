@@ -28,24 +28,24 @@ def test_check_for_missing_files_return_list(tmp_path):
     """
     os.chdir(tmp_path)
     fh = FileHandler(directory=tmp_path)
-    missing_files = fh.check_for_missing_files()
+    missing_files = set(fh.check_for_missing_files())
     assert 'TEK_ID.csv' in missing_files
-    assert 'TEK_parameters.csv' in missing_files
-    assert 'scurve_parameters.csv' in missing_files
-    assert 'population.csv' in missing_files
-    assert 'new_buildings_house_share.csv' in missing_files
-    assert 'construction_building_category_yearly.csv' in missing_files
-    assert 'area_parameters.csv' in missing_files
+    assert 'building_code.csv' in missing_files
+    assert 's_curve.csv' in missing_files
+    assert 'population_forecast.csv' in missing_files
+    assert 'new_buildings_residential.csv' in missing_files
+    assert 'area_new_residential_buildings.csv' in missing_files
+    assert 'area.csv' in missing_files
     assert 'energy_need_behaviour_factor.csv' in missing_files
-    assert 'energy_requirement_original_condition.csv' in missing_files
-    assert 'energy_requirement_reduction_per_condition.csv' in missing_files
+    assert 'energy_need_original_condition.csv' in missing_files
+    assert 'improvement_building_upgrade.csv' in missing_files
     assert 'energy_need_improvements.csv' in missing_files
     assert 'holiday_home_energy_consumption.csv' in missing_files
-    assert 'holiday_home_by_year.csv' in missing_files
+    assert 'holiday_home_stock.csv' in missing_files
     assert 'area_per_person.csv' in missing_files
-    assert 'heating_systems_shares_start_year.csv' in missing_files    
+    assert 'heating_system_initial_shares.csv' in missing_files
     assert 'heating_systems_efficiencies.csv' in missing_files    
-    assert 'heating_systems_projection.csv' in missing_files
+    assert 'heating_system_forecast.csv' in missing_files
     assert len(missing_files) == 17, 'Unexpected list length returned from check_for_missing_files'
 
 
@@ -106,19 +106,19 @@ def test_filehandler_create_missing_input_files(tmp_path):
     fh.create_missing_input_files()
 
     assert (input_directory / 'TEK_ID.csv').is_file()
-    assert (input_directory / 'TEK_parameters.csv').is_file()
-    assert (input_directory / 'scurve_parameters.csv').is_file()
-    assert (input_directory / 'population.csv').is_file()
-    assert (input_directory / 'new_buildings_house_share.csv').is_file()
-    assert (input_directory / 'construction_building_category_yearly.csv').is_file()
-    assert (input_directory / 'area_parameters.csv').is_file()
-    assert (input_directory / 'energy_requirement_original_condition.csv').is_file()
-    assert (input_directory / 'energy_requirement_reduction_per_condition.csv').is_file()
+    assert (input_directory / 'building_code.csv').is_file()
+    assert (input_directory / 's_curve.csv').is_file()
+    assert (input_directory / 'population_forecast.csv').is_file()
+    assert (input_directory / 'new_buildings_residential.csv').is_file()
+    assert (input_directory / 'area_new_residential_buildings.csv').is_file()
+    assert (input_directory / 'area.csv').is_file()
+    assert (input_directory / 'energy_need_original_condition.csv').is_file()
+    assert (input_directory / 'improvement_building_upgrade.csv').is_file()
     assert (input_directory / 'energy_need_improvements.csv').is_file()
     assert (input_directory / 'holiday_home_energy_consumption.csv').is_file()
-    assert (input_directory / 'heating_systems_shares_start_year.csv').is_file()
+    assert (input_directory / 'heating_system_initial_shares.csv').is_file()
     assert (input_directory / 'heating_systems_efficiencies.csv').is_file()
-    assert (input_directory / 'heating_systems_projection.csv').is_file()
+    assert (input_directory / 'heating_system_forecast.csv').is_file()
 
 
 def test_filehandler_create_missing_input_files_from_source_directory(tmp_path):
@@ -154,12 +154,12 @@ def test_filehandler_validate_created_input_file(tmp_file_handler):
     tmp_file_handler.validate_input_files()
 
 
-@pytest.mark.parametrize('input_file_name', [FileHandler.AREA_PARAMETERS,
-                                             FileHandler.TEK_PARAMS,
-                                             FileHandler.CONSTRUCTION_BUILDING_CATEGORY_AREA,
-                                             FileHandler.CONSTRUCTION_BUILDING_CATEGORY_SHARE,
-                                             FileHandler.CONSTRUCTION_POPULATION,
-                                             FileHandler.SCURVE_PARAMETERS])
+@pytest.mark.parametrize('input_file_name', [FileHandler.AREA,
+                                             FileHandler.BUILDING_CODE,
+                                             FileHandler.AREA_NEW_RESIDENTIAL_BUILDINGS,
+                                             FileHandler.NEW_BUILDINGS_RESIDENTIAL,
+                                             FileHandler.POPULATION_FORECAST,
+                                             FileHandler.S_CURVE])
 def test_validate_input_file_validates_expected_files(tmp_file_handler, input_file_name):
     """
     Ensure all files are validated in validate_input_files()
@@ -182,11 +182,11 @@ def test_filehandler_validate_created_input_file_raises_schemaerrors_on_fail(tmp
      Ensure pa.DataFrameSchema::validate is invoked lazy by checking for SchemaErrors
     (as opposed to SchemaError without a trailing s)
      """
-    df = tmp_file_handler.get_file(FileHandler.AREA_PARAMETERS)
+    df = tmp_file_handler.get_file(FileHandler.AREA)
     df.loc[0, 'building_category'] = 'småhus'
     df.loc[0, 'TEK'] = 'TAKK42'
     df.loc[0, 'area'] = -1
-    df.to_csv(tmp_file_handler.input_directory / FileHandler.AREA_PARAMETERS)
+    df.to_csv(tmp_file_handler.input_directory / FileHandler.AREA)
 
     with pytest.raises(pa.errors.SchemaErrors):
         tmp_file_handler.validate_input_files()

@@ -22,7 +22,7 @@ area_parameters
  - float using a decimal point ('.') as the separator
  - **≥** 0.0
 
-tek_parameters
+building_code
 --------------
 
 ``TEK``

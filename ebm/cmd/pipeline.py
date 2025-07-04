@@ -19,6 +19,7 @@ from ebm.model.file_handler import FileHandler
 from ebm.model import heating_systems_parameter as h_s_param
 from ebm.model import heat_pump as h_p
 from ebm.model.heating_systems_share import transform_heating_systems_share_long, transform_heating_systems_share_wide
+from ebm.s_curve import calculate_s_curves
 from ebm.services.spreadsheet import make_pretty, add_top_row_filter
 
 
@@ -44,8 +45,10 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     area_parameters = database_manager.get_area_parameters() # 📍
     area_parameters['year'] = years.start
 
-    tek_parameters = database_manager.file_handler.get_tek_params() # 📍
-    area_forecast = extractors.extract_area_forecast(years, scurve_parameters, tek_parameters, area_parameters, database_manager) # 📍
+    tek_parameters = database_manager.file_handler.get_building_code() # 📍
+
+    s_curves_by_condition = calculate_s_curves(scurve_parameters, tek_parameters, years) # 📌
+    area_forecast = extractors.extract_area_forecast(years, s_curves_by_condition, tek_parameters, area_parameters, database_manager) # 📍
     energy_need_kwh_m2 = extractors.extract_energy_need(years, database_manager) # 📍
     heating_systems_projection = extractors.extract_heating_systems_projection(years, database_manager) # 📍
     energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(database_manager) # 📍

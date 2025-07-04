@@ -259,14 +259,31 @@ def make_pretty(workbook_name: pathlib.Path|str):
         for col in ws.iter_cols(min_col=0):
             adjusted_width = find_max_column_width(col)
             ws.column_dimensions[col[0].column_letter].width = adjusted_width + 1.5
-            values = [int(r.value) for r in col if r.value and r.data_type == 'n']
+            # Skipping first row, assuming it is a header for now.
+            first_column_value = col[0].value
+            values = [int(r.value) for r in col[1:] if r.value and r.data_type == 'n']
             if values:
-                max_value = max(values)
-                if max_value > 1000:
+                max_min = max(values), min(values)
+                number_format = ''
+                if max_min[0] > 1000:
+                    number_format = r'_-* #,##0_-;\-* #,##0_-;_-* "-"??_-;_-@_-'
+                elif max_min[0] <=1.0 and max_min[1] >= 0:
+                    # number_format = '0%'
+                    number_format = '0.000'
+                elif max_min[0] <=1.0 and max_min[1] >=-1.0:
+                    number_format = '0.000'
+
+                if number_format:
                     for row_number, cell in enumerate(col):
                         if row_number < 1:
                             if cell.value == 'year':
                                 break
                             continue
-                        cell.number_format = '### ### ### ### ##0'
+                        if True or cell.value:
+                            if True or cell.data_type == 'n':
+                                cell.number_format = number_format
+                        else:
+                            cell.number_format = "@"
+
+
     wb.save(workbook_name)

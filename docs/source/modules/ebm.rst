@@ -18,8 +18,10 @@ Submodules
    :maxdepth: 4
 
    ebm.energy_consumption
+   ebm.extractors
    ebm.heating_systems_projection
    ebm.holiday_home_energy
+   ebm.s_curve
    ebm.validators
 
 Module contents

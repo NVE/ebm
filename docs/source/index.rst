@@ -9,22 +9,28 @@ documentation for details.
 
 .. toctree::
    :maxdepth: 1
-   :titlesonly:
    :caption: Using the Model
 
    introduction
    getting_started
    user_guide
-   advanced_usage
+   input_description
+   results
+   calibrating_the_model
+   user_case
 
 
 .. toctree::
-   :maxdepth: 2
-   :titlesonly:
+   :maxdepth: 1
    :caption: Model Functionality
 
-   basic_concepts
+   architecture
    model-description
+   area
+   energy_need
+   energy_use
+   calibration
+   geographical_distribution
    calculations
    heating_systems
    limitations
@@ -35,10 +41,8 @@ documentation for details.
    :caption: Technical Documentation
 
    model_setup
-   configuration
    input_constraints
-   developer_guide
-   api_reference
+   sphinx_guide
    code_reference
 
 .. toctree::

@@ -3,6 +3,7 @@ from typing import Optional
 import pandas as pd
 
 from ebm.model.building_category import BuildingCategory
+from ebm.model.building_condition import BuildingCondition
 from ebm.model.column_operations import replace_column_alias
 from ebm.model.energy_purpose import EnergyPurpose
 
@@ -36,6 +37,42 @@ def filter_original_condition(df: pd.DataFrame, building_category: BuildingCateg
     exploded = explode_dataframe(df)
     de_duped = de_dupe_dataframe(exploded)
     return de_duped[(de_duped.building_category==building_category) & (de_duped.TEK==tek) & (de_duped.purpose == purpose)]
+
+
+def filter_improvement_building_upgrade(df: pd.DataFrame, building_category: BuildingCategory|str, tek:str, purpose: str) -> pd.DataFrame:
+    """
+    Explode and deduplicates DataFrame df and returns rows matching building_category, tek, and purpose
+
+    Convenience function that does
+
+    ```python
+
+    exploded = explode_dataframe(df)
+    de_duped = de_dupe_dataframe(exploded)
+    filtered = de_duped[(de_duped.building_category==building_category) & (de_duped.TEK==tek) & (de_duped.purpose == purpose)]
+
+    ```
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+    building_category : BuildingCategory | str
+    tek : str
+    purpose : str
+
+    Returns
+    -------
+    pd.DataFrame
+
+    """
+    exploded = explode_dataframe(df)
+    de_duped = de_dupe_dataframe(exploded, unique_columns=['building_category', 'TEK', 'purpose', 'building_condition'])
+    filtered=de_duped[(de_duped.building_category==building_category) & (de_duped.TEK==tek) & (de_duped.purpose == purpose)]
+
+    filler_frame = pd.DataFrame([(building_category, tek, purpose, bc, 0.0) for bc in BuildingCondition.existing_conditions()],
+                                columns=['building_category', 'TEK', 'purpose', 'building_condition', 'reduction_share'])
+
+    return pd.concat([filtered, filler_frame]).drop_duplicates(['building_category', 'TEK', 'purpose', 'building_condition'], keep='first')
 
 
 def de_dupe_dataframe(df: pd.DataFrame, unique_columns: Optional[list[str]]=None) -> pd.DataFrame:

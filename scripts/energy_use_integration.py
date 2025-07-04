@@ -1,8 +1,10 @@
 import os
 import pathlib
 
+import pandas as pd
 import pytest
 
+from ebm import extractors
 from ebm.cmd.helpers import load_environment_from_dotenv
 from ebm.cmd.pipeline import load_config
 from ebm.cmd.run_calculation import configure_loglevel
@@ -12,7 +14,7 @@ from ebm.model.file_handler import FileHandler
 
 
 def test_energy_use():
-    cwd = pathlib.Path(r'../tests/ebm/data')
+    cwd = pathlib.Path(__file__).parent / pathlib.Path(r'../tests/ebm/data')
     os.chdir(cwd)
     load_environment_from_dotenv()
 
@@ -61,9 +63,31 @@ def test_energy_use():
     assert building_group_energy_use_by_year.loc[('yrkesbygg', 'Electricity', 2050)].iloc[0] ==  20_626_689_875.071304
 
     # assert building_group_energy_use_by_year.loc[('yrkesbygg', 'Fossil', 2050)].iloc[0] == np.nan
-    # assert building_group_energy_use_by_year.loc[('Fritidsboliger', 'Bio', 2050)].iloc[0] ==  1_510_492_631.92574
-    # assert building_group_energy_use_by_year.loc[('Fritidsboliger', 'Fossil', 2050)].iloc[0] == 100_00_000
-    # assert building_group_energy_use_by_year.loc[('Fritidsboliger', 'Electricity', 2050)].iloc[0] ==  3_156_584_204.21808
+
+
+def test_energy_use_holiday_home():
+    cwd = pathlib.Path(__file__).parent / pathlib.Path(r'../tests/ebm/data')
+    os.chdir(cwd)
+    load_environment_from_dotenv()
+
+    configure_loglevel(os.environ.get('LOG_FORMAT', None))
+    input_path, output_path, years = load_config()
+    input_path = pathlib.Path('kalibrert')
+
+    output_path.mkdir(exist_ok=True)
+
+    file_handler = FileHandler(directory=input_path)
+    database_manager = DatabaseManager(file_handler=file_handler)
+
+    energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(database_manager)
+
+    holiday = pd.melt(energy_use_holiday_homes, id_vars=['building_group', 'energy_source'], var_name='year', value_name='kwh')
+    holiday = holiday.set_index(['building_group', 'energy_source', 'year'])
+    holiday.loc[:, 'kwh'] = holiday.loc[:, 'kwh'] * 1_000_000
+
+    assert holiday.loc[('Fritidsboliger', 'Bio', 2050)].iloc[0] ==  1_510_492_631.9257426
+    assert holiday.loc[('Fritidsboliger', 'Fossil', 2050)].iloc[0] == 100_000_000
+    assert holiday.loc[('Fritidsboliger', 'Electricity', 2050)].iloc[0] ==  3_156_584_204.2180767
 
 
 if __name__ == "__main__":

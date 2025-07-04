@@ -303,3 +303,37 @@ if __name__ == '__main__':
     for energy_usage, h in zip(holiday_home_energy.calculate_energy_usage(), ['electricity', 'fuelwood', 'fossil fuel']):
         print('====', h, '====')
         print(energy_usage)
+
+
+def calculate_energy_use(database_manager: DatabaseManager) -> pd.DataFrame:
+    """
+    Calculates holiday home energy use by from HolidayHomeEnergy.calculate_energy_usage()
+
+    Parameters
+    ----------
+    database_manager : DatabaseManager
+
+    Returns
+    -------
+    pd.DataFrame
+    """
+    holiday_home_energy = HolidayHomeEnergy.new_instance(database_manager=database_manager)
+    el, wood, fossil = [e_u for e_u in holiday_home_energy.calculate_energy_usage()]
+    df = pd.DataFrame(data=[el, wood, fossil])
+    df.insert(0, 'building_category', 'holiday_home')
+    df.insert(1, 'energy_type', 'n/a')
+    df['building_category'] = 'holiday_home'
+    df['energy_type'] = ('electricity', 'fuelwood', 'fossil')
+    output = df.reset_index().rename(columns={'index': 'unit'})
+    output = output.set_index(['building_category', 'energy_type', 'unit'])
+    return output
+
+
+def transform_holiday_homes_to_horizontal(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.reset_index()
+    df = df.rename(columns={'energy_type': 'energy_source'})
+    columns_to_keep = [y for y in YearRange(2020, 2050)] + ['building_category', 'energy_source']
+    df = df.drop(columns=[c for c in df.columns if c not in columns_to_keep])
+    df['energy_source'] = df['energy_source'].apply(lambda x: 'Elektrisitet' if x == 'electricity' else 'Bio' if x == 'fuelwood' else x)
+    df['building_category'] = 'Fritidsboliger'
+    return df

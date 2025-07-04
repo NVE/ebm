@@ -1,4 +1,4 @@
-Developer Guide
+Sphinx guide
 ===============
 
 Architecture Overview

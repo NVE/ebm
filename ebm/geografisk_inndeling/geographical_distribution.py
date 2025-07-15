@@ -111,7 +111,9 @@ def geographical_distribution(elhub_years: list[int], step: str = None) -> Path:
 
         # Running the code below gives an error, so I comment it out for now
         # This is the error message: FileNotFoundError: [Errno 2] No such file or directory: 'input\\building_code.csv'
-        # ebm = load_energy_use()
-        # print(f"EBM data loaded successfully: {ebm}")
+        ebm = load_energy_use()
+        print(f"EBM data loaded successfully: {ebm}")
+        # with pd.ExcelWriter(output_file, engine="openpyxl", mode='a') as writer:
+        #     ebm.to_excel(writer, sheet_name="EBM", index=False)
     
     return output_file

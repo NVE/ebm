@@ -71,7 +71,7 @@ def load_energy_use():
     fh = FileHandler(directory=os.environ.get('EBM_OUTPUT'))
     database_manager = DatabaseManager(file_handler=fh)
     df = EbmDefaultHandler().extract_model(YearRange(2020, 2050), building_categories=None, database_manager=database_manager)
-    logger.info('Done')
+    logger.info('📊 EBM energy use data loaded successfully.')
 
     print(df)
 

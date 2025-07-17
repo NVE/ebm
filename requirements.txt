@@ -1,6 +1,6 @@
 # requirements-geodist.txt is used to install the dependencies for the geographical distribution package. 
 # Please comment out the line below if you plan to use the geographical distribution package.
-# -r geographical_inndeling/requirements-geodist.txt
+# -r requirements-geodist.txt
 pandas==2.2.3
 openpyxl
 loguru

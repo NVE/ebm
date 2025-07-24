@@ -1,5 +1,23 @@
 import polars as pl
-from typing import Optional
+from typing import Optional, Union
+
+
+def yearly_aggregated_elhub_data(df: pl.DataFrame) -> pl.DataFrame:
+    """
+    Aggregate Elhub data by year, summing the 'forbruk_kwh' column.
+    Args:
+        df (pl.DataFrame): DataFrame containing Elhub data with 'forbruk_kwh' column.
+    Returns:
+        pl.DataFrame: DataFrame with yearly aggregated 'forbruk_kwh' values.
+    """
+    df_stacked_year = df.with_columns(
+	pl.col("lokal_dato_tid_start").dt.truncate("1y").alias("lokal_dato_tid_start")
+).group_by(
+	["lokal_dato_tid_start", "kommune_nr", "kommune_navn", "naeringshovedomraade_kode", "naering_kode", "naeringshovedgruppe_kode", "prisomraade"]
+).agg(
+	pl.col("forbruk_kwh").sum().alias("forbruk_kwh")
+)
+    return df_stacked_year
 
 
 def df_commune_mean(
@@ -118,3 +136,46 @@ def df_factor_calculation(
         dfs_factors[df_name] = df
 
     return dfs_factors
+
+
+def ebm_energy_use_geographical_distribution(
+        df1: pl.DataFrame,
+        dict_df2: dict[str, pl.DataFrame],
+        years: list[int],
+        building_category: Union[str, list[str]],
+        output_format: bool = False) -> dict[str, pl.DataFrame]:
+    """ Function to geographically distribute energy use data based on building category and energy source.
+
+    Args:
+        df1 (pl.DataFrame): DataFrame containing energy use data with columns for building group and energy source.
+        dict_df2 (dict[str, pl.DataFrame]): Dictionary of DataFrames with mean yearly forbruk and distribution keys per kommune.
+        years (list[int]): List of years pertaingning to the projected energy use data.
+        building_category (Union[str, list[str]]): Building category or categories to filter the DataFrame.
+        output_format (bool, optional): _description_. Defaults to False.
+
+    Returns:
+        dict[str, pl.DataFrame]: _description_
+    """
+    if isinstance(building_category, str):
+        building_category = [building_category]
+    # Define year columns as strings
+    years_column = [str(year) for year in years]
+
+    df = df1.filter(
+        (pl.col('building_group').is_in(building_category)) &
+        (pl.col('energy_source').is_in(['Elektrisitet', 'Electricity'])))
+    
+    for category in building_category:
+        df_category = df.filter(pl.col('building_group') == category)
+        multiplied = pl.DataFrame({
+            year: df_category[year] * dict_df2[category][year]
+            for year in years_column
+            })
+
+        # Combine back with kommune_nr or relevant index
+        kommune = dict_df2[category].select(["kommune_nr", "kommune_navn", "mean_yearly_forbruk_gwh"])
+        dict_df2[category + "_energibruk"] = kommune.hstack(multiplied)
+        dict_df2[category + "_fordelingsnøkler"] = dict_df2.pop(category)
+
+    return dict_df2
+

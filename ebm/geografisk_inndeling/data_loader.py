@@ -1,6 +1,8 @@
 import os
 import polars as pl
+import pandas as pd
 from loguru import logger
+from ebm.geografisk_inndeling.initialize import get_output_file
 from ebm.cmd.helpers import load_environment_from_dotenv
 from ebm.cmd.result_handler import EbmDefaultHandler
 from ebm.cmd.run_calculation import configure_loglevel
@@ -64,17 +66,26 @@ def load_elhub_data(
     df = df_lazy.select(columns).collect()
     return df
 
-def load_energy_use():
-    load_environment_from_dotenv()
-    configure_loglevel(os.environ.get('LOG_FORMAT', None))
+# def load_energy_use():
+#     load_environment_from_dotenv()
+#     configure_loglevel(os.environ.get('LOG_FORMAT', None))
 
-    fh = FileHandler(directory=os.environ.get('EBM_OUTPUT'))
-    database_manager = DatabaseManager(file_handler=fh)
-    df = EbmDefaultHandler().extract_model(YearRange(2020, 2050), building_categories=None, database_manager=database_manager)
-    logger.info('📊 EBM energy use data loaded successfully.')
+#     fh = FileHandler(directory=os.environ.get('EBM_OUTPUT'))
+#     database_manager = DatabaseManager(file_handler=fh)
+#     df = EbmDefaultHandler().extract_model(YearRange(2020, 2050), building_categories=None, database_manager=database_manager)
+#     logger.info('📊 EBM energy use data loaded successfully.')
 
-    print(df)
+#     return df
 
+def load_energy_use() -> pd.DataFrame:
+    """
+    Load energy use data from the output file.
+    This function reads the energy use data from an Excel file located in the output directory.
+    Returns:
+        pd.DataFrame: DataFrame containing the energy use data.
+    """
+    energy_use_file_path = get_output_file('output/energy_use.xlsx')
+    df = pd.read_excel(energy_use_file_path, sheet_name='wide')
     return df
 
 energy_use = None

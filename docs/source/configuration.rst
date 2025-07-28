@@ -1,4 +1,4 @@
-Model Setup and Configuration
+Model configuration
 =============================
 
 Model Structure

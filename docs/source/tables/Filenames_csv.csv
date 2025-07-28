@@ -1,4 +1,4 @@
-﻿#
+﻿#;File name;Norwegian translation;Norwegian explanation;Explanation
 1;Area;Areal;Areal (BRA) fordelt på bygningskategori og TEK i modellens startår.;Useful floor area in the start year distributed by building category and building code. 
 2;Area per person;Areal per person;Areal for nybygg i yrkesbygg, følger befolkningsøkning.;Useful floor area for new non-residential buildings based on population growth.
 3;Area new residential buildings;Areal bolig nybygg;Areal nybygg for boliger. Har behov for dette arealet i 2020 og 2021 for å kunne gjøre beregninger.  ;New useful floor area for residential buildings in 2020 and 2021. Constants. 

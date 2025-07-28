@@ -343,4 +343,4 @@ heating_systems_shares_start_year
 
 Last Updated on |date|.
 
- Version: |version|.
+Version: |version|.

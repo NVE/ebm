@@ -1,22 +1,77 @@
 Area
 #############################
 
-Xyz
+Data for the building area used in this model was prepared by Prognsesenteret in 2022. This data describes the building
+stock in 2020 in Norway, distributed by building categories and age. The area is grouped into age groups that correspond
+to the periods during which the various building codes (TEK) have been in effect. The age is suitable for use with the
+age-specific rates for small measures, renovation, and demolition.
 
 
 Methods
 =======
 
+Forecasting of area
+-------------------
+New area in the model is added in two ways. Either by replacing demolished area or by building new area. When area is replaced by demolishion
+the total amount of area does not change, but it gets updated to the newest building code standard. Demolishion is controlled by the s-curve. 
+When constructing new area the total amount of area grows.The model has two different methods for forecasting area newly built area. 
+One method for residental area and another for non-residental area.
+
+Non-residental area
+^^^^^^^^^^^^^^^^^^^
+Population growth is the driver for new area in non-residential buildings. 
+The total area in a given year is the sum of the area in the previous year minus the demolished amount the previous year plus new construction. 
+
+.. math::
+
+    \text{Total area} (\text{year } x) = &\text{ total area} (\text{year } x-1) \\
+                          &- \text{demolished area} (\text{year } x-1) \\
+                          &+ \text{new construction} (\text{year } x)
+
+Where new construction is calculated the following way:
+
+.. math::
+
+    \text{New construction} (\text{year } x) = &\text{ total area} (\text{year } x) \\ 
+                          &- \text{total area} (\text{year } x-1) \\
+                          &+ \text{new construction} (\text{year } x-1)
+
+Combining the two:
+
+.. math::
+
+    \text{New construction} (\text{year } x) = &\text{ area/person} * \text{population} (\text{year } x) \\
+                          &-\text{area/person}*\text{population} (\text{year } x-1) \\
+                          &+ \text{ demolished}(\text{year }x-1)
+
+The area per person is different for each of the non-residental building categories. It can also change from year to year, but currently it is a constant. 
+
+.. csv-table:: Area per person per non-residential building category
+  :file: tables\area_per_person.csv
+  :widths: 40, 20
+  :header-rows: 1
+
+Residential area
+^^^^^^^^^^^^^^^^
+New construction in residential area is based on population, but with some key differences compared to the non-residential area. Instead of forecasting square-meters per person 
+as is done in non-residential area, we first have to calculate the required number of new dwellings. Number of new new dwellings is calculated from the "population_forecast" input file which contains 
+both the popluation forecast and average household size. The new dwellings can be either apartments or houses and the ratio between them, and the area per dwelling, is given 
+in the input file "new_buildings_residential".  
+
 
 Assumptions
 ===========
-
+For non-residential buildings, it is assumed that the area of a building type (e.g. office buildings) distributed by the
+number of inhabitants in Norway (m²/person) will remain constant going forward. This assumption, along with the
+calculated demolition, leads to new construction that will vary from year to year and between building categories.
 
 
 Limitations
 ===========
 
 
-Last Updated on |date|.
+.. |date| date::
+
+Last Updated on |date|
 
 Version: |version|.

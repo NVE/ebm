@@ -17,6 +17,8 @@ Limitations
 ===========
 
 
-Last Updated on |date|.
+.. |date| date::
+
+Last Updated on |date|
 
 Version: |version|.

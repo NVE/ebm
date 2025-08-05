@@ -5,9 +5,8 @@ import pandas as pd
 import pytest
 
 from ebm import extractors
-from ebm.cmd.helpers import load_environment_from_dotenv
+from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel
 from ebm.cmd.pipeline import load_config
-from ebm.cmd.run_calculation import configure_loglevel
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_use import calculate_energy_use
 from ebm.model.file_handler import FileHandler

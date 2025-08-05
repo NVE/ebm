@@ -7,11 +7,11 @@ import typing
 import pandas as pd
 from loguru import logger
 
-from ebm.cmd.helpers import load_environment_from_dotenv
+from ebm.cmd.helpers import load_environment_from_dotenv, configure_json_log_from_env, configure_loglevel
 from ebm.cmd.result_handler import  append_result, \
     transform_model_to_horizontal, EbmDefaultHandler
 from ebm.cmd.pipeline import export_energy_model_reports
-from ebm.cmd.run_calculation import validate_years, configure_loglevel, configure_json_log_from_env
+from ebm.cmd.run_calculation import validate_years
 from ebm.cmd import prepare_main
 from ebm.cmd.initialize import init, create_output_directory
 

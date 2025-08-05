@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from loguru import logger
 
 from ebm.cmd.calibrate import run_calibration, write_dataframe
-from ebm.cmd.run_calculation import configure_loglevel
+from ebm.cmd.helpers import configure_loglevel
 from ebm.model.file_handler import FileHandler
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.calibrate_energy_requirements import EnergyRequirementCalibrationWriter, \

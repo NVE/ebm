@@ -6,9 +6,8 @@ import pandas as pd
 from loguru import logger
 
 from ebm import extractors
-from ebm.cmd.helpers import load_environment_from_dotenv
+from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel
 from ebm.cmd.result_handler import transform_model_to_horizontal, transform_to_sorted_heating_systems
-from ebm.cmd.run_calculation import configure_loglevel
 from ebm.model import area as a_f, bema
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager

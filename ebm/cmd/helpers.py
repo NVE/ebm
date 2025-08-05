@@ -11,7 +11,7 @@ def load_environment_from_dotenv():
     env_file = pathlib.Path(find_dotenv(usecwd=True))
     if env_file.is_file():
         logger.debug(f'Loading environment from {env_file}')
-        load_dotenv(pathlib.Path('.env').absolute())
+        load_dotenv(env_file)
     else:
         logger.trace(f'.env not found in {env_file.absolute()}')
 
@@ -55,9 +55,9 @@ def configure_json_log(log_directory: str|bool=False):
     file_stem = script_name.stem if script_name.stem!='__main__' else script_name.parent.name + script_name.stem
 
     env_log_directory = os.environ.get('LOG_DIRECTORY', log_directory)
-    env_log_directory = env_log_directory if env_log_directory.upper().strip() != 'TRUE' else 'log'
-
     log_to_json = env_log_directory.upper().strip()!='FALSE'
+    env_log_directory = env_log_directory if log_to_json and env_log_directory.upper().strip() != 'TRUE' else 'log'
+
     if log_to_json:
         log_directory = pathlib.Path(env_log_directory if env_log_directory else log_directory)
         if log_directory.is_file():

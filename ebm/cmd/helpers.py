@@ -1,6 +1,7 @@
 import os
 import pathlib
 import sys
+import typing
 from datetime import datetime
 
 from dotenv import load_dotenv, find_dotenv
@@ -53,6 +54,9 @@ def configure_json_log(log_directory: str|bool=False):
     """
     script_name = pathlib.Path(pathlib.Path(sys.argv[0]))
     file_stem = script_name.stem if script_name.stem!='__main__' else script_name.parent.name + script_name.stem
+    if 'PYTEST_CURRENT_TEST' in os.environ and os.environ.get('PYTEST_CURRENT_TEST'):
+        pytest_current_test = os.environ.get('PYTEST_CURRENT_TEST').split('::')
+        file_stem = pathlib.Path(pytest_current_test[0]).stem + pytest_current_test[1].replace('(call)', '').strip()
 
     env_log_directory = os.environ.get('LOG_DIRECTORY', log_directory)
     log_to_json = env_log_directory.upper().strip()!='FALSE'

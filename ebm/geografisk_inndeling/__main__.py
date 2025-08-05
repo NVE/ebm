@@ -17,6 +17,17 @@ def main():
     if arguments.create_input:
         logger.info("📁 Oppretter input-mappe og kopierer data...")
         create_input_folder()
+    
+    if arguments.energy_type == "strom":
+        logger.info("⚡️ Energikilde satt til strøm.")
+        energitype = "strom"
+    else:
+        logger.info("🔥 Energikilde satt til fjernvarme.")
+        energitype = "fjernvarme"
+
+
+    building_category_choice = arguments.category
+    elhub_years = arguments.years
 
     # Choose source
     if arguments.source == "azure":
@@ -24,23 +35,30 @@ def main():
         step = 'azure'
     else:
         logger.info("📂 Leser data lokalt fra data-mappen...")
-        step = 'local'
-        
+        step = 'lokalt'
 
-    building_category_choice = arguments.category
-    elhub_years = arguments.years
-
+    # Convert result to long format if specified
     convert_result_to_long: bool = arguments.long_format
+    
 
+    if energitype == "strom":
+        logger.info(
+            f"🔍 Kommunefordeler strøm for bygningskategori '{building_category_choice}' "
+            f"fra Elhub data i tidsperioden: {elhub_years} ..."
+        )
+    elif energitype == "fjernvarme":
+        filtered_categories = [cat for cat in building_category_choice if cat.lower() != "fritidsboliger"]
+        logger.info(
+            f"🔍 Kommunefordeler fjernvarme for bygningskategori {filtered_categories}."
+            )
 
-    logger.info(
-        f"\n🔍 Lager kommunefordelingsfaktorer for bygningskategori '{building_category_choice}' "
-        f"fra Elhub data i tidsperioden: {elhub_years} ..."
-    )
+    file_to_open = geographical_distribution(elhub_years, 
+                                            energitype=energitype, 
+                                            building_category=building_category_choice,
+                                            step=step, 
+                                            output_format = convert_result_to_long)
 
-    file_to_open = geographical_distribution(elhub_years, building_category=building_category_choice, step=step, output_format = convert_result_to_long)
-
-    logger.info(f"✅ Kommunefordelingsnøkler er generert og lagret i output-mappen med filnavn: {file_to_open.name}")
+    logger.info(f"✅ Kommunefordeling for valgt energitype har kjørt ferdig og resultatene er lagret i output-mappen med filnavn: {file_to_open.name}")
     os.startfile(file_to_open, 'open')
 
     # Clean up memory

@@ -62,14 +62,17 @@ def make_arguments(program_name: str, default_path: Path) -> argparse.Namespace:
 
     arg_parser.add_argument('--debug', action='store_true',
                             help='Run in debug mode. (Extra information written to stdout)')
+    
     arg_parser.add_argument('--input', '-i', type=Path, default=default_path.parent,
                             help='Path to the input directory containing required files.')
+    
     arg_parser.add_argument('--category', '-c', 
         type=NameHandler.normalize_to_list,
         nargs='?',
         default=NameHandler.normalize_to_list("alle"),
         help="Velg bygningskategori: boliger, fritidsboliger, yrkesbygg eller alle"
     )
+
     arg_parser.add_argument(
         "--years", "-y",
         type=int,
@@ -78,16 +81,25 @@ def make_arguments(program_name: str, default_path: Path) -> argparse.Namespace:
         help="Årene som skal inkluderes i beregningen av fordelingsnøklene, f.eks: --years 2022 2023 2024"
     )
 
-    arg_parser.add_argument('--source','-s', choices=['azure', 'local'], default='local',
+    arg_parser.add_argument('--source','-s', choices=['azure', 'lokalt'], default='lokalt',
                             help='''
 Velg datakilde: 'azure' for å hente dataen direkte fra Elhub datasjøen, eller 'local' for å bruke parquet filen
     som følger med, (standard: local)
                             ''')
+    
     arg_parser.add_argument('--create-input', action='store_true',
                             help='''
                             Create input directory and copy necessary data files from data/ directory.
                             ''')
+    
     arg_parser.add_argument('--long-format', action='store_true', help='''Use long format for output data. Default is wide format.''')
+
+    arg_parser.add_argument('--energy-type', '-e',
+                            choices=['strom', 'fjernvarme'],
+                             default='strom',
+                             help='''
+                             Velg energitype: 'strom' for elektrisitet, 'fjernvarme' for fjernvarme, eller 'alle' for begge typer. (standard: strom)
+                            ''')
 
     arguments = arg_parser.parse_args()
     return arguments

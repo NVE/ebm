@@ -138,44 +138,92 @@ def df_factor_calculation(
     return dfs_factors
 
 
-def ebm_energy_use_geographical_distribution(
-        df1: pl.DataFrame,
-        dict_df2: dict[str, pl.DataFrame],
-        years: list[int],
-        building_category: Union[str, list[str]],
-        output_format: bool = False) -> dict[str, pl.DataFrame]:
-    """ Function to geographically distribute energy use data based on building category and energy source.
+def filter_energy_data(
+    df: pl.DataFrame,
+    building_categories: list[str],
+    energy_types: list[str]
+) -> pl.DataFrame:
+    """Filter the dataframe by building group and energy source."""
+    return df.filter(
+        (pl.col("building_group").is_in(building_categories)) &
+        (pl.col("energy_source").is_in(energy_types))
+    )
 
-    Args:
-        df1 (pl.DataFrame): DataFrame containing energy use data with columns for building group and energy source.
-        dict_df2 (dict[str, pl.DataFrame]): Dictionary of DataFrames with mean yearly forbruk and distribution keys per kommune.
-        years (list[int]): List of years pertaingning to the projected energy use data.
-        building_category (Union[str, list[str]]): Building category or categories to filter the DataFrame.
-        output_format (bool, optional): _description_. Defaults to False.
 
-    Returns:
-        dict[str, pl.DataFrame]: _description_
+def distribute_energy_use_for_category(
+    df_category: pl.DataFrame,
+    dist_df: pl.DataFrame,
+    years_column: list[str],
+    category: str,
+    energitype: str
+) -> tuple[str, pl.DataFrame, str, pl.DataFrame]:
     """
+    Multiply the energy use with distribution factors and return two named outputs:
+    - Energibruk per kommune
+    - Fordelingsnøkler
+    """
+    multiplied = pl.DataFrame({
+        year: df_category[year] * dist_df[year]
+        for year in years_column
+    })
+
+    kommune_cols = ["kommune_nr", "kommune_navn"]
+    if energitype == "strom" and "mean_yearly_forbruk_gwh" in dist_df.columns:
+        kommune_cols.append("mean_yearly_forbruk_gwh")
+
+    kommune_info = dist_df.select(kommune_cols)
+    energibruk_df = kommune_info.hstack(multiplied)
+
+    return (
+        f"{category}_energibruk", energibruk_df,
+        f"{category}_fordelingsnøkler", dist_df
+    )
+
+
+def ebm_energy_use_geographical_distribution(
+    df_energy_use: pl.DataFrame,
+    distribution_factors: dict[str, pl.DataFrame],
+    years: list[int],
+    energitype: str,
+    building_category: Union[str, list[str]],
+) -> dict[str, pl.DataFrame]:
+    """
+    Geographically distribute energy use across municipalities by category and energy source.
+    """
+
     if isinstance(building_category, str):
         building_category = [building_category]
-    # Define year columns as strings
+
     years_column = [str(year) for year in years]
 
-    df = df1.filter(
-        (pl.col('building_group').is_in(building_category)) &
-        (pl.col('energy_source').is_in(['Elektrisitet', 'Electricity'])))
-    
+    # Define mapping from energitype to column values
+    energy_type_map = {
+        "strom": ['Elektrisitet', 'Electricity'],
+        "fjernvarme": ['DH', 'Fjernvarme', 'District Heating']
+    }
+
+    if energitype not in energy_type_map:
+        raise ValueError(f"Ukjent energitype: {energitype}")
+
+    # Filter data for selected energy type and categories
+    df_filtered = filter_energy_data(df_energy_use, building_category, energy_type_map[energitype])
+
+    result = {}
+
     for category in building_category:
-        df_category = df.filter(pl.col('building_group') == category)
-        multiplied = pl.DataFrame({
-            year: df_category[year] * dict_df2[category][year]
-            for year in years_column
-            })
+        if category not in distribution_factors:
+            raise KeyError(f"Mangler fordelingsnøkler for kategori: {category}")
 
-        # Combine back with kommune_nr or relevant index
-        kommune = dict_df2[category].select(["kommune_nr", "kommune_navn", "mean_yearly_forbruk_gwh"])
-        dict_df2[category + "_energibruk"] = kommune.hstack(multiplied)
-        dict_df2[category + "_fordelingsnøkler"] = dict_df2.pop(category)
+        df_cat = df_filtered.filter(pl.col("building_group") == category)
+        dist_df = distribution_factors[category]
+        energibruk_key, energibruk_df, fordelingsnokkler_key, fordelingsnokkler_df = distribute_energy_use_for_category(
+            df_cat, dist_df, years_column, category, energitype
+        )
 
-    return dict_df2
+        result[energibruk_key] = energibruk_df.with_columns(pl.lit("GWh").alias("Units"))
+        result[fordelingsnokkler_key] = (
+            fordelingsnokkler_df.drop(category) if energitype == "fjernvarme"
+            else fordelingsnokkler_df
+        )
 
+    return result

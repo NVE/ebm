@@ -17,11 +17,15 @@ def load_environment_from_dotenv():
 
 
 def configure_json_log_from_env():
-    if os.environ.get('LOG_DIRECTORY', False):
-        log_directory = os.environ.get('LOG_DIRECTORY') if os.environ.get('LOG_DIRECTORY').upper() != 'TRUE' else 'log'
+    env_log_directory = os.environ.get('LOG_DIRECTORY', 'False')
+    if env_log_directory.upper().strip()!='FALSE':
+        log_directory = env_log_directory if env_log_directory.upper().strip() != 'TRUE' else 'log'
         log_start_time = datetime.now().isoformat(timespec='seconds').replace(':', '')
         log_file_name = f'{log_directory}/ebm-{log_start_time}.json'
+        logger.debug(f'Logging json to {log_file_name}')
         logger.add(log_file_name, level='TRACE', serialize=True)
+    else:
+        logger.debug('Skipping json log. LOG_DIRECTORY is undefined.')
 
 
 def configure_loglevel(log_format: str = None):

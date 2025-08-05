@@ -34,7 +34,7 @@ def configure_json_log(log_directory: str|bool=False):
     Environment Variables
     ---------------------
     LOG_DIRECTORY : str
-        Overrides the `log_directory` argument. Special values:
+        Overrides the `log_directory` argument when set. Special values:
         - 'TRUE': uses default directory 'log'
         - 'FALSE': disables logging
 
@@ -48,6 +48,7 @@ def configure_json_log(log_directory: str|bool=False):
     --------
     >>> configure_json_log("logs")
     >>> os.environ["LOG_DIRECTORY"] = "TRUE"
+
     >>> configure_json_log(False)
     """
     script_name = pathlib.Path(pathlib.Path(sys.argv[0]))
@@ -71,8 +72,9 @@ def configure_json_log(log_directory: str|bool=False):
             log_filename = log_filename.with_stem(f'{file_stem}-{log_start_milliseconds}')
 
         logger.debug(f'Logging json to {log_filename}')
-        logger.add(log_filename, level='TRACE', serialize=True)
-        logger.info(f'{sys.argv=}')
+        logger.add(log_filename, level=os.environ.get('LOG_LEVEL_JSON', 'TRACE'), serialize=True)
+        if len(sys.argv) > 1:
+            logger.info(f'argv={sys.argv[1:]}')
     else:
         logger.debug('Skipping json log. LOG_DIRECTORY is undefined.')
 

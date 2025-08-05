@@ -83,14 +83,14 @@ def configure_json_log(log_directory: str|bool=False):
         logger.debug('Skipping json log. LOG_DIRECTORY is undefined.')
 
 
-def configure_loglevel(log_format: str = None):
+def configure_loglevel(log_format: str = None, level: str = 'INFO'):
     """
     Sets loguru loglevel to INFO unless ebm is called with parameter --debug and the environment variable DEBUG is not
     equal to True
 
     """
     logger.remove()
-    options = {'level': 'INFO'}
+    options = {'level': level}
     if log_format:
         options['format'] = log_format
 

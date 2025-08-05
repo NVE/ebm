@@ -1,20 +1,14 @@
 User case
-==============
+###########
 
-Performance Tuning
+
+Scenario
 ------------------
+How to create different scenarios through a user case. 
 
-To improve performance, consider:
-
-...
-
-Advanced Workflows Scripting 
-----------------------------------
-
-This framework supports Advanced Usage through scripting:
 
 .. |date| date::
 
-Last Updated on |date|.
+Last Updated on |date|
 
 Version: |version|.

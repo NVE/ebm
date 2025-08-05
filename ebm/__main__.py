@@ -7,7 +7,7 @@ import typing
 import pandas as pd
 from loguru import logger
 
-from ebm.cmd.helpers import load_environment_from_dotenv, configure_json_log_from_env, configure_loglevel
+from ebm.cmd.helpers import load_environment_from_dotenv, configure_json_log, configure_loglevel
 from ebm.cmd.result_handler import  append_result, \
     transform_model_to_horizontal, EbmDefaultHandler
 from ebm.cmd.pipeline import export_energy_model_reports
@@ -37,7 +37,7 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
     """
     load_environment_from_dotenv()
     configure_loglevel(log_format=os.environ.get('LOG_FORMAT', None))
-    configure_json_log_from_env()
+    configure_json_log()
 
     logger.debug(f'Starting {sys.executable} {__file__}')
 

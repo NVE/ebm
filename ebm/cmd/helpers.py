@@ -16,8 +16,8 @@ def load_environment_from_dotenv():
         logger.trace(f'.env not found in {env_file.absolute()}')
 
 
-def configure_json_log_from_env():
-    env_log_directory = os.environ.get('LOG_DIRECTORY', 'False')
+def configure_json_log(log_directory: str|bool=False):
+    env_log_directory = os.environ.get('LOG_DIRECTORY', log_directory)
     if env_log_directory.upper().strip()!='FALSE':
         log_directory = env_log_directory if env_log_directory.upper().strip() != 'TRUE' else 'log'
         log_start_time = datetime.now().isoformat(timespec='seconds').replace(':', '')

@@ -6,7 +6,7 @@ import pandas as pd
 from loguru import logger
 
 from ebm import extractors
-from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel
+from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel, configure_json_log
 from ebm.cmd.result_handler import transform_model_to_horizontal, transform_to_sorted_heating_systems
 from ebm.model import area as a_f, bema
 from ebm.model.data_classes import YearRange
@@ -26,6 +26,7 @@ def main():
     load_environment_from_dotenv()
 
     configure_loglevel(os.environ.get('LOG_FORMAT', None))
+    configure_json_log()
     input_path, output_path, years = load_config()
 
     output_path.mkdir(exist_ok=True)

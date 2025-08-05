@@ -17,6 +17,42 @@ def load_environment_from_dotenv():
 
 
 def configure_json_log(log_directory: str|bool=False):
+    """
+    Configures JSON logging using the `loguru` logger.
+
+    This function sets up structured JSON logging to a file, with the log file path
+    determined by the `LOG_DIRECTORY` environment variable or the provided `log_directory` argument.
+    If `LOG_DIRECTORY` is set to 'TRUE', the default directory 'log' is used.
+    If it is set to 'FALSE', logging is skipped.
+
+    Parameters
+    ----------
+    log_directory : str or bool, optional
+        The directory where the log file should be saved. If set to `False`, logging is disabled
+        unless overridden by the `LOG_DIRECTORY` environment variable.
+
+    Environment Variables
+    ---------------------
+    LOG_DIRECTORY : str
+        Overrides the `log_directory` argument. Special values:
+        - 'TRUE': uses default directory 'log'
+        - 'FALSE': disables logging
+
+    Notes
+    -----
+    - The log file is named using the current timestamp in ISO format (without colons).
+    - The log file is serialized in JSON format.
+    - The directory is created if it does not exist.
+
+    Examples
+    --------
+    >>> configure_json_log("logs")
+    >>> os.environ["LOG_DIRECTORY"] = "TRUE"
+    >>> configure_json_log(False)
+    """
+    script_name = pathlib.Path(pathlib.Path(sys.argv[0]))
+    file_stem = script_name.stem if script_name.stem!='__main__' else script_name.parent.name + script_name.stem
+
     env_log_directory = os.environ.get('LOG_DIRECTORY', log_directory)
     env_log_directory = env_log_directory if env_log_directory.upper().strip() != 'TRUE' else 'log'
 

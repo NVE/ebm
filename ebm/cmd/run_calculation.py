@@ -1,6 +1,7 @@
 import os
 import pathlib
 import sys
+from datetime import datetime
 from typing import Dict
 
 import pandas as pd
@@ -220,6 +221,14 @@ def calculate_heating_systems(energy_requirements, database_manager: DatabaseMan
     df = calculator.calculate(energy_requirements)
 
     return df
+
+
+def configure_json_log_from_env():
+    if os.environ.get('LOG_DIRECTORY', False):
+        log_directory = os.environ.get('LOG_DIRECTORY') if os.environ.get('LOG_DIRECTORY').upper() != 'TRUE' else 'log'
+        log_start_time = datetime.now().isoformat(timespec='seconds').replace(':', '')
+        log_file_name = f'{log_directory}/ebm-{log_start_time}.json'
+        logger.add(log_file_name, level='TRACE', serialize=True)
 
 
 def configure_loglevel(log_format: str = None):

@@ -126,9 +126,10 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
 
     for file_to_open in files_to_open:
         if arguments.open or os.environ.get('EBM_ALWAYS_OPEN', 'FALSE').upper() == 'TRUE':
+            logger.info(f'Open {file_to_open}')
             os.startfile(file_to_open, 'open')
         else:
-            logger.info(f'wrote {file_to_open}')
+            logger.debug(f'Finished {file_to_open}')
 
     return ReturnCode.OK, model
 

@@ -18,12 +18,25 @@ def load_environment_from_dotenv():
 
 def configure_json_log(log_directory: str|bool=False):
     env_log_directory = os.environ.get('LOG_DIRECTORY', log_directory)
-    if env_log_directory.upper().strip()!='FALSE':
-        log_directory = env_log_directory if env_log_directory.upper().strip() != 'TRUE' else 'log'
-        log_start_time = datetime.now().isoformat(timespec='seconds').replace(':', '')
-        log_file_name = f'{log_directory}/ebm-{log_start_time}.json'
-        logger.debug(f'Logging json to {log_file_name}')
-        logger.add(log_file_name, level='TRACE', serialize=True)
+    env_log_directory = env_log_directory if env_log_directory.upper().strip() != 'TRUE' else 'log'
+
+    log_to_json = env_log_directory.upper().strip()!='FALSE'
+    if log_to_json:
+        log_directory = pathlib.Path(env_log_directory if env_log_directory else log_directory)
+        if log_directory.is_file():
+            logger.warning(f'LOG_DIRECTORY={log_directory} is a file. Skipping json logging')
+            return
+        log_directory.mkdir(exist_ok=True)
+
+        log_start = datetime.now()
+        log_filename = log_directory / f'{file_stem}-{log_start.isoformat(timespec='seconds').replace(':', '')}.json'
+        if log_filename.is_file():
+            log_start_milliseconds = log_start.isoformat(timespec='milliseconds').replace(':', '')
+            log_filename = log_filename.with_stem(f'{file_stem}-{log_start_milliseconds}')
+
+        logger.debug(f'Logging json to {log_filename}')
+        logger.add(log_filename, level='TRACE', serialize=True)
+        logger.info(f'{sys.argv=}')
     else:
         logger.debug('Skipping json log. LOG_DIRECTORY is undefined.')
 

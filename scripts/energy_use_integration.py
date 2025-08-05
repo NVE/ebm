@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from ebm import extractors
-from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel
+from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel, configure_json_log
 from ebm.cmd.pipeline import load_config
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_use import calculate_energy_use
@@ -16,8 +16,8 @@ def test_energy_use():
     cwd = pathlib.Path(__file__).parent / pathlib.Path(r'../tests/ebm/data')
     os.chdir(cwd)
     load_environment_from_dotenv()
-
     configure_loglevel(os.environ.get('LOG_FORMAT', None))
+    configure_json_log()
     input_path, output_path, years = load_config()
     input_path = pathlib.Path('kalibrert')
 
@@ -68,6 +68,7 @@ def test_energy_use_holiday_home():
     cwd = pathlib.Path(__file__).parent / pathlib.Path(r'../tests/ebm/data')
     os.chdir(cwd)
     load_environment_from_dotenv()
+    configure_json_log()
 
     configure_loglevel(os.environ.get('LOG_FORMAT', None))
     input_path, output_path, years = load_config()

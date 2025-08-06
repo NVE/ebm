@@ -98,6 +98,19 @@ def load_fjernvarme_factors(normalized: list[str], year_cols) -> dict:
     logger.info("📍Loaded fjernvarme distribution factors.")
     return factor_dict
 
+def load_ved_factors(year_cols) -> dict:
+    input_file = get_output_file("ebm/geografisk_inndeling/data/ved_kommune_fordelingsnøkler.xlsx")
+    df = pl.from_pandas(pd.read_excel(input_file))
+    years_column = [str(year) for year in year_cols]
+    factor_dict = {}
+    value_col = "bolig"
+    base_df = df.select("kommune_nr", "kommune_navn", value_col)
+    extended = base_df.with_columns([pl.col(value_col).alias(year) for year in years_column])
+    factor_dict[NameHandler.COLUMN_NAME_BOLIG] = extended
+
+    logger.info("📍Loaded ved distribution factors.")
+    return factor_dict
+
 
 def export_distribution_to_excel(dfs: dict, output_file: Path):
     create_output_directory(filename=output_file)
@@ -132,13 +145,10 @@ def geographical_distribution(
         Path: Path to the generated Excel file.
     """
     # Normalize building category into a list
-    normalized_input = NameHandler.normalize_to_list(building_category)
+    normalized = NameHandler.normalize_to_list(building_category)
 
-    if isinstance(normalized_input, str):
-        normalized_input = [normalized_input]
-
-    # Split into separate categories per energy type
-    normalized_strom = normalized_input.copy()
+    if isinstance(normalized, str):
+        normalized = [normalized]
 
     year_cols = (2020, 2050) if output_format else range(2020, 2051)
 
@@ -146,20 +156,12 @@ def geographical_distribution(
 
     if energitype == "strom":
         df_stacked = prepare_elhub_data(elhub_years, step)
-        dfs_factors = calculate_elhub_factors(df_stacked, normalized_strom, elhub_years, year_cols)
-        building_cats = normalized_strom
+        dfs_factors = calculate_elhub_factors(df_stacked, normalized, elhub_years, year_cols)
 
     elif energitype == "fjernvarme":
-        normalized_fjernvarme = [
-        cat for cat in normalized_input
-        if cat.lower() != NameHandler.COLUMN_NAME_FRITIDSBOLIG.lower()
-        ]
-        if not normalized_fjernvarme:
-            raise ValueError(
-                "Fjernvarme krever minst én bygningskategori som ikke er fritidsboliger."
-                )
-        dfs_factors = load_fjernvarme_factors(normalized_fjernvarme, year_cols)
-        building_cats = normalized_fjernvarme
+        dfs_factors = load_fjernvarme_factors(normalized, year_cols)
+    elif energitype == "ved":
+        dfs_factors = load_ved_factors(year_cols)
     else:
         raise ValueError(f"Unknown energitype: {energitype}")
     
@@ -168,7 +170,7 @@ def geographical_distribution(
         dfs_factors,
         year_cols,
         energitype=energitype,
-        building_category=building_cats
+        building_category=normalized
     )
 
     output_file = get_output_file(

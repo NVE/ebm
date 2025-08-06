@@ -199,7 +199,8 @@ def ebm_energy_use_geographical_distribution(
     # Define mapping from energitype to column values
     energy_type_map = {
         "strom": ['Elektrisitet', 'Electricity'],
-        "fjernvarme": ['DH', 'Fjernvarme', 'District Heating']
+        "fjernvarme": ['DH', 'Fjernvarme', 'District Heating'],
+        "ved": ['Ved', 'Wood', 'Bio']
     }
 
     if energitype not in energy_type_map:

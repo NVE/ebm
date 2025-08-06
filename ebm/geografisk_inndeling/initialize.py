@@ -95,10 +95,10 @@ Velg datakilde: 'azure' for å hente dataen direkte fra Elhub datasjøen, eller 
     arg_parser.add_argument('--long-format', action='store_true', help='''Use long format for output data. Default is wide format.''')
 
     arg_parser.add_argument('--energy-type', '-e',
-                            choices=['strom', 'fjernvarme'],
+                            choices=['strom', 'fjernvarme', 'ved'],
                              default='strom',
                              help='''
-                             Velg energitype: 'strom' for elektrisitet, 'fjernvarme' for fjernvarme, eller 'alle' for begge typer. (standard: strom)
+                             Velg energitype: 'strom' for elektrisitet, 'fjernvarme' for fjernvarme, eller 'ved' for ved. (standard: strom)
                             ''')
 
     arguments = arg_parser.parse_args()

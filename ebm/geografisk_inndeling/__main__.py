@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 from ebm.geografisk_inndeling.geographical_distribution import geographical_distribution
-from ebm.geografisk_inndeling.initialize import make_arguments, create_input_folder
+from ebm.geografisk_inndeling.initialize import NameHandler, make_arguments, create_input_folder
 import gc
 from loguru import logger
 
@@ -21,9 +21,12 @@ def main():
     if arguments.energy_type == "strom":
         logger.info("⚡️ Energikilde satt til strøm.")
         energitype = "strom"
-    else:
+    elif arguments.energy_type == "fjernvarme":
         logger.info("🔥 Energikilde satt til fjernvarme.")
         energitype = "fjernvarme"
+    else:
+        logger.info("🌲 Energikilde satt til ved.")
+        energitype = "ved"
 
 
     building_category_choice = arguments.category
@@ -47,14 +50,28 @@ def main():
             f"fra Elhub data i tidsperioden: {elhub_years} ..."
         )
     elif energitype == "fjernvarme":
-        filtered_categories = [cat for cat in building_category_choice if cat.lower() != "fritidsboliger"]
+        filtered_categories = [cat for cat in building_category_choice if cat.lower() != NameHandler.COLUMN_NAME_FRITIDSBOLIG.lower()]
         logger.info(
             f"🔍 Kommunefordeler fjernvarme for bygningskategori {filtered_categories}."
+            )
+        if not filtered_categories:
+            raise ValueError(
+                "Fjernvarme krever minst én bygningskategori som ikke er fritidsboliger."
+            )
+    elif energitype == "ved":
+        filtered_categories = [cat for cat in building_category_choice if cat.lower() != NameHandler.COLUMN_NAME_FRITIDSBOLIG.lower()\
+                                and cat.lower() != NameHandler.COLUMN_NAME_YRKESBYGG.lower()]
+        logger.info(
+            f"🔍 Kommunefordeler ved for bygningskategori {filtered_categories}."
+            )
+        if not filtered_categories:
+            raise ValueError(
+                "Ved krever minst én bygningskategori som hverken er yrkesbygg eller fritidsboliger."
             )
 
     file_to_open = geographical_distribution(elhub_years, 
                                             energitype=energitype, 
-                                            building_category=building_category_choice,
+                                            building_category=(building_category_choice if energitype == "strom" else filtered_categories),
                                             step=step, 
                                             output_format = convert_result_to_long)
 

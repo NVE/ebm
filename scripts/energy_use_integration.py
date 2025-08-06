@@ -2,17 +2,14 @@ import os
 import pathlib
 import sys
 
-from loguru import logger
 import pandas as pd
 import pytest
 
 from ebm import extractors
-from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel, configure_json_log
 from ebm.cmd.pipeline import load_config
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_use import calculate_energy_use
 from ebm.model.file_handler import FileHandler
-
 
 
 @pytest.fixture

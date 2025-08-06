@@ -14,12 +14,20 @@ from ebm.model.energy_use import calculate_energy_use
 from ebm.model.file_handler import FileHandler
 
 
-def test_energy_use():
-    cwd = pathlib.Path(__file__).parent / pathlib.Path(r'../tests/ebm/data')
-    os.chdir(cwd)
-    load_environment_from_dotenv()
-    configure_loglevel(os.environ.get('LOG_FORMAT', None))
-    configure_json_log()
+
+@pytest.fixture
+def cwd_ebm_data(request):
+    """
+    Change working directory to tests/ebm/data. The working directory
+    is reset when the test finishes.
+    """
+    ebm_data = pathlib.Path(__file__).parent / pathlib.Path(r'../tests/ebm/data')
+    os.chdir(ebm_data)
+    yield
+    os.chdir(request.config.invocation_params.dir)
+
+
+def test_energy_use(cwd_ebm_data):
     input_path, output_path, years = load_config()
     input_path = pathlib.Path('kalibrert')
     output_path.mkdir(exist_ok=True)
@@ -66,7 +74,7 @@ def test_energy_use():
 
 
 
-    configure_loglevel(os.environ.get('LOG_FORMAT', None))
+def test_energy_use_holiday_home(cwd_ebm_data):
     input_path, output_path, years = load_config()
     input_path = pathlib.Path('kalibrert')
 

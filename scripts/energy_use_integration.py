@@ -1,6 +1,8 @@
 import os
 import pathlib
+import sys
 
+from loguru import logger
 import pandas as pd
 import pytest
 
@@ -20,7 +22,6 @@ def test_energy_use():
     configure_json_log()
     input_path, output_path, years = load_config()
     input_path = pathlib.Path('kalibrert')
-
     output_path.mkdir(exist_ok=True)
 
     file_handler = FileHandler(directory=input_path)
@@ -64,11 +65,6 @@ def test_energy_use():
     # assert building_group_energy_use_by_year.loc[('yrkesbygg', 'Fossil', 2050)].iloc[0] == np.nan
 
 
-def test_energy_use_holiday_home():
-    cwd = pathlib.Path(__file__).parent / pathlib.Path(r'../tests/ebm/data')
-    os.chdir(cwd)
-    load_environment_from_dotenv()
-    configure_json_log()
 
     configure_loglevel(os.environ.get('LOG_FORMAT', None))
     input_path, output_path, years = load_config()
@@ -85,10 +81,20 @@ def test_energy_use_holiday_home():
     holiday = holiday.set_index(['building_group', 'energy_source', 'year'])
     holiday.loc[:, 'kwh'] = holiday.loc[:, 'kwh'] * 1_000_000
 
-    assert holiday.loc[('Fritidsboliger', 'Bio', 2050)].iloc[0] ==  1_510_492_631.9257426
-    assert holiday.loc[('Fritidsboliger', 'Fossil', 2050)].iloc[0] == 100_000_000
+    assert holiday.loc[('Fritidsboliger', 'Electricity', 2023)].iloc[0] ==  2_427_000_000.0
+    assert holiday.loc[('Fritidsboliger', 'Electricity', 2030)].iloc[0] ==  2_802_046_777.7045803
+    assert holiday.loc[('Fritidsboliger', 'Electricity', 2049)].iloc[0] ==  3_151_231_746.9389396
     assert holiday.loc[('Fritidsboliger', 'Electricity', 2050)].iloc[0] ==  3_156_584_204.2180767
+    assert holiday.loc[('Fritidsboliger', 'Bio', 2023)].iloc[0] ==  1_390_000_000
+    assert holiday.loc[('Fritidsboliger', 'Bio', 2027)].iloc[0] ==  1_392_620_395.5040183
+    assert holiday.loc[('Fritidsboliger', 'Bio', 2030)].iloc[0] ==  1_413_023_760.34298
+    assert holiday.loc[('Fritidsboliger', 'Bio', 2049)].iloc[0] ==  1_507_931_367.3562658
+    assert holiday.loc[('Fritidsboliger', 'Bio', 2050)].iloc[0] ==  1_510_492_631.9257426
+    assert holiday.loc[('Fritidsboliger', 'Fossil', 2023)].iloc[0] == 100_000_000
+    assert holiday.loc[('Fritidsboliger', 'Fossil', 2030)].iloc[0] == 100_000_000
+    assert holiday.loc[('Fritidsboliger', 'Fossil', 2049)].iloc[0] == 100_000_000
+    assert holiday.loc[('Fritidsboliger', 'Fossil', 2050)].iloc[0] == 100_000_000
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([sys.argv[0]])

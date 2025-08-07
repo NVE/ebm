@@ -1,4 +1,4 @@
-TEK,building_year,period_start_year,period_end_year
+building_code,building_year,period_start_year,period_end_year
 PRE_TEK49,1945,0,1948
 TEK49,1962,1949,1968
 TEK69,1977,1969,1986

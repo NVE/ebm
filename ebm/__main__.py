@@ -119,7 +119,7 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
             df = transform_model_to_horizontal(model)
             append_result(output_file, df, f'{sheet_name_prefix} TEK')
 
-            model['TEK'] = 'all'
+            model['building_code'] = 'all'
             df = transform_model_to_horizontal(model)
             append_result(output_file, df, f'{sheet_name_prefix} category')
         else:

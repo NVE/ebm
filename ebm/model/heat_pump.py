@@ -29,9 +29,9 @@ def heat_pump_production(energy_need, air_air, district_heating):
     df_hp = pd.concat([air_air, district_heating])
 
     df = pd.merge(left=df_en,
-                  left_on=['building_category', 'TEK', 'purpose', 'year'],
+                  left_on=['building_category', 'building_code', 'purpose', 'year'],
                   right=df_hp,
-                  right_on=['building_category', 'TEK', 'purpose', 'year'])
+                  right_on=['building_category', 'building_code', 'purpose', 'year'])
 
 
     df[HEAT_PUMP] = df.energy_requirement * df.pump_factor

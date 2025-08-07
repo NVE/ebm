@@ -18,7 +18,7 @@ def filter_original_condition(df: pd.DataFrame, building_category: BuildingCateg
 
     exploded = explode_dataframe(df)
     de_duped = de_dupe_dataframe(exploded)
-    filtered = de_duped[(de_duped.building_category==building_category) & (de_duped.TEK==tek) & (de_duped.purpose == purpose)]
+    filtered = de_duped[(de_duped.building_category==building_category) & (de_duped.building_code==tek) & (de_duped.purpose == purpose)]
 
     ```
 
@@ -36,7 +36,7 @@ def filter_original_condition(df: pd.DataFrame, building_category: BuildingCateg
     """
     exploded = explode_dataframe(df)
     de_duped = de_dupe_dataframe(exploded)
-    return de_duped[(de_duped.building_category==building_category) & (de_duped.TEK==tek) & (de_duped.purpose == purpose)]
+    return de_duped[(de_duped.building_category==building_category) & (de_duped.building_code==tek) & (de_duped.purpose == purpose)]
 
 
 def filter_improvement_building_upgrade(df: pd.DataFrame, building_category: BuildingCategory|str, tek:str, purpose: str) -> pd.DataFrame:
@@ -49,7 +49,7 @@ def filter_improvement_building_upgrade(df: pd.DataFrame, building_category: Bui
 
     exploded = explode_dataframe(df)
     de_duped = de_dupe_dataframe(exploded)
-    filtered = de_duped[(de_duped.building_category==building_category) & (de_duped.TEK==tek) & (de_duped.purpose == purpose)]
+    filtered = de_duped[(de_duped.building_category==building_category) & (de_duped.building_code==tek) & (de_duped.purpose == purpose)]
 
     ```
 
@@ -66,13 +66,13 @@ def filter_improvement_building_upgrade(df: pd.DataFrame, building_category: Bui
 
     """
     exploded = explode_dataframe(df)
-    de_duped = de_dupe_dataframe(exploded, unique_columns=['building_category', 'TEK', 'purpose', 'building_condition'])
-    filtered=de_duped[(de_duped.building_category==building_category) & (de_duped.TEK==tek) & (de_duped.purpose == purpose)]
+    de_duped = de_dupe_dataframe(exploded, unique_columns=['building_category', 'building_code', 'purpose', 'building_condition'])
+    filtered=de_duped[(de_duped.building_category==building_category) & (de_duped.building_code==tek) & (de_duped.purpose == purpose)]
 
     filler_frame = pd.DataFrame([(building_category, tek, purpose, bc, 0.0) for bc in BuildingCondition.existing_conditions()],
-                                columns=['building_category', 'TEK', 'purpose', 'building_condition', 'reduction_share'])
+                                columns=['building_category', 'building_code', 'purpose', 'building_condition', 'reduction_share'])
 
-    return pd.concat([filtered, filler_frame]).drop_duplicates(['building_category', 'TEK', 'purpose', 'building_condition'], keep='first')
+    return pd.concat([filtered, filler_frame]).drop_duplicates(['building_category', 'building_code', 'purpose', 'building_condition'], keep='first')
 
 
 def de_dupe_dataframe(df: pd.DataFrame, unique_columns: Optional[list[str]]=None) -> pd.DataFrame:
@@ -84,31 +84,31 @@ def de_dupe_dataframe(df: pd.DataFrame, unique_columns: Optional[list[str]]=None
     ----------
     df : pd.DataFrame
     unique_columns : list[str], optional
-                     default= ['building_category', 'TEK', 'purpose']
+                     default= ['building_category', 'building_code', 'purpose']
 
     Returns
     -------
     pd.DataFrame
 
     """
-    de_dupe_by = unique_columns if unique_columns else ['building_category', 'TEK', 'purpose']
+    de_dupe_by = unique_columns if unique_columns else ['building_category', 'building_code', 'purpose']
 
     de_duped = df.drop_duplicates(de_dupe_by)
     return de_duped
 
 
-def explode_dataframe(df: pd.DataFrame, tek_list:Optional[list[str]]=None) -> pd.DataFrame:
+def explode_dataframe(df: pd.DataFrame, building_code_list:Optional[list[str]]=None) -> pd.DataFrame:
     """
     Explode column aliases for building_category, TEK, purpose in dataframe.
 
     default in building_category is replaced with all options from BuildingCategory enum
-    default in TEK is replaced with all elements in optional tek_list parameter
+    default in TEK is replaced with all elements in optional building_code_list parameter
     default in purpose is replaced with all options from EnergyPurpose enum
 
     Parameters
     ----------
     df : pd.DataFrame
-    tek_list : list of TEK to replace default, Optional
+    building_code_list : list of TEK to replace default, Optional
                default TEK49 PRE_TEK49 PRE_TEK49_RES_1950 TEK69 TEK87 TEK97 TEK07 TEK10 TEK17
 
     Returns
@@ -116,8 +116,8 @@ def explode_dataframe(df: pd.DataFrame, tek_list:Optional[list[str]]=None) -> pd
     pd.DataFrame
 
     """
-    if not tek_list:
-        tek_list = 'TEK49 PRE_TEK49 PRE_TEK49_RES_1950 TEK69 TEK87 TEK97 TEK07 TEK10 TEK17 TEK21 TEK01'.split(' ')
+    if not building_code_list:
+        building_code_list = 'TEK49 PRE_TEK49 PRE_TEK49_RES_1950 TEK69 TEK87 TEK97 TEK07 TEK10 TEK17 TEK21 TEK01'.split(' ')
     # expand building_category
     df = replace_column_alias(df,
                               column='building_category',
@@ -125,14 +125,14 @@ def explode_dataframe(df: pd.DataFrame, tek_list:Optional[list[str]]=None) -> pd
                                       'residential': [b for b in BuildingCategory if b.is_residential()],
                                       'non_residential': [b for b in BuildingCategory if not b.is_residential()]})
     # expand tek
-    df = replace_column_alias(df, 'TEK', values=tek_list, alias='default')
+    df = replace_column_alias(df, 'building_code', values=building_code_list, alias='default')
 
     # expand purpose
     df = replace_column_alias(df, 'purpose', values=[p for p in EnergyPurpose], alias='default')
 
     # Add priorty column and sort
     df['bc_priority'] = df.building_category.apply(lambda x: 0 if '+' not in x else len(x.split('+')))
-    df['t_priority'] = df.TEK.apply(lambda x: 0 if '+' not in x else len(x.split('+')))
+    df['t_priority'] = df.building_code.apply(lambda x: 0 if '+' not in x else len(x.split('+')))
     df['p_priority'] = df.purpose.apply(lambda x: 0 if '+' not in x else len(x.split('+')))
 
     if not 'priority' in df.columns:
@@ -141,11 +141,11 @@ def explode_dataframe(df: pd.DataFrame, tek_list:Optional[list[str]]=None) -> pd
 
     # Explode
     df = df.assign(**{'building_category': df['building_category'].str.split('+'), }).explode('building_category')
-    df = df.assign(**{'TEK': df['TEK'].str.split('+')}).explode('TEK')
+    df = df.assign(**{'building_code': df['building_code'].str.split('+')}).explode('building_code')
     df = df.assign(**{'purpose': df['purpose'].str.split('+'), }).explode('purpose')
     # dedupe
-    deduped = df.sort_values(by=['building_category', 'TEK', 'purpose', 'priority'])
-    deduped['dupe'] = deduped.duplicated(['building_category', 'TEK', 'purpose'], keep=False)
+    deduped = df.sort_values(by=['building_category', 'building_code', 'purpose', 'priority'])
+    deduped['dupe'] = deduped.duplicated(['building_category', 'building_code', 'purpose'], keep=False)
     return deduped
 
 
@@ -158,10 +158,10 @@ def main():
     import sys
     def _load_file(infile):
         df = pd.read_csv(infile)
-        tek_list = 'TEK49 PRE_TEK49 TEK69 TEK87 TEK97 TEK07 TEK10 TEK17'.split(' ')
+        building_code_list = 'TEK49 PRE_TEK49 TEK69 TEK87 TEK97 TEK07 TEK10 TEK17'.split(' ')
 
-        return explode_dataframe(df, tek_list=tek_list).sort_values(
-            by=['dupe', 'building_category', 'TEK', 'purpose', 'priority'])
+        return explode_dataframe(df, building_code_list=building_code_list).sort_values(
+            by=['dupe', 'building_category', 'building_code', 'purpose', 'priority'])
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)
     pd.set_option('display.width', None)

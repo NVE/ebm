@@ -16,7 +16,7 @@ from ebm.model.exceptions import AmbiguousDataError
 @pytest.fixture
 def reduction_per_condition() -> pd.DataFrame:
     return pd.read_csv(io.StringIO("""
-building_category,TEK,purpose,building_condition,reduction_share
+building_category,building_code,purpose,building_condition,reduction_share
 house,TEK17,heating_rv,original_condition,0.0
 house,TEK17,heating_rv,small_measure,0.07
 house,TEK17,heating_rv,renovation,0.2
@@ -49,7 +49,7 @@ def default_parameters(reduction_per_condition) \
 @pytest.fixture
 def no_default_df() -> pd.DataFrame:
     return pd.read_csv(io.StringIO("""
-building_category,TEK,purpose,building_condition,reduction_share
+building_category,building_code,purpose,building_condition,reduction_share
 house,TEK17,heating_rv,original_condition,0.0
 house,TEK17,heating_rv,small_measure,0.07
 house,TEK17,heating_rv,renovation,0.2
@@ -175,7 +175,7 @@ def test_get_reduction_per_condition_return_false_value_when_purpose_not_found(d
     pd.testing.assert_frame_equal(result, false_return_value)
 
 
-def test_get_reduction_per_condition_return_false_value_when_tek_not_found(default_parameters,
+def test_get_reduction_per_condition_return_false_value_when_building_code_not_found(default_parameters,
                                                                            no_default_df,
                                                                            false_return_value):
     """
@@ -198,7 +198,7 @@ def test_get_reduction_per_condition_return_correct_df_when_matches_has_equal_pr
     order in which they should be prioritized is as follows: building_category, tek and purpose.
     """
     reduction_per_condition = pd.read_csv(io.StringIO("""
-    building_category,TEK,purpose,building_condition,reduction_share
+    building_category,building_code,purpose,building_condition,reduction_share
     default,TEK21,heating_rv,original_condition,0.11
     default,TEK21,heating_rv,small_measure,0.12
     default,TEK21,heating_rv,renovation,0.13
@@ -239,7 +239,7 @@ def test_get_reduction_per_condition_raise_error_for_duplicate_rows_with_differe
     deciding which value is correct and the program should crash. 
     """
     reduction_per_condition = pd.read_csv(io.StringIO("""
-    building_category,TEK,purpose,building_condition,reduction_share
+    building_category,building_code,purpose,building_condition,reduction_share
     house,TEK21,heating_rv,original_condition,0.11
     house,TEK21,heating_rv,small_measure,0.12
     house,TEK21,heating_rv,renovation,0.13
@@ -276,7 +276,7 @@ def test_get_reduction_per_condition_return_df_with_default_values_when_building
     then add a row with the missing condition and set the value to ~~the default value (0.0)~~ 0.9.
     """
     reduction_per_condition = pd.read_csv(io.StringIO("""
-    building_category,TEK,purpose,building_condition,reduction_share
+    building_category,building_code,purpose,building_condition,reduction_share
     house,TEK21,heating_rv,original_condition,0.11
     house,TEK21,heating_rv,small_measure,0.12
     default,default,default,original_condition,0.9
@@ -306,7 +306,7 @@ def test_get_reduction_per_condition_require_expected_building_conditions(defaul
     the highest priority is used and that missing conditions are added. 
     """
     reduction_per_condition = pd.read_csv(io.StringIO("""
-    building_category,TEK,purpose,building_condition,reduction_share
+    building_category,building_code,purpose,building_condition,reduction_share
     house,default,heating_rv,original_condition,0.1
     house,default,heating_rv,renovation,0.2
     default,TEK21,heating_rv,original_condition,0.234

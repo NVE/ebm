@@ -9,7 +9,7 @@ from ebm.model.data_classes import YearRange
 from ebm.model.building_category import BuildingCategory, RESIDENTIAL, NON_RESIDENTIAL
 
 BUILDING_CATEGORY = 'building_category'
-TEK = 'TEK'
+BUILDING_CODE = 'building_code'
 HEATING_SYSTEMS = 'heating_systems'
 NEW_HEATING_SYSTEMS = 'new_heating_systems'
 YEAR = 'year'
@@ -22,13 +22,13 @@ class HeatingSystemsProjection:
                  shares_start_year: pd.DataFrame,
                  efficiencies: pd.DataFrame,
                  projection: pd.DataFrame,
-                 tek_list: typing.List[str],
+                 building_code_list: typing.List[str],
                  period: YearRange):
         
         self.shares_start_year = shares_start_year
         self.efficiencies = efficiencies
         self.projection = projection
-        self.tek_list = tek_list
+        self.building_code_list = building_code_list
         self.period = period
         
         self._validate_years()
@@ -60,10 +60,10 @@ class HeatingSystemsProjection:
         if start_year != self.period.start:
             raise ValueError(f"Start year in dataframe doesn't match start year for given period.")
         
-        projection = self.projection.melt(id_vars = [BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS],
+        projection = self.projection.melt(id_vars = [BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS],
                                           var_name = YEAR, value_name = "Andel_utskiftning")
         projection[YEAR] = projection[YEAR].astype(int) 
-        min_df = projection.groupby([BUILDING_CATEGORY, TEK]).agg(min_year=(YEAR, 'min')).reset_index()
+        min_df = projection.groupby([BUILDING_CATEGORY, BUILDING_CODE]).agg(min_year=(YEAR, 'min')).reset_index()
         min_mismatch = min_df[min_df['min_year'] != (start_year + 1)]
 
         if not min_mismatch.empty:
@@ -74,7 +74,7 @@ class HeatingSystemsProjection:
         def check_years(group):
             return set(projection_period).issubset(group[YEAR])
         
-        period_match = projection.groupby(by=[BUILDING_CATEGORY, TEK]).apply(check_years).reset_index()
+        period_match = projection.groupby(by=[BUILDING_CATEGORY, BUILDING_CODE]).apply(check_years).reset_index()
         if not period_match[period_match[0] == False].empty:
             raise ValueError("Years in dataframe not present in given period.")
 
@@ -90,14 +90,14 @@ class HeatingSystemsProjection:
         Raises:
         -------
         ValueError
-            If sum of shares for a TEK is not equal to 1.    
+            If sum of shares for a building_codeis not equal to 1.
         """
         shares_all_heating_systems = add_missing_heating_systems(self.shares_start_year, 
                                                                  HeatingSystems,
                                                                  self.period.start) 
-        projected_shares = expand_building_category_tek(self.projection, self.tek_list)
+        projected_shares = expand_building_category_building_code(self.projection, self.building_code_list)
         new_shares = project_heating_systems(shares_all_heating_systems, projected_shares, self.period)
-        heating_systems_projection = add_existing_tek_shares_to_projection(new_shares, 
+        heating_systems_projection = add_existing_heating_system_shares_to_projection(new_shares, 
                                                                            self.shares_start_year, 
                                                                            self.period)
         check_sum_of_shares(heating_systems_projection) 
@@ -128,11 +128,11 @@ class HeatingSystemsProjection:
         shares_start_year = dm.get_heating_systems_shares_start_year()
         efficiencies = dm.get_heating_systems_efficiencies()
         projection = dm.get_heating_systems_projection()
-        tek_list = dm.get_tek_list()
+        building_code_list = dm.get_building_code_list()
         return HeatingSystemsProjection(shares_start_year=shares_start_year,
                                         efficiencies=efficiencies,
                                         projection=projection,
-                                        tek_list=tek_list,
+                                        building_code_list=building_code_list,
                                         period=period)
 
     @staticmethod
@@ -167,7 +167,7 @@ def add_missing_heating_systems(heating_systems_shares: pd.DataFrame,
                                 heating_systems: HeatingSystems = None,
                                 start_year: int = None) -> pd.DataFrame:
     """
-    Add missing HeatingSystems per BuildingCategory and TEK with a default TEK_share of 0. 
+    Add missing HeatingSystems per BuildingCategory and building_codewith a default TEK_share of 0.
     """
     df_aggregert_0 = heating_systems_shares.copy()
     input_start_year = df_aggregert_0[YEAR].unique()
@@ -186,17 +186,17 @@ def add_missing_heating_systems(heating_systems_shares: pd.DataFrame,
         {HEATING_SYSTEMS: [hs for hs in heating_systems]}
     )
 
-    df_aggregert_0_kombinasjoner = df_aggregert_0[[BUILDING_CATEGORY, TEK]].drop_duplicates()
+    df_aggregert_0_kombinasjoner = df_aggregert_0[[BUILDING_CATEGORY, BUILDING_CODE]].drop_duplicates()
     df_aggregert_0_alle_oppvarmingstyper = df_aggregert_0_kombinasjoner.merge((oppvarmingstyper), how = 'cross')
 
     df_aggregert_merged = df_aggregert_0_alle_oppvarmingstyper.merge(df_aggregert_0, 
-                                                                    on = [BUILDING_CATEGORY, TEK, HEATING_SYSTEMS],
+                                                                    on = [BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS],
                                                                     how = 'left')
     #TODO: Kan droppe kopi av df og heller ta fillna() for de to kolonnene 
     manglende_rader = df_aggregert_merged[df_aggregert_merged[TEK_SHARES].isna()].copy()
     manglende_rader[YEAR] = start_year
     manglende_rader[TEK_SHARES] = 0
-    manglende_rader = manglende_rader[[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, YEAR, TEK_SHARES]]
+    manglende_rader = manglende_rader[[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, YEAR, TEK_SHARES]]
 
     df_aggregert_alle_kombinasjoner = pd.concat([df_aggregert_0, manglende_rader])
     
@@ -214,44 +214,44 @@ def add_load_shares_and_efficiencies(df: pd.DataFrame,
 
 def aggregere_lik_oppvarming_fjern_0(df):
     df_fjern_null = df.query(f"{TEK_SHARES} != 0").copy()
-    df_aggregert = df_fjern_null.groupby([BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, YEAR], 
+    df_aggregert = df_fjern_null.groupby([BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, YEAR],
                                          as_index = False)[TEK_SHARES].sum()
     return df_aggregert
 
 
-def expand_building_category_tek(projection: pd.DataFrame,
-                                 tek_list: typing.List[str]) -> pd.DataFrame:
+def expand_building_category_building_code(projection: pd.DataFrame,
+                                 building_code_list: typing.List[str]) -> pd.DataFrame:
     """
     Adds necessary building categories and TEK's to the heating_systems_forecast dataframe. 
     """
     score = '_score'
     original_building_category = '_original_bc'
-    original_tek = '_original_tek'
+    original_building_code = '_original_building_code'
     projection[original_building_category] = projection['building_category']
-    projection[original_tek] = projection['TEK']
+    projection[original_building_code] = projection['building_code']
 
     alle_bygningskategorier = '+'.join(BuildingCategory)
-    alle_tek = '+'.join(tek for tek in tek_list)
+    alle_building_code = '+'.join(tek for tek in building_code_list)
     husholdning = '+'.join(bc for bc in BuildingCategory if bc.is_residential())
     yrkesbygg = '+'.join(bc for bc in BuildingCategory if bc.is_non_residential())
 
     df = projection.copy()
-    df.loc[df[TEK] == "default", TEK] = alle_tek
+    df.loc[df[BUILDING_CODE] == "default", BUILDING_CODE] = alle_building_code
     df.loc[df[BUILDING_CATEGORY] == "default", BUILDING_CATEGORY] = alle_bygningskategorier
     df.loc[df[BUILDING_CATEGORY] == RESIDENTIAL, BUILDING_CATEGORY] = husholdning
     df.loc[df[BUILDING_CATEGORY] == NON_RESIDENTIAL, BUILDING_CATEGORY] = yrkesbygg
 
     df = df.assign(**{BUILDING_CATEGORY: df[BUILDING_CATEGORY].str.split('+')}).explode(BUILDING_CATEGORY)
-    df2 = df.assign(**{TEK: df[TEK].str.split('+')}).explode(TEK)
+    df2 = df.assign(**{BUILDING_CODE: df[BUILDING_CODE].str.split('+')}).explode(BUILDING_CODE)
     df2 = df2.reset_index(drop=True)
     df2[score] = (df2[original_building_category] != 'default') * 1 + \
                  (~df2[original_building_category].isin(['default', NON_RESIDENTIAL, RESIDENTIAL])) * 1 + \
-                 (df2[original_tek] != 'default') * 1
+                 (df2[original_building_code] != 'default') * 1
 
     df2 = df2.sort_values(by=[score])
-    de_duped = df2.drop_duplicates(subset=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS], keep='last')
+    de_duped = df2.drop_duplicates(subset=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS], keep='last')
 
-    return de_duped.drop(columns=[score, original_building_category, original_tek])
+    return de_duped.drop(columns=[score, original_building_category, original_building_code])
 
 
 def project_heating_systems(shares_start_year_all_systems: pd.DataFrame, 
@@ -260,7 +260,7 @@ def project_heating_systems(shares_start_year_all_systems: pd.DataFrame,
     df = shares_start_year_all_systems.copy()
     inputfil_oppvarming = projected_shares.copy()
 
-    df_framskrive_oppvarming_long = inputfil_oppvarming.melt(id_vars=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS,
+    df_framskrive_oppvarming_long = inputfil_oppvarming.melt(id_vars=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS,
                                                                       NEW_HEATING_SYSTEMS],
                                                              var_name=YEAR, value_name="Andel_utskiftning")
 
@@ -270,45 +270,45 @@ def project_heating_systems(shares_start_year_all_systems: pd.DataFrame,
     liste_eksisterende_oppvarming = list(df_framskrive_oppvarming_long[HEATING_SYSTEMS].unique())
     liste_ny_oppvarming = list(df_framskrive_oppvarming_long[NEW_HEATING_SYSTEMS].unique())
 
-    oppvarming_og_TEK = df.query(f"{HEATING_SYSTEMS} == {liste_eksisterende_oppvarming}")[[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, YEAR, TEK_SHARES]].copy()
-    oppvarming_og_TEK_foer_endring = df.query(f"{HEATING_SYSTEMS} == {liste_ny_oppvarming}")[[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, TEK_SHARES]].copy()
+    oppvarming_og_TEK = df.query(f"{HEATING_SYSTEMS} == {liste_eksisterende_oppvarming}")[[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, YEAR, TEK_SHARES]].copy()
+    oppvarming_og_TEK_foer_endring = df.query(f"{HEATING_SYSTEMS} == {liste_ny_oppvarming}")[[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, TEK_SHARES]].copy()
 
     df_merge = oppvarming_og_TEK.merge(df_framskrive_oppvarming_long,
-                                       on=[BUILDING_CATEGORY, TEK, HEATING_SYSTEMS], how='inner')
+                                       on=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS], how='inner')
     df_merge['Ny_andel'] = (df_merge[TEK_SHARES] * df_merge['Andel_utskiftning'])
 
-    df_ny_andel_sum = df_merge.groupby([BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, f'{YEAR}_y'], as_index = False)[['Ny_andel']].sum()
+    df_ny_andel_sum = df_merge.groupby([BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, f'{YEAR}_y'], as_index = False)[['Ny_andel']].sum()
     df_ny_andel_sum = df_ny_andel_sum.rename(columns={"Ny_andel": "Sum_ny_andel"})
 
-    df_merge_sum_ny_andel = pd.merge(df_merge, df_ny_andel_sum, on = [BUILDING_CATEGORY,TEK,HEATING_SYSTEMS, f'{YEAR}_y'])
+    df_merge_sum_ny_andel = pd.merge(df_merge, df_ny_andel_sum, on = [BUILDING_CATEGORY,BUILDING_CODE,HEATING_SYSTEMS, f'{YEAR}_y'])
 
     df_merge_sum_ny_andel['Eksisterende_andel'] = ((df_merge_sum_ny_andel[TEK_SHARES] -
                                                     df_merge_sum_ny_andel['Sum_ny_andel']))
 
-    kolonner_eksisterende = [f'{YEAR}_y', BUILDING_CATEGORY, TEK, 'Eksisterende_andel', HEATING_SYSTEMS]
+    kolonner_eksisterende = [f'{YEAR}_y', BUILDING_CATEGORY, BUILDING_CODE, 'Eksisterende_andel', HEATING_SYSTEMS]
     navn_eksisterende_kolonner = {"Eksisterende_andel": TEK_SHARES,
                                   NEW_HEATING_SYSTEMS : HEATING_SYSTEMS,
                                   f'{YEAR}_y': YEAR}
 
-    kolonner_nye = [f'{YEAR}_y', BUILDING_CATEGORY, TEK, 'Ny_andel', NEW_HEATING_SYSTEMS]
+    kolonner_nye = [f'{YEAR}_y', BUILDING_CATEGORY, BUILDING_CODE, 'Ny_andel', NEW_HEATING_SYSTEMS]
     navn_nye_kolonner = {"Ny_andel": TEK_SHARES,
                          NEW_HEATING_SYSTEMS: HEATING_SYSTEMS,
                          f'{YEAR}_y': YEAR}
 
-    rekkefolge_kolonner = [YEAR, BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, TEK_SHARES]
+    rekkefolge_kolonner = [YEAR, BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, TEK_SHARES]
 
     nye_andeler_eksisterende = df_merge_sum_ny_andel[kolonner_eksisterende].rename(columns=navn_eksisterende_kolonner)
     
     nye_andeler_nye = df_merge_sum_ny_andel[kolonner_nye].rename(columns=navn_nye_kolonner)
     nye_andeler_nye = aggregere_lik_oppvarming_fjern_0(nye_andeler_nye)
 
-    nye_andeler_pluss_eksisterende = nye_andeler_nye.merge(oppvarming_og_TEK_foer_endring, on = [BUILDING_CATEGORY,TEK,HEATING_SYSTEMS], how = 'inner')
+    nye_andeler_pluss_eksisterende = nye_andeler_nye.merge(oppvarming_og_TEK_foer_endring, on = [BUILDING_CATEGORY,BUILDING_CODE,HEATING_SYSTEMS], how = 'inner')
     nye_andeler_pluss_eksisterende[TEK_SHARES] = nye_andeler_pluss_eksisterende[f'{TEK_SHARES}_x'] + nye_andeler_pluss_eksisterende[f'{TEK_SHARES}_y']
     nye_andeler_pluss_eksisterende = nye_andeler_pluss_eksisterende.drop(columns=[f'{TEK_SHARES}_x', f'{TEK_SHARES}_y'])
 
     nye_andeler_samlet = pd.concat([nye_andeler_eksisterende, nye_andeler_pluss_eksisterende])
     nye_andeler_drop_dupe = nye_andeler_samlet.drop_duplicates(
-        subset=[YEAR, BUILDING_CATEGORY, TEK, HEATING_SYSTEMS, TEK_SHARES], keep='first')
+        subset=[YEAR, BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, TEK_SHARES], keep='first')
 
     nye_andeler_samlet_uten_0 = aggregere_lik_oppvarming_fjern_0(nye_andeler_drop_dupe)
     nye_andeler_samlet_uten_0 = nye_andeler_samlet_uten_0[rekkefolge_kolonner]
@@ -326,15 +326,15 @@ def check_sum_of_shares(projected_shares: pd.DataFrame, precision: int = 10):
     Parameters
     ----------
     projected_shares: pd.Dataframe
-        Dataframe must contain columns: 'building_category', 'TEK', 'year' and 'heating_system_share'
+        Dataframe must contain columns: 'building_category', 'building_code', 'year' and 'heating_system_share'
 
     Raises
     ------
     ValueError
-        If sum of shares for a TEK is not equal to 1.  
+        If sum of shares for a building_codeis not equal to 1.
     """
     df = projected_shares.copy()
-    df = df.groupby(by=[BUILDING_CATEGORY, TEK, YEAR])[[TEK_SHARES]].sum()
+    df = df.groupby(by=[BUILDING_CATEGORY, BUILDING_CODE, YEAR])[[TEK_SHARES]].sum()
     df['check'] = round(df[TEK_SHARES] * 100, precision) == 100.0
     invalid_shares = df[df['check'] == False].copy()
     invalid_shares.drop(columns=['check'], inplace=True)
@@ -347,18 +347,18 @@ def check_sum_of_shares(projected_shares: pd.DataFrame, precision: int = 10):
         #raise ValueError(f"Sum of shares for {n} number of TEK's is not equal to 1.")
 
 
-def add_existing_tek_shares_to_projection(new_shares: pd.DataFrame,
+def add_existing_heating_system_shares_to_projection(new_shares: pd.DataFrame,
                                           existing_shares: pd.DataFrame,
                                           period: YearRange) -> pd.DataFrame:
     """
     Keeps the TEK_share of a heating system constant for all years in the projection period, if the heating system have
-    an existing TEK share that have not been projected.    
+    an existing building_codeshare that have not been projected.
     """
     df_nye_andeler_kopi = new_shares.copy()
 
     def sortering_oppvarmingstyper(df):
         df_kombinasjoner = df.copy()
-        df_kombinasjoner['Sortering'] = df_kombinasjoner[BUILDING_CATEGORY] + df_kombinasjoner[TEK] + \
+        df_kombinasjoner['Sortering'] = df_kombinasjoner[BUILDING_CATEGORY] + df_kombinasjoner[BUILDING_CODE] + \
                                         df_kombinasjoner[HEATING_SYSTEMS]
         kombinasjonsliste = list(df_kombinasjoner['Sortering'].unique())
         

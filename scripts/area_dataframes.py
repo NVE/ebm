@@ -47,10 +47,10 @@ def main():
     area_parameters = dm.get_area_parameters()
     area_parameters['year'] = years.start
 
-    tek_parameters = dm.file_handler.get_building_code()
+    building_code_parameters = dm.file_handler.get_building_code()
 
     logger.info('Call extract_area_forecast')
-    area_by_condition = extract_area_forecast(years, scurve_parameters, tek_parameters, area_parameters, dm)
+    area_by_condition = extract_area_forecast(years, scurve_parameters, building_code_parameters, area_parameters, dm)
 
     logger.info('Write output')
     dataframe_to_csv(area_by_condition, pathlib.Path('output/area_dataframes.csv'))

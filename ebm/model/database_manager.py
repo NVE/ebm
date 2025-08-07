@@ -6,7 +6,7 @@ from loguru import logger
 
 from ebm import validators
 from ebm.energy_consumption import calibrate_heating_systems
-from ebm.model.column_operations import explode_building_category_column, explode_tek_column, explode_unique_columns
+from ebm.model.column_operations import explode_building_category_column, explode_building_code_column, explode_unique_columns
 from ebm.model.dataframemodels import EnergyNeedYearlyImprovements, YearlyReduction, PolicyImprovement
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.file_handler import FileHandler
@@ -25,7 +25,7 @@ class DatabaseManager:
     """
 
     # Column names
-    COL_TEK = 'TEK'
+    COL_TEK = 'building_code'
     COL_TEK_BUILDING_YEAR = 'building_year'
     COL_TEK_START_YEAR = 'period_start_year'
     COL_TEK_END_YEAR = 'period_end_year'
@@ -43,16 +43,16 @@ class DatabaseManager:
 
         self.file_handler = file_handler if file_handler is not None else FileHandler()
     
-    def get_tek_list(self):
+    def get_building_code_list(self):
         """
-        Get a list of TEK IDs.
+        Get a list of building_code.
 
         Returns:
-        - tek_list (list): List of TEK IDs.
+        - building_code_list (list): List of building_code.
         """
-        tek_id = self.file_handler.get_tek_id()
-        tek_list = tek_id[self.COL_TEK].unique()
-        return tek_list
+        building_code_id = self.file_handler.get_building_code_id()
+        building_code_list = building_code_id[self.COL_TEK].unique()
+        return building_code_list
 
     def make_building_purpose(self, years: YearRange | None = None) -> pd.DataFrame:
         """
@@ -68,8 +68,8 @@ class DatabaseManager:
         pd.DataFrame
         """
         data = []
-        columns = [list(BuildingCategory), self.get_tek_list().tolist(), EnergyPurpose]
-        column_headers = ['building_category', 'TEK', 'building_condition', 'purpose']
+        columns = [list(BuildingCategory), self.get_building_code_list().tolist(), EnergyPurpose]
+        column_headers = ['building_category', 'building_code', 'building_condition', 'purpose']
         if years:
             columns.append(years)
             column_headers.append('year')
@@ -82,47 +82,47 @@ class DatabaseManager:
 
         return pd.DataFrame(data=data, columns=column_headers)
 
-    def get_tek_params(self, tek_list: typing.List[str]):
+    def get_building_code_params(self, building_code_list: typing.List[str]):
         """
-        Retrieve TEK parameters for a list of TEK IDs.
+        Retrieve building_codeparameters for a list of building_code.
 
-        This method fetches TEK parameters for each TEK ID in the provided list,
+        This method fetches building_codeparameters for each building_codeID in the provided list,
         converts the relevant data to a dictionary, and maps these values to the 
         corresponding attributes of the TEKParameters dataclass. The resulting 
-        dataclass instances are stored in a dictionary with TEK IDs as keys.
+        dataclass instances are stored in a dictionary with building_code as keys.
 
         Parameters:
-        - tek_list (list of str): List of TEK IDs.
+        - building_code_list (list of str): List of building_code.
 
         Returns:
-        - tek_params (dict): Dictionary where each key is a TEK ID and each value 
+        - building_code_params (dict): Dictionary where each key is a building_codeID and each value
                             is a TEKParameters dataclass instance containing the 
-                            parameters for that TEK ID.
+                            parameters for that building_codeID.
         """
-        tek_params = {}
-        tek_params_df = self.file_handler.get_building_code()
+        building_code_params = {}
+        building_code_params_df = self.file_handler.get_building_code()
 
-        for tek in tek_list:
-            # Filter on TEK ID
-            tek_params_filtered = tek_params_df[tek_params_df[self.COL_TEK] == tek]
+        for tek in building_code_list:
+            # Filter on building_code
+            building_code_params_filtered = building_code_params_df[building_code_params_df[self.COL_TEK] == tek]
 
             # Assuming there is only one row in the filtered DataFrame
-            tek_params_row = tek_params_filtered.iloc[0]
+            building_code_params_row = building_code_params_filtered.iloc[0]
 
             # Convert the single row to a dictionary
-            tek_params_dict = tek_params_row.to_dict()
+            building_code_params_dict = building_code_params_row.to_dict()
 
             # Map the dictionary values to the dataclass attributes
-            tek_params_per_id = TEKParameters(
-                tek = tek_params_dict[self.COL_TEK],
-                building_year = tek_params_dict[self.COL_TEK_BUILDING_YEAR],
-                start_year = tek_params_dict[self.COL_TEK_START_YEAR],
-                end_year = tek_params_dict[self.COL_TEK_END_YEAR],
+            building_code_params_per_id = TEKParameters(
+                tek = building_code_params_dict[self.COL_TEK],
+                building_year = building_code_params_dict[self.COL_TEK_BUILDING_YEAR],
+                start_year = building_code_params_dict[self.COL_TEK_START_YEAR],
+                end_year = building_code_params_dict[self.COL_TEK_END_YEAR],
                 )
 
-            tek_params[tek] = tek_params_per_id    
+            building_code_params[tek] = building_code_params_per_id    
 
-        return tek_params
+        return building_code_params
 
     def get_scurve_params(self):
         """
@@ -236,18 +236,18 @@ class DatabaseManager:
         """
         logger.debug('Using default year 2020 -> 2050')
         building_purpose = self.make_building_purpose(years=YearRange(2020, 2050)).set_index(
-            ['building_category', 'purpose', 'TEK', 'year'], drop=True
+            ['building_category', 'purpose', 'building_code', 'year'], drop=True
         )
         building_purpose = building_purpose.drop(columns=['building_condition'])
-        ff = self.file_handler.get_energy_req_original_condition()[['building_category', 'TEK', 'purpose', 'kwh_m2']]
-        df = self.explode_unique_columns(ff, ['building_category', 'TEK', 'purpose'])
-        if len(df[df.TEK=='TEK21']) > 0:
+        ff = self.file_handler.get_energy_req_original_condition()[['building_category', 'building_code', 'purpose', 'kwh_m2']]
+        df = self.explode_unique_columns(ff, ['building_category', 'building_code', 'purpose'])
+        if len(df[df.building_code=='TEK21']) > 0:
             logger.warning(f'Detected TEK21 in energy_requirement_original_condition')
-        df = df.set_index(['building_category', 'purpose', 'TEK']).sort_index()
+        df = df.set_index(['building_category', 'purpose', 'building_code']).sort_index()
 
         df = building_purpose.join(df, how='left')
 
-        behaviour_factor = self.get_behaviour_factor().set_index(['building_category', 'TEK', 'purpose', 'year'])
+        behaviour_factor = self.get_behaviour_factor().set_index(['building_category', 'building_code', 'purpose', 'year'])
 
         df = df.join(behaviour_factor, how='left')
 
@@ -274,11 +274,11 @@ class DatabaseManager:
             per building category, TEK and purpose.        
         """
         reduction_per_condition = self.file_handler.get_energy_req_reduction_per_condition()
-        if len(reduction_per_condition[reduction_per_condition.TEK=='TEK21']) > 0:
+        if len(reduction_per_condition[reduction_per_condition.building_code=='TEK21']) > 0:
             logger.warning(f'Detected TEK21 in energy_requirement_reduction_per_condition')
 
         return self.explode_unique_columns(reduction_per_condition,
-                                           ['building_category', 'TEK', 'purpose', 'building_condition'])
+                                           ['building_category', 'building_code', 'purpose', 'building_condition'])
     
     def get_energy_need_yearly_improvements(self) -> pd.DataFrame:
         """
@@ -379,13 +379,13 @@ class DatabaseManager:
         return self.file_handler.get_heating_systems_projection()
 
     def explode_unique_columns(self, df, unique_columns):
-        return explode_unique_columns(df, unique_columns, default_tek=self.get_tek_list())
+        return explode_unique_columns(df, unique_columns, default_building_code=self.get_building_code_list())
 
     def explode_building_category_column(self, df, unique_columns):
         return explode_building_category_column(df, unique_columns)
 
-    def explode_tek_column(self, ff, unique_columns):
-        return explode_tek_column(ff, unique_columns, default_tek=self.get_tek_list())
+    def explode_building_code_column(self, ff, unique_columns):
+        return explode_building_code_column(ff, unique_columns, default_building_code=self.get_building_code_list())
 
 
 if __name__ == '__main__':

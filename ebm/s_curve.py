@@ -54,7 +54,7 @@ def small_measure(s_curve_renovation_and_small_measure: Series, s_curve_small_me
     # ### SharesPerCondition calc_small_measure
     #  - ❌   sett til 0 før byggeår
     # ```python
-    #     construction_year = self.tek_params[tek].building_year
+    #     construction_year = self.building_code_params[tek].building_year
     #     shares.loc[self.period_index <= construction_year] = 0
     # ```
 
@@ -218,14 +218,14 @@ def renovation_max(s_curve_cumulative_demolition: Series, s_curve_renovation_nev
     return 1.0 - s_curve_cumulative_demolition - s_curve_renovation_never_share
 
 
-def cumulative_renovation(s_curves_with_tek: Series, years: YearRange) -> Series:
+def cumulative_renovation(s_curves_with_building_code: Series, years: YearRange) -> Series:
     """
     Return the  yearly cumulative sum of renovation condition.
 
 
     Parameters
     ----------
-    s_curves_with_tek : pandas.Series
+    s_curves_with_building_code : pandas.Series
     years : pandas.Series
 
     Returns
@@ -237,17 +237,17 @@ def cumulative_renovation(s_curves_with_tek: Series, years: YearRange) -> Series
     -----
     NaN values are replaced by float 0.0
     """
-    return s_curves_with_tek.renovation_acc.loc[(slice(None), slice(None), list(years.year_range))].fillna(0.0)
+    return s_curves_with_building_code.renovation_acc.loc[(slice(None), slice(None), list(years.year_range))].fillna(0.0)
 
 
-def cumulative_small_measure(s_curves_with_tek: Series, years: YearRange) -> Series:
+def cumulative_small_measure(s_curves_with_building_code: Series, years: YearRange) -> Series:
     """
     Return the  yearly cumulative sum of small_measure condition.
 
 
     Parameters
     ----------
-    s_curves_with_tek : pandas.Series
+    s_curves_with_building_code : pandas.Series
     years : YearRange
 
     Returns
@@ -259,7 +259,7 @@ def cumulative_small_measure(s_curves_with_tek: Series, years: YearRange) -> Ser
     -----
     NaN values are replaced by float 0.0
     """
-    s_curve_cumulative_small_measure = s_curves_with_tek.small_measure_acc.loc[(slice(None), slice(None), list(years.year_range))].fillna(0.0)
+    s_curve_cumulative_small_measure = s_curves_with_building_code.small_measure_acc.loc[(slice(None), slice(None), list(years.year_range))].fillna(0.0)
     return s_curve_cumulative_small_measure
 
 
@@ -364,21 +364,21 @@ def accumulate_demolition(s_curves_long: pd.DataFrame, years: YearRange) -> pd.D
     """
     demolition_acc = s_curves_long
     demolition_acc.loc[demolition_acc.query(f'year<={years.start}').index, 'demolition'] = 0.0
-    demolition_acc['demolition_acc'] = demolition_acc.groupby(by=['building_category', 'TEK'])[['demolition']].cumsum()[
+    demolition_acc['demolition_acc'] = demolition_acc.groupby(by=['building_category', 'building_code'])[['demolition']].cumsum()[
         ['demolition']]
 
     return demolition_acc
 
 # noinspection PyTypeChecker
-def merge_s_curves_and_tek(s_curves: pd.DataFrame, df_never_share: pd.DataFrame, tek_parameters: pd.DataFrame) -> pd.DataFrame:
+def merge_s_curves_and_building_code(s_curves: pd.DataFrame, df_never_share: pd.DataFrame, building_code_parameters: pd.DataFrame) -> pd.DataFrame:
     """
-    Cross merge s_curves and df_never_share with all TEK in tek_parameters
+    Cross merge s_curves and df_never_share with all building_code in building_code_parameters
 
     Parameters
     ----------
     s_curves : pandas.DataFrame
     df_never_share : pandas.DataFrame
-    tek_parameters : pandas.DataFrame
+    building_code_parameters : pandas.DataFrame
 
     Returns
     -------
@@ -386,14 +386,14 @@ def merge_s_curves_and_tek(s_curves: pd.DataFrame, df_never_share: pd.DataFrame,
     """
     s_curves = pd.concat([s_curves, df_never_share])
 
-    s_curves_by_tek = s_curves.reset_index().join(tek_parameters, how='cross')
-    s_curves_by_tek['year'] = s_curves_by_tek['building_year'] + s_curves_by_tek['age']
-    s_curves_long = s_curves_by_tek.pivot(index=['building_category', 'TEK', 'year'],
+    s_curves_by_building_code = s_curves.reset_index().join(building_code_parameters, how='cross')
+    s_curves_by_building_code['year'] = s_curves_by_building_code['building_year'] + s_curves_by_building_code['age']
+    s_curves_long = s_curves_by_building_code.pivot(index=['building_category', 'building_code', 'year'],
                                           columns=['building_condition'],
                                           values='scurve').reset_index()
     s_curves_long = (s_curves_long
         .reset_index(drop=True)
-        .set_index(['building_category', 'TEK', 'year'], drop=True)
+        .set_index(['building_category', 'building_code', 'year'], drop=True)
         .rename_axis(None, axis=1))
     return s_curves_long
 
@@ -441,26 +441,26 @@ def transform_to_long(s_curves_by_condition: pd.DataFrame) -> pd.DataFrame:
     """
     df_long = s_curves_by_condition.stack().to_frame(name='s_curve')
 
-    df_long.index.names = ['building_category', 'TEK', 'year', 'building_condition']
+    df_long.index.names = ['building_category', 'building_code', 'year', 'building_condition']
     return df_long
 
 
-def calculate_s_curves(scurve_parameters, tek_parameters, years, **kwargs):
+def calculate_s_curves(scurve_parameters, building_code_parameters, years, **kwargs):
     # Transform s_curve_parameters into long form with each row representing a building_condition at a certain age
     s_curves = scurve_parameters_to_scurve(scurve_parameters)
     df_never_share = scurve_parameters_to_never_share(s_curves, scurve_parameters)
 
-    s_curves_with_tek = merge_s_curves_and_tek(s_curves, df_never_share, tek_parameters)
-    s_curves_with_tek = s_curves_with_tek.loc[(slice(None), slice(None), [y for y in years])]
+    s_curves_with_building_code = merge_s_curves_and_building_code(s_curves, df_never_share, building_code_parameters)
+    s_curves_with_building_code = s_curves_with_building_code.loc[(slice(None), slice(None), [y for y in years])]
 
-    s_curves_with_demolition_acc = accumulate_demolition(s_curves_with_tek, years)
-    s_curve_demolition = s_curves_with_tek.demolition
+    s_curves_with_demolition_acc = accumulate_demolition(s_curves_with_building_code, years)
+    s_curve_demolition = s_curves_with_building_code.demolition
 
     s_curve_cumulative_demolition = transform_to_cumulative_demolition(s_curves_with_demolition_acc, years)
-    s_curve_renovation_never_share = s_curves_with_tek.renovation_never_share
-    s_curve_small_measure_never_share = kwargs.get('small_measure_never_share', s_curves_with_tek.small_measure_never_share)
-    s_curve_cumulative_small_measure = kwargs.get('cumulative_small_measure', cumulative_small_measure(s_curves_with_tek, years))
-    s_curve_cumulative_renovation = cumulative_renovation(s_curves_with_tek, years)
+    s_curve_renovation_never_share = s_curves_with_building_code.renovation_never_share
+    s_curve_small_measure_never_share = kwargs.get('small_measure_never_share', s_curves_with_building_code.small_measure_never_share)
+    s_curve_cumulative_small_measure = kwargs.get('cumulative_small_measure', cumulative_small_measure(s_curves_with_building_code, years))
+    s_curve_cumulative_renovation = cumulative_renovation(s_curves_with_building_code, years)
 
     s_curve_renovation_max = renovation_max(s_curve_cumulative_demolition, s_curve_renovation_never_share)
     s_curve_small_measure_max = kwargs.get('s_curve_small_measure_max', small_measure_max(s_curve_cumulative_demolition, s_curve_small_measure_never_share))

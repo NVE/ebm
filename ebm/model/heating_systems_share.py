@@ -10,8 +10,8 @@ def transform_heating_systems_share_long(heating_systems_projection: pd.DataFram
 
     df.loc[~df['building_category'].isin(['house', 'apartment_block']), 'building_category'] = 'non_residential'
 
-    mean_tek_shares_yearly = df[fane2_columns].groupby(by=['year', 'building_category', 'heating_systems']).mean()
-    return mean_tek_shares_yearly
+    mean_heating_system_shares_yearly = df[fane2_columns].groupby(by=['year', 'building_category', 'heating_systems']).mean()
+    return mean_heating_system_shares_yearly
 
 
 def transform_heating_systems_share_wide(heating_systems_share_long: pd.DataFrame) -> pd.DataFrame:

@@ -1,2 +1,2 @@
-building_category,TEK,purpose,period_start_year,period_end_year,improvement_at_period_end
+building_category,building_code,purpose,period_start_year,period_end_year,improvement_at_period_end
 default,default,lighting,2018,2030,0.6

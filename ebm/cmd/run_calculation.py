@@ -125,11 +125,11 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
         database_manager=database_manager)
     df = energy_requirement.calculate_for_building_category(database_manager=database_manager)
 
-    df = df.set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year'])
+    df = df.set_index(['building_category', 'building_code', 'purpose', 'building_condition', 'year'])
 
     q = area_forecast.reset_index()
 
-    q = q.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+    q = q.set_index(['building_category', 'building_code', 'building_condition', 'year'])
 
     merged = q.merge(df, left_index=True, right_index=True)
     merged['energy_requirement'] = merged.kwh_m2 * merged.m2
@@ -181,13 +181,13 @@ def calculate_building_category_area_forecast(database_manager: DatabaseManager,
     This function builds the buildings for the specified category, calculates the area forecast, and accounts for
         demolition and construction over the specified period.
     """
-    tek_parameters = database_manager.file_handler.get_building_code()
+    building_code_parameters = database_manager.file_handler.get_building_code()
     years = YearRange(start_year, end_year)
     scurve_params = database_manager.get_scurve_params()
-    s_curves_by_condition = calculate_s_curves(scurve_params, tek_parameters, years)
+    s_curves_by_condition = calculate_s_curves(scurve_params, building_code_parameters, years)
 
     area_forecast = extract_area_forecast(years,
-                                          tek_parameters=tek_parameters,
+                                          building_code_parameters=building_code_parameters,
                                           area_parameters=database_manager.get_area_parameters(),
                                           s_curves_by_condition=s_curves_by_condition,
                                           database_manager=database_manager)

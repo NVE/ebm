@@ -1,4 +1,4 @@
-building_category,TEK,purpose,building_condition,reduction_share
+building_category,building_code,purpose,building_condition,reduction_share
 default,default,heating_rv,original_condition,0.0
 default,default,heating_rv,small_measure,0.07
 default,default,heating_rv,renovation,0.2

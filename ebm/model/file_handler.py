@@ -19,7 +19,7 @@ class FileHandler:
     # Filenames
     BUILDING_CONDITIONS = 'building_conditions.csv'
     TEK_ID = 'building_codes.csv'
-    BUILDING_CODE_PARAMS = 'TEK_parameters.csv'
+    BUILDING_CODE_PARAMS = 'building_code_parameters.csv'
     S_CURVE = 's_curve.csv'
     POPULATION_FORECAST = 'population_forecast.csv'
     NEW_BUILDINGS_RESIDENTIAL = 'new_buildings_residential.csv'

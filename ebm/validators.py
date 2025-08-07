@@ -357,7 +357,7 @@ area = pa.DataFrameSchema(
     name='area_parameters'
 )
 
-building_code = pa.DataFrameSchema(columns={
+building_code_parameters = pa.DataFrameSchema(columns={
         'building_code': pa.Column(str, unique=True, checks=[pa.Check(check_building_code, element_wise=True)]),
         'building_year': pa.Column(int, checks=[
             pa.Check.greater_than_or_equal_to(1940),
@@ -556,11 +556,10 @@ heating_systems_efficiencies = pa.DataFrameSchema(
         'Kjoling virkningsgrad': pa.Column(float, coerce=True)
     }
 )
-tek_parameters = building_code
+
 
 __all__ = [area,
-           building_code,
-           tek_parameters,
+           building_code_parameters,
            area_new_residential_buildings,
            new_buildings_residential,
            population_forecast,

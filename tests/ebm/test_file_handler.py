@@ -23,14 +23,14 @@ def test_check_for_missing_files_return_list(tmp_path):
     """
     FileHandler.check_for_missing_files must return a list consisting of file names when the files do not exists. The
      list must contain the 7 elements:
-        building_codes.csv, TEK_parameters.csv, scurve_parameters.csv, new_buildings_population.csv,
+        building_codes.csv, building_code_parameters.csv, scurve_parameters.csv, new_buildings_population.csv,
         new_buildings_house_share.csv, construction_building_category_yearly.csv, area_parameters.csv
     """
     os.chdir(tmp_path)
     fh = FileHandler(directory=tmp_path)
     missing_files = set(fh.check_for_missing_files())
     assert 'building_codes.csv' in missing_files
-    assert 'TEK_parameters.csv' in missing_files
+    assert 'building_code_parameters.csv' in missing_files
     assert 's_curve.csv' in missing_files
     assert 'population_forecast.csv' in missing_files
     assert 'new_buildings_residential.csv' in missing_files
@@ -94,7 +94,7 @@ def test_filehandler_init_support_input_directory_from_environment_variable(tmp_
 def test_filehandler_create_missing_input_files(tmp_path):
     """
     FileHAndler.create_missing_input must create required files in <input_directory> when called:
-    building_codes.csv, TEK_parameters.csv, scurve_parameters.csv, population.csv,
+    building_codes.csv, building_code_parameters.csv, scurve_parameters.csv, population.csv,
         new_buildings_house_share.csv, construction_building_category_yearly.csv, area_parameters.csv
     """
     os.chdir(tmp_path)
@@ -106,7 +106,7 @@ def test_filehandler_create_missing_input_files(tmp_path):
     fh.create_missing_input_files()
 
     assert (input_directory / 'building_codes.csv').is_file()
-    assert (input_directory / 'TEK_parameters.csv').is_file()
+    assert (input_directory / 'building_code_parameters.csv').is_file()
     assert (input_directory / 's_curve.csv').is_file()
     assert (input_directory / 'population_forecast.csv').is_file()
     assert (input_directory / 'new_buildings_residential.csv').is_file()

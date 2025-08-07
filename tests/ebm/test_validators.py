@@ -10,7 +10,7 @@ from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
 from ebm.model.dataframemodels import PolicyImprovement
-from ebm.validators import (building_code,
+from ebm.validators import (building_code_parameters,
                             area,
                             area_new_residential_buildings,
                             new_buildings_residential,
@@ -46,7 +46,7 @@ def test_building_code_overlapping_periods():
     })
     
     with pytest.raises(pa.errors.SchemaError):
-        building_code.validate(df)
+        building_code_parameters.validate(df)
 
 
 def test_building_code_overlapping_periods_when_building_code_are_unsorted():
@@ -59,14 +59,14 @@ def test_building_code_overlapping_periods_when_building_code_are_unsorted():
     
 
 def test_building_code_when_all_are_correct(ok_building_code: pd.DataFrame):
-    building_code.validate(ok_building_code)
+    building_code_parameters.validate(ok_building_code)
 
 
 def test_building_code_require_building_code(ok_building_code: pd.DataFrame):
     ok_building_code.loc[len(ok_building_code)] = ['', 2030, 2025, 2071]
 
     with pytest.raises(pa.errors.SchemaError):
-        building_code.validate(ok_building_code)
+        building_code_parameters.validate(ok_building_code)
 
 
 @pytest.mark.parametrize('building_year', [-1, None, 'building_year', 2071])
@@ -74,7 +74,7 @@ def test_building_code_building_year(ok_building_code: pd.DataFrame, building_ye
     ok_building_code.loc[len(ok_building_code)] = ['TEK10', building_year, 2007, 2025]
 
     with pytest.raises(pa.errors.SchemaError):
-        building_code.validate(ok_building_code)
+        building_code_parameters.validate(ok_building_code)
 
 
 @pytest.mark.parametrize('start_year', ['period_start_year', -1, 2071])
@@ -82,7 +82,7 @@ def test_building_code_period_start_year(ok_building_code: pd.DataFrame, start_y
     ok_building_code.loc[len(ok_building_code)] = ['TEK10', 2011, start_year, 2070]
 
     with pytest.raises(pa.errors.SchemaError):
-        building_code.validate(ok_building_code)
+        building_code_parameters.validate(ok_building_code)
 
 
 @pytest.mark.parametrize('start_year,end_year', [(2007, -1), (2007, None), (2007, 'period_end_year'), (2024, 2007)])
@@ -90,7 +90,7 @@ def test_building_code_period_end_year(ok_building_code: pd.DataFrame, start_yea
     ok_building_code.loc[len(ok_building_code)] = ['TEK10', 2011, start_year, end_year]
 
     with pytest.raises(pa.errors.SchemaError):
-        building_code.validate(ok_building_code)
+        building_code_parameters.validate(ok_building_code)
 
 
 def test_building_code_duplicate_building_code(ok_building_code):
@@ -98,7 +98,7 @@ def test_building_code_duplicate_building_code(ok_building_code):
     ok_building_code.loc[len(ok_building_code)] = ['TEK10', 2012, 2001, 2021]
 
     with pytest.raises(pa.errors.SchemaError):
-        building_code.validate(ok_building_code)
+        building_code_parameters.validate(ok_building_code)
 
 
 def test_area_parameters_building_categories():

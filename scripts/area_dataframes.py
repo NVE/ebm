@@ -6,8 +6,7 @@ import pathlib
 
 from loguru import logger
 
-from ebm.cmd.helpers import load_environment_from_dotenv
-from ebm.cmd.run_calculation import configure_loglevel
+from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel
 from ebm.extractors import extract_area_forecast
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager, FileHandler

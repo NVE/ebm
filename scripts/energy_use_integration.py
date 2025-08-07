@@ -1,25 +1,32 @@
 import os
 import pathlib
+import sys
 
+import pandas as pd
 import pytest
 
-from ebm.cmd.helpers import load_environment_from_dotenv
+from ebm import extractors
 from ebm.cmd.pipeline import load_config
-from ebm.cmd.run_calculation import configure_loglevel
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_use import calculate_energy_use
 from ebm.model.file_handler import FileHandler
 
 
-def test_energy_use():
-    cwd = pathlib.Path(r'../tests/ebm/data')
-    os.chdir(cwd)
-    load_environment_from_dotenv()
+@pytest.fixture
+def cwd_ebm_data(request):
+    """
+    Change working directory to tests/ebm/data. The working directory
+    is reset when the test finishes.
+    """
+    ebm_data = pathlib.Path(__file__).parent / pathlib.Path(r'../tests/ebm/data')
+    os.chdir(ebm_data)
+    yield
+    os.chdir(request.config.invocation_params.dir)
 
-    configure_loglevel(os.environ.get('LOG_FORMAT', None))
+
+def test_energy_use(cwd_ebm_data):
     input_path, output_path, years = load_config()
     input_path = pathlib.Path('kalibrert')
-
     output_path.mkdir(exist_ok=True)
 
     file_handler = FileHandler(directory=input_path)
@@ -61,10 +68,38 @@ def test_energy_use():
     assert building_group_energy_use_by_year.loc[('yrkesbygg', 'Electricity', 2050)].iloc[0] ==  20_626_689_875.071304
 
     # assert building_group_energy_use_by_year.loc[('yrkesbygg', 'Fossil', 2050)].iloc[0] == np.nan
-    # assert building_group_energy_use_by_year.loc[('Fritidsboliger', 'Bio', 2050)].iloc[0] ==  1_510_492_631.92574
-    # assert building_group_energy_use_by_year.loc[('Fritidsboliger', 'Fossil', 2050)].iloc[0] == 100_00_000
-    # assert building_group_energy_use_by_year.loc[('Fritidsboliger', 'Electricity', 2050)].iloc[0] ==  3_156_584_204.21808
+
+
+
+def test_energy_use_holiday_home(cwd_ebm_data):
+    input_path, output_path, years = load_config()
+    input_path = pathlib.Path('kalibrert')
+
+    output_path.mkdir(exist_ok=True)
+
+    file_handler = FileHandler(directory=input_path)
+    database_manager = DatabaseManager(file_handler=file_handler)
+
+    energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(database_manager)
+
+    holiday = pd.melt(energy_use_holiday_homes, id_vars=['building_group', 'energy_source'], var_name='year', value_name='kwh')
+    holiday = holiday.set_index(['building_group', 'energy_source', 'year'])
+    holiday.loc[:, 'kwh'] = holiday.loc[:, 'kwh'] * 1_000_000
+
+    assert holiday.loc[('Fritidsboliger', 'Electricity', 2023)].iloc[0] ==  2_427_000_000.0
+    assert holiday.loc[('Fritidsboliger', 'Electricity', 2030)].iloc[0] ==  2_802_046_777.7045803
+    assert holiday.loc[('Fritidsboliger', 'Electricity', 2049)].iloc[0] ==  3_151_231_746.9389396
+    assert holiday.loc[('Fritidsboliger', 'Electricity', 2050)].iloc[0] ==  3_156_584_204.2180767
+    assert holiday.loc[('Fritidsboliger', 'Bio', 2023)].iloc[0] ==  1_390_000_000
+    assert holiday.loc[('Fritidsboliger', 'Bio', 2027)].iloc[0] ==  1_392_620_395.5040183
+    assert holiday.loc[('Fritidsboliger', 'Bio', 2030)].iloc[0] ==  1_413_023_760.34298
+    assert holiday.loc[('Fritidsboliger', 'Bio', 2049)].iloc[0] ==  1_507_931_367.3562658
+    assert holiday.loc[('Fritidsboliger', 'Bio', 2050)].iloc[0] ==  1_510_492_631.9257426
+    assert holiday.loc[('Fritidsboliger', 'Fossil', 2023)].iloc[0] == 100_000_000
+    assert holiday.loc[('Fritidsboliger', 'Fossil', 2030)].iloc[0] == 100_000_000
+    assert holiday.loc[('Fritidsboliger', 'Fossil', 2049)].iloc[0] == 100_000_000
+    assert holiday.loc[('Fritidsboliger', 'Fossil', 2050)].iloc[0] == 100_000_000
 
 
 if __name__ == "__main__":
-    pytest.main()
+    pytest.main([sys.argv[0]])

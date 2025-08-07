@@ -2,8 +2,7 @@ import pandas as pd
 from loguru import logger
 
 from ebm.model import area
-from ebm.cmd.result_handler import transform_holiday_homes_to_horizontal
-from ebm.cmd.run_calculation import calculate_energy_use
+from ebm.holiday_home_energy import calculate_energy_use, transform_holiday_homes_to_horizontal
 from ebm.heating_systems_projection import HeatingSystemsProjection
 
 from ebm.model.data_classes import YearRange

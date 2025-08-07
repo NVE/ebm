@@ -1,8 +1,8 @@
 import itertools
-import logging
 import typing
 
 import pandas as pd
+from loguru import logger
 
 from ebm import validators
 from ebm.energy_consumption import calibrate_heating_systems
@@ -234,7 +234,7 @@ class DatabaseManager:
             Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
             per building category and purpose.
         """
-        logging.debug('Using default year 2020 -> 2050')
+        logger.debug('Using default year 2020 -> 2050')
         building_purpose = self.make_building_purpose(years=YearRange(2020, 2050)).set_index(
             ['building_category', 'purpose', 'TEK', 'year'], drop=True
         )
@@ -242,7 +242,7 @@ class DatabaseManager:
         ff = self.file_handler.get_energy_req_original_condition()[['building_category', 'TEK', 'purpose', 'kwh_m2']]
         df = self.explode_unique_columns(ff, ['building_category', 'TEK', 'purpose'])
         if len(df[df.TEK=='TEK21']) > 0:
-            logging.warning(f'Detected TEK21 in energy_requirement_original_condition')
+            logger.warning(f'Detected TEK21 in energy_requirement_original_condition')
         df = df.set_index(['building_category', 'purpose', 'TEK']).sort_index()
 
         df = building_purpose.join(df, how='left')
@@ -275,7 +275,7 @@ class DatabaseManager:
         """
         reduction_per_condition = self.file_handler.get_energy_req_reduction_per_condition()
         if len(reduction_per_condition[reduction_per_condition.TEK=='TEK21']) > 0:
-            logging.warning(f'Detected TEK21 in energy_requirement_reduction_per_condition')
+            logger.warning(f'Detected TEK21 in energy_requirement_reduction_per_condition')
 
         return self.explode_unique_columns(reduction_per_condition,
                                            ['building_category', 'TEK', 'purpose', 'building_condition'])

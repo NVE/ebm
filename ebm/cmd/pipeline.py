@@ -6,9 +6,8 @@ import pandas as pd
 from loguru import logger
 
 from ebm import extractors
-from ebm.cmd.helpers import load_environment_from_dotenv
+from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel, configure_json_log
 from ebm.cmd.result_handler import transform_model_to_horizontal, transform_to_sorted_heating_systems
-from ebm.cmd.run_calculation import configure_loglevel
 from ebm.model import area as a_f, bema
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
@@ -27,6 +26,7 @@ def main():
     load_environment_from_dotenv()
 
     configure_loglevel(os.environ.get('LOG_FORMAT', None))
+    configure_json_log()
     input_path, output_path, years = load_config()
 
     output_path.mkdir(exist_ok=True)
@@ -85,7 +85,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     add_top_row_filter(workbook_file=area_output, sheet_names=['long'])
     yield area_output
 
-    logger.info(f'Wrote {area_output}')
+    logger.success(f'Wrote {area_output}')
 
     logger.info('Energy use to energy_purpose')
 
@@ -111,7 +111,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     make_pretty(heating_system_share_file)
     logger.debug(f'Adding top row filter to {heating_system_share_file}')
     add_top_row_filter(workbook_file=heating_system_share_file, sheet_names=['long'])
-    logger.info(f'Wrote {heating_system_share_file.name}')
+    logger.success(f'Wrote {heating_system_share_file.name}')
     yield heating_system_share_file
 
     logger.info('heat_prod_hp')
@@ -131,7 +131,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     with pd.ExcelWriter(heat_prod_hp_file, engine='xlsxwriter') as writer:
         heat_prod_hp_wide.to_excel(writer, sheet_name='wide', index=False) # 💾
     make_pretty(heat_prod_hp_file)
-    logger.info(f'Wrote {heat_prod_hp_file.name}')
+    logger.success(f'Wrote {heat_prod_hp_file.name}')
     yield heat_prod_hp_file
 
     logger.info('Energy_use')
@@ -164,7 +164,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     make_pretty(energy_use_file)
     logger.debug(f'Adding top row filter to {energy_use_file}')
     add_top_row_filter(workbook_file=energy_use_file, sheet_names=['long'])
-    logger.info(f'Wrote {energy_use_file.name}')
+    logger.success(f'Wrote {energy_use_file.name}')
     yield energy_use_file
 
     logger.debug('Transform fane 1')
@@ -182,7 +182,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     make_pretty(energy_purpose_output)
     logger.debug(f'Adding top row filter to {energy_purpose_output}')
     add_top_row_filter(workbook_file=energy_purpose_output, sheet_names=['long'])
-    logger.info(f'Wrote {energy_purpose_output.name}')
+    logger.success(f'Wrote {energy_purpose_output.name}')
     yield energy_purpose_output
 
     area_change = a_f.transform_area_forecast_to_area_change(area_forecast=area_forecast, tek_parameters=tek_parameters)
@@ -202,7 +202,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     make_pretty(demolition_construction_file)
     logger.debug(f'Adding top row filter to {demolition_construction_file}')
     add_top_row_filter(workbook_file=demolition_construction_file, sheet_names=['long'])
-    logger.info(f'Wrote {demolition_construction_file.name}')
+    logger.success(f'Wrote {demolition_construction_file.name}')
 
     yield demolition_construction_file
 

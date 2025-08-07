@@ -32,16 +32,6 @@ def transform_model_to_horizontal(model, value_column = 'm2'):
     return hz
 
 
-def transform_holiday_homes_to_horizontal(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.reset_index()
-    df = df.rename(columns={'energy_type': 'energy_source'})
-    columns_to_keep = [y for y in YearRange(2020, 2050)] + ['building_category', 'energy_source']
-    df = df.drop(columns=[c for c in df.columns if c not in columns_to_keep])
-    df['energy_source'] = df['energy_source'].apply(lambda x: 'Elektrisitet' if x == 'electricity' else 'Bio' if x == 'fuelwood' else x)
-    df['building_category'] = 'Fritidsboliger'
-    return df
-
-
 def transform_to_sorted_heating_systems(df: pd.DataFrame, holiday_homes: pd.DataFrame,
                                         building_column: str='building_category',
                                         ) -> pd.DataFrame:
@@ -214,17 +204,13 @@ class EbmDefaultHandler:
     def extract_area_forecast(building_categories,
                               database_manager: DatabaseManager,
                               period: YearRange) -> pd.DataFrame:
-        area_forecast_results = []
-        logger.debug('Extracting area forecast')
-        for building_category in building_categories:
-            area_forecast = calculate_building_category_area_forecast(
-                building_category=building_category,
+
+        area_forecast = calculate_building_category_area_forecast(
                 database_manager=database_manager,
                 start_year=period.start,
                 end_year=period.end)
-            area_forecast_results.append(area_forecast)
-        df = pd.concat(area_forecast_results)
-        return df
+
+        return area_forecast
 
     @staticmethod
     def write_tqdm_result(output_file: pathlib.Path, output: pd.DataFrame, csv_delimiter: str=',', reset_index=True):

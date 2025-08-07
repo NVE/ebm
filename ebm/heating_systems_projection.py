@@ -13,7 +13,7 @@ TEK = 'TEK'
 HEATING_SYSTEMS = 'heating_systems'
 NEW_HEATING_SYSTEMS = 'new_heating_systems'
 YEAR = 'year'
-TEK_SHARES = 'TEK_shares'
+TEK_SHARES = 'heating_system_share'
 
 
 class HeatingSystemsProjection:
@@ -321,12 +321,12 @@ def project_heating_systems(shares_start_year_all_systems: pd.DataFrame,
 
 def check_sum_of_shares(projected_shares: pd.DataFrame, precision: int = 10):
     """
-    Control that the sum of TEK_shares equals 1 per TEK, building category and year. 
+    Control that the sum of heating_system_share equals 1 per TEK, building category and year.
 
     Parameters
     ----------
     projected_shares: pd.Dataframe
-        Dataframe must contain columns: 'building_category', 'TEK', 'year' and 'TEK_shares'
+        Dataframe must contain columns: 'building_category', 'TEK', 'year' and 'heating_system_share'
 
     Raises
     ------

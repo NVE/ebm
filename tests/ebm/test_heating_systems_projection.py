@@ -16,7 +16,7 @@ TEK = 'TEK'
 HEATING_SYSTEMS = 'heating_systems'
 NEW_HEATING_SYSTEMS = 'new_heating_systems'
 YEAR = 'year'
-TEK_SHARES = 'TEK_shares'
+TEK_SHARES = 'heating_system_share'
 
 
 @pytest.fixture
@@ -407,7 +407,7 @@ names=[BUILDING_CATEGORY,TEK,HEATING_SYSTEMS,YEAR,TEK_SHARES] ,skipinitialspace=
 @pytest.mark.skip()
 def test_check_sum_of_shares_ok():
     """
-    Control that the sum of TEK_shares equals 1 per TEK, building category and year. 
+    Control that the sum of heating_system_share equals 1 per TEK, building category and year.
     """
     projected_shares = pd.read_csv(io.StringIO("""
 house,TEK97,DH,2020,0.5

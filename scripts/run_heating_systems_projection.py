@@ -34,6 +34,6 @@ def run_projection():
     return df
 
 df = run_projection()
-df = df[['building_category','TEK','heating_systems','year','TEK_shares']]
+df = df[['building_category','TEK','heating_systems','year','heating_system_share']]
 print(df)
 print(df.building_category.unique())

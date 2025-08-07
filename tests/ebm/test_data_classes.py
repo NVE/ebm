@@ -58,3 +58,12 @@ def test_year_range_to_index():
     pd.testing.assert_index_equal(YearRange(2010, 2011).to_index(name='foo'),
                                   pd.Index(data=[2010, 2011], name='foo'))
 
+def test_year_range_cross_join():
+    df = pd.DataFrame(data=[('a', 1), ('b', 2)], columns=['L', 'N'])
+    result = YearRange(2010, 2012).cross_join(df)
+
+    expected = pd.DataFrame(
+        data=[('a', 1, 2010), ('a', 1, 2011), ('a', 1, 2012),
+              ('b', 2, 2010), ('b', 2, 2011), ('b', 2, 2012)], columns=['L', 'N', 'year'])
+
+    pd.testing.assert_frame_equal(result, expected)

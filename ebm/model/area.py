@@ -2,8 +2,11 @@ from loguru import logger
 import pandas as pd
 
 from ebm.model.building_condition import BuildingCondition
+from ebm.model.data_classes import YearRange
+from ebm.model.database_manager import DatabaseManager
 from ebm.model.scurve import SCurve
 from ebm.model.construction import ConstructionCalculator
+
 
 def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame,
                                            building_code_parameters: pd.DataFrame | None = None) -> pd.DataFrame:
@@ -359,16 +362,25 @@ def calculate_existing_area(area_parameters, building_code_parameters, years):
     return existing_area
 
 
-def calculate_construction_by_building_category(building_category_demolition_by_year, database_manager, years):
+def calculate_construction_by_building_category(building_category_demolition_by_year: pd.DataFrame,
+                                                database_manager: DatabaseManager,
+                                                years:YearRange):
     construction = ConstructionCalculator.calculate_all_construction(
         demolition_by_year=building_category_demolition_by_year,
         database_manager=database_manager,
         period=years)
-    logger.warning('Cheating by assuming TEK17')
-    construction['building_code'] = 'TEK17'
-    construction_by_building_category_yearly = construction.set_index(
+
+    building_code = database_manager.get_building_codes()
+    building_code_years = years.cross_join(building_code)
+    building_code_years = building_code_years.query('year >= period_start_year and year <= period_end_year')
+
+    construction_by_building_category_yearly = pd.merge(
+        left=construction, right=building_code_years[['year', 'building_code']], left_on=['year'], right_on=['year'])
+
+    construction_by_building_category_yearly = construction_by_building_category_yearly.set_index(
         ['building_category', 'building_code', 'year']).accumulated_constructed_floor_area
     construction_by_building_category_yearly.name = 'area'
+
     return construction_by_building_category_yearly
 
 

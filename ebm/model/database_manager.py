@@ -82,7 +82,20 @@ class DatabaseManager:
 
         return pd.DataFrame(data=data, columns=column_headers)
 
-    def get_building_code_params(self, building_code_list: typing.List[str]):
+    def get_building_codes(self) -> pd.DataFrame:
+        """
+        Retrieve building_code_parameters
+
+        Returns
+        -------
+        pd.DataFrame
+            Pandas Dataframe containing building_code with parameters
+        """
+        building_code_params_df = self.file_handler.get_building_code()
+        return building_code_params_df
+
+
+    def get_building_code_params(self, building_code_list: typing.List[str]=None):
         """
         Retrieve building_codeparameters for a list of building_code.
 
@@ -101,7 +114,8 @@ class DatabaseManager:
         """
         building_code_params = {}
         building_code_params_df = self.file_handler.get_building_code()
-
+        if not building_code_list:
+            return building_code_params_df
         for tek in building_code_list:
             # Filter on building_code
             building_code_params_filtered = building_code_params_df[building_code_params_df[self.COL_TEK] == tek]

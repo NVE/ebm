@@ -45,10 +45,10 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     area_parameters = database_manager.get_area_parameters() # 📍
     area_parameters['year'] = years.start
 
-    tek_parameters = database_manager.file_handler.get_building_code() # 📍
+    building_code_parameters = database_manager.file_handler.get_building_code() # 📍
 
-    s_curves_by_condition = calculate_s_curves(scurve_parameters, tek_parameters, years) # 📌
-    area_forecast = extractors.extract_area_forecast(years, s_curves_by_condition, tek_parameters, area_parameters, database_manager) # 📍
+    s_curves_by_condition = calculate_s_curves(scurve_parameters, building_code_parameters, years) # 📌
+    area_forecast = extractors.extract_area_forecast(years, s_curves_by_condition, building_code_parameters, area_parameters, database_manager) # 📍
     energy_need_kwh_m2 = extractors.extract_energy_need(years, database_manager) # 📍
     heating_systems_projection = extractors.extract_heating_systems_projection(years, database_manager) # 📍
     energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(database_manager) # 📍
@@ -60,17 +60,17 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     existing_area = a_f.filter_existing_area(area_forecast)
 
     logger.debug('Transform fane 1 (wide)')
-    merged_tek_and_condition = a_f.merge_tek_and_condition(existing_area)
-    area_wide = transform_model_to_horizontal(merged_tek_and_condition)
-    area_wide = area_wide.drop(columns=['TEK', 'building_condition'])
+    merged_building_code_and_condition = a_f.merge_building_code_and_condition(existing_area)
+    area_wide = transform_model_to_horizontal(merged_building_code_and_condition)
+    area_wide = area_wide.drop(columns=['building_code', 'building_condition'])
 
     logger.debug('Transform fane 2 (long')
 
-    area_by_year_category_tek = existing_area.groupby(by='year,building_category,TEK'.split(','))[['m2']].sum()
-    area_by_year_category_tek = area_by_year_category_tek.rename(columns={'m2': 'area'})
-    area_by_year_category_tek.insert(0, 'U', 'm2')
-    area_long = area_by_year_category_tek.reset_index().sort_values(
-        by=['building_category', 'TEK', 'year'], key=bema.map_sort_order)
+    area_by_year_category_building_code = existing_area.groupby(by='year,building_category,building_code'.split(','))[['m2']].sum()
+    area_by_year_category_building_code = area_by_year_category_building_code.rename(columns={'m2': 'area'})
+    area_by_year_category_building_code.insert(0, 'U', 'm2')
+    area_long = area_by_year_category_building_code.reset_index().sort_values(
+        by=['building_category', 'building_code', 'year'], key=bema.map_sort_order)
 
     logger.debug('Write file area.xlsx')
 
@@ -144,12 +144,12 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     logger.debug('Transform fane 2')
     logger.debug('Group by category, year, product')
 
-    column_order = ['year', 'building_category', 'TEK', 'energy_product', 'kwh']
+    column_order = ['year', 'building_category', 'building_code', 'energy_product', 'kwh']
     energy_use_long = energy_use_kwh[column_order].groupby(
-        by=['building_category', 'TEK', 'energy_product', 'year']).sum() / 1_000_000
+        by=['building_category', 'building_code', 'energy_product', 'year']).sum() / 1_000_000
     energy_use_long = energy_use_long.reset_index()[column_order].rename(columns={'kwh': 'energy_use'})
     energy_use_long = energy_use_long.sort_values(
-        by=['building_category', 'TEK', 'year'], key=bema.map_sort_order)
+        by=['building_category', 'building_code', 'year'], key=bema.map_sort_order)
 
     logger.debug('Transform fane 1')
     logger.debug('Group by group, product year')
@@ -171,7 +171,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     energy_purpose_wide = e_p.group_energy_use_kwh_by_building_group_purpose_year_wide(energy_use_kwh=energy_use_kwh)
 
     logger.debug('Transform fane 2')
-    energy_purpose_long = e_p.group_energy_use_by_year_category_tek_purpose(energy_use_kwh=energy_use_kwh)
+    energy_purpose_long = e_p.group_energy_use_by_year_category_building_code_purpose(energy_use_kwh=energy_use_kwh)
 
     logger.debug('Write file energy_purpose.xlsx')
     energy_purpose_output = output_path / 'energy_purpose.xlsx'
@@ -185,7 +185,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     logger.success(f'Wrote {energy_purpose_output.name}')
     yield energy_purpose_output
 
-    area_change = a_f.transform_area_forecast_to_area_change(area_forecast=area_forecast, tek_parameters=tek_parameters)
+    area_change = a_f.transform_area_forecast_to_area_change(area_forecast=area_forecast, building_code_parameters=building_code_parameters)
 
     logger.info('demolition_construction')
     logger.debug('Transform demolition_construction')
@@ -193,7 +193,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     demolition_construction_long = demolition_construction_long.rename(columns={'m2': 'Area [m2]',
                                                                       'gwh': 'Energy use [GWh]'})
     demolition_construction_long = demolition_construction_long.sort_values(
-        by=['building_category', 'TEK', 'year', 'demolition_construction'], key=bema.map_sort_order)
+        by=['building_category', 'building_code', 'year', 'demolition_construction'], key=bema.map_sort_order)
 
     logger.debug('Write file demolition_construction.xlsx')
     demolition_construction_file = output_path / 'demolition_construction.xlsx'

@@ -19,14 +19,14 @@ projection = file_handler.get_heating_systems_projection()
 period = YearRange(2023, 2050)
 
 dm = DatabaseManager()
-tek_list = dm.get_tek_list()
+building_code_list = dm.get_building_code_list()
 
 def run_projection():
     start_time = time()
     hsp = HeatingSystemsProjection(shares_start_year,
                                efficiencies,
                                projection,
-                               tek_list,
+                               building_code_list,
                                period)
 
     print((time() - start_time) * 13)
@@ -34,6 +34,6 @@ def run_projection():
     return df
 
 df = run_projection()
-df = df[['building_category','TEK','heating_systems','year','heating_system_share']]
+df = df[['building_category','building_code','heating_systems','year','heating_system_share']]
 print(df)
 print(df.building_category.unique())

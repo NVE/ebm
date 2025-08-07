@@ -1,4 +1,4 @@
-building_category,TEK,purpose,kwh_m2,behavior_factor
+building_category,building_code,purpose,kwh_m2,behavior_factor
 apartment_block,PRE_TEK49,cooling,0,1
 apartment_block,PRE_TEK49,electrical_equipment,17.52,1
 apartment_block,PRE_TEK49,fans_and_pumps,0.578888889,1

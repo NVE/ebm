@@ -4,7 +4,7 @@ import pytest
 from ebm.model.bema import map_sort_order
 
 
-def test_map_sort_order_by_tek():
+def test_map_sort_order_by_building_code():
     """
     BEMA TEK must be chronological ordered
         PRE_TEK49, TEK49, TEK69, TEK87, TEK97, TEK07, TEK17, (TEK21), default, all
@@ -22,11 +22,11 @@ def test_map_sort_order_by_tek():
             ('TEK49', 2),
             ('TEK17', 8),
             ('TEK21', 9),
-        ], columns=['TEK', 'value'])
+        ], columns=['building_code', 'value'])
 
-    result = df.sort_values(by=['TEK'], key=map_sort_order)
+    result = df.sort_values(by=['building_code'], key=map_sort_order)
     expected = ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17', 'TEK21', 'default', 'all']
-    assert result['TEK'].tolist() == expected
+    assert result['building_code'].tolist() == expected
 
 def test_map_sort_order_by_building_category():
     """
@@ -141,34 +141,34 @@ def test_map_sort_order_multiple_columns_including_year():
             ('house', 'TEK17', 'cooling', 2020, 1),
             ('default', 'default', 'default', 1814, 99)
         ],
-        columns=['building_category', 'TEK', 'purpose', 'year', 'value'])
+        columns=['building_category', 'building_code', 'purpose', 'year', 'value'])
 
-    result = df.sort_values(by=['building_category', 'TEK', 'purpose', 'year'], key=map_sort_order)
+    result = df.sort_values(by=['building_category', 'building_code', 'purpose', 'year'], key=map_sort_order)
     expected = [1, 2, 3, 4, 5, 6, 7, 8, 99]
     assert result['value'].tolist() == expected
 
     # noinspection PyTypeChecker
-    indexed = df.set_index(['building_category', 'TEK', 'purpose', 'year']).sort_index(key=map_sort_order)
+    indexed = df.set_index(['building_category', 'building_code', 'purpose', 'year']).sort_index(key=map_sort_order)
     expected = [1, 2, 3, 4, 5, 6, 7, 8, 99]
     assert indexed['value'].tolist() == expected
 
 
-def test_map_sort_order_by_faulty_tek():
+def test_map_sort_order_by_faulty_building_code():
     """
-    Non-existing TEK should be sorted last
+    Non-existing building_codeshould be sorted last
     """
     df = pd.DataFrame(
         data=[
             ('TEK25', 2),
             ('TEK29', 3),
             ('TEK97', 1),
-        ], columns=['TEK', 'value'])
+        ], columns=['building_code', 'value'])
 
-    result = df.sort_values(by=['TEK'], key=map_sort_order)
+    result = df.sort_values(by=['building_code'], key=map_sort_order)
 
     expected = ['TEK97', 'TEK25', 'TEK29']
 
-    assert result['TEK'].tolist() == expected
+    assert result['building_code'].tolist() == expected
 
 
 def test_map_sort_order_by_building_mix():

@@ -26,11 +26,11 @@ def yearly_reduction(x):
 
 class EnergyRequirement:
     def __init__(self,
-                 tek_list: typing.List[str],
+                 building_code_list: typing.List[str],
                  period: YearRange = YearRange(2010, 2050),
                  calibration_year: int = 1999,
                  database_manager = None):
-        self.tek_list = tek_list
+        self.building_code_list = building_code_list
         self.period = period
         self.calibration_year = calibration_year
         if calibration_year == period.start:
@@ -59,26 +59,26 @@ class EnergyRequirement:
         """
         database_manager = database_manager if database_manager else self.database_manager
 
-        all_teks = database_manager.get_tek_list().tolist()
+        all_building_codes = database_manager.get_building_code_list().tolist()
         all_building_categories = list(BuildingCategory)
         all_purpose = list(EnergyPurpose)
         most_conditions = list(BuildingCondition.existing_conditions())
         model_years = YearRange(2020, 2050)
         erq_oc = database_manager.get_energy_req_original_condition()
 
-        merged = self.calculate_energy_requirement(all_building_categories, all_purpose, all_teks, erq_oc, model_years,
+        merged = self.calculate_energy_requirement(all_building_categories, all_purpose, all_building_codes, erq_oc, model_years,
                                                    most_conditions, database_manager)
         
-        merged = merged.drop_duplicates('building_category,TEK,building_condition,year,purpose'.split(','), keep='first')
-        return merged[['building_category', 'TEK', 'building_condition','year', 'purpose',
+        merged = merged.drop_duplicates('building_category,building_code,building_condition,year,purpose'.split(','), keep='first')
+        return merged[['building_category', 'building_code', 'building_condition','year', 'purpose',
                        'original_kwh_m2', 'reduction_yearly', 'reduction_policy', 'reduction_condition',
                        'reduced_kwh_m2', 'behaviour_factor', 'kwh_m2']]
 
-    def calculate_energy_requirement(self, all_building_categories, all_purpose, all_teks, energy_requirement_original_condition, model_years,
+    def calculate_energy_requirement(self, all_building_categories, all_purpose, all_building_codes, energy_requirement_original_condition, model_years,
                                      most_conditions, database_manager) -> pd.DataFrame:
         df_bc = pd.DataFrame(all_building_categories, columns=['building_category'])
-        df_tek = pd.merge(df_bc, pd.DataFrame({'TEK': all_teks}), how='cross')
-        df_purpose = pd.merge(df_tek, pd.DataFrame(all_purpose, columns=['purpose']), how='cross')
+        df_building_code = pd.merge(df_bc, pd.DataFrame({'building_code': all_building_codes}), how='cross')
+        df_purpose = pd.merge(df_building_code, pd.DataFrame(all_purpose, columns=['purpose']), how='cross')
         df_condition = pd.merge(df_purpose, pd.DataFrame({'building_condition': most_conditions}), how='cross')
         df_years = pd.merge(df_condition, pd.DataFrame({'year': model_years}), how='cross')
 
@@ -123,7 +123,7 @@ class EnergyRequirement:
         """
         reduction_condition = self.calculate_reduction_condition(reduction_per_condition)
         condition_factor = pd.merge(left=energy_requirements, right=reduction_condition,
-                                    on=['building_category', 'TEK', 'building_condition', 'purpose'],
+                                    on=['building_category', 'building_code', 'building_condition', 'purpose'],
                                     how='left')
 
         reduction_policy = self.calculate_reduction_policy(policy_improvement, energy_requirements)
@@ -136,11 +136,11 @@ class EnergyRequirement:
     def merge_energy_requirement_reductions(self, condition_factor, yearly_improvements, reduction_policy):
         m_nrg_yi = pd.merge(left=condition_factor,
                             right=yearly_improvements.copy(),
-                            on=['building_category', 'TEK', 'purpose', 'year'],
+                            on=['building_category', 'building_code', 'purpose', 'year'],
                             how='left')
         m_nrg_yi = pd.merge(left=m_nrg_yi,
                             right=reduction_policy.copy(),
-                            on=['building_category', 'TEK', 'purpose', 'year'],
+                            on=['building_category', 'building_code', 'purpose', 'year'],
                             how='left')
         merged = m_nrg_yi.copy()
         merged.loc[:, 'reduction_yearly'] = merged.loc[:, 'reduction_yearly'].fillna(1.0)
@@ -198,7 +198,7 @@ class EnergyRequirement:
             df[df.start_year > df.year].index, 'reduction_yearly'].fillna(1.0)
         df.loc[:, 'reduction_yearly'] = df.loc[:, 'reduction_yearly'].ffill()
 
-        return df[['building_category', 'TEK', 'purpose', 'year', 'reduction_yearly']]
+        return df[['building_category', 'building_code', 'purpose', 'year', 'reduction_yearly']]
 
 
     def calculate_reduction_policy(self, policy_improvement: pd.DataFrame, all_things) -> pd.DataFrame:
@@ -222,40 +222,40 @@ class EnergyRequirement:
             DataFrame with the calculated 'reduction_policy' column and updated entries.
         """
         policy_improvement = policy_improvement.sort_values(
-            by=['building_category', 'TEK', 'purpose', 'start_year', 'end_year'])
+            by=['building_category', 'building_code', 'purpose', 'start_year', 'end_year'])
 
         policy_improvement[['building_category_s', 'TEK_s', 'purpose_s', 'start_year_s', 'end_year_s']] = \
         policy_improvement[
-            ['building_category', 'TEK', 'purpose', 'start_year', 'end_year']]
+            ['building_category', 'building_code', 'purpose', 'start_year', 'end_year']]
 
         policy_improvement = policy_improvement.set_index(
-            ['building_category', 'TEK', 'purpose', 'start_year', 'end_year'], drop=True)
+            ['building_category', 'building_code', 'purpose', 'start_year', 'end_year'], drop=True)
 
         shifted = policy_improvement.shift(1).reset_index()
 
-        shifted = shifted.query('building_category==building_category_s & TEK==TEK_s & purpose==purpose_s')
+        shifted = shifted.query('building_category==building_category_s & building_code==TEK_s & purpose==purpose_s')
         shifted['improvement_at_start_year'] = shifted['improvement_at_end_year']
-        shifted = shifted[['building_category', 'TEK', 'purpose', 'start_year', 'end_year', 'improvement_at_start_year']]
+        shifted = shifted[['building_category', 'building_code', 'purpose', 'start_year', 'end_year', 'improvement_at_start_year']]
 
         start_year_from_previous = shifted
 
         policy_improvement = pd.merge(left=policy_improvement,
                                       right=start_year_from_previous,
-                                      left_on=['building_category', 'TEK', 'purpose', 'start_year', 'end_year'],
-                                      right_on=['building_category', 'TEK', 'purpose', 'start_year', 'end_year'],
+                                      left_on=['building_category', 'building_code', 'purpose', 'start_year', 'end_year'],
+                                      right_on=['building_category', 'building_code', 'purpose', 'start_year', 'end_year'],
                                       how='left'
                                       )
 
         policy_improvement[['start_year', 'end_year']] = policy_improvement[['start_year', 'end_year']].astype(int)
         policy_improvement = policy_improvement.set_index(
-            ['building_category', 'TEK', 'purpose', 'start_year', 'end_year'], drop=True)
+            ['building_category', 'building_code', 'purpose', 'start_year', 'end_year'], drop=True)
         policy_improvement['improvement_at_start_year'] = 1.0-policy_improvement['improvement_at_start_year'].fillna(0.0)
 
         policy_improvement = policy_improvement[['improvement_at_start_year', 'improvement_at_end_year']].reset_index()
 
-        df = pd.merge(left=all_things[['building_category', 'TEK', 'purpose', 'year']],
+        df = pd.merge(left=all_things[['building_category', 'building_code', 'purpose', 'year']],
                       right=policy_improvement,
-                      on=['building_category', 'TEK', 'purpose'], how='left')
+                      on=['building_category', 'building_code', 'purpose'], how='left')
 
         df['num_values'] = df['end_year'] - df['start_year'] + 1.0
         df['n'] = (df.year - df.start_year).clip(upper=df.num_values-1, lower=0)
@@ -265,10 +265,10 @@ class EnergyRequirement:
         df['reduction_policy'] = df['improvement_at_start_year'] + (df['n']) * df['step']
         df['reduction_policy'] = df['reduction_policy'].fillna(1.0)
         df['_col_to_filter'] = (df['year'] < df['start_year']) | (df['year'] > df['end_year'])
-        df = df.sort_values(by=['building_category', 'TEK', 'purpose', 'year', '_col_to_filter'])
-        df = df.drop_duplicates(['building_category', 'TEK', 'purpose', 'year'])
+        df = df.sort_values(by=['building_category', 'building_code', 'purpose', 'year', '_col_to_filter'])
+        df = df.drop_duplicates(['building_category', 'building_code', 'purpose', 'year'])
 
-        return df[['building_category', 'TEK', 'purpose', 'year', 'reduction_policy']]
+        return df[['building_category', 'building_code', 'purpose', 'year', 'reduction_policy']]
 
 
     def calculate_reduction_condition(self, reduction_per_condition: pd.DataFrame) -> pd.DataFrame:
@@ -281,7 +281,7 @@ class EnergyRequirement:
         Parameters
         ----------
         reduction_per_condition : pd.DataFrame
-            DataFrame containing the reduction share information. Must include columns 'reduction_share' and 'TEK'.
+            DataFrame containing the reduction share information. Must include columns 'reduction_share' and 'building_code'.
 
         Returns
         -------
@@ -320,7 +320,7 @@ class EnergyRequirement:
         if period.start != 2010 and calibration_year != calibration_year:
             logger.warning(f'EnergyRequirements {period.start=} {calibration_year=}')
         dm = database_manager if isinstance(database_manager, DatabaseManager) else DatabaseManager()
-        instance = EnergyRequirement(tek_list=dm.get_tek_list(), period=period, calibration_year=calibration_year,
+        instance = EnergyRequirement(building_code_list=dm.get_building_code_list(), period=period, calibration_year=calibration_year,
                                      database_manager=dm)
         return instance
 

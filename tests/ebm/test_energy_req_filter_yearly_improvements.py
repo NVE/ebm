@@ -15,7 +15,7 @@ from ebm.model.exceptions import AmbiguousDataError
 @pytest.fixture
 def yearly_improvements() -> pd.DataFrame:
     return pd.read_csv(io.StringIO("""
-building_category,TEK,purpose,yearly_efficiency_improvement
+building_category,building_code,purpose,yearly_efficiency_improvement
 default,default,cooling,0.0
 default,default,electrical_equipment,0.1
 default,default,fans_and_pumps,0.0
@@ -33,7 +33,7 @@ default,default,default,0.9
 @pytest.fixture
 def no_default_df() -> pd.DataFrame:
     return pd.read_csv(io.StringIO("""
-building_category,TEK,purpose,yearly_efficiency_improvement
+building_category,building_code,purpose,yearly_efficiency_improvement
 apartment_block,TEK90,cooling,0.99
 """.strip()), skipinitialspace=True)
 
@@ -113,7 +113,7 @@ def test_get_yearly_improvements_return_false_value_when_purpose_not_found(defau
     assert len(rs) == 0
 
 
-def test_get_yearly_improvements_return_false_value_when_tek_not_found(default_parameters,
+def test_get_yearly_improvements_return_false_value_when_building_code_not_found(default_parameters,
                                                                            no_default_df):
     """
     When the specified filter variable (building_category, tek or purpose) isn't present in the
@@ -123,7 +123,7 @@ def test_get_yearly_improvements_return_false_value_when_tek_not_found(default_p
 
     rs = filter_original_condition(no_default_df,
                                    building_category=default_parameters.get('building_category'),
-                                   tek='TEK',
+                                   tek='building_code',
                                    purpose=EnergyPurpose.cooling)
     assert len(rs) == 0
 
@@ -135,7 +135,7 @@ def test_get_yearly_improvements_return_value_when_match_has_same_priority(defau
     order in which they should be prioritized is as follows: building_category, tek and purpose.
     """
     yearly_improvements = pd.read_csv(io.StringIO("""
-            building_category,TEK,purpose,yearly_efficiency_improvement
+            building_category,building_code,purpose,yearly_efficiency_improvement
             default,TEK01,lighting,0.3
             house,default,lighting,0.2
             house,TEK01,default,0.1
@@ -159,7 +159,7 @@ def test_get_yearly_improvements_raise_error_for_duplicate_rows_with_different_v
     are different. In this case, the method have no way of deciding which value is correct and the program should crash.
     """
     yearly_improvements = pd.read_csv(io.StringIO("""
-            building_category,TEK,purpose,yearly_efficiency_improvement
+            building_category,building_code,purpose,yearly_efficiency_improvement
             house,TEK01,lighting,0.1 
             house,TEK01,lighting,0.2
             default,TEK01,lighting,0.3

@@ -1,4 +1,4 @@
-building_category,TEK,purpose,behaviour_factor,year
+building_category,building_code,purpose,behaviour_factor,year
 residential,default,default,1.0,
 house,PRE_TEK49+TEK69+TEK87+TEK49+TEK97,default,0.85,
 house,default,lighting,0.85,

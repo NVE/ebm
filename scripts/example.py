@@ -16,6 +16,6 @@ yearly_constructed = ConstructionCalculator.calculate_construction(
     database_manager=database_manager, 
     period= YearRange(2010, 2050)).accumulated_constructed_floor_area
 
-forecast = area_forecast.calc_area_with_construction_per_tek_condition(yearly_constructed)
+forecast = area_forecast.calc_area_with_construction_per_building_code_condition(yearly_constructed)
 
 print(forecast)

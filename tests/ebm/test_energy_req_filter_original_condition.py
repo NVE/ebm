@@ -12,7 +12,7 @@ from ebm.model.energy_purpose import EnergyPurpose
 @pytest.fixture
 def original_condition() -> pd.DataFrame:
     return pd.read_csv(io.StringIO("""
-building_category,TEK,purpose,kwh_m2
+building_category,building_code,purpose,kwh_m2
 apartment_block,PRE_TEK49_RES_1950,cooling,1.1
 apartment_block,PRE_TEK49_RES_1950,electrical_equipment,2.2
 apartment_block,PRE_TEK49_RES_1950,fans_and_pumps,3.3
@@ -79,7 +79,7 @@ def test_get_orginal_condition_return_false_value_when_building_category_not_fou
     the false_return_value of the function.
     """
     original_condition = pd.read_csv(io.StringIO("""
-    building_category,TEK,purpose,kwh_m2
+    building_category,building_code,purpose,kwh_m2
     apartment_block,PRE_TEK49_RES_1950,cooling,1.1                                                                                                                                                                                                                                           
     """.strip()), skipinitialspace=True)
 
@@ -90,14 +90,14 @@ def test_get_orginal_condition_return_false_value_when_building_category_not_fou
     assert len(rs) == 0
 
 
-def test_get_orginal_condition_return_false_value_when_tek_not_found(default_parameters):
+def test_get_orginal_condition_return_false_value_when_building_code_not_found(default_parameters):
     """
     When the specified filter variable (building_category, tek or purpose) isn't present in the
     original dataframe, and there isn't a 'default' option available for that variable, then return 
     the false_return_value of the function.
     """
     original_condition = pd.read_csv(io.StringIO("""
-    building_category,TEK,purpose,kwh_m2
+    building_category,building_code,purpose,kwh_m2
     apartment_block,PRE_TEK49_RES_1950,cooling,1.1                                                                                                                                                                                                                                           
     """.strip()), skipinitialspace=True)
 
@@ -116,7 +116,7 @@ def test_get_original_condition_return_value_when_match_has_same_priority(defaul
     order in which they should be prioritized is as follows: building_category, tek and purpose.
     """
     original_condition = pd.read_csv(io.StringIO("""
-    building_category,TEK,purpose,kwh_m2
+    building_category,building_code,purpose,kwh_m2
     default,TEK07,cooling,0.1
     apartment_block,default,cooling,0.2                                                                                   
     apartment_block,TEK07,default,0.3
@@ -138,7 +138,7 @@ def test_get_original_condition_raise_error_for_duplicate_rows_with_different_va
     which value is correct and the program should crash. 
     """
     original_condition = pd.read_csv(io.StringIO("""
-    building_category,TEK,purpose,kwh_m2
+    building_category,building_code,purpose,kwh_m2
     apartment_block,TEK07,cooling,0.1 
     apartment_block,TEK07,cooling,0.2                                                                                                                                                                                                                                                                                     
     """.strip()), skipinitialspace=True)

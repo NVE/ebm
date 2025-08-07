@@ -13,8 +13,8 @@ from ebm.model.data_classes import YearRange
 database_manager = DatabaseManager()
 building_category = BuildingCategory.HOUSE
 
-tek_list = FilterTek.get_filtered_list(building_category, database_manager.get_tek_list())
-tek_params = database_manager.get_tek_params(tek_list)
+building_code_list = FilterTek.get_filtered_list(building_category, database_manager.get_building_code_list())
+building_code_params = database_manager.get_building_code_params(building_code_list)
 
 # Get scurve params (run scurve process)
 scurve_condition_list = BuildingCondition.get_scruve_condition_list()
@@ -29,5 +29,5 @@ scurves = scurve_processor.get_scurves()
 never_shares = scurve_processor.get_never_shares()
 
 # Run SharesPerCondition
-s = SharesPerCondition(tek_list, tek_params, scurves, never_shares) 
+s = SharesPerCondition(building_code_list, building_code_params, scurves, never_shares) 
 s._control_shares()

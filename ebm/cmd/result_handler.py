@@ -20,14 +20,14 @@ def transform_model_to_horizontal(model, value_column = 'm2'):
     if 'energy_requirement' in hz.columns:
         value_column = 'GWh'
         hz['GWh'] = hz['energy_requirement'] / 10**6
-    hz = hz.groupby(by=['building_category', 'TEK', 'building_condition', 'year'], as_index=False).sum()[
-        ['building_category', 'TEK', 'building_condition', 'year', value_column]]
-    hz = hz.pivot(columns=['year'], index=['building_category', 'TEK', 'building_condition'], values=[
+    hz = hz.groupby(by=['building_category', 'building_code', 'building_condition', 'year'], as_index=False).sum()[
+        ['building_category', 'building_code', 'building_condition', 'year', value_column]]
+    hz = hz.pivot(columns=['year'], index=['building_category', 'building_code', 'building_condition'], values=[
         value_column]).reset_index()
 
-    hz = hz.sort_values(by=['building_category', 'TEK', 'building_condition'], key=bema.map_sort_order)
+    hz = hz.sort_values(by=['building_category', 'building_code', 'building_condition'], key=bema.map_sort_order)
     hz.insert(3, 'U', value_column)
-    hz.columns = ['building_category', 'TEK', 'building_condition', 'U'] + [y for y in range(2020, 2051)]
+    hz.columns = ['building_category', 'building_code', 'building_condition', 'U'] + [y for y in range(2020, 2051)]
 
     return hz
 
@@ -153,7 +153,7 @@ class EbmDefaultHandler:
         area_forecast = self.extract_area_forecast(b_c,
                                                    database_manager,
                                                    period=year_range)
-        area_forecast = area_forecast.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+        area_forecast = area_forecast.set_index(['building_category', 'building_code', 'building_condition', 'year'])
         df = area_forecast
 
         if 'energy-requirements' in step_choice or 'heating-systems' in step_choice or 'energy-use' in step_choice:

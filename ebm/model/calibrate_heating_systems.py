@@ -69,7 +69,7 @@ def transform_by_energy_source(df, energy_class_column, energy_source_column):
     rv_gl = rv_gl.reset_index().set_index(['building_category',
                                    'building_condition',
                                    'purpose',
-                                   'TEK',
+                                   'building_code',
                                    'year',
                                    'heating_systems',
                                    'typ'])

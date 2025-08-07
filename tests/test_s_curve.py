@@ -31,7 +31,7 @@ def test_transform_to_long():
             ('house', 'TEK49', 2022): 0.0125,
             ('house', 'TEK49', 2023): 0.025}
     })
-    df.index.names = ['building_category', 'TEK', 'year']
+    df.index.names = ['building_category', 'building_code', 'year']
 
     result = transform_to_long(df)
 
@@ -59,7 +59,7 @@ def test_transform_to_long():
             ('house', 'TEK49', 2023, 'demolition'): 0.025,
         }
     })
-    expected.index.names = ['building_category', 'TEK', 'year', 'building_condition']
+    expected.index.names = ['building_category', 'building_code', 'year', 'building_condition']
 
     pd.testing.assert_frame_equal(result, expected)
 

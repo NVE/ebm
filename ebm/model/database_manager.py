@@ -82,7 +82,20 @@ class DatabaseManager:
 
         return pd.DataFrame(data=data, columns=column_headers)
 
-    def get_building_code_params(self, building_code_list: typing.List[str]):
+    def get_building_codes(self) -> pd.DataFrame:
+        """
+        Retrieve building_code_parameters
+
+        Returns
+        -------
+        pd.DataFrame
+            Pandas Dataframe containing building_code with parameters
+        """
+        building_code_params_df = self.file_handler.get_building_code()
+        return building_code_params_df
+
+
+    def get_building_code_params(self, building_code_list: typing.List[str]=None):
         """
         Retrieve building_codeparameters for a list of building_code.
 
@@ -101,7 +114,8 @@ class DatabaseManager:
         """
         building_code_params = {}
         building_code_params_df = self.file_handler.get_building_code()
-
+        if not building_code_list:
+            return building_code_params_df
         for tek in building_code_list:
             # Filter on building_code
             building_code_params_filtered = building_code_params_df[building_code_params_df[self.COL_TEK] == tek]
@@ -242,7 +256,7 @@ class DatabaseManager:
         ff = self.file_handler.get_energy_req_original_condition()[['building_category', 'building_code', 'purpose', 'kwh_m2']]
         df = self.explode_unique_columns(ff, ['building_category', 'building_code', 'purpose'])
         if len(df[df.building_code=='TEK21']) > 0:
-            logger.warning(f'Detected TEK21 in energy_requirement_original_condition')
+            logger.warning(f'Detected TEK21 in {self.file_handler.ENERGY_NEED_ORIGINAL_CONDITION}')
         df = df.set_index(['building_category', 'purpose', 'building_code']).sort_index()
 
         df = building_purpose.join(df, how='left')

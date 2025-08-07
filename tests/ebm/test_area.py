@@ -1,5 +1,6 @@
 # noinspection PyTypeChecker
 import io
+from unittest.mock import patch, MagicMock
 
 import numpy as np
 import pandas as pd
@@ -7,7 +8,10 @@ import pytest
 
 from ebm.model.area import (transform_area_forecast_to_area_change,
                             transform_construction_by_year,
-                            transform_cumulative_demolition_to_yearly_demolition, building_condition_scurves)
+                            transform_cumulative_demolition_to_yearly_demolition, building_condition_scurves,
+                            calculate_construction_by_building_category)
+from ebm.model.data_classes import YearRange
+from ebm.model.database_manager import DatabaseManager
 
 
 def test_transform_area_forecast_to_area_change():
@@ -183,6 +187,37 @@ def test_building_condition_scurves():
     res = building_condition_scurves(house_parameters)
 
     assert isinstance(res, pd.DataFrame)
+
+
+@patch('ebm.model.construction.ConstructionCalculator.calculate_all_construction')
+def test_calculate_construction_by_building_category(mock_calculator):
+    building_code_params = pd.DataFrame({'building_code': ['TEK17', 'TEK21'],
+                                         'building_year': [2017, 2021],
+                                         'period_start_year': [2016, 2021],
+                                         'period_end_year': [2020, 2050]})
+
+    mock_database_manager = DatabaseManager()
+    mock_database_manager.get_building_codes = MagicMock(return_value=building_code_params)
+
+    demolition = pd.DataFrame({
+        'building_category': ['residential', 'commercial'] * 2,
+        'year': [2020] * 2 + [2021] * 2,
+        'demolished_area': [11, 21, 12, 22]
+    })
+
+    mock_construction = pd.DataFrame({
+        'building_category': ['house']*2 + ['hospital']*2,
+        'year': [2020, 2021, 2020, 2021],
+        'accumulated_constructed_floor_area': [120, 121, 220, 221]
+    })
+    mock_calculator.return_value = mock_construction
+
+    result = calculate_construction_by_building_category(demolition, mock_database_manager, YearRange(2020, 2021))
+
+    assert result.loc[('house', 'TEK17', 2020)] == 120
+    assert result.loc[('house', 'TEK21', 2021)] == 121
+    assert result.loc[('hospital', 'TEK17', 2020)] == 220
+    assert result.loc[('hospital', 'TEK21', 2021)] == 221
 
 
 if __name__ == "__main__":

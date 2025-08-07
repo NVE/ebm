@@ -609,7 +609,7 @@ invalid_category,0.6
 
 def test_heating_system_initial_shares_ok():
     shares_start_year = pd.read_csv(io.StringIO("""
-building_category,TEK,heating_systems,year,TEK_shares
+building_category,TEK,heating_systems,year,heating_system_share
 apartment_block,TEK17,DH,2023,0.2067590404511288
 apartment_block,TEK17,DH - Bio,2023,0.0033946606308616
 apartment_block,TEK17,Electric boiler,2023,0.0340346740470787
@@ -639,7 +639,7 @@ university,TEK97,HP Central heating - Gas,2023,0.0000719616069676
 
 def test_heating_systems_shares_require_same_start_year():
     shares_start_year = pd.read_csv(io.StringIO("""
-building_category,TEK,heating_systems,year,TEK_shares
+building_category,TEK,heating_systems,year,heating_system_share
 apartment_block,TEK07,DH,2020,0.3316670026630616
 apartment_block,TEK07,DH - Bio,2021,0.003305887353335002                                               
 """.strip()), skipinitialspace=True) 
@@ -650,7 +650,7 @@ apartment_block,TEK07,DH - Bio,2021,0.003305887353335002
 
 def test_heating_systems_shares_between_zero_and_one():
     shares_start_year = pd.read_csv(io.StringIO("""
-building_category,TEK,heating_systems,year,TEK_shares
+building_category,TEK,heating_systems,year,heating_system_share
 apartment_block,TEK07,DH,2020,-1                                               
 """.strip()), skipinitialspace=True) 
     
@@ -658,7 +658,7 @@ apartment_block,TEK07,DH,2020,-1
         heating_system_initial_shares.validate(shares_start_year)
 
     shares_start_year = pd.read_csv(io.StringIO("""
-building_category,TEK,heating_systems,year,TEK_shares
+building_category,TEK,heating_systems,year,heating_system_share
 apartment_block,TEK07,DH,2020,2                                               
 """.strip()), skipinitialspace=True) 
     
@@ -669,7 +669,7 @@ apartment_block,TEK07,DH,2020,2
 def test_heating_system_initial_shares_sum_shares_equal_1():
 
     df = pd.read_csv(io.StringIO("""
-building_category,TEK,heating_systems,year,TEK_shares
+building_category,TEK,heating_systems,year,heating_system_share
 apartment_block,TEK17,DH,2023,0.5
 apartment_block,TEK17,DH - Bio,2023,0.5
 university,TEK97,Electricity,2023,0.5

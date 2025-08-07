@@ -240,9 +240,9 @@ def check_sum_of_tek_shares_equal_1(df: pd.DataFrame):
     """
     """
     precision = 4
-    df = df.groupby(by=['building_category', 'TEK'])[['TEK_shares']].sum()
-    df['TEK_shares'] = round(df['TEK_shares'] * 100, precision)
-    return_series = df["TEK_shares"] == 100.0
+    df = df.groupby(by=['building_category', 'TEK'])[['heating_system_share']].sum()
+    df['heating_system_share'] = round(df['heating_system_share'] * 100, precision)
+    return_series = df["heating_system_share"] == 100.0
     return return_series
 
 
@@ -500,13 +500,13 @@ heating_system_initial_shares = pa.DataFrameSchema(
             lambda year: len(year.unique()) == 1,
             error="All values in the 'year' column must be identical."
         )),
-        'TEK_shares': pa.Column(float, coerce=True, 
+        'heating_system_share': pa.Column(float, coerce=True,
                                 checks=[pa.Check.between(min_value=0.0, include_min=True,
                                                          max_value=1.0, include_max=True)]) 
     },
     #TODO: better warning messages to see where the issues are
     checks=[pa.Check(check_sum_of_tek_shares_equal_1, raise_warning=True, 
-                     error="Sum of 'TEK_shares' do not equal 1 for one or more combination of 'building_category' and 'TEK'")],
+                     error="Sum of 'heating_system_share' do not equal 1 for one or more combination of 'building_category' and 'TEK'")],
     name='heating_systems_shares_start_year'
 )
 

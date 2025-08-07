@@ -97,7 +97,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     logger.debug('Transform fane 1')
     heating_systems_share_wide = transform_heating_systems_share_wide(heating_systems_share)
     heating_systems_share_long = heating_systems_share.rename(columns={
-        'TEK_shares': 'Share',
+        'heating_system_share': 'Share',
         'heating_systems': 'Heating system'})
 
     heating_systems_share_wide = heating_systems_share_wide.rename(columns={'heating_systems':'Heating technology'})

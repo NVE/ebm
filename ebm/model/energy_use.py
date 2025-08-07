@@ -112,7 +112,7 @@ def all_purposes(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:
 
 def efficiency_factor(heating_systems: pd.DataFrame) -> pd.DataFrame:
     df = heating_systems
-    df.loc[:, 'efficiency_factor'] = df.loc[:, 'TEK_shares'] * df.loc[:, 'load_share'] / df.loc[:, 'load_efficiency']
+    df.loc[:, 'efficiency_factor'] = df.loc[:, 'heating_system_share'] * df.loc[:, 'load_share'] / df.loc[:, 'load_efficiency']
 
     return df
 
@@ -124,7 +124,7 @@ def energy_use_kwh(energy_need: pd.DataFrame, efficiency_factor: pd.DataFrame) -
                                  left_on=['building_category', 'TEK', 'purpose', 'year'],
                                  right_on=['building_category', 'TEK', 'purpose', 'year'])
 
-    df['kwh'] = df['energy_requirement'] * df['TEK_shares'] * df['load_share'] / df['load_efficiency']
+    df['kwh'] = df['energy_requirement'] * df['heating_system_share'] * df['load_share'] / df['load_efficiency']
     if 'kwh_m2' in df.columns:
         df['kwh_m2'] = df['kwh_m2'] * df['efficiency_factor']
     else:
@@ -167,7 +167,7 @@ def calculate_energy_use(database_manager: 'DatabaseManager',
     extra columns
     m2, original_kwh_m2, reduction_yearly, reduction_policy, reduction_condition, reduced_kwh_m2,
        behaviour_factor, kwh_m2, energy_requirement, heating_systems,
-       TEK_shares, load_share, load_efficiency, energy_product,
+       heating_system_share, load_share, load_efficiency, energy_product,
        heating_system, load, building_group, efficiency_factor
 
     Parameters

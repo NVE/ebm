@@ -55,19 +55,19 @@ def test_filehandler_init_supports_alternative_path(tmp_path):
     """
     os.chdir(tmp_path)
 
-    input_directory = tmp_path / 'tupin'
+    input_directory = tmp_path / 'tupni'
     input_directory.mkdir()
 
     fh = FileHandler(directory=input_directory.name)
-    assert fh.input_directory == pathlib.Path('tupin')
-    building_code_id = tmp_path / 'tupin' / 'building_codes.csv'
+    assert fh.input_directory == pathlib.Path('tupni')
+    building_code_id = tmp_path / 'tupni' / 'area_per_person.csv'
 
     with building_code_id.open('w') as open_file:
-        open_file.write('building_code\nTEK21')
+        open_file.write('building_category,area_per_person\nkindergarten,0.6')
         open_file.close()
 
-    assert 'building_codes.csv' not in fh.check_for_missing_files()
-    assert isinstance(fh.get_building_code_id(), pd.DataFrame)
+    assert 'area_per_person.csv' not in fh.check_for_missing_files()
+    assert isinstance(fh.get_area_per_person(), pd.DataFrame)
 
 
 def test_filehandler_init_coerce_input_directory_to_pathlib_path(tmp_path):

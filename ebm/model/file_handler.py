@@ -237,18 +237,6 @@ class FileHandler:
             per building category, tek and purpose.
         """
         return self.get_file(self.ENERGY_NEED_YEARLY_IMPROVEMENTS)
-    
-    def get_energy_req_policy_improvements(self) -> pd.DataFrame:
-        """
-        Get dataframe with total energy requirement improvement in a period related to a policy.
-
-        Returns
-        -------
-        pd.DataFrame
-            Dataframe containing total energy requirement improvement (%) in a policy period,
-            per building category, tek and purpose.
-        """
-        return self.get_file(self.ENERGY_REQ_POLICY_IMPROVEMENTS)
 
     def get_holiday_home_energy_consumption(self) -> pd.DataFrame:
         return self.get_file(self.HOLIDAY_HOME_ENERGY_CONSUMPTION)

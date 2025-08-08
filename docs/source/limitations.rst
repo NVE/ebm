@@ -4,7 +4,8 @@ Limitations
 Headline
 --------
 
-The model has the following limitations...
+Short description or summary of overall limitations such as no vehicle charging, roof-top solar and optimisation. 
+
 
 .. code-block:: bash
 
@@ -14,13 +15,6 @@ The model has the following limitations...
 More headlines
 
 --------------
-
-Here is a quick example of how to run your first model:
-
-.. code-block:: python
-
-   import modelframework
-   ...
 
 .. |date| date::
 

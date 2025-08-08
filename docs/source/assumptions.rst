@@ -1,7 +1,6 @@
 Assumptions
 ==============
-Xyz
-
+What are the base assumptions when the model is opened? What is located in the input files. 
 
 .. |date| date::
 

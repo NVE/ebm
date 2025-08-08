@@ -8,7 +8,7 @@ documentation for details.
 `RST EXAMPLES <example.html>`_
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Using the Model
 
    introduction
@@ -17,11 +17,11 @@ documentation for details.
    input_description
    results
    calibrating_the_model
-   user_case
-
+   user_case   
+   limitations
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Model Functionality
 
    architecture
@@ -30,23 +30,21 @@ documentation for details.
    area
    energy_need
    energy_use
-   calibration
    geographical_distribution
-   calculations
    heating_systems
-   limitations
+   
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :titlesonly:
    :caption: Technical Documentation
 
    configuration
    sphinx_guide
-   code_reference
+   api_reference
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :titlesonly:
    :caption: Miscellaneous
 

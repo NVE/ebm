@@ -18,7 +18,6 @@ class FileHandler:
 
     # Filenames
     BUILDING_CONDITIONS = 'building_conditions.csv'
-    TEK_ID = 'building_codes.csv'
     BUILDING_CODE_PARAMS = 'building_code_parameters.csv'
     S_CURVE = 's_curve.csv'
     POPULATION_FORECAST = 'population_forecast.csv'
@@ -55,7 +54,7 @@ class FileHandler:
             directory = os.environ.get('EBM_INPUT_DIRECTORY', 'input')
 
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
-        self.files_to_check = [self.TEK_ID, self.BUILDING_CODE_PARAMS, self.S_CURVE, self.POPULATION_FORECAST,
+        self.files_to_check = [self.BUILDING_CODE_PARAMS, self.S_CURVE, self.POPULATION_FORECAST,
                                self.NEW_BUILDINGS_RESIDENTIAL, self.AREA_NEW_RESIDENTIAL_BUILDINGS,
                                self.AREA, self.BEHAVIOUR_FACTOR, self.ENERGY_NEED_ORIGINAL_CONDITION,
                                self.IMPROVEMENT_BUILDING_UPGRADE, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
@@ -121,16 +120,6 @@ class FileHandler:
             logger.exception(ex)
             logger.error(f'Unable to open {file_path}. Unable to read file.')
             raise
-
-    def get_building_code_id(self):
-        """
-        Get building_code DataFrame.
-
-        Returns:
-        - building_code_id (pd.DataFrame): DataFrame containing building_codes.
-        """        
-        building_code_id = self.get_file(self.TEK_ID)
-        return building_code_id
 
     def get_building_code(self) -> pd.DataFrame:
         """
@@ -381,12 +370,9 @@ class FileHandler:
             multiple errors may be listed in the exception.
         """
         for file_to_validate in self.files_to_check:
-            if file_to_validate == 'building_codes.csv':
-                # No validator for building_code_id exists. Fix this later.
-                continue
             df = self.get_file(file_to_validate)
-
             validator = getattr(validators, file_to_validate[:-4].lower())
+
             try:
                 validator.validate(df, lazy=True)
             except (SchemaErrors, SchemaError):

@@ -29,7 +29,6 @@ def test_check_for_missing_files_return_list(tmp_path):
     os.chdir(tmp_path)
     fh = FileHandler(directory=tmp_path)
     missing_files = set(fh.check_for_missing_files())
-    assert 'building_codes.csv' in missing_files
     assert 'building_code_parameters.csv' in missing_files
     assert 's_curve.csv' in missing_files
     assert 'population_forecast.csv' in missing_files
@@ -46,7 +45,7 @@ def test_check_for_missing_files_return_list(tmp_path):
     assert 'heating_system_initial_shares.csv' in missing_files
     assert 'heating_systems_efficiencies.csv' in missing_files    
     assert 'heating_system_forecast.csv' in missing_files
-    assert len(missing_files) == 17, 'Unexpected list length returned from check_for_missing_files'
+    assert len(missing_files) == 16, 'Unexpected list length returned from check_for_missing_files'
 
 
 def test_filehandler_init_supports_alternative_path(tmp_path):
@@ -105,7 +104,6 @@ def test_filehandler_create_missing_input_files(tmp_path):
     fh = FileHandler(input_directory)
     fh.create_missing_input_files()
 
-    assert (input_directory / 'building_codes.csv').is_file()
     assert (input_directory / 'building_code_parameters.csv').is_file()
     assert (input_directory / 's_curve.csv').is_file()
     assert (input_directory / 'population_forecast.csv').is_file()

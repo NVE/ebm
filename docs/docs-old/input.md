@@ -22,7 +22,7 @@ kindergarten, PRE_TEK49_COM, 131242
 building_category and TEK are jointly used as identifiers. All values must be known by EBM.
 
  - building_category name of building category
- - TEK Available values are listed in TEK_ID.csv
+
 
 #### Available building categories
 

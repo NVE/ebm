@@ -24,9 +24,12 @@ def main():
     elif arguments.energy_type == "fjernvarme":
         logger.info("🔥 Energikilde satt til fjernvarme.")
         energitype = "fjernvarme"
-    else:
+    elif arguments.energy_type == "ved":
         logger.info("🌲 Energikilde satt til ved.")
         energitype = "ved"
+    elif arguments.energy_type == "fossil":
+        logger.info("💨 Energikilde satt til fossil energi.")
+        energitype = "fossil"
 
 
     building_category_choice = arguments.category
@@ -59,14 +62,23 @@ def main():
                 "Fjernvarme krever minst én bygningskategori som ikke er fritidsboliger."
             )
     elif energitype == "ved":
-        filtered_categories = [cat for cat in building_category_choice if cat.lower() != NameHandler.COLUMN_NAME_FRITIDSBOLIG.lower()\
-                                and cat.lower() != NameHandler.COLUMN_NAME_YRKESBYGG.lower()]
+        filtered_categories = [cat for cat in building_category_choice if cat.lower() != NameHandler.COLUMN_NAME_YRKESBYGG.lower()]
         logger.info(
             f"🔍 Kommunefordeler ved for bygningskategori {filtered_categories}."
             )
         if not filtered_categories:
             raise ValueError(
-                "Ved krever minst én bygningskategori som hverken er yrkesbygg eller fritidsboliger."
+                "Ved krever minst én bygningskategori som ikke er yrkesbygg."
+            )
+    elif energitype == "fossil":
+        filtered_categories = [cat for cat in building_category_choice if cat.lower() != NameHandler.COLUMN_NAME_BOLIG.lower()\
+                               and cat.lower() != NameHandler.COLUMN_NAME_YRKESBYGG.lower()]
+        logger.info(
+            f"🔍 Kommunefordeler fossil energi for bygningskategori {filtered_categories}."
+            )
+        if not filtered_categories:
+            raise ValueError(
+                "Fossil energi er kun tilgjengelig for bygningskategorier som ikke er boliger eller yrkesbygg."
             )
 
     file_to_open = geographical_distribution(elhub_years, 

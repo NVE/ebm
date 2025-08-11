@@ -63,6 +63,16 @@ def get_commercial_data(df: pl.DataFrame) -> pl.DataFrame:
     return df.filter(pl.col("naering_kode").is_in(filter_list))
 
 def calculate_elhub_factors(df_stacked: pl.DataFrame, normalized: list[str], elhub_years: list[int], year_cols) -> dict:
+    """
+    Calculate Elhub factors for different building categories.
+    Args:
+        df_stacked (pl.DataFrame): Stacked Elhub data.
+        normalized (list[str]): List of building categories to include.
+        elhub_years (list[int]): List of years for Elhub aggregation.
+        year_cols: Columns representing the years in the output format.
+    Returns:
+        dict: Dictionary containing DataFrames for each building category with calculated factors.
+    """
     elhub_dataframes = {}
 
     if NameHandler.COLUMN_NAME_BOLIG in normalized:
@@ -111,6 +121,33 @@ def load_ved_factors(year_cols) -> dict:
     logger.info("📍Loaded ved distribution factors.")
     return factor_dict
 
+def log_distribution_strategy(energitype, category, method):
+    logger.warning(f"Bruker {method} fordelingsnøkkel for {energitype} i {category}.")
+
+
+def get_distribution_factors(energitype, normalized, elhub_years, step, year_cols):
+    if energitype == "strom":
+        df_stacked = prepare_elhub_data(elhub_years, step)
+        return calculate_elhub_factors(df_stacked, normalized, elhub_years, year_cols)
+    elif energitype == "fjernvarme":
+        return load_fjernvarme_factors(normalized, year_cols)
+    elif energitype in ["ved", "fossil"]:
+        dfs_factors = {}
+        if NameHandler.COLUMN_NAME_FRITIDSBOLIG in normalized:
+                 log_distribution_strategy(energitype, NameHandler.COLUMN_NAME_FRITIDSBOLIG, "Elhub")
+                 df_stacked = prepare_elhub_data(elhub_years, step)
+                 strom_factors = calculate_elhub_factors(df_stacked, normalized, elhub_years, year_cols)
+                 dfs_factors.update(strom_factors)
+        if NameHandler.COLUMN_NAME_BOLIG in normalized:
+            ved_factors = load_ved_factors(year_cols)
+            dfs_factors[NameHandler.COLUMN_NAME_BOLIG] = ved_factors[NameHandler.COLUMN_NAME_BOLIG]
+        if not dfs_factors:
+            raise ValueError(f"Ugyldig kombinasjon av bygningskategorier for energitype '{energitype}': {normalized}")
+        return dfs_factors
+    else:
+        raise ValueError(f"Unknown energitype: {energitype}")
+
+
 
 def export_distribution_to_excel(dfs: dict, output_file: Path):
     create_output_directory(filename=output_file)
@@ -154,16 +191,7 @@ def geographical_distribution(
 
     df_ebm = pl.from_pandas(load_energy_use())
 
-    if energitype == "strom":
-        df_stacked = prepare_elhub_data(elhub_years, step)
-        dfs_factors = calculate_elhub_factors(df_stacked, normalized, elhub_years, year_cols)
-
-    elif energitype == "fjernvarme":
-        dfs_factors = load_fjernvarme_factors(normalized, year_cols)
-    elif energitype == "ved":
-        dfs_factors = load_ved_factors(year_cols)
-    else:
-        raise ValueError(f"Unknown energitype: {energitype}")
+    dfs_factors = get_distribution_factors(energitype, normalized, elhub_years, step, year_cols)
     
     dfs_distributed = ebm_energy_use_geographical_distribution(
         df_ebm,

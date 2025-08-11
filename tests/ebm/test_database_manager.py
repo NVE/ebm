@@ -6,6 +6,7 @@ from unittest.mock import Mock, MagicMock
 import numpy as np
 import pandas as pd
 import pytest
+from io import StringIO
 
 from ebm.model.building_category import BuildingCategory
 from ebm.model.data_classes import YearRange
@@ -13,7 +14,6 @@ from ebm.model.database_manager import DatabaseManager
 from ebm.model.defaults import default_calibrate_heating_rv
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.file_handler import FileHandler
-from ebm.validators import behaviour_factor_parser
 
 
 def test_get_area_per_person():
@@ -250,7 +250,7 @@ def test_make_building_purpose_with_year():
     mock_fh = MagicMock(spec=FileHandler)
 
     all_building_codes = ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17']
-    mock_fh.get_building_code_id = lambda: pd.DataFrame(data=all_building_codes, columns=['building_code'])
+    mock_fh.get_building_code = lambda: pd.DataFrame(data=all_building_codes, columns=['building_code'])
     dm = DatabaseManager(file_handler=mock_fh)
 
     year_range = YearRange(2020, 2030)
@@ -278,7 +278,7 @@ def test_make_building_purpose():
     mock_fh = MagicMock(spec=FileHandler)
 
     all_building_codes = ['PRE_TEK49', 'TEK49']
-    mock_fh.get_building_code_id = lambda: pd.DataFrame(data=all_building_codes, columns=['building_code'])
+    mock_fh.get_building_code = lambda: pd.DataFrame(data=all_building_codes, columns=['building_code'])
     dm = DatabaseManager(file_handler=mock_fh)
 
     result = dm.make_building_purpose()
@@ -297,3 +297,21 @@ def test_make_building_purpose():
         assert purpose in result['purpose'].unique(), f'{purpose} missing from make_building_purpose()'
 
     assert len(result) == len(BuildingCategory) * len(all_building_codes) * len(expected_conditions) * len(EnergyPurpose)
+
+
+def test_get_building_code_list():
+    mock_fh = MagicMock(spec=FileHandler)
+
+    all_building_codes = pd.read_csv(StringIO("""
+building_code,building_year,period_start_year,period_end_year
+PRE_TEK49,1945,0,1948
+TEK49,1962,1949,1968
+TEK69,1977,1969,1986""".strip()))
+
+    mock_fh.get_building_code.return_value = all_building_codes
+
+    dm = DatabaseManager(file_handler=mock_fh)
+    result = dm.get_building_code_list()
+
+    assert (result == ['PRE_TEK49', 'TEK49', 'TEK69']).all()
+

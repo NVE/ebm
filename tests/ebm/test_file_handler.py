@@ -29,7 +29,6 @@ def test_check_for_missing_files_return_list(tmp_path):
     os.chdir(tmp_path)
     fh = FileHandler(directory=tmp_path)
     missing_files = set(fh.check_for_missing_files())
-    assert 'building_codes.csv' in missing_files
     assert 'building_code_parameters.csv' in missing_files
     assert 's_curve.csv' in missing_files
     assert 'population_forecast.csv' in missing_files
@@ -46,7 +45,7 @@ def test_check_for_missing_files_return_list(tmp_path):
     assert 'heating_system_initial_shares.csv' in missing_files
     assert 'heating_systems_efficiencies.csv' in missing_files    
     assert 'heating_system_forecast.csv' in missing_files
-    assert len(missing_files) == 17, 'Unexpected list length returned from check_for_missing_files'
+    assert len(missing_files) == 16, 'Unexpected list length returned from check_for_missing_files'
 
 
 def test_filehandler_init_supports_alternative_path(tmp_path):
@@ -55,19 +54,19 @@ def test_filehandler_init_supports_alternative_path(tmp_path):
     """
     os.chdir(tmp_path)
 
-    input_directory = tmp_path / 'tupin'
+    input_directory = tmp_path / 'tupni'
     input_directory.mkdir()
 
     fh = FileHandler(directory=input_directory.name)
-    assert fh.input_directory == pathlib.Path('tupin')
-    building_code_id = tmp_path / 'tupin' / 'building_codes.csv'
+    assert fh.input_directory == pathlib.Path('tupni')
+    building_code_id = tmp_path / 'tupni' / 'area_per_person.csv'
 
     with building_code_id.open('w') as open_file:
-        open_file.write('building_code\nTEK21')
+        open_file.write('building_category,area_per_person\nkindergarten,0.6')
         open_file.close()
 
-    assert 'building_codes.csv' not in fh.check_for_missing_files()
-    assert isinstance(fh.get_building_code_id(), pd.DataFrame)
+    assert 'area_per_person.csv' not in fh.check_for_missing_files()
+    assert isinstance(fh.get_area_per_person(), pd.DataFrame)
 
 
 def test_filehandler_init_coerce_input_directory_to_pathlib_path(tmp_path):
@@ -105,7 +104,6 @@ def test_filehandler_create_missing_input_files(tmp_path):
     fh = FileHandler(input_directory)
     fh.create_missing_input_files()
 
-    assert (input_directory / 'building_codes.csv').is_file()
     assert (input_directory / 'building_code_parameters.csv').is_file()
     assert (input_directory / 's_curve.csv').is_file()
     assert (input_directory / 'population_forecast.csv').is_file()

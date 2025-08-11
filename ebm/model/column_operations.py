@@ -58,7 +58,7 @@ def explode_building_code_column(df: pd.DataFrame, unique_columns: List[str],
             The DataFrame with exploded 'building_code' columns.
         """
     # Hvor skal building_code_list hentes fra?
-    building_code_list = pd.read_csv(pathlib.Path(__file__).parent.parent / 'data' / 'building_codes.csv')['building_code'].unique() if default_building_code is None else default_building_code
+    building_code_list = pd.read_csv(pathlib.Path(__file__).parent.parent / 'data' / 'building_code_parameters.csv')['building_code'].unique() if default_building_code is None else default_building_code
     df = explode_column_alias(df=df,
                               column='building_code',
                               values=building_code_list,

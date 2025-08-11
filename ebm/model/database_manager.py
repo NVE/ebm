@@ -39,7 +39,7 @@ class DatabaseManager:
     DEFAULT_VALUE = 'default'
 
     def __init__(self, file_handler: FileHandler = None):
-        # Create default FileHandler if file_hander is None
+        # Create default FileHandler if file_handler is None
 
         self.file_handler = file_handler if file_handler is not None else FileHandler()
     
@@ -50,7 +50,7 @@ class DatabaseManager:
         Returns:
         - building_code_list (list): List of building_code.
         """
-        building_code_id = self.file_handler.get_building_code_id()
+        building_code_id = self.file_handler.get_building_code()
         building_code_list = building_code_id[self.COL_TEK].unique()
         return building_code_list
 

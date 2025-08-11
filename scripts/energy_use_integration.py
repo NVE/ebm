@@ -224,8 +224,102 @@ def test_energy_use(cwd_ebm_data):
     expected.index.names = ['building_group', 'energy_product', 'year']
     pd.testing.assert_frame_equal(result.xs(key='yrkesbygg', drop_level=False), expected)
 
-    # assert building_group_energy_use_by_year.loc[('yrkesbygg', 'Fossil', 2050)].iloc[0] == np.nan
 
+
+
+expected_holiday_home = {'kwh': {('Fritidsboliger', 'Bio', 2020): 1450.0,
+         ('Fritidsboliger', 'Bio', 2021): 1270.0,
+         ('Fritidsboliger', 'Bio', 2022): 1390.0,
+         ('Fritidsboliger', 'Bio', 2023): 1390.0,
+         ('Fritidsboliger', 'Bio', 2024): 1363.993311965345,
+         ('Fritidsboliger', 'Bio', 2025): 1376.2609385993053,
+         ('Fritidsboliger', 'Bio', 2026): 1385.7758570733436,
+         ('Fritidsboliger', 'Bio', 2027): 1392.6203955040182,
+         ('Fritidsboliger', 'Bio', 2028): 1399.4936873365957,
+         ('Fritidsboliger', 'Bio', 2029): 1406.3183195659535,
+         ('Fritidsboliger', 'Bio', 2030): 1413.0237603429798,
+         ('Fritidsboliger', 'Bio', 2031): 1419.6618640933284,
+         ('Fritidsboliger', 'Bio', 2032): 1426.1893778363594,
+         ('Fritidsboliger', 'Bio', 2033): 1432.595242571341,
+         ('Fritidsboliger', 'Bio', 2034): 1438.9165673896175,
+         ('Fritidsboliger', 'Bio', 2035): 1445.120912555709,
+         ('Fritidsboliger', 'Bio', 2036): 1451.2318706045103,
+         ('Fritidsboliger', 'Bio', 2037): 1457.05185405628,
+         ('Fritidsboliger', 'Bio', 2038): 1462.6120738686395,
+         ('Fritidsboliger', 'Bio', 2039): 1467.9226060200324,
+         ('Fritidsboliger', 'Bio', 2040): 1473.0013906672023,
+         ('Fritidsboliger', 'Bio', 2041): 1477.8513768770104,
+         ('Fritidsboliger', 'Bio', 2042): 1482.4774797608936,
+         ('Fritidsboliger', 'Bio', 2043): 1486.8688860736913,
+         ('Fritidsboliger', 'Bio', 2044): 1491.0287906378373,
+         ('Fritidsboliger', 'Bio', 2045): 1494.9390075410172,
+         ('Fritidsboliger', 'Bio', 2046): 1498.5911810937894,
+         ('Fritidsboliger', 'Bio', 2047): 1501.9803961847176,
+         ('Fritidsboliger', 'Bio', 2048): 1505.0946107907826,
+         ('Fritidsboliger', 'Bio', 2049): 1507.9313673562658,
+         ('Fritidsboliger', 'Bio', 2050): 1510.4926319257427,
+         ('Fritidsboliger', 'Electricity', 2020): 2467.0,
+         ('Fritidsboliger', 'Electricity', 2021): 2819.0,
+         ('Fritidsboliger', 'Electricity', 2022): 2318.0,
+         ('Fritidsboliger', 'Electricity', 2023): 2427.0,
+         ('Fritidsboliger', 'Electricity', 2024): 2510.664757550429,
+         ('Fritidsboliger', 'Electricity', 2025): 2569.976712184894,
+         ('Fritidsboliger', 'Electricity', 2026): 2624.7297237690896,
+         ('Fritidsboliger', 'Electricity', 2027): 2674.8615206420313,
+         ('Fritidsboliger', 'Electricity', 2028): 2725.4146629389325,
+         ('Fritidsboliger', 'Electricity', 2029): 2763.7274703003145,
+         ('Fritidsboliger', 'Electricity', 2030): 2802.04677770458,
+         ('Fritidsboliger', 'Electricity', 2031): 2840.469973626825,
+         ('Fritidsboliger', 'Electricity', 2032): 2878.906153252153,
+         ('Fritidsboliger', 'Electricity', 2033): 2904.581963019164,
+         ('Fritidsboliger', 'Electricity', 2034): 2930.199594470989,
+         ('Fritidsboliger', 'Electricity', 2035): 2955.69044266053,
+         ('Fritidsboliger', 'Electricity', 2036): 2981.099848946306,
+         ('Fritidsboliger', 'Electricity', 2037): 3006.0176816990174,
+         ('Fritidsboliger', 'Electricity', 2038): 3030.500843480454,
+         ('Fritidsboliger', 'Electricity', 2039): 3054.5633682635794,
+         ('Fritidsboliger', 'Electricity', 2040): 3078.2360829151885,
+         ('Fritidsboliger', 'Electricity', 2041): 3088.371445072525,
+         ('Fritidsboliger', 'Electricity', 2042): 3098.038942272916,
+         ('Fritidsboliger', 'Electricity', 2043): 3107.215977306584,
+         ('Fritidsboliger', 'Electricity', 2044): 3115.909226621874,
+         ('Fritidsboliger', 'Electricity', 2045): 3124.080685820525,
+         ('Fritidsboliger', 'Electricity', 2046): 3131.7128934222565,
+         ('Fritidsboliger', 'Electricity', 2047): 3138.795577968081,
+         ('Fritidsboliger', 'Electricity', 2048): 3145.3035743834735,
+         ('Fritidsboliger', 'Electricity', 2049): 3151.2317469389395,
+         ('Fritidsboliger', 'Electricity', 2050): 3156.5842042180766,
+         ('Fritidsboliger', 'Fossil', 2020): 100.0,
+         ('Fritidsboliger', 'Fossil', 2021): 100.0,
+         ('Fritidsboliger', 'Fossil', 2022): 100.0,
+         ('Fritidsboliger', 'Fossil', 2023): 100.0,
+         ('Fritidsboliger', 'Fossil', 2024): 100.0,
+         ('Fritidsboliger', 'Fossil', 2025): 100.0,
+         ('Fritidsboliger', 'Fossil', 2026): 100.0,
+         ('Fritidsboliger', 'Fossil', 2027): 100.0,
+         ('Fritidsboliger', 'Fossil', 2028): 100.0,
+         ('Fritidsboliger', 'Fossil', 2029): 100.0,
+         ('Fritidsboliger', 'Fossil', 2030): 100.0,
+         ('Fritidsboliger', 'Fossil', 2031): 100.0,
+         ('Fritidsboliger', 'Fossil', 2032): 100.0,
+         ('Fritidsboliger', 'Fossil', 2033): 100.0,
+         ('Fritidsboliger', 'Fossil', 2034): 100.0,
+         ('Fritidsboliger', 'Fossil', 2035): 100.0,
+         ('Fritidsboliger', 'Fossil', 2036): 100.0,
+         ('Fritidsboliger', 'Fossil', 2037): 100.0,
+         ('Fritidsboliger', 'Fossil', 2038): 100.0,
+         ('Fritidsboliger', 'Fossil', 2039): 100.0,
+         ('Fritidsboliger', 'Fossil', 2040): 100.0,
+         ('Fritidsboliger', 'Fossil', 2041): 100.0,
+         ('Fritidsboliger', 'Fossil', 2042): 100.0,
+         ('Fritidsboliger', 'Fossil', 2043): 100.0,
+         ('Fritidsboliger', 'Fossil', 2044): 100.0,
+         ('Fritidsboliger', 'Fossil', 2045): 100.0,
+         ('Fritidsboliger', 'Fossil', 2046): 100.0,
+         ('Fritidsboliger', 'Fossil', 2047): 100.0,
+         ('Fritidsboliger', 'Fossil', 2048): 100.0,
+         ('Fritidsboliger', 'Fossil', 2049): 100.0,
+         ('Fritidsboliger', 'Fossil', 2050): 100.0}}
 
 
 def test_energy_use_holiday_home(cwd_ebm_data):
@@ -239,23 +333,17 @@ def test_energy_use_holiday_home(cwd_ebm_data):
 
     energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(database_manager)
 
-    holiday = pd.melt(energy_use_holiday_homes, id_vars=['building_group', 'energy_source'], var_name='year', value_name='kwh')
-    holiday = holiday.set_index(['building_group', 'energy_source', 'year'])
-    holiday.loc[:, 'kwh'] = holiday.loc[:, 'kwh'] * 1_000_000
+    result = pd.melt(energy_use_holiday_homes,
+                      id_vars=['building_group', 'energy_source'],
+                      var_name='year',
+                      value_name='kwh')
+    result = result.set_index(['building_group', 'energy_source', 'year'])
+    result = result.sort_index(level=['building_group', 'energy_source', 'year'])
 
-    assert holiday.loc[('Fritidsboliger', 'Electricity', 2023)].iloc[0] ==  2_427_000_000.0
-    assert holiday.loc[('Fritidsboliger', 'Electricity', 2030)].iloc[0] ==  2_802_046_777.7045803
-    assert holiday.loc[('Fritidsboliger', 'Electricity', 2049)].iloc[0] ==  3_151_231_746.9389396
-    assert holiday.loc[('Fritidsboliger', 'Electricity', 2050)].iloc[0] ==  3_156_584_204.2180767
-    assert holiday.loc[('Fritidsboliger', 'Bio', 2023)].iloc[0] ==  1_390_000_000
-    assert holiday.loc[('Fritidsboliger', 'Bio', 2027)].iloc[0] ==  1_392_620_395.5040183
-    assert holiday.loc[('Fritidsboliger', 'Bio', 2030)].iloc[0] ==  1_413_023_760.34298
-    assert holiday.loc[('Fritidsboliger', 'Bio', 2049)].iloc[0] ==  1_507_931_367.3562658
-    assert holiday.loc[('Fritidsboliger', 'Bio', 2050)].iloc[0] ==  1_510_492_631.9257426
-    assert holiday.loc[('Fritidsboliger', 'Fossil', 2023)].iloc[0] == 100_000_000
-    assert holiday.loc[('Fritidsboliger', 'Fossil', 2030)].iloc[0] == 100_000_000
-    assert holiday.loc[('Fritidsboliger', 'Fossil', 2049)].iloc[0] == 100_000_000
-    assert holiday.loc[('Fritidsboliger', 'Fossil', 2050)].iloc[0] == 100_000_000
+    expected = pd.DataFrame(expected_holiday_home)
+    expected.index.names = ['building_group', 'energy_source', 'year']
+    pd.testing.assert_frame_equal(result, expected)
+
 
 
 if __name__ == "__main__":

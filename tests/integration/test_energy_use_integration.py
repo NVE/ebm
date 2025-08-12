@@ -4,14 +4,16 @@ import sys
 
 import pandas as pd
 import pytest
+from loguru import logger
 
 from ebm import extractors
 from ebm.cmd.pipeline import load_config
+from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_use import calculate_energy_use
 from ebm.model.file_handler import FileHandler
 
-expected_residential_energy_use = {
+expected_building_group_energy_use = {
     'kwh': {('bolig', 'Bio', 2020): 4788825216.425719, ('bolig', 'Bio', 2021): 4781280230.150457,
             ('bolig', 'Bio', 2022): 4764208461.9151945, ('bolig', 'Bio', 2023): 4757203300.271702,
             ('bolig', 'Bio', 2024): 4702657720.902674, ('bolig', 'Bio', 2025): 4637666417.665211,
@@ -84,41 +86,38 @@ expected_residential_energy_use = {
             ('bolig', 'Solar', 2044): 1891876.4088004471, ('bolig', 'Solar', 2045): 1879173.7739817551,
             ('bolig', 'Solar', 2046): 1866282.1466547523, ('bolig', 'Solar', 2047): 1851650.0434458097,
             ('bolig', 'Solar', 2048): 1836803.6935016927, ('bolig', 'Solar', 2049): 1821374.6119763046,
-            ('bolig', 'Solar', 2050): 1805491.7126416897}}
-
-expected_non_residential_energy_use = {
-    'kwh': {('yrkesbygg', 'Bio', 2020): 101557132.72809598, ('yrkesbygg', 'Bio', 2021): 101302607.78075051,
-            ('yrkesbygg', 'Bio', 2022): 101188389.60102122, ('yrkesbygg', 'Bio', 2023): 101346044.63769531,
-            ('yrkesbygg', 'Bio', 2024): 101503459.92926183, ('yrkesbygg', 'Bio', 2025): 101556799.89033622,
-            ('yrkesbygg', 'Bio', 2026): 101506765.64682631, ('yrkesbygg', 'Bio', 2027): 101277700.80668746,
-            ('yrkesbygg', 'Bio', 2028): 101072155.97942267, ('yrkesbygg', 'Bio', 2029): 100871426.30954705,
-            ('yrkesbygg', 'Bio', 2030): 100305737.5381496, ('yrkesbygg', 'Bio', 2031): 99903987.42877857,
-            ('yrkesbygg', 'Bio', 2032): 99552412.15487796, ('yrkesbygg', 'Bio', 2033): 99191646.07625379,
-            ('yrkesbygg', 'Bio', 2034): 98832200.92927141, ('yrkesbygg', 'Bio', 2035): 98474978.72599679,
-            ('yrkesbygg', 'Bio', 2036): 98130597.74692447, ('yrkesbygg', 'Bio', 2037): 97785805.07775594,
-            ('yrkesbygg', 'Bio', 2038): 97430782.0635449, ('yrkesbygg', 'Bio', 2039): 97068448.56611995,
-            ('yrkesbygg', 'Bio', 2040): 96696368.30557051, ('yrkesbygg', 'Bio', 2041): 96275942.15789312,
-            ('yrkesbygg', 'Bio', 2042): 95893566.53443238, ('yrkesbygg', 'Bio', 2043): 95497780.5120125,
-            ('yrkesbygg', 'Bio', 2044): 95093005.49909942, ('yrkesbygg', 'Bio', 2045): 94681951.711988,
-            ('yrkesbygg', 'Bio', 2046): 94260578.26055041, ('yrkesbygg', 'Bio', 2047): 93439123.67882389,
-            ('yrkesbygg', 'Bio', 2048): 92833428.01497278, ('yrkesbygg', 'Bio', 2049): 92231780.86995913,
-            ('yrkesbygg', 'Bio', 2050): 91622027.80740257, ('yrkesbygg', 'DH', 2020): 4423747518.8634615,
-            ('yrkesbygg', 'DH', 2021): 4415568070.12422, ('yrkesbygg', 'DH', 2022): 4414384497.767668,
-            ('yrkesbygg', 'DH', 2023): 4426506223.131906, ('yrkesbygg', 'DH', 2024): 4527944403.31363,
-            ('yrkesbygg', 'DH', 2025): 4559790929.9018345, ('yrkesbygg', 'DH', 2026): 4581523665.738846,
-            ('yrkesbygg', 'DH', 2027): 4589719130.0956955, ('yrkesbygg', 'DH', 2028): 4599192469.805006,
-            ('yrkesbygg', 'DH', 2029): 4608803865.051731, ('yrkesbygg', 'DH', 2030): 4601976683.323316,
-            ('yrkesbygg', 'DH', 2031): 4613137777.879646, ('yrkesbygg', 'DH', 2032): 4621232411.851534,
-            ('yrkesbygg', 'DH', 2033): 4633706981.501938, ('yrkesbygg', 'DH', 2034): 4641182344.3524885,
-            ('yrkesbygg', 'DH', 2035): 4648598631.548968, ('yrkesbygg', 'DH', 2036): 4661270680.361897,
-            ('yrkesbygg', 'DH', 2037): 4668828796.079716, ('yrkesbygg', 'DH', 2038): 4675752380.170249,
-            ('yrkesbygg', 'DH', 2039): 4682161357.608822, ('yrkesbygg', 'DH', 2040): 4683142671.717943,
-            ('yrkesbygg', 'DH', 2041): 4686478543.857488, ('yrkesbygg', 'DH', 2042): 4691426567.982776,
-            ('yrkesbygg', 'DH', 2043): 4695587785.653626, ('yrkesbygg', 'DH', 2044): 4694392940.027948,
-            ('yrkesbygg', 'DH', 2045): 4697463359.601239, ('yrkesbygg', 'DH', 2046): 4695131341.303659,
-            ('yrkesbygg', 'DH', 2047): 4677920868.654059, ('yrkesbygg', 'DH', 2048): 4676418225.704957,
-            ('yrkesbygg', 'DH', 2049): 4674722677.0622, ('yrkesbygg', 'DH', 2050): 4672303519.084109,
-            ('yrkesbygg', 'Electricity', 2020): 25060040864.557102,
+            ('bolig', 'Solar', 2050): 1805491.7126416897, ('yrkesbygg', 'Bio', 2020): 101557132.72809598,
+            ('yrkesbygg', 'Bio', 2021): 101302607.78075051, ('yrkesbygg', 'Bio', 2022): 101188389.60102122,
+            ('yrkesbygg', 'Bio', 2023): 101346044.63769531, ('yrkesbygg', 'Bio', 2024): 101503459.92926183,
+            ('yrkesbygg', 'Bio', 2025): 101556799.89033622, ('yrkesbygg', 'Bio', 2026): 101506765.64682631,
+            ('yrkesbygg', 'Bio', 2027): 101277700.80668746, ('yrkesbygg', 'Bio', 2028): 101072155.97942267,
+            ('yrkesbygg', 'Bio', 2029): 100871426.30954705, ('yrkesbygg', 'Bio', 2030): 100305737.5381496,
+            ('yrkesbygg', 'Bio', 2031): 99903987.42877857, ('yrkesbygg', 'Bio', 2032): 99552412.15487796,
+            ('yrkesbygg', 'Bio', 2033): 99191646.07625379, ('yrkesbygg', 'Bio', 2034): 98832200.92927141,
+            ('yrkesbygg', 'Bio', 2035): 98474978.72599679, ('yrkesbygg', 'Bio', 2036): 98130597.74692447,
+            ('yrkesbygg', 'Bio', 2037): 97785805.07775594, ('yrkesbygg', 'Bio', 2038): 97430782.0635449,
+            ('yrkesbygg', 'Bio', 2039): 97068448.56611995, ('yrkesbygg', 'Bio', 2040): 96696368.30557051,
+            ('yrkesbygg', 'Bio', 2041): 96275942.15789312, ('yrkesbygg', 'Bio', 2042): 95893566.53443238,
+            ('yrkesbygg', 'Bio', 2043): 95497780.5120125, ('yrkesbygg', 'Bio', 2044): 95093005.49909942,
+            ('yrkesbygg', 'Bio', 2045): 94681951.711988, ('yrkesbygg', 'Bio', 2046): 94260578.26055041,
+            ('yrkesbygg', 'Bio', 2047): 93439123.67882389, ('yrkesbygg', 'Bio', 2048): 92833428.01497278,
+            ('yrkesbygg', 'Bio', 2049): 92231780.86995913, ('yrkesbygg', 'Bio', 2050): 91622027.80740257,
+            ('yrkesbygg', 'DH', 2020): 4423747518.8634615, ('yrkesbygg', 'DH', 2021): 4415568070.12422,
+            ('yrkesbygg', 'DH', 2022): 4414384497.767668, ('yrkesbygg', 'DH', 2023): 4426506223.131906,
+            ('yrkesbygg', 'DH', 2024): 4527944403.31363, ('yrkesbygg', 'DH', 2025): 4559790929.9018345,
+            ('yrkesbygg', 'DH', 2026): 4581523665.738846, ('yrkesbygg', 'DH', 2027): 4589719130.0956955,
+            ('yrkesbygg', 'DH', 2028): 4599192469.805006, ('yrkesbygg', 'DH', 2029): 4608803865.051731,
+            ('yrkesbygg', 'DH', 2030): 4601976683.323316, ('yrkesbygg', 'DH', 2031): 4613137777.879646,
+            ('yrkesbygg', 'DH', 2032): 4621232411.851534, ('yrkesbygg', 'DH', 2033): 4633706981.501938,
+            ('yrkesbygg', 'DH', 2034): 4641182344.3524885, ('yrkesbygg', 'DH', 2035): 4648598631.548968,
+            ('yrkesbygg', 'DH', 2036): 4661270680.361897, ('yrkesbygg', 'DH', 2037): 4668828796.079716,
+            ('yrkesbygg', 'DH', 2038): 4675752380.170249, ('yrkesbygg', 'DH', 2039): 4682161357.608822,
+            ('yrkesbygg', 'DH', 2040): 4683142671.717943, ('yrkesbygg', 'DH', 2041): 4686478543.857488,
+            ('yrkesbygg', 'DH', 2042): 4691426567.982776, ('yrkesbygg', 'DH', 2043): 4695587785.653626,
+            ('yrkesbygg', 'DH', 2044): 4694392940.027948, ('yrkesbygg', 'DH', 2045): 4697463359.601239,
+            ('yrkesbygg', 'DH', 2046): 4695131341.303659, ('yrkesbygg', 'DH', 2047): 4677920868.654059,
+            ('yrkesbygg', 'DH', 2048): 4676418225.704957, ('yrkesbygg', 'DH', 2049): 4674722677.0622,
+            ('yrkesbygg', 'DH', 2050): 4672303519.084109, ('yrkesbygg', 'Electricity', 2020): 25060040864.557102,
             ('yrkesbygg', 'Electricity', 2021): 24781866798.24038,
             ('yrkesbygg', 'Electricity', 2022): 24554204359.587547,
             ('yrkesbygg', 'Electricity', 2023): 24414448636.34977,
@@ -188,162 +187,140 @@ def cwd_ebm_data(request):
     Change working directory to tests/ebm/data. The working directory
     is reset when the test finishes.
     """
-    ebm_data = pathlib.Path(__file__).parent / pathlib.Path(r'../tests/ebm/data')
+    ebm_data = pathlib.Path(__file__).parent / pathlib.Path(r'../ebm/data')
     os.chdir(ebm_data)
     yield
     os.chdir(request.config.invocation_params.dir)
 
 
-def test_energy_use(cwd_ebm_data):
+@pytest.fixture
+def kalibrert_database_manager(cwd_ebm_data):
     input_path, output_path, years = load_config()
     input_path = pathlib.Path('kalibrert')
     output_path.mkdir(exist_ok=True)
 
     file_handler = FileHandler(directory=input_path)
     database_manager = DatabaseManager(file_handler=file_handler)
+    return database_manager
 
-    scurve_parameters = database_manager.get_scurve_params()  # 📍
 
-    area_parameters = database_manager.get_area_parameters()  # 📍
-    area_parameters['year'] = years.start
+@pytest.mark.slow
+def test_energy_use(kalibrert_database_manager):
+    scurve_parameters = kalibrert_database_manager.get_scurve_params()  # 📍
 
-    building_code_parameters = database_manager.file_handler.get_building_code()  # 📍
+    area_parameters = kalibrert_database_manager.get_area_parameters()  # 📍
 
-    result = calculate_energy_use(database_manager=database_manager, years=years, area_parameters=area_parameters,
-                                  scurve_parameters=scurve_parameters,
+    building_code_parameters = kalibrert_database_manager.file_handler.get_building_code()  # 📍
+
+    result = calculate_energy_use(database_manager=kalibrert_database_manager, years=YearRange(2020, 2050),
+                                  area_parameters=area_parameters, scurve_parameters=scurve_parameters,
                                   building_code_parameters=building_code_parameters)
 
-    result = result[['building_group', 'energy_product', 'year', 'kwh']].groupby(
-        by=['building_group', 'energy_product', 'year']).sum()
+    expect_columns = ['building_group', 'energy_product', 'year']
+    result = result[expect_columns + ['kwh']].groupby(by=expect_columns).sum()
 
-    expected = pd.DataFrame(expected_residential_energy_use)
-    expected.index.names = ['building_group', 'energy_product', 'year']
-    pd.testing.assert_frame_equal(result.xs(key='bolig', drop_level=False), expected)
+    expected = pd.DataFrame(expected_building_group_energy_use)
+    expected.index.names = expect_columns
 
-    expected = pd.DataFrame(expected_non_residential_energy_use)
-    expected.index.names = ['building_group', 'energy_product', 'year']
-    pd.testing.assert_frame_equal(result.xs(key='yrkesbygg', drop_level=False), expected)
+    df = pd.merge(left=result, right=expected, suffixes=('_result', '_expected'), on=expect_columns, how='outer')
 
+    df_diff = df[df['kwh_result'] != df['kwh_expected']]
 
+    for i, r in df_diff.iterrows():
+        logger.error(f'Error in row {i} expected: {r[1]} was: {r[0]}')
 
-
-expected_holiday_home = {'kwh': {('Fritidsboliger', 'Bio', 2020): 1450.0,
-         ('Fritidsboliger', 'Bio', 2021): 1270.0,
-         ('Fritidsboliger', 'Bio', 2022): 1390.0,
-         ('Fritidsboliger', 'Bio', 2023): 1390.0,
-         ('Fritidsboliger', 'Bio', 2024): 1363.993311965345,
-         ('Fritidsboliger', 'Bio', 2025): 1376.2609385993053,
-         ('Fritidsboliger', 'Bio', 2026): 1385.7758570733436,
-         ('Fritidsboliger', 'Bio', 2027): 1392.6203955040182,
-         ('Fritidsboliger', 'Bio', 2028): 1399.4936873365957,
-         ('Fritidsboliger', 'Bio', 2029): 1406.3183195659535,
-         ('Fritidsboliger', 'Bio', 2030): 1413.0237603429798,
-         ('Fritidsboliger', 'Bio', 2031): 1419.6618640933284,
-         ('Fritidsboliger', 'Bio', 2032): 1426.1893778363594,
-         ('Fritidsboliger', 'Bio', 2033): 1432.595242571341,
-         ('Fritidsboliger', 'Bio', 2034): 1438.9165673896175,
-         ('Fritidsboliger', 'Bio', 2035): 1445.120912555709,
-         ('Fritidsboliger', 'Bio', 2036): 1451.2318706045103,
-         ('Fritidsboliger', 'Bio', 2037): 1457.05185405628,
-         ('Fritidsboliger', 'Bio', 2038): 1462.6120738686395,
-         ('Fritidsboliger', 'Bio', 2039): 1467.9226060200324,
-         ('Fritidsboliger', 'Bio', 2040): 1473.0013906672023,
-         ('Fritidsboliger', 'Bio', 2041): 1477.8513768770104,
-         ('Fritidsboliger', 'Bio', 2042): 1482.4774797608936,
-         ('Fritidsboliger', 'Bio', 2043): 1486.8688860736913,
-         ('Fritidsboliger', 'Bio', 2044): 1491.0287906378373,
-         ('Fritidsboliger', 'Bio', 2045): 1494.9390075410172,
-         ('Fritidsboliger', 'Bio', 2046): 1498.5911810937894,
-         ('Fritidsboliger', 'Bio', 2047): 1501.9803961847176,
-         ('Fritidsboliger', 'Bio', 2048): 1505.0946107907826,
-         ('Fritidsboliger', 'Bio', 2049): 1507.9313673562658,
-         ('Fritidsboliger', 'Bio', 2050): 1510.4926319257427,
-         ('Fritidsboliger', 'Electricity', 2020): 2467.0,
-         ('Fritidsboliger', 'Electricity', 2021): 2819.0,
-         ('Fritidsboliger', 'Electricity', 2022): 2318.0,
-         ('Fritidsboliger', 'Electricity', 2023): 2427.0,
-         ('Fritidsboliger', 'Electricity', 2024): 2510.664757550429,
-         ('Fritidsboliger', 'Electricity', 2025): 2569.976712184894,
-         ('Fritidsboliger', 'Electricity', 2026): 2624.7297237690896,
-         ('Fritidsboliger', 'Electricity', 2027): 2674.8615206420313,
-         ('Fritidsboliger', 'Electricity', 2028): 2725.4146629389325,
-         ('Fritidsboliger', 'Electricity', 2029): 2763.7274703003145,
-         ('Fritidsboliger', 'Electricity', 2030): 2802.04677770458,
-         ('Fritidsboliger', 'Electricity', 2031): 2840.469973626825,
-         ('Fritidsboliger', 'Electricity', 2032): 2878.906153252153,
-         ('Fritidsboliger', 'Electricity', 2033): 2904.581963019164,
-         ('Fritidsboliger', 'Electricity', 2034): 2930.199594470989,
-         ('Fritidsboliger', 'Electricity', 2035): 2955.69044266053,
-         ('Fritidsboliger', 'Electricity', 2036): 2981.099848946306,
-         ('Fritidsboliger', 'Electricity', 2037): 3006.0176816990174,
-         ('Fritidsboliger', 'Electricity', 2038): 3030.500843480454,
-         ('Fritidsboliger', 'Electricity', 2039): 3054.5633682635794,
-         ('Fritidsboliger', 'Electricity', 2040): 3078.2360829151885,
-         ('Fritidsboliger', 'Electricity', 2041): 3088.371445072525,
-         ('Fritidsboliger', 'Electricity', 2042): 3098.038942272916,
-         ('Fritidsboliger', 'Electricity', 2043): 3107.215977306584,
-         ('Fritidsboliger', 'Electricity', 2044): 3115.909226621874,
-         ('Fritidsboliger', 'Electricity', 2045): 3124.080685820525,
-         ('Fritidsboliger', 'Electricity', 2046): 3131.7128934222565,
-         ('Fritidsboliger', 'Electricity', 2047): 3138.795577968081,
-         ('Fritidsboliger', 'Electricity', 2048): 3145.3035743834735,
-         ('Fritidsboliger', 'Electricity', 2049): 3151.2317469389395,
-         ('Fritidsboliger', 'Electricity', 2050): 3156.5842042180766,
-         ('Fritidsboliger', 'Fossil', 2020): 100.0,
-         ('Fritidsboliger', 'Fossil', 2021): 100.0,
-         ('Fritidsboliger', 'Fossil', 2022): 100.0,
-         ('Fritidsboliger', 'Fossil', 2023): 100.0,
-         ('Fritidsboliger', 'Fossil', 2024): 100.0,
-         ('Fritidsboliger', 'Fossil', 2025): 100.0,
-         ('Fritidsboliger', 'Fossil', 2026): 100.0,
-         ('Fritidsboliger', 'Fossil', 2027): 100.0,
-         ('Fritidsboliger', 'Fossil', 2028): 100.0,
-         ('Fritidsboliger', 'Fossil', 2029): 100.0,
-         ('Fritidsboliger', 'Fossil', 2030): 100.0,
-         ('Fritidsboliger', 'Fossil', 2031): 100.0,
-         ('Fritidsboliger', 'Fossil', 2032): 100.0,
-         ('Fritidsboliger', 'Fossil', 2033): 100.0,
-         ('Fritidsboliger', 'Fossil', 2034): 100.0,
-         ('Fritidsboliger', 'Fossil', 2035): 100.0,
-         ('Fritidsboliger', 'Fossil', 2036): 100.0,
-         ('Fritidsboliger', 'Fossil', 2037): 100.0,
-         ('Fritidsboliger', 'Fossil', 2038): 100.0,
-         ('Fritidsboliger', 'Fossil', 2039): 100.0,
-         ('Fritidsboliger', 'Fossil', 2040): 100.0,
-         ('Fritidsboliger', 'Fossil', 2041): 100.0,
-         ('Fritidsboliger', 'Fossil', 2042): 100.0,
-         ('Fritidsboliger', 'Fossil', 2043): 100.0,
-         ('Fritidsboliger', 'Fossil', 2044): 100.0,
-         ('Fritidsboliger', 'Fossil', 2045): 100.0,
-         ('Fritidsboliger', 'Fossil', 2046): 100.0,
-         ('Fritidsboliger', 'Fossil', 2047): 100.0,
-         ('Fritidsboliger', 'Fossil', 2048): 100.0,
-         ('Fritidsboliger', 'Fossil', 2049): 100.0,
-         ('Fritidsboliger', 'Fossil', 2050): 100.0}}
+    assert df_diff.empty, 'Expected no differences between the dataframes result and expected'
 
 
-def test_energy_use_holiday_home(cwd_ebm_data):
-    input_path, output_path, years = load_config()
-    input_path = pathlib.Path('kalibrert')
+expected_holiday_home = {'kwh': {('Fritidsboliger', 'Bio', 2020): 1450.0, ('Fritidsboliger', 'Bio', 2021): 1270.0,
+                                 ('Fritidsboliger', 'Bio', 2022): 1390.0, ('Fritidsboliger', 'Bio', 2023): 1390.0,
+                                 ('Fritidsboliger', 'Bio', 2024): 1363.993311965345,
+                                 ('Fritidsboliger', 'Bio', 2025): 1376.2609385993053,
+                                 ('Fritidsboliger', 'Bio', 2026): 1385.7758570733436,
+                                 ('Fritidsboliger', 'Bio', 2027): 1392.6203955040182,
+                                 ('Fritidsboliger', 'Bio', 2028): 1399.4936873365957,
+                                 ('Fritidsboliger', 'Bio', 2029): 1406.3183195659535,
+                                 ('Fritidsboliger', 'Bio', 2030): 1413.0237603429798,
+                                 ('Fritidsboliger', 'Bio', 2031): 1419.6618640933284,
+                                 ('Fritidsboliger', 'Bio', 2032): 1426.1893778363594,
+                                 ('Fritidsboliger', 'Bio', 2033): 1432.595242571341,
+                                 ('Fritidsboliger', 'Bio', 2034): 1438.9165673896175,
+                                 ('Fritidsboliger', 'Bio', 2035): 1445.120912555709,
+                                 ('Fritidsboliger', 'Bio', 2036): 1451.2318706045103,
+                                 ('Fritidsboliger', 'Bio', 2037): 1457.05185405628,
+                                 ('Fritidsboliger', 'Bio', 2038): 1462.6120738686395,
+                                 ('Fritidsboliger', 'Bio', 2039): 1467.9226060200324,
+                                 ('Fritidsboliger', 'Bio', 2040): 1473.0013906672023,
+                                 ('Fritidsboliger', 'Bio', 2041): 1477.8513768770104,
+                                 ('Fritidsboliger', 'Bio', 2042): 1482.4774797608936,
+                                 ('Fritidsboliger', 'Bio', 2043): 1486.8688860736913,
+                                 ('Fritidsboliger', 'Bio', 2044): 1491.0287906378373,
+                                 ('Fritidsboliger', 'Bio', 2045): 1494.9390075410172,
+                                 ('Fritidsboliger', 'Bio', 2046): 1498.5911810937894,
+                                 ('Fritidsboliger', 'Bio', 2047): 1501.9803961847176,
+                                 ('Fritidsboliger', 'Bio', 2048): 1505.0946107907826,
+                                 ('Fritidsboliger', 'Bio', 2049): 1507.9313673562658,
+                                 ('Fritidsboliger', 'Bio', 2050): 1510.4926319257427,
+                                 ('Fritidsboliger', 'Electricity', 2020): 2467.0,
+                                 ('Fritidsboliger', 'Electricity', 2021): 2819.0,
+                                 ('Fritidsboliger', 'Electricity', 2022): 2318.0,
+                                 ('Fritidsboliger', 'Electricity', 2023): 2427.0,
+                                 ('Fritidsboliger', 'Electricity', 2024): 2510.664757550429,
+                                 ('Fritidsboliger', 'Electricity', 2025): 2569.976712184894,
+                                 ('Fritidsboliger', 'Electricity', 2026): 2624.7297237690896,
+                                 ('Fritidsboliger', 'Electricity', 2027): 2674.8615206420313,
+                                 ('Fritidsboliger', 'Electricity', 2028): 2725.4146629389325,
+                                 ('Fritidsboliger', 'Electricity', 2029): 2763.7274703003145,
+                                 ('Fritidsboliger', 'Electricity', 2030): 2802.04677770458,
+                                 ('Fritidsboliger', 'Electricity', 2031): 2840.469973626825,
+                                 ('Fritidsboliger', 'Electricity', 2032): 2878.906153252153,
+                                 ('Fritidsboliger', 'Electricity', 2033): 2904.581963019164,
+                                 ('Fritidsboliger', 'Electricity', 2034): 2930.199594470989,
+                                 ('Fritidsboliger', 'Electricity', 2035): 2955.69044266053,
+                                 ('Fritidsboliger', 'Electricity', 2036): 2981.099848946306,
+                                 ('Fritidsboliger', 'Electricity', 2037): 3006.0176816990174,
+                                 ('Fritidsboliger', 'Electricity', 2038): 3030.500843480454,
+                                 ('Fritidsboliger', 'Electricity', 2039): 3054.5633682635794,
+                                 ('Fritidsboliger', 'Electricity', 2040): 3078.2360829151885,
+                                 ('Fritidsboliger', 'Electricity', 2041): 3088.371445072525,
+                                 ('Fritidsboliger', 'Electricity', 2042): 3098.038942272916,
+                                 ('Fritidsboliger', 'Electricity', 2043): 3107.215977306584,
+                                 ('Fritidsboliger', 'Electricity', 2044): 3115.909226621874,
+                                 ('Fritidsboliger', 'Electricity', 2045): 3124.080685820525,
+                                 ('Fritidsboliger', 'Electricity', 2046): 3131.7128934222565,
+                                 ('Fritidsboliger', 'Electricity', 2047): 3138.795577968081,
+                                 ('Fritidsboliger', 'Electricity', 2048): 3145.3035743834735,
+                                 ('Fritidsboliger', 'Electricity', 2049): 3151.2317469389395,
+                                 ('Fritidsboliger', 'Electricity', 2050): 3156.5842042180766,
+                                 ('Fritidsboliger', 'Fossil', 2020): 100.0, ('Fritidsboliger', 'Fossil', 2021): 100.0,
+                                 ('Fritidsboliger', 'Fossil', 2022): 100.0, ('Fritidsboliger', 'Fossil', 2023): 100.0,
+                                 ('Fritidsboliger', 'Fossil', 2024): 100.0, ('Fritidsboliger', 'Fossil', 2025): 100.0,
+                                 ('Fritidsboliger', 'Fossil', 2026): 100.0, ('Fritidsboliger', 'Fossil', 2027): 100.0,
+                                 ('Fritidsboliger', 'Fossil', 2028): 100.0, ('Fritidsboliger', 'Fossil', 2029): 100.0,
+                                 ('Fritidsboliger', 'Fossil', 2030): 100.0, ('Fritidsboliger', 'Fossil', 2031): 100.0,
+                                 ('Fritidsboliger', 'Fossil', 2032): 100.0, ('Fritidsboliger', 'Fossil', 2033): 100.0,
+                                 ('Fritidsboliger', 'Fossil', 2034): 100.0, ('Fritidsboliger', 'Fossil', 2035): 100.0,
+                                 ('Fritidsboliger', 'Fossil', 2036): 100.0, ('Fritidsboliger', 'Fossil', 2037): 100.0,
+                                 ('Fritidsboliger', 'Fossil', 2038): 100.0, ('Fritidsboliger', 'Fossil', 2039): 100.0,
+                                 ('Fritidsboliger', 'Fossil', 2040): 100.0, ('Fritidsboliger', 'Fossil', 2041): 100.0,
+                                 ('Fritidsboliger', 'Fossil', 2042): 100.0, ('Fritidsboliger', 'Fossil', 2043): 100.0,
+                                 ('Fritidsboliger', 'Fossil', 2044): 100.0, ('Fritidsboliger', 'Fossil', 2045): 100.0,
+                                 ('Fritidsboliger', 'Fossil', 2046): 100.0, ('Fritidsboliger', 'Fossil', 2047): 100.0,
+                                 ('Fritidsboliger', 'Fossil', 2048): 100.0, ('Fritidsboliger', 'Fossil', 2049): 100.0,
+                                 ('Fritidsboliger', 'Fossil', 2050): 100.0}}
 
-    output_path.mkdir(exist_ok=True)
+@pytest.mark.slow
+def test_energy_use_holiday_home(kalibrert_database_manager):
+    energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(kalibrert_database_manager)
 
-    file_handler = FileHandler(directory=input_path)
-    database_manager = DatabaseManager(file_handler=file_handler)
-
-    energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(database_manager)
-
-    result = pd.melt(energy_use_holiday_homes,
-                      id_vars=['building_group', 'energy_source'],
-                      var_name='year',
-                      value_name='kwh')
+    result = pd.melt(energy_use_holiday_homes, id_vars=['building_group', 'energy_source'], var_name='year',
+                     value_name='kwh')
     result = result.set_index(['building_group', 'energy_source', 'year'])
     result = result.sort_index(level=['building_group', 'energy_source', 'year'])
 
     expected = pd.DataFrame(expected_holiday_home)
     expected.index.names = ['building_group', 'energy_source', 'year']
     pd.testing.assert_frame_equal(result, expected)
-
 
 
 if __name__ == "__main__":

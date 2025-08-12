@@ -1,7 +1,6 @@
 import os
 import pathlib
 import sys
-import typing
 from datetime import datetime
 
 from dotenv import load_dotenv, find_dotenv
@@ -70,7 +69,8 @@ def configure_json_log(log_directory: str|bool=False):
         log_directory.mkdir(exist_ok=True)
 
         log_start = datetime.now()
-        log_filename = log_directory / f'{file_stem}-{log_start.isoformat(timespec='seconds').replace(':', '')}.json'
+        timestamp = log_start.isoformat(timespec='seconds').replace(':', '')
+        log_filename = log_directory / f'{file_stem}-{timestamp}.json'
         if log_filename.is_file():
             log_start_milliseconds = log_start.isoformat(timespec='milliseconds').replace(':', '')
             log_filename = log_filename.with_stem(f'{file_stem}-{log_start_milliseconds}')

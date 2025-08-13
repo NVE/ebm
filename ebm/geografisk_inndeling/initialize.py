@@ -12,6 +12,11 @@ class NameHandler:
     COLUMN_NAME_BOLIG = "bolig"
     COLUMN_NAME_FRITIDSBOLIG = "Fritidsboliger"
     COLUMN_NAME_YRKESBYGG = "yrkesbygg"
+    ENERGY_TYPE_STROM = "strom"
+    ENERGY_TYPE_FJERNVARME = "fjernvarme"
+    ENERGY_TYPE_VED = "ved"
+    ENERGY_TYPE_FOSSIL = "fossil"
+
     
     @classmethod
     def normalize_category(cls, value: str) -> Union[str, list[str]]:
@@ -78,6 +83,7 @@ def make_arguments(program_name: str, default_path: Path) -> argparse.Namespace:
         type=int,
         nargs="+",
         metavar="ÅR",
+        default=[2022,2023,2024],
         help="Årene som skal inkluderes i beregningen av fordelingsnøklene, f.eks: --years 2022 2023 2024"
     )
 
@@ -95,7 +101,7 @@ Velg datakilde: 'azure' for å hente dataen direkte fra Elhub datasjøen, eller 
     arg_parser.add_argument('--long-format', action='store_true', help='''Use long format for output data. Default is wide format.''')
 
     arg_parser.add_argument('--energy-type', '-e',
-                            choices=['strom', 'fjernvarme', 'ved'],
+                            choices=['strom', 'fjernvarme', 'ved', 'fossil'],
                              default='strom',
                              help='''
                              Velg energitype: 'strom' for elektrisitet, 'fjernvarme' for fjernvarme, eller 'ved' for ved. (standard: strom)

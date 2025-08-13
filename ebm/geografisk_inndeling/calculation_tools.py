@@ -1,6 +1,6 @@
 import polars as pl
 from typing import Optional, Union
-
+from ebm.geografisk_inndeling.initialize import NameHandler
 
 def yearly_aggregated_elhub_data(df: pl.DataFrame) -> pl.DataFrame:
     """
@@ -43,15 +43,15 @@ def df_commune_mean(
     df = df.with_columns(
         pl.col("lokal_dato_tid_start").dt.year().alias("year")
     )
-
+    
     # Filter the DataFrame for the specified years
     df_filtered = df.filter(
         pl.col("year").is_in(years)
     )
 
     # Decide units based on building category
-    unit_divisor = 1_000 if buildingkategory == "Fritidsboliger" else 1_000_000
-    value_col = "yearly_forbruk_mwh" if buildingkategory == "Fritidsboliger" else "yearly_forbruk_gwh"
+    unit_divisor = 1_000 if buildingkategory == NameHandler.COLUMN_NAME_FRITIDSBOLIG else 1_000_000
+    value_col = "yearly_forbruk_mwh" if buildingkategory == NameHandler.COLUMN_NAME_FRITIDSBOLIG else "yearly_forbruk_gwh"
     mean_col = f"mean_{value_col}"
 
     # Group and aggregate yearly usage per kommune
@@ -200,7 +200,8 @@ def ebm_energy_use_geographical_distribution(
     energy_type_map = {
         "strom": ['Elektrisitet', 'Electricity'],
         "fjernvarme": ['DH', 'Fjernvarme', 'District Heating'],
-        "ved": ['Ved', 'Wood', 'Bio']
+        "ved": ['Ved', 'Wood', 'Bio'],
+        "fossil": ['Fossil', 'Fossil Fuel']
     }
 
     if energitype not in energy_type_map:
@@ -223,7 +224,8 @@ def ebm_energy_use_geographical_distribution(
 
         result[energibruk_key] = energibruk_df.with_columns(pl.lit("GWh").alias("Units"))
         result[fordelingsnokkler_key] = (
-            fordelingsnokkler_df.drop(category) if energitype == "fjernvarme"
+            fordelingsnokkler_df.drop(category) if energitype == "fjernvarme" or (energitype == "ved" \
+            and category == NameHandler.COLUMN_NAME_BOLIG) 
             else fordelingsnokkler_df
         )
 

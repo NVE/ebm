@@ -60,6 +60,8 @@ autodoc_default_options = {
     "exclude-members": "__weakref__",
 }
 
+suppress_warnings = ['autosectionlabel.*']
+
 # Konfigurasjon for Napoleon
 napoleon_google_docstring = True
 napoleon_numpy_docstring = False

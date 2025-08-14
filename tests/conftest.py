@@ -45,5 +45,5 @@ def pytest_collection_modifyitems(config, items):
 
     skip_explicit = pytest.mark.skip(reason='Test explicitly not selected')
     for item in items:
-        if 'explicit' in item.keywords:
+        if 'explicit' in item.keywords and not any([str(a).endswith(f'::{item.name}') for a in config.args]):
             item.add_marker(skip_explicit)

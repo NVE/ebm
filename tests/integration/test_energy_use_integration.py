@@ -8,6 +8,7 @@ from loguru import logger
 
 from ebm import extractors
 from ebm.cmd.pipeline import load_config
+from ebm.geografisk_inndeling.data_loader import load_energy_use2
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_use import calculate_energy_use
@@ -322,6 +323,25 @@ def test_energy_use_holiday_home(kalibrert_database_manager):
     expected = pd.DataFrame(expected_holiday_home)
     expected.index.names = ['building_group', 'energy_source', 'year']
     pd.testing.assert_frame_equal(result, expected)
+
+
+def test_load_energy_use(kalibrert_database_manager):
+    """ Make sure load_energy_use2 works as expected """
+    result = load_energy_use2(kalibrert_database_manager.file_handler.input_directory)
+    expect_columns = ['building_group', 'energy_product', 'year']
+    result = result[expect_columns + ['kwh']].groupby(by=expect_columns).sum()
+
+    expected = pd.DataFrame(expected_building_group_energy_use)
+    expected.index.names = expect_columns
+
+    df = pd.merge(left=result, right=expected, suffixes=('_result', '_expected'), on=expect_columns, how='outer')
+
+    df_diff = df[df['kwh_result'] != df['kwh_expected']]
+
+    for i, r in df_diff.iterrows():
+        logger.error(f'Error in row {i} expected: {r[1]} was: {r[0]}')
+
+    assert df_diff.empty, 'Expected no differences between the dataframes result and expected'
 
 
 if __name__ == "__main__":

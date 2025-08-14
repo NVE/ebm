@@ -8,7 +8,6 @@ from loguru import logger
 
 from ebm import extractors
 from ebm.cmd.pipeline import load_config
-from ebm.geografisk_inndeling.data_loader import load_energy_use2
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_use import calculate_energy_use
@@ -328,6 +327,7 @@ def test_energy_use_holiday_home(kalibrert_database_manager):
 @pytest.mark.explicit
 def test_load_energy_use(kalibrert_database_manager):
     """ Make sure load_energy_use2 works as expected """
+    from ebm.geografisk_inndeling.data_loader import load_energy_use2
     result = load_energy_use2(kalibrert_database_manager.file_handler.input_directory)
     expect_columns = ['building_group', 'energy_product', 'year']
     result = result[expect_columns + ['kwh']].groupby(by=expect_columns).sum()

@@ -228,6 +228,7 @@ def test_energy_use(kalibrert_database_manager):
 
     df_diff = df[df['kwh_result'] != df['kwh_expected']]
 
+    # Log readable error messages for every different value
     for i, r in df_diff.iterrows():
         logger.error(f'Error in row {i} expected: {r[1]} was: {r[0]}')
 
@@ -311,6 +312,7 @@ expected_holiday_home = {'kwh': {('Fritidsboliger', 'Bio', 2020): 1450.0, ('Frit
                                  ('Fritidsboliger', 'Fossil', 2048): 100.0, ('Fritidsboliger', 'Fossil', 2049): 100.0,
                                  ('Fritidsboliger', 'Fossil', 2050): 100.0}}
 
+
 def test_energy_use_holiday_home(kalibrert_database_manager):
     energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(kalibrert_database_manager)
 
@@ -339,6 +341,7 @@ def test_load_energy_use(kalibrert_database_manager):
 
     df_diff = df[df['kwh_result'] != df['kwh_expected']]
 
+    # Log readable error messages for every different value
     for i, r in df_diff.iterrows():
         logger.error(f'Error in row {i} expected: {r[1]} was: {r[0]}')
 

@@ -195,6 +195,9 @@ def cwd_ebm_data(request):
 
 @pytest.fixture
 def kalibrert_database_manager(cwd_ebm_data):
+    """
+    Provides a DatabaseManager configured to load input from tests/ebm/data/kalibrert
+    """
     input_path, output_path, years = load_config()
     input_path = pathlib.Path('kalibrert')
     output_path.mkdir(exist_ok=True)
@@ -204,7 +207,6 @@ def kalibrert_database_manager(cwd_ebm_data):
     return database_manager
 
 
-@pytest.mark.slow
 def test_energy_use(kalibrert_database_manager):
     scurve_parameters = kalibrert_database_manager.get_scurve_params()  # 📍
 
@@ -309,7 +311,6 @@ expected_holiday_home = {'kwh': {('Fritidsboliger', 'Bio', 2020): 1450.0, ('Frit
                                  ('Fritidsboliger', 'Fossil', 2048): 100.0, ('Fritidsboliger', 'Fossil', 2049): 100.0,
                                  ('Fritidsboliger', 'Fossil', 2050): 100.0}}
 
-@pytest.mark.slow
 def test_energy_use_holiday_home(kalibrert_database_manager):
     energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(kalibrert_database_manager)
 

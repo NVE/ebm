@@ -1,18 +1,10 @@
-import os
-import pathlib
 import sys
 
 import pandas as pd
 import pytest
 from loguru import logger
 
-from ebm import extractors
-from ebm.cmd.pipeline import load_config
 from ebm.geografisk_inndeling.data_loader import load_energy_use2
-from ebm.model.data_classes import YearRange
-from ebm.model.database_manager import DatabaseManager
-from ebm.model.energy_use import calculate_energy_use
-from ebm.model.file_handler import FileHandler
 
 from tests.integration.test_energy_use_integration import (kalibrert_database_manager,
                                                            expected_building_group_energy_use,

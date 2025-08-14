@@ -13,13 +13,15 @@ def calculate_energy_use_wide(ebm_input):
     fh = FileHandler(directory=ebm_input)
     database_manager = DatabaseManager(file_handler=fh)
     years = YearRange(2020, 2050)
+
     heating_systems_projection = extractors.extract_heating_systems_projection(years, database_manager)  # 📍
     heating_systems_parameter = h_s_param.heating_systems_parameter_from_projection(heating_systems_projection)  # 📌
+
     building_code_parameters = database_manager.file_handler.get_building_code()  # 📍
     scurve_parameters = database_manager.get_scurve_params()  # 📍
+
     s_curves_by_condition = calculate_s_curves(scurve_parameters, building_code_parameters, years)  # 📌
     area_parameters = database_manager.get_area_parameters()  # 📍
-    area_parameters['year'] = years.start
     area_forecast = extractors.extract_area_forecast(years, s_curves_by_condition, building_code_parameters,
                                                      area_parameters, database_manager)  # 📍
     energy_need_kwh_m2 = extractors.extract_energy_need(years, database_manager)  # 📍
@@ -30,5 +32,4 @@ def calculate_energy_use_wide(ebm_input):
     energy_use_wide = transform_to_sorted_heating_systems(building_group_energy_use_kwh,
                                                           energy_use_holiday_homes,
                                                           building_column='building_group')
-
     return energy_use_wide

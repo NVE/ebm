@@ -331,21 +331,22 @@ def test_load_energy_use(kalibrert_database_manager):
     """ Make sure load_energy_use2 works as expected """
     from ebm.geografisk_inndeling.data_loader import load_energy_use2
     result = load_energy_use2(kalibrert_database_manager.file_handler.input_directory)
-    expect_columns = ['building_group', 'energy_product', 'year']
-    result = result[expect_columns + ['kwh']].groupby(by=expect_columns).sum()
+    result = result.drop(columns='U')
+    expect_columns = ['building_group', 'energy_source']
+    result = result.set_index(expect_columns)
 
     expected = pd.DataFrame(expected_building_group_energy_use)
-    expected.index.names = expect_columns
+    expected.index.names = ['building_group', 'energy_source', 'year']
+    expected['GWh'] = expected.kwh / 1_000_000
+    expected = expected.drop(columns=['kwh'])
 
-    df = pd.merge(left=result, right=expected, suffixes=('_result', '_expected'), on=expect_columns, how='outer')
+    expected = expected.reset_index().pivot(columns=['year'], index=['building_group', 'energy_source'], values=['GWh'])
+    expected.columns = [c for c in expected.columns.get_level_values(1)]
 
-    df_diff = df[df['kwh_result'] != df['kwh_expected']]
-
-    # Log readable error messages for every different value
-    for i, r in df_diff.iterrows():
-        logger.error(f'Error in row {i} expected: {r[1]} was: {r[0]}')
-
-    assert df_diff.empty, 'Expected no differences between the dataframes result and expected'
+    res = result.query('building_group!="Fritidsboliger"').sort_index()
+    exp = expected.sort_index()
+    assert res.compare(exp).empty, res.compare(exp)
+    # pd.testing.assert_frame_equal(res, exp, check_dtype=False, check_index_type=False)
 
 
 if __name__ == "__main__":

@@ -26,10 +26,11 @@ def calculate_energy_use_wide(ebm_input):
                                                      area_parameters, database_manager)  # 📍
     energy_need_kwh_m2 = extractors.extract_energy_need(years, database_manager)  # 📍
     total_energy_need = e_n.transform_total_energy_need(energy_need_kwh_m2, area_forecast)  # 📌
-    building_group_energy_use_kwh = e_u.building_group_energy_use_kwh(heating_systems_parameter, total_energy_need)
-    energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(database_manager)  # 📍
 
-    energy_use_wide = transform_to_sorted_heating_systems(building_group_energy_use_kwh,
-                                                          energy_use_holiday_homes,
+    energy_use_kwh = e_u.building_group_energy_use_kwh(heating_systems_parameter, total_energy_need) # 📌
+    energy_use_gwh_by_building_group = e_u.energy_use_gwh_by_building_group(energy_use_kwh)
+    energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(database_manager)  # 📍
+    energy_use_wide = transform_to_sorted_heating_systems(energy_use_gwh_by_building_group, energy_use_holiday_homes,
                                                           building_column='building_group')
+
     return energy_use_wide

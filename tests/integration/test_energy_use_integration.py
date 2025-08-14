@@ -329,19 +329,21 @@ def test_energy_use_holiday_home(kalibrert_database_manager):
 @pytest.mark.explicit
 def test_load_energy_use(kalibrert_database_manager):
     """ Make sure load_energy_use2 works as expected """
+    def expected_energy_use_wide(expected_energy_use_long):
+        expected = pd.DataFrame(expected_energy_use_long)
+        expected.index.names = ['building_group', 'energy_source', 'year']
+        expected['GWh'] = expected.kwh / 1_000_000
+        expected = expected.drop(columns=['kwh'])
+        expected = expected.reset_index().pivot(columns=['year'], index=['building_group', 'energy_source'],
+                                                values=['GWh'])
+        expected.columns = [c for c in expected.columns.get_level_values(1)]
+        return expected
     from ebm.geografisk_inndeling.data_loader import load_energy_use2
     result = load_energy_use2(kalibrert_database_manager.file_handler.input_directory)
     result = result.drop(columns='U')
-    expect_columns = ['building_group', 'energy_source']
-    result = result.set_index(expect_columns)
+    result = result.set_index(['building_group', 'energy_source'])
 
-    expected = pd.DataFrame(expected_building_group_energy_use)
-    expected.index.names = ['building_group', 'energy_source', 'year']
-    expected['GWh'] = expected.kwh / 1_000_000
-    expected = expected.drop(columns=['kwh'])
-
-    expected = expected.reset_index().pivot(columns=['year'], index=['building_group', 'energy_source'], values=['GWh'])
-    expected.columns = [c for c in expected.columns.get_level_values(1)]
+    expected = expected_energy_use_wide(expected_building_group_energy_use)
 
     res = result.query('building_group!="Fritidsboliger"').sort_index()
     exp = expected.sort_index()

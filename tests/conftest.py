@@ -37,11 +37,12 @@ def propagate_logs():
 
 
 def pytest_collection_modifyitems(config, items):
-    """ Adds pytest.mark.explicit for test that only should run when called explicitly"""
-    keywordexpr = config.option.keyword
-    markexpr = config.option.markexpr
-    if keywordexpr or markexpr:
-        return  # let pytest handle this
+    """ Adds pytest.mark.explicit for test that only should run when called explicitly
+
+    Code mainly from https://stackoverflow.com/a/56379871
+    """
+    if config.option.keyword or config.option.markexpr:
+        return
 
     skip_explicit = pytest.mark.skip(reason='Test explicitly not selected')
     for item in items:

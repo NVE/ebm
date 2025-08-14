@@ -325,6 +325,7 @@ def test_energy_use_holiday_home(kalibrert_database_manager):
     pd.testing.assert_frame_equal(result, expected)
 
 
+@pytest.mark.explicit
 def test_load_energy_use(kalibrert_database_manager):
     """ Make sure load_energy_use2 works as expected """
     result = load_energy_use2(kalibrert_database_manager.file_handler.input_directory)

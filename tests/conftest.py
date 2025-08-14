@@ -34,3 +34,16 @@ def propagate_logs():
     logger.remove()
     logger.add(PropagateHandler(), format="{message}")
     yield
+
+
+def pytest_collection_modifyitems(config, items):
+    """ Adds pytest.mark.explicit for test that only should run when called explicitly"""
+    keywordexpr = config.option.keyword
+    markexpr = config.option.markexpr
+    if keywordexpr or markexpr:
+        return  # let pytest handle this
+
+    skip_explicit = pytest.mark.skip(reason='Test explicitly not selected')
+    for item in items:
+        if 'explicit' in item.keywords:
+            item.add_marker(skip_explicit)

@@ -2,13 +2,10 @@ import os
 import polars as pl
 import pandas as pd
 from loguru import logger
+from mkdocs.config.config_options import Optional
+
 from ebm.geografisk_inndeling.initialize import get_output_file
-from ebm.cmd.helpers import load_environment_from_dotenv
-from ebm.cmd.result_handler import EbmDefaultHandler
-from ebm.cmd.run_calculation import configure_loglevel
-from ebm.model.data_classes import YearRange
-from ebm.model.database_manager import DatabaseManager
-from ebm.model.file_handler import FileHandler
+from ebm.temp_calc import calculate_energy_use_wide
 
 
 # Function to load Elhub data from Azure Data Lake Storage using Polars
@@ -66,16 +63,12 @@ def load_elhub_data(
     df = df_lazy.select(columns).collect()
     return df
 
-# def load_energy_use():
-#     load_environment_from_dotenv()
-#     configure_loglevel(os.environ.get('LOG_FORMAT', None))
+def load_energy_use2(ebm_input = Optional[str]):
+    ebm_input = ebm_input if ebm_input else os.environ.get('EBM_INPUT', 'input')
 
-#     fh = FileHandler(directory=os.environ.get('EBM_OUTPUT'))
-#     database_manager = DatabaseManager(file_handler=fh)
-#     df = EbmDefaultHandler().extract_model(YearRange(2020, 2050), building_categories=None, database_manager=database_manager)
-#     logger.info('📊 EBM energy use data loaded successfully.')
+    energy_use_wide = calculate_energy_use_wide(ebm_input)
 
-#     return df
+    return energy_use_wide
 
 def load_energy_use() -> pd.DataFrame:
     """

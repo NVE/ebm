@@ -2,7 +2,7 @@ import os
 import polars as pl
 import pandas as pd
 from loguru import logger
-from ebm.geografisk_inndeling.initialize import get_output_file
+from ebmgeodist.initialize import get_output_file
 from ebm.cmd.helpers import load_environment_from_dotenv
 from ebm.cmd.result_handler import EbmDefaultHandler
 from ebm.cmd.run_calculation import configure_loglevel

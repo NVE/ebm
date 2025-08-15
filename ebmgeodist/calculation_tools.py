@@ -1,6 +1,6 @@
 import polars as pl
 from typing import Optional, Union
-from ebm.geografisk_inndeling.initialize import NameHandler
+from ebmgeodist.initialize import NameHandler
 
 def yearly_aggregated_elhub_data(df: pl.DataFrame) -> pl.DataFrame:
     """

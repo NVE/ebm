@@ -175,7 +175,7 @@ def distribute_energy_use_for_category(
     energibruk_df = kommune_info.hstack(multiplied)
 
     return (
-        f"{category}_energibruk", energibruk_df,
+        f"{category}_{energitype}", energibruk_df,
         f"{category}_fordelingsnøkler", dist_df
     )
 

@@ -2,10 +2,13 @@ import os
 import polars as pl
 import pandas as pd
 from loguru import logger
-from mkdocs.config.config_options import Optional
-
-from ebm.geografisk_inndeling.initialize import get_output_file
-from ebm.temp_calc import calculate_energy_use_wide
+from ebmgeodist.initialize import get_output_file
+from ebm.cmd.helpers import load_environment_from_dotenv
+from ebm.cmd.result_handler import EbmDefaultHandler
+from ebm.cmd.run_calculation import configure_loglevel
+from ebm.model.data_classes import YearRange
+from ebm.model.database_manager import DatabaseManager
+from ebm.model.file_handler import FileHandler
 
 
 # Function to load Elhub data from Azure Data Lake Storage using Polars

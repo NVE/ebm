@@ -48,9 +48,9 @@ html_css_files = [
     'css/custom.css',
 ]
 
-html_theme_options = {
-    "show_navbar_depth": 1,
-}
+#html_theme_options = {
+#    "show_navbar_depth": 1,
+#}
 
 autodoc_default_options = {
     "members": True,
@@ -59,6 +59,8 @@ autodoc_default_options = {
     "undoc-members": True,
     "exclude-members": "__weakref__",
 }
+
+suppress_warnings = ['autosectionlabel.*']
 
 # Konfigurasjon for Napoleon
 napoleon_google_docstring = True

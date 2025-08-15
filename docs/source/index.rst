@@ -30,7 +30,6 @@ documentation for details.
    area
    energy_need
    energy_use
-   calibration
    geographical_distribution
    calculations
    heating_systems

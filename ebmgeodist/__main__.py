@@ -64,8 +64,8 @@ def main():
         logger.info("📂 Leser data lokalt fra data-mappen...")
         step = 'lokalt'
 
-    # Convert result to long format if specified
-    convert_result_to_long: bool = arguments.long_format
+    # Only include start and end years in the output if specified
+    include_start_end_years: bool = arguments.start_end_years
     
 
     if energitype == "strom":
@@ -106,7 +106,7 @@ def main():
                                             energitype=energitype, 
                                             building_category=(building_category_choice if energitype == "strom" else filtered_categories),
                                             step=step, 
-                                            output_format = convert_result_to_long)
+                                            output_format = include_start_end_years)
 
     logger.info(f"✅ Kommunefordeling for valgt energitype har kjørt ferdig og resultatene er lagret i output-mappen med filnavn: {file_to_open.name}")
     os.startfile(file_to_open, 'open')

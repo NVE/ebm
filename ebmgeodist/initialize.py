@@ -104,7 +104,7 @@ Velg datakilde: 'azure' for å hente dataen direkte fra Elhub datasjøen, eller 
                             Create input directory and copy necessary data files from data/ directory.
                             ''')
     
-    arg_parser.add_argument('--long-format', action='store_true', help='''Use long format for output data. Default is wide format.''')
+    arg_parser.add_argument('--start-end-years', action='store_true', help='''The output file only includes the start and end years. Default is to include all years.''')
 
     arg_parser.add_argument('--energy-type', '-e',
                             choices=['strom', 'fjernvarme', 'ved', 'fossil'],
@@ -239,21 +239,3 @@ def init(file_handler: FileHandler, source_directory: Path|None = None) -> Path:
     create_input(file_handler, source_directory=source_directory)
     create_output_directory(Path('output'))
     return file_handler.input_directory
-
-
-def create_input_folder():
-    input_dir = Path("input")
-    data_dir = Path("data")
-    parquet_file = data_dir / "yearly_aggregated_elhub_data.parquet"
-    destination_file = input_dir / "yearly_aggregated_elhub_data.parquet"
-
-    # Create input/ folder if it doesn't exist
-    input_dir.mkdir(parents=True, exist_ok=True)
-
-    # Copy .parquet file from data/ to input/
-    if parquet_file.exists():
-        shutil.copy(parquet_file, destination_file)
-        logger.info(f"✅ Fil kopiert: {parquet_file} → {destination_file}")
-    else:
-        logger.error(f"❌ Filen {parquet_file} finnes ikke.")
-        raise FileNotFoundError(f"{parquet_file} finnes ikke.")

@@ -1,14 +1,12 @@
 import os
+from typing import Optional
+
 import polars as pl
 import pandas as pd
 from loguru import logger
+
+from ebm.temp_calc import calculate_energy_use_wide
 from ebmgeodist.initialize import get_output_file
-from ebm.cmd.helpers import load_environment_from_dotenv
-from ebm.cmd.result_handler import EbmDefaultHandler
-from ebm.cmd.run_calculation import configure_loglevel
-from ebm.model.data_classes import YearRange
-from ebm.model.database_manager import DatabaseManager
-from ebm.model.file_handler import FileHandler
 
 
 # Function to load Elhub data from Azure Data Lake Storage using Polars
@@ -66,14 +64,14 @@ def load_elhub_data(
     df = df_lazy.select(columns).collect()
     return df
 
-def load_energy_use2(ebm_input = Optional[str]):
+def load_energy_use(ebm_input = Optional[str]):
     ebm_input = ebm_input if ebm_input else os.environ.get('EBM_INPUT', 'input')
 
     energy_use_wide = calculate_energy_use_wide(ebm_input)
 
     return energy_use_wide
 
-def load_energy_use() -> pd.DataFrame:
+def load_energy_use_from_file() -> pd.DataFrame:
     """
     Load energy use data from the output file.
     This function reads the energy use data from an Excel file located in the output directory.
@@ -85,5 +83,6 @@ def load_energy_use() -> pd.DataFrame:
     return df
 
 energy_use = None
+
 if __name__ == '__main__':
-    energy_use = load_energy_use()
+    energy_use = load_energy_use_from_file()

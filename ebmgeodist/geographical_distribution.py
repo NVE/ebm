@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from azure.identity import DefaultAzureCredential
 from ebmgeodist.initialize import NameHandler
-from ebmgeodist.data_loader import load_elhub_data, load_energy_use
+from ebmgeodist.data_loader import load_elhub_data, load_energy_use_from_file
 from ebmgeodist.calculation_tools import df_commune_mean, df_total_consumption_buildingcategory,\
       df_factor_calculation, yearly_aggregated_elhub_data, ebm_energy_use_geographical_distribution
 from ebmgeodist.initialize import create_output_directory, get_output_file
@@ -189,7 +189,7 @@ def geographical_distribution(
 
     year_cols = (2020, 2050) if output_format else range(2020, 2051)
 
-    df_ebm = pl.from_pandas(load_energy_use())
+    df_ebm = pl.from_pandas(load_energy_use_from_file())
 
     dfs_factors = get_distribution_factors(energitype, normalized, elhub_years, step, year_cols)
     

@@ -195,6 +195,9 @@ def cwd_ebm_data(request):
 
 @pytest.fixture
 def kalibrert_database_manager(cwd_ebm_data):
+    """
+    Provides a DatabaseManager configured to load input from tests/ebm/data/kalibrert
+    """
     input_path, output_path, years = load_config()
     input_path = pathlib.Path('kalibrert')
     output_path.mkdir(exist_ok=True)
@@ -204,7 +207,6 @@ def kalibrert_database_manager(cwd_ebm_data):
     return database_manager
 
 
-@pytest.mark.slow
 def test_energy_use(kalibrert_database_manager):
     scurve_parameters = kalibrert_database_manager.get_scurve_params()  # 📍
 
@@ -226,6 +228,7 @@ def test_energy_use(kalibrert_database_manager):
 
     df_diff = df[df['kwh_result'] != df['kwh_expected']]
 
+    # Log readable error messages for every different value
     for i, r in df_diff.iterrows():
         logger.error(f'Error in row {i} expected: {r[1]} was: {r[0]}')
 
@@ -309,7 +312,7 @@ expected_holiday_home = {'kwh': {('Fritidsboliger', 'Bio', 2020): 1450.0, ('Frit
                                  ('Fritidsboliger', 'Fossil', 2048): 100.0, ('Fritidsboliger', 'Fossil', 2049): 100.0,
                                  ('Fritidsboliger', 'Fossil', 2050): 100.0}}
 
-@pytest.mark.slow
+
 def test_energy_use_holiday_home(kalibrert_database_manager):
     energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(kalibrert_database_manager)
 
@@ -321,6 +324,31 @@ def test_energy_use_holiday_home(kalibrert_database_manager):
     expected = pd.DataFrame(expected_holiday_home)
     expected.index.names = ['building_group', 'energy_source', 'year']
     pd.testing.assert_frame_equal(result, expected)
+
+
+@pytest.mark.explicit
+def test_load_energy_use(kalibrert_database_manager):
+    """ Make sure load_energy_use works as expected """
+    def expected_energy_use_wide(expected_energy_use_long):
+        expected = pd.DataFrame(expected_energy_use_long)
+        expected.index.names = ['building_group', 'energy_source', 'year']
+        expected['GWh'] = expected.kwh / 1_000_000
+        expected = expected.drop(columns=['kwh'])
+        expected = expected.reset_index().pivot(columns=['year'], index=['building_group', 'energy_source'],
+                                                values=['GWh'])
+        expected.columns = [c for c in expected.columns.get_level_values(1)]
+        return expected
+    from ebmgeodist.data_loader import load_energy_use
+    result = load_energy_use(kalibrert_database_manager.file_handler.input_directory)
+    result = result.drop(columns='U')
+    result = result.set_index(['building_group', 'energy_source'])
+
+    expected = expected_energy_use_wide(expected_building_group_energy_use)
+
+    res = result.query('building_group!="Fritidsboliger"').sort_index()
+    exp = expected.sort_index()
+    assert res.compare(exp).empty, res.compare(exp)
+    # pd.testing.assert_frame_equal(res, exp, check_dtype=False, check_index_type=False)
 
 
 if __name__ == "__main__":

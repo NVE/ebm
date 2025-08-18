@@ -6,12 +6,11 @@ from ebmgeodist.geographical_distribution import geographical_distribution
 from ebmgeodist.initialize import NameHandler, make_arguments, init, create_output_directory
 from ebmgeodist.file_handler import FileHandler
 from ebmgeodist.enums import ReturnCode
+from ebmgeodist.calculation_tools import NoElhubDataError
 import gc
 from loguru import logger
 
-
-def main():
-    
+def run_ebmgeodist():
     program_name = 'ebmgeodist'
     default_path = Path('output/ebm_output.xlsx')
 
@@ -39,19 +38,17 @@ def main():
               file=sys.stderr)
         return ReturnCode.MISSING_INPUT_FILES, None
     
-    if arguments.energy_type == "strom":
-        logger.info("⚡️ Energikilde satt til strøm.")
-        energitype = "strom"
-    elif arguments.energy_type == "fjernvarme":
-        logger.info("🔥 Energikilde satt til fjernvarme.")
-        energitype = "fjernvarme"
-    elif arguments.energy_type == "ved":
-        logger.info("🌲 Energikilde satt til ved.")
-        energitype = "ved"
-    elif arguments.energy_type == "fossil":
-        logger.info("💨 Energikilde satt til fossil energi.")
-        energitype = "fossil"
+    energy_map = {
+        "strom": "⚡️",
+        "fjernvarme": "🔥",
+        "ved": "🌲",
+        "fossil": "💨"
+    }
 
+    energitype = arguments.energy_type.lower()  
+
+    if energitype in energy_map:
+        logger.info(f"{energy_map[energitype]} Energitype satt til {energitype}.")
 
     building_category_choice = arguments.category
     elhub_years = arguments.years
@@ -73,6 +70,7 @@ def main():
             f"🔍 Kommunefordeler strøm for bygningskategori '{building_category_choice}' "
             f"fra Elhub data i tidsperioden: {elhub_years} ..."
         )
+
     elif energitype == "fjernvarme":
         filtered_categories = [cat for cat in building_category_choice if cat.lower() != NameHandler.COLUMN_NAME_FRITIDSBOLIG.lower()]
         logger.info(
@@ -113,6 +111,13 @@ def main():
 
     # Clean up memory
     gc.collect()
+
+def main():
+    try:
+        run_ebmgeodist()
+    except NoElhubDataError as e:
+        logger.critical(f"❌ Program stopped: {e}")
+        sys.exit(1)   
 
 
 if __name__ == "__main__":

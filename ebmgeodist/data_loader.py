@@ -64,7 +64,7 @@ def load_elhub_data(
     df = df_lazy.select(columns).collect()
     return df
 
-def load_energy_use(ebm_input = Optional[str]):
+def load_energy_use(ebm_input: Optional[str] = None) -> pd.DataFrame:
     ebm_input = ebm_input if ebm_input else os.environ.get('EBM_INPUT', 'input')
 
     energy_use_wide = calculate_energy_use_wide(ebm_input)

@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from azure.identity import DefaultAzureCredential
 from ebmgeodist.initialize import NameHandler
-from ebmgeodist.data_loader import load_elhub_data, load_energy_use_from_file
+from ebmgeodist.data_loader import load_elhub_data, load_energy_use_from_file, load_energy_use
 from ebmgeodist.calculation_tools import df_commune_mean, df_total_consumption_buildingcategory,\
       df_factor_calculation, yearly_aggregated_elhub_data, ebm_energy_use_geographical_distribution
 from ebmgeodist.initialize import create_output_directory, get_output_file
@@ -11,6 +11,8 @@ import gc
 import polars as pl
 import pandas as pd
 from loguru import logger
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 
 
@@ -29,8 +31,13 @@ def prepare_elhub_data(elhub_years: list[int], step: str) -> pl.DataFrame:
             df_stacked = df_stacked.vstack(df)
 
         df_stacked_year = yearly_aggregated_elhub_data(df_stacked)
-        df_stacked_year.write_parquet(input_file, compression="zstd")
-        logger.info(f"📍New stacked Elhub data saved: {input_file.name}")
+        
+        # Save the stacked DataFrame to a Parquet file with a timestamp
+        norwegian_time = datetime.now(ZoneInfo("Europe/Oslo"))
+        timestamp = norwegian_time.strftime("%Y%m%d_%H%M%S")
+        output_file = input_file.parent / f"yearly_aggregated_elhub_data_{timestamp}.parquet"
+        df_stacked_year.write_parquet(output_file, compression="zstd")
+        logger.info(f"📍New stacked Elhub data with a timestamp of the format YearMonthDay_HourMinutesSeconds:{timestamp} saved in: {output_file.name}")
     else:
         create_output_directory(filename=input_file)
         df_stacked = pl.read_parquet(input_file)
@@ -189,7 +196,7 @@ def geographical_distribution(
 
     year_cols = (2020, 2050) if output_format else range(2020, 2051)
 
-    df_ebm = pl.from_pandas(load_energy_use_from_file())
+    df_ebm = pl.from_pandas(load_energy_use())
 
     dfs_factors = get_distribution_factors(energitype, normalized, elhub_years, step, year_cols)
     

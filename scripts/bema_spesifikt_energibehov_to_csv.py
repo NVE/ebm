@@ -37,14 +37,14 @@ def main():
 
     melted = pd.melt(df,
                      id_vars=['building_category', 'purpose'],
-                     value_vars=[c for c in df.columns if 'TEK' in c],
-                     var_name='TEK',
+                     value_vars=[c for c in df.columns if 'building_code' in c],
+                     var_name='building_code',
                      value_name='kw_h_m')
-    melted = melted[['building_category', 'TEK', 'purpose', 'kw_h_m']]
+    melted = melted[['building_category', 'building_code', 'purpose', 'kw_h_m']]
 
-    melted = melted[~melted['TEK'].isin(['TEK17.3', 'TEK21H', 'TEK21L'])]
+    melted = melted[~melted['building_code'].isin(['TEK17.3', 'TEK21H', 'TEK21L'])]
 
-    sorted_df = melted.sort_values(by=['building_category', 'TEK'])
+    sorted_df = melted.sort_values(by=['building_category', 'building_code'])
 
     return sorted_df
 

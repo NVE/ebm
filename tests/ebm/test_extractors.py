@@ -18,7 +18,7 @@ def extract_area_forecast_csv():
     """
     df = pd.read_csv(test_data / 'extract_area_forecast.csv', sep=';')
     df = df.ffill()
-    df['TEK'] = df['TEK'].str.replace('T', 'TEK').str.replace('P', 'PRE_')
+    df['building_code'] = df['building_code'].str.replace('T', 'TEK').str.replace('P', 'PRE_')
     df['year'] = df['year'].astype(int)
 
     return df
@@ -33,13 +33,13 @@ def test_extract_area_forecast(extract_area_forecast_csv: pd.DataFrame):
 
     dm: DatabaseManager = DatabaseManager(FileHandler(directory=input_directory))
     years: YearRange = YearRange(2020, 2050)
-    tek_parameters: pd.DataFrame = dm.file_handler.get_building_code()
+    building_code_parameters: pd.DataFrame = dm.file_handler.get_building_code()
     area_parameters: pd.DataFrame = dm.get_area_parameters()
 
-    s_curves_by_condition = pd.read_csv(test_data / 's_curves_by_condition.csv').set_index(['building_category','TEK','year'])
+    s_curves_by_condition = pd.read_csv(test_data / 's_curves_by_condition.csv').set_index(['building_category','building_code','year'])
 
-    index_columns = ['year', 'building_category', 'building_condition', 'TEK']
-    result = extract_area_forecast(years, s_curves_by_condition, tek_parameters, area_parameters, dm)
+    index_columns = ['year', 'building_category', 'building_condition', 'building_code']
+    result = extract_area_forecast(years, s_curves_by_condition, building_code_parameters, area_parameters, dm)
     result = result.set_index(index_columns, drop=True).sort_index(key=map_sort_order)
 
     expected = extract_area_forecast_csv.set_index(index_columns, drop=True).sort_index(key=map_sort_order) # type: ignore

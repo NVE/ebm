@@ -1,4 +1,4 @@
-building_category,TEK,purpose,behavior_factor
+building_category,building_code,purpose,behavior_factor
 apartment_block,PRE_TEK49,cooling,1.0
 apartment_block,PRE_TEK49,electrical_equipment,1.0
 apartment_block,PRE_TEK49,fans_and_pumps,1.0

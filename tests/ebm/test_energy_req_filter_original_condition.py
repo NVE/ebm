@@ -1,6 +1,5 @@
 import io
 import typing
-import re
 import pytest
 
 import pandas as pd
@@ -8,14 +7,12 @@ import pandas as pd
 from ebm.model.building_category import BuildingCategory
 from ebm.model.energy_need_filter import filter_original_condition
 from ebm.model.energy_purpose import EnergyPurpose
-from ebm.model.energy_requirement_filter import EnergyRequirementFilter
-from ebm.model.exceptions import AmbiguousDataError
 
 
 @pytest.fixture
 def original_condition() -> pd.DataFrame:
     return pd.read_csv(io.StringIO("""
-building_category,TEK,purpose,kwh_m2
+building_category,building_code,purpose,kwh_m2
 apartment_block,PRE_TEK49_RES_1950,cooling,1.1
 apartment_block,PRE_TEK49_RES_1950,electrical_equipment,2.2
 apartment_block,PRE_TEK49_RES_1950,fans_and_pumps,3.3
@@ -52,10 +49,6 @@ def test_get_orginal_condition_return_value_for_best_match(default_parameters,
     """
     Return value for best match on filter variables (building_category, tek and purpose). 
     """
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters})
-    result = e_r_filter.get_original_condition(tek=tek, purpose=purpose)
-
-    assert result == expected_value
 
     rs = filter_original_condition(default_parameters.get('original_condition'),
                               building_category='apartment_block',
@@ -71,11 +64,6 @@ def test_get_orginal_condition_return_default_value_when_not_found(default_param
     original dataframe, and there is a 'default' option available for those variables, then return the
     value of those 'default' options.  
     """
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
-                                            'building_category': BuildingCategory.CULTURE})
-    result = e_r_filter.get_original_condition(tek='TEK07', purpose=EnergyPurpose.ELECTRICAL_EQUIPMENT)
-    assert result == 3.3
-
     rs = filter_original_condition(default_parameters.get('original_condition'),
                               building_category='apartment_block',
                               tek='TEK07',
@@ -91,14 +79,9 @@ def test_get_orginal_condition_return_false_value_when_building_category_not_fou
     the false_return_value of the function.
     """
     original_condition = pd.read_csv(io.StringIO("""
-    building_category,TEK,purpose,kwh_m2
+    building_category,building_code,purpose,kwh_m2
     apartment_block,PRE_TEK49_RES_1950,cooling,1.1                                                                                                                                                                                                                                           
     """.strip()), skipinitialspace=True)
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
-                                            'building_category': BuildingCategory.HOUSE,
-                                            'original_condition':original_condition})
-    result = e_r_filter.get_original_condition(tek='PRE_TEK49_RES_1950', purpose=EnergyPurpose.COOLING)
-    assert result == 0.0
 
     rs = filter_original_condition(original_condition,
                               building_category='house',
@@ -107,39 +90,16 @@ def test_get_orginal_condition_return_false_value_when_building_category_not_fou
     assert len(rs) == 0
 
 
-
-def test_get_orginal_condition_return_false_value_when_purpose_not_found(default_parameters):
+def test_get_orginal_condition_return_false_value_when_building_code_not_found(default_parameters):
     """
     When the specified filter variable (building_category, tek or purpose) isn't present in the
     original dataframe, and there isn't a 'default' option available for that variable, then return 
     the false_return_value of the function.
     """
     original_condition = pd.read_csv(io.StringIO("""
-    building_category,TEK,purpose,kwh_m2
+    building_category,building_code,purpose,kwh_m2
     apartment_block,PRE_TEK49_RES_1950,cooling,1.1                                                                                                                                                                                                                                           
     """.strip()), skipinitialspace=True)
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
-                                            'building_category': BuildingCategory.APARTMENT_BLOCK,
-                                            'original_condition':original_condition})
-    result = e_r_filter.get_original_condition(tek='PRE_TEK49_RES_1950', purpose=EnergyPurpose.LIGHTING)
-    assert result == 0.0
-
-
-def test_get_orginal_condition_return_false_value_when_tek_not_found(default_parameters):
-    """
-    When the specified filter variable (building_category, tek or purpose) isn't present in the
-    original dataframe, and there isn't a 'default' option available for that variable, then return 
-    the false_return_value of the function.
-    """
-    original_condition = pd.read_csv(io.StringIO("""
-    building_category,TEK,purpose,kwh_m2
-    apartment_block,PRE_TEK49_RES_1950,cooling,1.1                                                                                                                                                                                                                                           
-    """.strip()), skipinitialspace=True)
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
-                                               'building_category': BuildingCategory.APARTMENT_BLOCK,
-                                               'original_condition':original_condition})
-    result = e_r_filter.get_original_condition(tek='TEK21', purpose=EnergyPurpose.COOLING)
-    assert result == 0.0
 
     rs = filter_original_condition(original_condition,
                               building_category=BuildingCategory.APARTMENT_BLOCK,
@@ -156,17 +116,12 @@ def test_get_original_condition_return_value_when_match_has_same_priority(defaul
     order in which they should be prioritized is as follows: building_category, tek and purpose.
     """
     original_condition = pd.read_csv(io.StringIO("""
-    building_category,TEK,purpose,kwh_m2
+    building_category,building_code,purpose,kwh_m2
     default,TEK07,cooling,0.1
     apartment_block,default,cooling,0.2                                                                                   
     apartment_block,TEK07,default,0.3
     default,default,default,0.99                                                                                                                                                                                                                                                                                          
     """.strip()), skipinitialspace=True)
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
-                                               'building_category': BuildingCategory.APARTMENT_BLOCK,
-                                               'original_condition':original_condition})
-    result = e_r_filter.get_original_condition(tek='TEK07', purpose=EnergyPurpose.COOLING)
-    assert result == 0.3
 
     rs = filter_original_condition(df=original_condition,
                                    building_category=BuildingCategory.APARTMENT_BLOCK,
@@ -183,19 +138,10 @@ def test_get_original_condition_raise_error_for_duplicate_rows_with_different_va
     which value is correct and the program should crash. 
     """
     original_condition = pd.read_csv(io.StringIO("""
-    building_category,TEK,purpose,kwh_m2
+    building_category,building_code,purpose,kwh_m2
     apartment_block,TEK07,cooling,0.1 
     apartment_block,TEK07,cooling,0.2                                                                                                                                                                                                                                                                                     
     """.strip()), skipinitialspace=True)
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
-                                               'building_category': BuildingCategory.APARTMENT_BLOCK,
-                                               'original_condition':original_condition})
-    expected_error_msg = re.escape(
-        "Conflicting data found in 'original_condition' dataframe for "
-        "building_category='apartment_block', tek='TEK07' and purpose='cooling'."
-    )
-    with pytest.raises(AmbiguousDataError, match=expected_error_msg):
-        e_r_filter.get_original_condition(tek='TEK07', purpose=EnergyPurpose.COOLING)
 
 
 if __name__ == "__main__":

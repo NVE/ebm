@@ -1,21 +1,19 @@
 import os
 import pathlib
-import sys
 from typing import Dict
 
 import pandas as pd
 from loguru import logger
 
-from ebm.holiday_home_energy import HolidayHomeEnergy
+from ebm.extractors import extract_area_forecast
 from ebm.model.building_category import BuildingCategory
 
-from ebm.model.buildings import Buildings
-from ebm.model.construction import ConstructionCalculator
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement
 from ebm.energy_consumption import EnergyConsumption
 from ebm.heating_systems_projection import HeatingSystemsProjection
+from ebm.s_curve import calculate_s_curves
 
 
 def area_forecast_result_to_dataframe(forecast: pd.DataFrame) -> pd.DataFrame:
@@ -127,11 +125,11 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
         database_manager=database_manager)
     df = energy_requirement.calculate_for_building_category(database_manager=database_manager)
 
-    df = df.set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year'])
+    df = df.set_index(['building_category', 'building_code', 'purpose', 'building_condition', 'year'])
 
     q = area_forecast.reset_index()
 
-    q = q.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+    q = q.set_index(['building_category', 'building_code', 'building_condition', 'year'])
 
     merged = q.merge(df, left_index=True, right_index=True)
     merged['energy_requirement'] = merged.kwh_m2 * merged.m2
@@ -157,8 +155,7 @@ def write_to_disk(constructed_floor_area, building_category: BuildingCategory):
             logger.debug(f'Added {building_category} to {file_path}')
 
 
-def calculate_building_category_area_forecast(building_category: BuildingCategory,
-                                              database_manager: DatabaseManager,
+def calculate_building_category_area_forecast(database_manager: DatabaseManager,
                                               start_year: int,
                                               end_year: int) -> pd.DataFrame:
     """
@@ -166,8 +163,6 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
 
     Parameters
     ----------
-    building_category : BuildingCategory
-        The category of buildings for which the area forecast is to be calculated.
     database_manager : DatabaseManager
         The database manager used to interact with the database.
     start_year : int
@@ -186,25 +181,18 @@ def calculate_building_category_area_forecast(building_category: BuildingCategor
     This function builds the buildings for the specified category, calculates the area forecast, and accounts for
         demolition and construction over the specified period.
     """
+    building_code_parameters = database_manager.file_handler.get_building_code()
     years = YearRange(start_year, end_year)
-    buildings = Buildings.build_buildings(building_category=building_category,
-                                          database_manager=database_manager,
-                                          period=years)
+    scurve_params = database_manager.get_scurve_params()
+    s_curves_by_condition = calculate_s_curves(scurve_params, building_code_parameters, years)
 
-    area_forecast = buildings.build_area_forecast(database_manager, years.start, years.end)
-    demolition_floor_area = area_forecast.calc_total_demolition_area_per_year()
-    constructed_floor_area = ConstructionCalculator.calculate_construction(building_category,
-                                                                           demolition_floor_area,
-                                                                           database_manager,
-                                                                           period=years)
-    forecast: pd.DataFrame = area_forecast.calc_area(constructed_floor_area['accumulated_constructed_floor_area']) # type: ignore
-    forecast['building_category'] = building_category
+    area_forecast = extract_area_forecast(years,
+                                          building_code_parameters=building_code_parameters,
+                                          area_parameters=database_manager.get_area_parameters(),
+                                          s_curves_by_condition=s_curves_by_condition,
+                                          database_manager=database_manager)
 
-    try:
-        write_to_disk(constructed_floor_area, building_category)
-    except (PermissionError, IOError) as ex:
-        logger.debug(ex)
-    return forecast
+    return area_forecast
 
 
 def calculate_heating_systems(energy_requirements, database_manager: DatabaseManager) -> pd.DataFrame:
@@ -231,50 +219,3 @@ def calculate_heating_systems(energy_requirements, database_manager: DatabaseMan
     df = calculator.calculate(energy_requirements)
 
     return df
-
-
-def calculate_energy_use(database_manager: DatabaseManager) -> pd.DataFrame:
-    """
-    Calculates holiday home energy use by from HolidayHomeEnergy.calculate_energy_usage()
-
-    Parameters
-    ----------
-    database_manager : DatabaseManager
-
-    Returns
-    -------
-    pd.DataFrame
-    """
-    holiday_home_energy = HolidayHomeEnergy.new_instance(database_manager=database_manager)
-    el, wood, fossil = [e_u for e_u in holiday_home_energy.calculate_energy_usage()]
-    df = pd.DataFrame(data=[el, wood, fossil])
-    df.insert(0, 'building_category', 'holiday_home')
-    df.insert(1, 'energy_type', 'n/a')
-    df['building_category'] = 'holiday_home'
-    df['energy_type'] = ('electricity', 'fuelwood', 'fossil')
-    output = df.reset_index().rename(columns={'index': 'unit'})
-    output = output.set_index(['building_category', 'energy_type', 'unit'])
-    return output
-
-
-def configure_loglevel(log_format: str = None):
-    """
-    Sets loguru loglevel to INFO unless ebm is called with parameter --debug and the environment variable DEBUG is not
-    equal to True
-
-    """
-    logger.remove()
-    options = {'level': 'INFO'}
-    if log_format:
-        options['format'] = log_format
-
-    if '--debug' in sys.argv or os.environ.get('DEBUG', '').upper() == 'TRUE':
-        options['level'] = 'DEBUG'
-
-    # Add a new handler with a custom format
-    if '--debug' not in sys.argv and os.environ.get('DEBUG', '').upper() != 'TRUE':
-        logger.add(sys.stderr, **options)
-    else:
-        logger.add(sys.stderr,
-                   filter=lambda f: not (f['name'] == 'ebm.model.file_handler' and f['level'].name == 'DEBUG'),
-                   **options)

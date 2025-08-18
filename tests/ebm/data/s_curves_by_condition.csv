@@ -1,4 +1,4 @@
-building_category,TEK,year,original_condition,demolition,small_measure,renovation,renovation_and_small_measure,s_curve_demolition
+building_category,building_code,year,original_condition,demolition,small_measure,renovation,renovation_and_small_measure,s_curve_demolition
 apartment_block,PRE_TEK49,2020,0.10000000000000087,0.0,0.05000000000029903,0.0,0.8499999999997001,0.0
 apartment_block,PRE_TEK49,2021,0.09999999999999998,0.0175,0.050000000000000044,0.0,0.8325,0.0175
 apartment_block,PRE_TEK49,2022,0.09999999999999998,0.035,0.050000000000000044,0.0,0.815,0.0175

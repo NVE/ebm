@@ -1,4 +1,4 @@
-TEK,building_year,period_start_year,period_end_year
+building_code,building_year,period_start_year,period_end_year
 PRE_TEK49_RES_1950,1950,0,1955
 PRE_TEK49_RES_1940,1940,0,1955
 PRE_TEK49_COM,1945,0,1955

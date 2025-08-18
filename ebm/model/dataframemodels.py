@@ -11,7 +11,7 @@ from ebm.model.energy_purpose import EnergyPurpose
 
 class EnergyNeedYearlyImprovements(pa.DataFrameModel):
     building_category: Series[str]
-    TEK: Series[str]
+    building_code: Series[str]
     purpose: Series[str]
     value: Series[float] = pa.Field(ge=0.0, coerce=True)
     start_year: Optional[Series[int]] = pa.Field(coerce=True, default=2020)
@@ -20,19 +20,19 @@ class EnergyNeedYearlyImprovements(pa.DataFrameModel):
     _filename = 'energy_need_improvements'
 
     class Config:
-        unique = ['building_category', 'TEK', 'purpose', 'start_year', 'function', 'end_year']
+        unique = ['building_category', 'building_code', 'purpose', 'start_year', 'function', 'end_year']
 
 
 class YearlyReduction(pa.DataFrameModel):
     building_category: Series[str]
-    TEK: Series[str]
+    building_code: Series[str]
     purpose: Series[str]
     start_year: Series[int] = pa.Field(coerce=True, default=2020)
     end_year: Series[int] = pa.Field(coerce=True, default=2050)
     yearly_efficiency_improvement: Series[float] = pa.Field(ge=0.0, coerce=True)
 
     class Config:
-        unique = ['building_category', 'TEK', 'purpose', 'start_year', 'function', 'end_year']
+        unique = ['building_category', 'building_code', 'purpose', 'start_year', 'function', 'end_year']
 
 
     @staticmethod
@@ -57,7 +57,7 @@ class YearlyReduction(pa.DataFrameModel):
             When the resulting dataframe fails to validate
 
         """
-        unique_columns = ['building_category', 'TEK', 'purpose', 'start_year', 'end_year']
+        unique_columns = ['building_category', 'building_code', 'purpose', 'start_year', 'end_year']
 
         # Casting en_yearly_improvement to DataFrame so that type checkers complaining about datatype
         df = cast(pd.DataFrame, en_yearly_improvement)
@@ -75,21 +75,21 @@ class YearlyReduction(pa.DataFrameModel):
                                                      alias='default',
                                                      de_dup_by=unique_columns)
         df['yearly_efficiency_improvement'] = df['value']
-        df = df[['building_category', 'TEK', 'purpose', 'start_year', 'end_year', 'yearly_efficiency_improvement']]
+        df = df[['building_category', 'building_code', 'purpose', 'start_year', 'end_year', 'yearly_efficiency_improvement']]
         df = df.reset_index()
         return YearlyReduction.validate(df, lazy=True)
 
 
 class PolicyImprovement(pa.DataFrameModel):
     building_category: Series[str]
-    TEK: Series[str]
+    building_code: Series[str]
     purpose: Series[str]
     start_year: Series[int] = pa.Field(ge=0, coerce=True)
     end_year: Series[int] = pa.Field(ge=0, coerce=True)
     improvement_at_end_year: Series[float] = pa.Field(ge=0.0, lt=2.0, coerce=True)
 
     class Config:
-        unique = ['building_category', 'TEK', 'purpose', 'start_year', 'end_year']
+        unique = ['building_category', 'building_code', 'purpose', 'start_year', 'end_year']
 
     @pa.dataframe_check
     def start_year_before_end_year(cls, df: pd.DataFrame) -> Series[bool]:
@@ -105,7 +105,7 @@ class PolicyImprovement(pa.DataFrameModel):
             df['start_year'] = 2020
         if 'end_year' not in df.columns:
             df['end_year'] = 2050
-        unique_columns = ('building_category', 'TEK', 'purpose', 'start_year', 'function', 'end_year',)
+        unique_columns = ('building_category', 'building_code', 'purpose', 'start_year', 'function', 'end_year',)
         df = explode_unique_columns(df, unique_columns=unique_columns)
         df = explode_column_alias(df, column='purpose', values=[p for p in EnergyPurpose], alias='default',
                                   de_dup_by=unique_columns)

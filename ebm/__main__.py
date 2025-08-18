@@ -7,11 +7,11 @@ import typing
 import pandas as pd
 from loguru import logger
 
-from ebm.cmd.helpers import load_environment_from_dotenv
+from ebm.cmd.helpers import load_environment_from_dotenv, configure_json_log, configure_loglevel
 from ebm.cmd.result_handler import  append_result, \
     transform_model_to_horizontal, EbmDefaultHandler
 from ebm.cmd.pipeline import export_energy_model_reports
-from ebm.cmd.run_calculation import validate_years, configure_loglevel
+from ebm.cmd.run_calculation import validate_years
 from ebm.cmd import prepare_main
 from ebm.cmd.initialize import init, create_output_directory
 
@@ -36,7 +36,8 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
         zero when the program exits gracefully
     """
     load_environment_from_dotenv()
-    configure_loglevel(os.environ.get('LOG_FORMAT', None))
+    configure_loglevel(log_format=os.environ.get('LOG_FORMAT', None))
+    configure_json_log()
 
     logger.debug(f'Starting {sys.executable} {__file__}')
 
@@ -118,7 +119,7 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
             df = transform_model_to_horizontal(model)
             append_result(output_file, df, f'{sheet_name_prefix} TEK')
 
-            model['TEK'] = 'all'
+            model['building_code'] = 'all'
             df = transform_model_to_horizontal(model)
             append_result(output_file, df, f'{sheet_name_prefix} category')
         else:
@@ -126,9 +127,10 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
 
     for file_to_open in files_to_open:
         if arguments.open or os.environ.get('EBM_ALWAYS_OPEN', 'FALSE').upper() == 'TRUE':
+            logger.info(f'Open {file_to_open}')
             os.startfile(file_to_open, 'open')
         else:
-            logger.info(f'wrote {file_to_open}')
+            logger.debug(f'Finished {file_to_open}')
 
     return ReturnCode.OK, model
 

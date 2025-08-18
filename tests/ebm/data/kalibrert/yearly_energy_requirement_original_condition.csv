@@ -1,4 +1,4 @@
-building_category,TEK,purpose,kwh_m2,behavior_factor,year
+building_category,building_code,purpose,kwh_m2,behavior_factor,year
 apartment_block,PRE_TEK49,cooling,0,1,2020
 apartment_block,PRE_TEK49,cooling,0,0.5,2022
 apartment_block,PRE_TEK49,electrical_equipment,17.52,1,

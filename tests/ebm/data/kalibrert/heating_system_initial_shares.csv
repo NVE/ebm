@@ -1,4 +1,4 @@
-building_category,TEK,heating_systems,year,TEK_shares
+building_category,building_code,heating_systems,year,heating_system_share
 house,PRE_TEK49,DH,2023,0.021331511356583316
 house,PRE_TEK49,DH - Bio,2023,0.007658006683126973
 house,PRE_TEK49,Electric boiler,2023,0.02567759309318968

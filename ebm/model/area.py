@@ -2,15 +2,18 @@ from loguru import logger
 import pandas as pd
 
 from ebm.model.building_condition import BuildingCondition
+from ebm.model.data_classes import YearRange
+from ebm.model.database_manager import DatabaseManager
 from ebm.model.scurve import SCurve
 from ebm.model.construction import ConstructionCalculator
 
+
 def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame,
-                                           tek_parameters: pd.DataFrame | None = None) -> pd.DataFrame:
+                                           building_code_parameters: pd.DataFrame | None = None) -> pd.DataFrame:
     """
     Transform area forecast data into yearly area changes due to construction and demolition.
 
-    This function processes forecasted area data and optional TEK parameters to compute
+    This function processes forecasted area data and optional building_code parameters to compute
     the net yearly area change. It distinguishes between construction (positive area change)
     and demolition (negative area change), and returns a combined DataFrame.
 
@@ -19,8 +22,8 @@ def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame,
     area_forecast : pandas.DataFrame
         A DataFrame containing forecasted building area data, including construction and demolition.
 
-    tek_parameters : pandas.DataFrame, optional
-        A DataFrame containing TEK-related parameters used to refine construction data.
+    building_code_parameters : pandas.DataFrame, optional
+        A DataFrame containing building_code-related parameters used to refine construction data.
         If None, construction is assumed to be of TEK17. (transform_construction_by_year)
 
     Returns
@@ -28,7 +31,7 @@ def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame,
     pandas.DataFrame
         A DataFrame with yearly area changes. Columns include:
         - 'building_category': Category of the building.
-        - 'TEK': TEK classification.
+        - 'building_code': building_code classification.
         - 'year': Year of the area change.
         - 'demolition_construction': Indicates whether the change is due to 'construction' or 'demolition'.
         - 'm2': Area change in square meters (positive for construction, negative for demolition).
@@ -40,7 +43,7 @@ def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame,
     - Assumes helper functions `transform_construction_by_year` and
       `transform_cumulative_demolition_to_yearly_demolition` are defined elsewhere.
     """
-    construction_by_year = transform_construction_by_year(area_forecast, tek_parameters)
+    construction_by_year = transform_construction_by_year(area_forecast, building_code_parameters)
     construction_by_year.loc[:, 'demolition_construction'] = 'construction'
 
     demolition_by_year = transform_cumulative_demolition_to_yearly_demolition(area_forecast)
@@ -48,8 +51,8 @@ def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame,
     demolition_by_year.loc[:, 'm2'] = -demolition_by_year.loc[:, 'm2']
 
     area_change = pd.concat([
-        demolition_by_year[['building_category', 'TEK', 'year', 'demolition_construction', 'm2']],
-        construction_by_year.reset_index()[['building_category', 'TEK', 'year', 'demolition_construction', 'm2']]
+        demolition_by_year[['building_category', 'building_code', 'year', 'demolition_construction', 'm2']],
+        construction_by_year.reset_index()[['building_category', 'building_code', 'year', 'demolition_construction', 'm2']]
     ])
     return area_change.fillna(0.0)
 
@@ -60,18 +63,18 @@ def transform_cumulative_demolition_to_yearly_demolition(area_forecast: pd.DataF
 
     This function filters the input DataFrame for rows where the building condition is demolition,
     and calculates the yearly change in square meters (m2) by computing the difference between
-    consecutive years within each group defined by building category and TEK standard.
+    consecutive years within each group defined by building category and building_code standard.
 
     Parameters
     ----------
     area_forecast : pandas.DataFrame
         A DataFrame containing forecasted building area data. Must include the columns:
-        'building_category', 'TEK', 'year', 'building_condition', and 'm2'.
+        'building_category', 'building_code', 'year', 'building_condition', and 'm2'.
 
     Returns
     -------
     pandas.DataFrame
-        A DataFrame with columns ['building_category', 'TEK', 'year', 'm2'], where 'm2' represents
+        A DataFrame with columns ['building_category', 'building_code', 'year', 'm2'], where 'm2' represents
         the yearly demolition area (difference from the previous year). Missing values are filled with 0.
 
     Notes
@@ -81,43 +84,43 @@ def transform_cumulative_demolition_to_yearly_demolition(area_forecast: pd.DataF
     """
     if area_forecast is None:
         raise ValueError('Expected area_forecast of type pandas DataFrame. Got «None» instead.')
-    expected_columns = ('building_category', 'TEK', 'building_condition', 'year', 'm2')
+    expected_columns = ('building_category', 'building_code', 'building_condition', 'year', 'm2')
     missing_columns = [c for c in expected_columns if c not in area_forecast.columns]
     if missing_columns:
         raise ValueError(f'Column {", ".join(missing_columns)} not found in area_forecast')
 
     df = area_forecast[area_forecast['building_condition'] == BuildingCondition.DEMOLITION].copy()
-    df = df.set_index(['building_category', 'TEK', 'building_condition', 'year']).sort_index()
+    df = df.set_index(['building_category', 'building_code', 'building_condition', 'year']).sort_index()
     df['m2'] = df['m2'].fillna(0)
-    df['diff'] = df.groupby(by=['building_category', 'TEK', 'building_condition']).diff()['m2']
+    df['diff'] = df.groupby(by=['building_category', 'building_code', 'building_condition']).diff()['m2']
 
-    return df.reset_index()[['building_category', 'TEK', 'year', 'diff']].rename(columns={'diff': 'm2'})
+    return df.reset_index()[['building_category', 'building_code', 'year', 'diff']].rename(columns={'diff': 'm2'})
 
 
 def transform_construction_by_year(area_forecast: pd.DataFrame,
-                                   tek_parameters: pd.DataFrame | None = None) -> pd.DataFrame:
+                                   building_code_parameters: pd.DataFrame | None = None) -> pd.DataFrame:
     """
-    Calculate yearly constructed building area based on TEK parameters.
+    Calculate yearly constructed building area based on building_code parameters.
 
     This function filters the input forecast data to include only construction (non-demolition)
-    within the TEK-defined construction period. It then calculates the yearly change in constructed
-    area (m2) for each combination of building category and TEK standard.
+    within the building_code-defined construction period. It then calculates the yearly change in constructed
+    area (m2) for each combination of building category and building_code standard.
 
     Parameters
     ----------
     area_forecast : pandas.DataFrame
         A DataFrame containing forecasted building area data. Must include the columns:
-        'building_category', 'TEK', 'year', 'building_condition', and 'm2'.
+        'building_category', 'building_code', 'year', 'building_condition', and 'm2'.
 
-    tek_parameters : pandas.DataFrame or None, optional
-        A DataFrame containing TEK construction period definitions with columns:
-        ['TEK', 'building_year', 'period_start_year', 'period_end_year'].
+    building_code_parameters : pandas.DataFrame or None, optional
+        A DataFrame containing building_code construction period definitions with columns:
+        ['building_code', 'building_year', 'period_start_year', 'period_end_year'].
         If None, a default TEK17 period is used (2020–2050 with building year 2025).
 
     Returns
     -------
     pandas.DataFrame
-        A DataFrame with columns ['building_category', 'TEK', 'year', 'm2'], where 'm2' represents
+        A DataFrame with columns ['building_category', 'building_code', 'year', 'm2'], where 'm2' represents
         the yearly constructed area in square meters.
 
     Notes
@@ -125,39 +128,39 @@ def transform_construction_by_year(area_forecast: pd.DataFrame,
     - The function assumes that the input data is cumulative and calculates the difference
       between consecutive years to derive yearly values.
     - Construction is defined as all building conditions except 'demolition'.
-    - If no TEK parameters are provided, a default TEK17 range is used.
+    - If no building_codeparameters are provided, a default TEK17 range is used.
     """
     if area_forecast is None:
         raise ValueError('Expected area_forecast of type pandas DataFrame. Got «None» instead.')
 
-    expected_columns = ('building_category', 'TEK', 'building_condition', 'year', 'm2')
+    expected_columns = ('building_category', 'building_code', 'building_condition', 'year', 'm2')
     missing_columns = [c for c in expected_columns if c not in area_forecast.columns]
     if missing_columns:
         raise ValueError(f'Column {", ".join(missing_columns)} not found in area_forecast')
 
-    tek_params = tek_parameters
-    if tek_params is None:
-        tek_params = pd.DataFrame(
+    building_code_params = building_code_parameters
+    if building_code_params is None:
+        building_code_params = pd.DataFrame(
             data=[['TEK17', 2025, 2020, 2050]],
-            columns=['TEK', 'building_year', 'period_start_year', 'period_end_year'])
+            columns=['building_code', 'building_year', 'period_start_year', 'period_end_year'])
         logger.warning('Using default TEK17 for construction')
 
-    expected_columns = ('TEK', 'building_year', 'period_start_year', 'period_end_year')
-    missing_columns = [c for c in expected_columns if c not in tek_params.columns]
+    expected_columns = ('building_code', 'building_year', 'period_start_year', 'period_end_year')
+    missing_columns = [c for c in expected_columns if c not in building_code_params.columns]
     if missing_columns:
-        raise ValueError(f'Column {", ".join(missing_columns)} not found in tek_parameters')
+        raise ValueError(f'Column {", ".join(missing_columns)} not found in building_code_parameters')
 
-    area_forecast = area_forecast.merge(tek_params, on='TEK', how='left')
+    area_forecast = area_forecast.merge(building_code_params, on='building_code', how='left')
     constructed = area_forecast.query(
         'year>=period_start_year and year <=period_end_year and building_condition!="demolition"').copy()
-    constructed = constructed[['building_category', 'TEK', 'year', 'building_condition', 'm2']]
-    constructed = constructed.set_index(['building_category', 'TEK', 'year', 'building_condition'])[['m2']].unstack()
+    constructed = constructed[['building_category', 'building_code', 'year', 'building_condition', 'm2']]
+    constructed = constructed.set_index(['building_category', 'building_code', 'year', 'building_condition'])[['m2']].unstack()
 
     constructed['total'] = constructed.sum(axis=1)
 
-    constructed=constructed.groupby(by=['building_category', 'TEK'], as_index=False).diff()
-    constructed = constructed.reset_index()[['building_category', 'TEK', 'year', 'total']]
-    constructed.columns = ['building_category', 'TEK', 'year', 'm2']
+    constructed=constructed.groupby(by=['building_category', 'building_code'], as_index=False).diff()
+    constructed = constructed.reset_index()[['building_category', 'building_code', 'year', 'total']]
+    constructed.columns = ['building_category', 'building_code', 'year', 'm2']
     return constructed
 
 
@@ -175,14 +178,14 @@ def transform_demolition_construction(energy_use: pd.DataFrame, area_change: pd.
         A DataFrame containing energy use data, including columns:
         - 'building_category'
         - 'building_condition'
-        - 'TEK'
+        - 'building_code'
         - 'year'
         - 'kwh_m2'
 
     area_change : pandas.DataFrame
         A DataFrame containing area changes due to construction and demolition, including columns:
         - 'building_category'
-        - 'TEK'
+        - 'building_code'
         - 'year'
         - 'demolition_construction'
         - 'm2'
@@ -194,54 +197,54 @@ def transform_demolition_construction(energy_use: pd.DataFrame, area_change: pd.
         - 'year': Year of the activity.
         - 'demolition_construction': Indicates whether the activity is 'construction' or 'demolition'.
         - 'building_category': Category of the building.
-        - 'TEK': TEK classification.
+        - 'building_code': building_codeclassification.
         - 'm2': Area change in square meters.
         - 'gwh': Energy use in gigawatt-hours (GWh), calculated as (kWh/m² * m²) / 1,000,000.
 
     Notes
     -----
     - Only energy use data with 'building_condition' equal to 'renovation_and_small_measure' is considered.
-    - The merge is performed on 'building_category', 'TEK', and 'year'.
+    - The merge is performed on 'building_category', 'building_code', and 'year'.
     """
 
     df = energy_use[energy_use['building_condition']=='renovation_and_small_measure']
 
-    energy_use_m2 = df.groupby(by=['building_category', 'building_condition', 'TEK', 'year'], as_index=False).sum()[['building_category',  'TEK', 'year', 'kwh_m2']]
+    energy_use_m2 = df.groupby(by=['building_category', 'building_condition', 'building_code', 'year'], as_index=False).sum()[['building_category',  'building_code', 'year', 'kwh_m2']]
 
-    dem_con = pd.merge(left=area_change, right=energy_use_m2, on=['building_category', 'TEK', 'year'])
+    dem_con = pd.merge(left=area_change, right=energy_use_m2, on=['building_category', 'building_code', 'year'])
     dem_con['gwh'] = (dem_con['kwh_m2'] * dem_con['m2']) / 1_000_000
-    return dem_con[['year', 'demolition_construction', 'building_category', 'TEK', 'm2', 'gwh']]
+    return dem_con[['year', 'demolition_construction', 'building_category', 'building_code', 'm2', 'gwh']]
 
 
-def merge_tek_and_condition(area_forecast: pd.DataFrame) -> pd.DataFrame:
+def merge_building_code_and_condition(area_forecast: pd.DataFrame) -> pd.DataFrame:
     """
-    Add general TEK and building condition categories to area forecast data.
+    Add general building_codeand building condition categories to area forecast data.
 
     This function creates a copy of the input DataFrame and assigns the value 'all' to both
-    the 'TEK' and 'building_condition' columns. This is useful for aggregating or analyzing
-    data across all TEK types and building conditions.
+    the 'building_code' and 'building_condition' columns. This is useful for aggregating or analyzing
+    data across all building_codetypes and building conditions.
 
     Parameters
     ----------
     area_forecast : pandas.DataFrame
         A DataFrame containing forecasted building area data, including at least the columns
-        'TEK' and 'building_condition'.
+        'building_code' and 'building_condition'.
 
     Returns
     -------
     pandas.DataFrame
         A modified copy of the input DataFrame where:
-        - 'TEK' is set to 'all'
+        - 'building_code' is set to 'all'
         - 'building_condition' is set to 'all'
 
     Notes
     -----
     - This function does not modify the original DataFrame in place.
-    - Useful for creating aggregate views across all TEK and condition categories.
+    - Useful for creating aggregate views across all building_codeand condition categories.
     """
 
     all_existing_area = area_forecast.copy()
-    all_existing_area.loc[:, 'TEK'] = 'all'
+    all_existing_area.loc[:, 'building_code'] = 'all'
     all_existing_area.loc[:, 'building_condition'] = 'all'
 
     return all_existing_area
@@ -260,7 +263,7 @@ def filter_existing_area(area_forecast: pd.DataFrame) -> pd.DataFrame:
         A DataFrame containing forecasted building area data, including at least the columns:
         - 'year'
         - 'building_category'
-        - 'TEK'
+        - 'building_code'
         - 'building_condition'
         - 'm2'
 
@@ -271,7 +274,7 @@ def filter_existing_area(area_forecast: pd.DataFrame) -> pd.DataFrame:
         with the following columns:
         - 'year'
         - 'building_category'
-        - 'TEK'
+        - 'building_code'
         - 'building_condition'
         - 'm2'
 
@@ -282,7 +285,7 @@ def filter_existing_area(area_forecast: pd.DataFrame) -> pd.DataFrame:
     """
 
     existing_area = area_forecast.query('building_condition!="demolition"').copy()
-    existing_area = existing_area[['year','building_category','TEK','building_condition']+['m2']]
+    existing_area = existing_area[['year','building_category','building_code','building_condition']+['m2']]
     return existing_area
 
 
@@ -344,31 +347,40 @@ def merge_total_area_by_year(construction_by_building_category_yearly, existing_
     return total_area_by_year
 
 
-def calculate_existing_area(area_parameters, tek_parameters, years):
+def calculate_existing_area(area_parameters, building_code_parameters, years):
     # ## Make area
     # Define the range of years
     index = pd.MultiIndex.from_product(
-        [area_parameters.index.get_level_values(level='building_category').unique(), tek_parameters.TEK.unique(),
+        [area_parameters.index.get_level_values(level='building_category').unique(), building_code_parameters.building_code.unique(),
          years],
-        names=['building_category', 'TEK', 'year'])
+        names=['building_category', 'building_code', 'year'])
     # Reindex the DataFrame to include all combinations, filling missing values with NaN
-    area = index.to_frame().set_index(['building_category', 'TEK', 'year']).reindex(index).reset_index()
+    area = index.to_frame().set_index(['building_category', 'building_code', 'year']).reindex(index).reset_index()
     # Optional: Fill missing values with a default, e.g., 0
-    existing_area = pd.merge(left=area_parameters, right=area, on=['building_category', 'TEK'], suffixes=['_r', ''])
-    existing_area = existing_area.set_index(['building_category', 'TEK', 'year'])
+    existing_area = pd.merge(left=area_parameters, right=area, on=['building_category', 'building_code'], suffixes=['_r', ''])
+    existing_area = existing_area.set_index(['building_category', 'building_code', 'year'])
     return existing_area
 
 
-def calculate_construction_by_building_category(building_category_demolition_by_year, database_manager, years):
+def calculate_construction_by_building_category(building_category_demolition_by_year: pd.DataFrame,
+                                                database_manager: DatabaseManager,
+                                                years:YearRange):
     construction = ConstructionCalculator.calculate_all_construction(
         demolition_by_year=building_category_demolition_by_year,
         database_manager=database_manager,
         period=years)
-    logger.warning('Cheating by assuming TEK17')
-    construction['TEK'] = 'TEK17'
-    construction_by_building_category_yearly = construction.set_index(
-        ['building_category', 'TEK', 'year']).accumulated_constructed_floor_area
+
+    building_code = database_manager.get_building_codes()
+    building_code_years = years.cross_join(building_code)
+    building_code_years = building_code_years.query('year >= period_start_year and year <= period_end_year')
+
+    construction_by_building_category_yearly = pd.merge(
+        left=construction, right=building_code_years[['year', 'building_code']], left_on=['year'], right_on=['year'])
+
+    construction_by_building_category_yearly = construction_by_building_category_yearly.set_index(
+        ['building_category', 'building_code', 'year']).accumulated_constructed_floor_area
     construction_by_building_category_yearly.name = 'area'
+
     return construction_by_building_category_yearly
 
 

@@ -20,8 +20,8 @@ from ebm.model.building_category import BuildingCategory
 #%% md
 # ## Load energy_need_behaviour_factor.csv
 #%%
-tek_list = pd.read_csv('input/TEK_ID.csv').TEK.tolist()
-tek_list
+building_code_list = pd.read_csv('input/building_codes.csv').building_code.tolist()
+building_code_list
 #%%
 filenames = {
     'default':pathlib.Path('kalibrert/energy_need_behaviour_factor.csv'),
@@ -53,7 +53,7 @@ df_bh
 #%% md
 # ### expand TEK
 #%%
-df_bh = replace_column_alias(df_bh, 'TEK', values=tek_list, alias='default')
+df_bh = replace_column_alias(df_bh, 'building_code', values=building_code_list, alias='default')
 df_bh
 #%% md
 # ### expand purpose
@@ -66,7 +66,7 @@ df_bh
 # ## Add priority column and sort
 #%%
 df_bh['bc_priority'] = df_bh.building_category.apply(lambda x: 0 if '+' not in x else len(x.split('+')))
-df_bh['t_priority'] = df_bh.TEK.apply(lambda x: 0 if '+' not in x else len(x.split('+')))
+df_bh['t_priority'] = df_bh.building_code.apply(lambda x: 0 if '+' not in x else len(x.split('+')))
 df_bh['p_priority'] = df_bh.purpose.apply(lambda x: 0 if '+' not in x else len(x.split('+')))
 if not 'priority' in df_bh.columns:
     df_bh.insert(8, 'priority', 0)
@@ -77,10 +77,10 @@ df_bh
 #%%
 df_bh=df_bh.assign(**{'building_category': df_bh['building_category'].str.split('+'),}).explode('building_category')
 
-df_bh=df_bh.assign(**{'TEK': df_bh['TEK'].str.split('+')}).explode('TEK')
+df_bh=df_bh.assign(**{'building_code': df_bh['building_code'].str.split('+')}).explode('building_code')
 df_bh=df_bh.assign(**{'purpose': df_bh['purpose'].str.split('+'),}).explode('purpose')
-df_bh=df_bh.sort_values(by=['building_category', 'TEK', 'purpose', 'priority'])
-df_bh['dupe'] = df_bh.duplicated(['building_category', 'TEK', 'purpose'], keep=False)
+df_bh=df_bh.sort_values(by=['building_category', 'building_code', 'purpose', 'priority'])
+df_bh['dupe'] = df_bh.duplicated(['building_category', 'building_code', 'purpose'], keep=False)
 df_bh
 
 #%% md
@@ -91,24 +91,24 @@ df_bh[df_bh.dupe]
 ### count building_category, TEK, purpose
 #%%
 unique_building_categories = len(df_bh.building_category.unique())
-unique_tek = len(df_bh.TEK.unique())
+unique_building_code = len(df_bh.building_code.unique())
 unique_purpose = len(df_bh.purpose.unique())
 # unique_condition = len(df_bh.building_condition.unique())
 # unique_year = len(df_bh.year.unique())
 
-unique_all = unique_building_categories * unique_tek * unique_purpose # * unique_year #* unique_condition
+unique_all = unique_building_categories * unique_building_code * unique_purpose # * unique_year #* unique_condition
 print('expected:', unique_all)
 print('actual:', len(df_bh))
 #%% md
 # ## Show different building_category, TEK, purpose
 #%%
 
-# df_bh[df_bh.duplicated(['building_category', 'TEK', 'purpose'], keep=False)]
-#df_bh.drop_duplicates(['building_category', 'TEK', 'purpose'], keep='first')
-rich.print(df_bh.query('building_category=="house" and TEK=="PRE_TEK49" and purpose=="lighting"'))
-rich.print(df_bh.query('building_category=="house" and TEK=="PRE_TEK49" and purpose=="electrical_equipment"'))
-rich.print(df_bh.query('building_category=="house" and TEK=="TEK17" and purpose=="lighting"'))
-rich.print(df_bh.query('building_category=="house" and TEK=="TEK17" and purpose=="electrical_equipment"'))
+# df_bh[df_bh.duplicated(['building_category', 'building_code', 'purpose'], keep=False)]
+#df_bh.drop_duplicates(['building_category', 'building_code', 'purpose'], keep='first')
+rich.print(df_bh.query('building_category=="house" and building_code=="PRE_TEK49" and purpose=="lighting"'))
+rich.print(df_bh.query('building_category=="house" and building_code=="PRE_TEK49" and purpose=="electrical_equipment"'))
+rich.print(df_bh.query('building_category=="house" and building_code=="TEK17" and purpose=="lighting"'))
+rich.print(df_bh.query('building_category=="house" and building_code=="TEK17" and purpose=="electrical_equipment"'))
 rich.print(df_bh.query('building_category=="retail" and purpose=="electrical_equipment"'))
 #%%
 # df_bh['bc_priority'] = (2* df_bh.building_category.isin(['residential', 'non_residential'])).astype(int) + (4*(df_bh.building_category == 'default').astype(int))
@@ -126,16 +126,16 @@ rich.print(df_bh.query('building_category=="retail" and purpose=="electrical_equ
 df = df_bh
 
 
-# df['dupe'] = df.duplicated(['building_category', 'TEK', 'purpose', 'year', 'building_condition'], keep=False)
-df = df.drop_duplicates(['building_category', 'TEK', 'purpose'], keep='first')
+# df['dupe'] = df.duplicated(['building_category', 'building_code', 'purpose', 'year', 'building_condition'], keep=False)
+df = df.drop_duplicates(['building_category', 'building_code', 'purpose'], keep='first')
 
-ddf = df.set_index(['building_category', 'TEK', 'purpose',])[['behaviour_factor']]
+ddf = df.set_index(['building_category', 'building_code', 'purpose',])[['behaviour_factor']]
 ddf
 #%%
 eroc = pd.read_csv('kalibrert/energy_requirement_original_condition.csv')
-eroc = explode_unique_columns(eroc, ['building_category', 'TEK', 'purpose'])
+eroc = explode_unique_columns(eroc, ['building_category', 'building_code', 'purpose'])
 
-eroc = eroc.set_index(['building_category', 'TEK', 'purpose'])[['behavior_factor']]
+eroc = eroc.set_index(['building_category', 'building_code', 'purpose'])[['behavior_factor']]
 eroc
 #%% md
 # ## Compare energy_needs_behaviour_factor to energy_requirement_original_condition

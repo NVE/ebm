@@ -38,39 +38,39 @@ def explode_building_category_column(df: pd.DataFrame, unique_columns: List[str]
     return df
 
 
-def explode_tek_column(df: pd.DataFrame, unique_columns: List[str],
-                       default_tek: None | pd.DataFrame = None) -> pd.DataFrame:
+def explode_building_code_column(df: pd.DataFrame, unique_columns: List[str],
+                       default_building_code: None | pd.DataFrame = None) -> pd.DataFrame:
     """
-        Explodes the 'TEK' column in the DataFrame into multiple columns based on the provided TEK list.
+        Explodes the 'building_code' column in the DataFrame into multiple columns based on the provided building_codelist.
 
         Parameters
         ----------
         df : pd.DataFrame
-            The input DataFrame containing the 'TEK' column.
+            The input DataFrame containing the 'building_code' column.
         unique_columns : List[str]
             List of columns to use for de-duplication.
-        default_tek : Optional[pd.DataFrame], optional
-            DataFrame containing default TEK values. If not provided, TEK values are read from 'input/TEK_ID.csv'.
+        default_building_code : Optional[pd.DataFrame], optional
+            DataFrame containing default building_codevalues. If not provided, building_codevalues are read from 'input/building_codes.csv'.
 
         Returns
         -------
         pd.DataFrame
-            The DataFrame with exploded 'TEK' columns.
+            The DataFrame with exploded 'building_code' columns.
         """
-    # Hvor skal tek_list hentes fra?
-    tek_list = pd.read_csv(pathlib.Path(__file__).parent.parent / 'data' / 'TEK_ID.csv')['TEK'].unique() if default_tek is None else default_tek
+    # Hvor skal building_code_list hentes fra?
+    building_code_list = pd.read_csv(pathlib.Path(__file__).parent.parent / 'data' / 'building_code_parameters.csv')['building_code'].unique() if default_building_code is None else default_building_code
     df = explode_column_alias(df=df,
-                              column='TEK',
-                              values=tek_list,
+                              column='building_code',
+                              values=building_code_list,
                               de_dup_by=unique_columns)
     return df
 
 
 def explode_unique_columns(df: pd.DataFrame| DataFrameBase,
                            unique_columns: List[str],
-                           default_tek: List[str]|None = None) -> pd.DataFrame:
+                           default_building_code: List[str]|None = None) -> pd.DataFrame:
     """
-    Explodes 'TEK' and 'building_category' columns in df.
+    Explodes 'building_code' and 'building_category' columns in df.
 
 
     Parameters
@@ -79,7 +79,7 @@ def explode_unique_columns(df: pd.DataFrame| DataFrameBase,
         The input DataFrame containing the columns to be exploded.
     unique_columns : List[str]
         List of columns to use for de-duplication.
-    default_tek : List[str], optional
+    default_building_code : List[str], optional
         List of TEKs to replace default
 
     Returns
@@ -88,7 +88,7 @@ def explode_unique_columns(df: pd.DataFrame| DataFrameBase,
         The DataFrame with exploded columns.
     """
 
-    df = explode_tek_column(df, unique_columns, default_tek=default_tek)
+    df = explode_building_code_column(df, unique_columns, default_building_code=default_building_code)
     df = explode_building_category_column(df, unique_columns)
     return df
 

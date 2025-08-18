@@ -2,8 +2,7 @@ import pandas as pd
 from loguru import logger
 
 from ebm.model import area
-from ebm.cmd.result_handler import transform_holiday_homes_to_horizontal
-from ebm.cmd.run_calculation import calculate_energy_use
+from ebm.holiday_home_energy import calculate_energy_use, transform_holiday_homes_to_horizontal
 from ebm.heating_systems_projection import HeatingSystemsProjection
 
 from ebm.model.data_classes import YearRange
@@ -12,7 +11,7 @@ from ebm.model.energy_requirement import EnergyRequirement
 from ebm.s_curve import calculate_s_curves
 
 
-def extract_area_forecast(years: YearRange, s_curves_by_condition: pd.DataFrame, tek_parameters: pd.DataFrame, area_parameters: pd.DataFrame, database_manager:DatabaseManager):
+def extract_area_forecast(years: YearRange, s_curves_by_condition: pd.DataFrame, building_code_parameters: pd.DataFrame, area_parameters: pd.DataFrame, database_manager:DatabaseManager):
     logger.debug('Calculating area by condition')
 
     s_curve_demolition = s_curves_by_condition['s_curve_demolition']
@@ -20,7 +19,7 @@ def extract_area_forecast(years: YearRange, s_curves_by_condition: pd.DataFrame,
         'original_condition',  'small_measure', 'renovation', 'renovation_and_small_measure', 'demolition'
     ]]
 
-    area_parameters = area_parameters.set_index(['building_category', 'TEK'])
+    area_parameters = area_parameters.set_index(['building_category', 'building_code'])
 
     demolition_floor_area_by_year = area.calculate_demolition_floor_area_by_year(area_parameters, s_curve_demolition)
 
@@ -28,7 +27,7 @@ def extract_area_forecast(years: YearRange, s_curves_by_condition: pd.DataFrame,
 
     construction_by_building_category_and_year = area.calculate_construction_by_building_category(building_category_demolition_by_year, database_manager, years)
 
-    existing_area = area.calculate_existing_area(area_parameters, tek_parameters, years)
+    existing_area = area.calculate_existing_area(area_parameters, building_code_parameters, years)
 
     total_area_floor_by_year = area.merge_total_area_by_year(construction_by_building_category_and_year, existing_area)
 
@@ -53,7 +52,7 @@ def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
                                                    database_manager=dm)
     energy_need = er_calculator.calculate_for_building_category(database_manager=dm)
 
-    energy_need = energy_need.set_index(['building_category', 'TEK', 'purpose', 'building_condition', 'year'])
+    energy_need = energy_need.set_index(['building_category', 'building_code', 'purpose', 'building_condition', 'year'])
 
     return energy_need
 
@@ -82,12 +81,12 @@ def main():
     dm = DatabaseManager(fh)
     years = YearRange(2020, 2050)
 
-    tek_parameters = fh.get_building_code()
+    building_code_parameters = fh.get_building_code()
     scurve_params = dm.get_scurve_params()
-    s_curves_by_condition = calculate_s_curves(scurve_params, tek_parameters, years)
+    s_curves_by_condition = calculate_s_curves(scurve_params, building_code_parameters, years)
 
     area_forecast = extract_area_forecast(years,
-                                          tek_parameters=tek_parameters,
+                                          building_code_parameters=building_code_parameters,
                                           area_parameters=dm.get_area_parameters(),
                                           s_curves_by_condition=s_curves_by_condition,
                                           database_manager=dm)

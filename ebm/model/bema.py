@@ -23,11 +23,11 @@ BUILDING_GROUP_ORDER = MappingProxyType(_building_group_order)
 _building_mix_order = _building_group_order| _building_category_order
 
 
-_tek_order = {'PRE_TEK49': 1814, 'TEK49': 1949, 'TEK69': 1969, 'TEK87': 1987, 'TEK97': 1997,
+_building_code_order = {'PRE_TEK49': 1814, 'TEK49': 1949, 'TEK69': 1969, 'TEK87': 1987, 'TEK97': 1997,
               'TEK07': 2007, 'TEK10': 2010, 'TEK17': 2017,
               'TEK21': 2021, 'default': 9998, 'all': 9999}
 
-TEK_ORDER = MappingProxyType(_tek_order)
+TEK_ORDER = MappingProxyType(_building_code_order)
 """A dict of BeMa sorting order for TEK"""
 
 _purpose_order = {'heating_rv': 1, 'heating_dhw': 2, 'fans_and_pumps': 3, 'lighting': 4,
@@ -110,7 +110,7 @@ def map_sort_order(column):
     - 'building_group': uses `BUILDING_GROUP_ORDER`
     - 'building_condition': uses `BUILDING_CONDITION_ORDER`
     - 'purpose': uses `PURPOSE_ORDER`
-    - 'TEK': uses `TEK_ORDER`
+    - 'building_code': uses `TEK_ORDER`
 
     Examples
     --------
@@ -118,9 +118,9 @@ def map_sort_order(column):
     >>> df = pd.DataFrame(
     >>>    data=[('culture', 'PRE_TEK49', 'heating_rv', 2022, 'LAST'),
     >>>          ('house', 'TEK07', 'heating_dhw', 2021, 'FIRST')],
-    >>>    columns=['building_category', 'TEK', 'purpose', 'year', 'value'])
-    >>> df.sort_values(by=['building_category', 'TEK', 'purpose', 'year'], key=map_sort_order)
-        building_category        TEK      purpose  year  value
+    >>>    columns=['building_category', 'building_code', 'purpose', 'year', 'value'])
+    >>> df.sort_values(by=['building_category', 'building_code', 'purpose', 'year'], key=map_sort_order)
+        building_category        building_code     purpose  year  value
      1  house      TEK07  heating_dhw  2020  FIRST
      0  culture  PRE_TEK49   heating_rv  2021   LAST
     …
@@ -144,6 +144,6 @@ def map_sort_order(column):
         return column.map(BUILDING_CONDITION_ORDER)
     if column.name=='purpose':
         return column.map(PURPOSE_ORDER)
-    if column.name=='TEK':
+    if column.name=='building_code':
         return column.map(TEK_ORDER)
     return column

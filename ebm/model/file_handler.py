@@ -18,8 +18,7 @@ class FileHandler:
 
     # Filenames
     BUILDING_CONDITIONS = 'building_conditions.csv'
-    TEK_ID = 'TEK_ID.csv'
-    BUILDING_CODE = 'building_code.csv'
+    BUILDING_CODE_PARAMS = 'building_code_parameters.csv'
     S_CURVE = 's_curve.csv'
     POPULATION_FORECAST = 'population_forecast.csv'
     NEW_BUILDINGS_RESIDENTIAL = 'new_buildings_residential.csv'
@@ -55,7 +54,7 @@ class FileHandler:
             directory = os.environ.get('EBM_INPUT_DIRECTORY', 'input')
 
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
-        self.files_to_check = [self.TEK_ID, self.BUILDING_CODE, self.S_CURVE, self.POPULATION_FORECAST,
+        self.files_to_check = [self.BUILDING_CODE_PARAMS, self.S_CURVE, self.POPULATION_FORECAST,
                                self.NEW_BUILDINGS_RESIDENTIAL, self.AREA_NEW_RESIDENTIAL_BUILDINGS,
                                self.AREA, self.BEHAVIOUR_FACTOR, self.ENERGY_NEED_ORIGINAL_CONDITION,
                                self.IMPROVEMENT_BUILDING_UPGRADE, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
@@ -122,25 +121,15 @@ class FileHandler:
             logger.error(f'Unable to open {file_path}. Unable to read file.')
             raise
 
-    def get_tek_id(self):
-        """
-        Get TEK ID DataFrame.
-
-        Returns:
-        - tek_id (pd.DataFrame): DataFrame containing TEK IDs.
-        """        
-        tek_id = self.get_file(self.TEK_ID)
-        return tek_id
-
     def get_building_code(self) -> pd.DataFrame:
         """
         Get TEK parameters DataFrame.
 
         Returns:
-        - tek_params (pd.DataFrame): DataFrame containing TEK parameters.
+        - building_code_params (pd.DataFrame): DataFrame containing TEK parameters.
         """
-        tek_params = self.get_file(self.BUILDING_CODE)
-        return tek_params
+        building_code_params = self.get_file(self.BUILDING_CODE_PARAMS)
+        return building_code_params
     
     def get_s_curve(self) -> pd.DataFrame:
         """
@@ -248,18 +237,6 @@ class FileHandler:
             per building category, tek and purpose.
         """
         return self.get_file(self.ENERGY_NEED_YEARLY_IMPROVEMENTS)
-    
-    def get_energy_req_policy_improvements(self) -> pd.DataFrame:
-        """
-        Get dataframe with total energy requirement improvement in a period related to a policy.
-
-        Returns
-        -------
-        pd.DataFrame
-            Dataframe containing total energy requirement improvement (%) in a policy period,
-            per building category, tek and purpose.
-        """
-        return self.get_file(self.ENERGY_REQ_POLICY_IMPROVEMENTS)
 
     def get_holiday_home_energy_consumption(self) -> pd.DataFrame:
         return self.get_file(self.HOLIDAY_HOME_ENERGY_CONSUMPTION)
@@ -381,11 +358,9 @@ class FileHandler:
             multiple errors may be listed in the exception.
         """
         for file_to_validate in self.files_to_check:
-            if file_to_validate == 'TEK_ID.csv':
-                # No validator for tek_id exists. Fix this later.
-                continue
             df = self.get_file(file_to_validate)
             validator = getattr(validators, file_to_validate[:-4].lower())
+
             try:
                 validator.validate(df, lazy=True)
             except (SchemaErrors, SchemaError):

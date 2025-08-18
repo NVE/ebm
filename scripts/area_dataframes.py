@@ -6,8 +6,7 @@ import pathlib
 
 from loguru import logger
 
-from ebm.cmd.helpers import load_environment_from_dotenv
-from ebm.cmd.run_calculation import configure_loglevel
+from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel
 from ebm.extractors import extract_area_forecast
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager, FileHandler
@@ -48,10 +47,10 @@ def main():
     area_parameters = dm.get_area_parameters()
     area_parameters['year'] = years.start
 
-    tek_parameters = dm.file_handler.get_building_code()
+    building_code_parameters = dm.file_handler.get_building_code()
 
     logger.info('Call extract_area_forecast')
-    area_by_condition = extract_area_forecast(years, scurve_parameters, tek_parameters, area_parameters, dm)
+    area_by_condition = extract_area_forecast(years, scurve_parameters, building_code_parameters, area_parameters, dm)
 
     logger.info('Write output')
     dataframe_to_csv(area_by_condition, pathlib.Path('output/area_dataframes.csv'))

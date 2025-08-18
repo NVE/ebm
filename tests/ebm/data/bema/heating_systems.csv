@@ -1,4 +1,4 @@
-building_category,TEK,Oppvarmingstyper,tek_share,Ekstralast andel,Grunnlast andel,Spisslast andel,Grunnlast virkningsgrad,Spisslast virkningsgrad,Ekstralast virkningsgrad,Tappevann virkningsgrad,Spesifikt elforbruk,Kjoling virkningsgrad
+building_category,building_code,Oppvarmingstyper,tek_share,Ekstralast andel,Grunnlast andel,Spisslast andel,Grunnlast virkningsgrad,Spisslast virkningsgrad,Ekstralast virkningsgrad,Tappevann virkningsgrad,Spesifikt elforbruk,Kjoling virkningsgrad
 retail,PRE_TEK49,Electricity,0.0759389851497087,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4
 sports,PRE_TEK49,Electricity,0.0883851554663991,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4
 storage_repairs,PRE_TEK49,Electricity,0.0702168076906398,0.0,1.0,0.0,1.0,1.0,1,0.98,1,4

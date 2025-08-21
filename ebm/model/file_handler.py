@@ -295,7 +295,19 @@ class FileHandler:
         Returns
         -------
         missing_files : List[str]
+
+        Raises
+        ------
+        FileNotFoundError
+            If FileHandler::input_directory not found
+        NotADirectoryError
+            If FileHandler::input_directory is not a directory
         """
+        if not self.input_directory.exists():
+            raise FileNotFoundError(f'No such directory {self.input_directory}')
+        if not self.input_directory.is_dir():
+            raise NotADirectoryError(f'{self.input_directory} is not a directory')
+
         missing_files = [file for file in self.files_to_check if not self._check_is_file(file)]
         if missing_files:
             plural = 's' if len(missing_files) != 1 else ''

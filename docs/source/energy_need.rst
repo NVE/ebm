@@ -3,13 +3,14 @@ Energy need
 
 Energy need per square metre is defined in the building code. Each building category has a specific energy need according to its building code and energy purpose.
 
-The formula for **energy need per square metre per year** in the EBM (Energibruksmodell) is designed to estimate how much energy a building requires annually, adjusted for various factors. Here's a breakdown of each component:
 
 
 
 Methods
 =======
 
+The formula for **energy need per square metre per year** in the EBM (Energibruksmodell) is designed to estimate how much
+energy a building requires annually, adjusted for various factors.
 
 .. math::
 
@@ -22,8 +23,8 @@ Methods
    \end{align}
 
 
-Explanation of Each Term
-++++++++++++++++++++++++
+Explanation of Each Factor
+++++++++++++++++++++++++++
 
  * **Energy need original condition**
    - Baseline energy use for the building type and purpose as defined by the building code.
@@ -39,6 +40,8 @@ Explanation of Each Term
 
  * **Behaviour factor**
    - Captures changes in user behavior that affect energy consumption, like floor area utilization.
+
+By default the model use an 60% improvement by the year 2030 for lighting. Electrical equipment has a yearly reduction of 1%. Lighting is expected to decrease by 0.5% yearly after 2030.
 
 
 

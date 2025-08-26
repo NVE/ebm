@@ -31,9 +31,9 @@ Explanation of Each Factor
  * **area m²**
    - :ref:`area` for building type and condition
  * **heating systems share**
-   - heating systems share heating systems share heating systems share
+   - :ref: Distribution of `heating systems <Aggregating the heating systems>` across the building stock
  * **heating systems efficiency**
-   - heating systems efficiency heating systems efficiency heating systems efficiency
+   - Thermal efficiency of heating systems
 
 
 Assumptions

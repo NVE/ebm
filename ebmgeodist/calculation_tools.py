@@ -1,6 +1,13 @@
 import polars as pl
 from typing import Optional, Union
-from ebm.geografisk_inndeling.initialize import NameHandler
+from ebmgeodist.initialize import NameHandler
+from loguru import logger
+
+class NoElhubDataError(Exception):
+    """Custom exception for cases where no Elhub data is available.
+      Raised when no Elhub data is found for the provided years."""
+
+    pass
 
 def yearly_aggregated_elhub_data(df: pl.DataFrame) -> pl.DataFrame:
     """
@@ -48,6 +55,10 @@ def df_commune_mean(
     df_filtered = df.filter(
         pl.col("year").is_in(years)
     )
+    if df_filtered.is_empty():
+        logger.error(f"No data for the provided Elhub years: {years} in the parquet file under the input folder.")
+        logger.error("You should update the parquet file with the desired years.")
+        raise NoElhubDataError(f"Missing Elhub data for years: {years}")
 
     # Decide units based on building category
     unit_divisor = 1_000 if buildingkategory == NameHandler.COLUMN_NAME_FRITIDSBOLIG else 1_000_000
@@ -122,13 +133,19 @@ def df_factor_calculation(
             [pl.lit(None).alias(year) for year in years_column]
         )
         
-        # Remove unknown value row
-        unknown_value = df.filter(pl.col("kommune_nr") == "0000")[["mean_yearly_forbruk_gwh"]].to_numpy()[0][0]
-        df = df.filter(pl.col("kommune_nr") != "0000")
+        # Remove unknown value row if it exists
+        unknown_row = df.filter(pl.col("kommune_nr") == "0000")
+        if unknown_row.height > 0:
+            unknown_value = unknown_row["mean_yearly_forbruk_gwh"][0]
+            df = df.filter(pl.col("kommune_nr") != "0000")
+        else:
+            unknown_value = 0
+        
+        total_consumption = dict_df2[df_name][0][0] - unknown_value
         
         # Calculate factors
         df = df.with_columns(
-                 (pl.col("mean_yearly_forbruk_gwh")/(dict_df2[df_name][0][0] - unknown_value)).alias(year)
+                 (pl.col("mean_yearly_forbruk_gwh")/(total_consumption)).alias(year)
                  for year in years_column
                  if year != "mean_yearly_forbruk_gwh" 
                  )
@@ -175,7 +192,7 @@ def distribute_energy_use_for_category(
     energibruk_df = kommune_info.hstack(multiplied)
 
     return (
-        f"{category}_energibruk", energibruk_df,
+        f"{category}_{energitype}", energibruk_df,
         f"{category}_fordelingsnøkler", dist_df
     )
 

@@ -1,21 +1,23 @@
 import os
 from pathlib import Path
 from azure.identity import DefaultAzureCredential
-from ebm.geografisk_inndeling.initialize import NameHandler
-from ebm.geografisk_inndeling.data_loader import load_elhub_data, load_energy_use
-from ebm.geografisk_inndeling.calculation_tools import df_commune_mean, df_total_consumption_buildingcategory,\
+from ebmgeodist.initialize import NameHandler
+from ebmgeodist.data_loader import load_elhub_data, load_energy_use_from_file, load_energy_use
+from ebmgeodist.calculation_tools import df_commune_mean, df_total_consumption_buildingcategory,\
       df_factor_calculation, yearly_aggregated_elhub_data, ebm_energy_use_geographical_distribution
-from ebm.geografisk_inndeling.initialize import create_output_directory, get_output_file
-from ebm.geografisk_inndeling.spreadsheet import make_pretty
+from ebmgeodist.initialize import create_output_directory, get_output_file
+from ebmgeodist.spreadsheet import make_pretty
 import gc
 import polars as pl
 import pandas as pd
 from loguru import logger
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 
 
 def prepare_elhub_data(elhub_years: list[int], step: str) -> pl.DataFrame:
-    input_file = get_output_file("ebm/geografisk_inndeling/data/yearly_aggregated_elhub_data.parquet")
+    input_file = get_output_file("input/yearly_aggregated_elhub_data.parquet")
 
     if step == "azure":
         elhub_data = {
@@ -29,8 +31,13 @@ def prepare_elhub_data(elhub_years: list[int], step: str) -> pl.DataFrame:
             df_stacked = df_stacked.vstack(df)
 
         df_stacked_year = yearly_aggregated_elhub_data(df_stacked)
-        df_stacked_year.write_parquet(input_file, compression="zstd")
-        logger.info(f"📍New stacked Elhub data saved: {input_file.name}")
+        
+        # Save the stacked DataFrame to a Parquet file with a timestamp
+        norwegian_time = datetime.now(ZoneInfo("Europe/Oslo"))
+        timestamp = norwegian_time.strftime("%Y%m%d_%H%M%S")
+        output_file = input_file.parent / f"yearly_aggregated_elhub_data_{timestamp}.parquet"
+        df_stacked_year.write_parquet(output_file, compression="zstd")
+        logger.info(f"📍New stacked Elhub data with a timestamp of the format YearMonthDay_HourMinutesSeconds:{timestamp} saved in: {output_file.name}")
     else:
         create_output_directory(filename=input_file)
         df_stacked = pl.read_parquet(input_file)
@@ -93,7 +100,7 @@ def calculate_elhub_factors(df_stacked: pl.DataFrame, normalized: list[str], elh
 
 
 def load_fjernvarme_factors(normalized: list[str], year_cols) -> dict:
-    input_file = get_output_file("ebm/geografisk_inndeling/data/fjernvarme_kommune_fordelingsnøkler.xlsx")
+    input_file = get_output_file("input/fjernvarme_kommune_fordelingsnøkler.xlsx")
     df = pl.from_pandas(pd.read_excel(input_file))
     years_column = [str(year) for year in year_cols]
 
@@ -109,7 +116,7 @@ def load_fjernvarme_factors(normalized: list[str], year_cols) -> dict:
     return factor_dict
 
 def load_ved_factors(year_cols) -> dict:
-    input_file = get_output_file("ebm/geografisk_inndeling/data/ved_kommune_fordelingsnøkler.xlsx")
+    input_file = get_output_file("input/ved_kommune_fordelingsnøkler.xlsx")
     df = pl.from_pandas(pd.read_excel(input_file))
     years_column = [str(year) for year in year_cols]
     factor_dict = {}
@@ -202,7 +209,7 @@ def geographical_distribution(
     )
 
     output_file = get_output_file(
-        f"ebm/geografisk_inndeling/output/{energitype}_energibruk_kommunefordelt.xlsx"
+        f"output/{energitype}_energibruk_kommunefordelt.xlsx"
     )
 
     export_distribution_to_excel(dfs_distributed, output_file)

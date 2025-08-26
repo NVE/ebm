@@ -16,6 +16,8 @@ class FileHandler:
 
     # Filenames
     ELHUB_DATA = 'yearly_aggregated_elhub_data.parquet'
+    DH_DATA = 'fjernvarme_kommune_fordelingsnøkler.xlsx'
+    BIO_DATA = 'ved_kommune_fordelingsnøkler.xlsx'
 
     input_directory: pathlib.Path
 
@@ -34,7 +36,7 @@ class FileHandler:
             directory = os.environ.get('EBM_INPUT_DIRECTORY', 'input')
 
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
-        self.files_to_check = [self.ELHUB_DATA]
+        self.files_to_check = [self.ELHUB_DATA, self.DH_DATA, self.BIO_DATA]
 
     def __repr__(self):
         return f'FileHandler(input_directory="{self.input_directory}")'
@@ -56,7 +58,7 @@ class FileHandler:
         --------
         create_missing_input_files
         """
-        return pathlib.Path(__file__).parent.parent / 'data'
+        return pathlib.Path(__file__).parent / 'data'
 
     def get_file(self, file_name: str) -> pl.DataFrame:
         """
@@ -75,8 +77,10 @@ class FileHandler:
         try:
             if file_path.suffix == '.parquet':
                 file_df = pl.read_parquet(file_path)
+            elif file_path.suffix in ['.xlsx', '.xls']:
+                file_df = pl.read_excel(file_path)
             else:
-                msg = f'{file_name} is not of type parquet. Expected parquet file.'
+                msg = f'{file_name} is not of type xlsx or parquet.'
                 logger.error(msg)
                 raise ValueError(msg)
             return file_df
@@ -144,7 +148,7 @@ class FileHandler:
         default_data_directory : default source for data files
         """
         source = FileHandler.default_data_directory() if not source_directory else source_directory
-
+    
         if not source.is_dir():
             raise NotADirectoryError(f'{self.input_directory} is not a directory')
         if not self.input_directory.is_dir():

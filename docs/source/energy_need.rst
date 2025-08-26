@@ -48,14 +48,13 @@ By default the model use an 60% improvement by the year 2030 for lighting. Elect
 Assumptions
 ===========
 
- - It is only heating need that is reduced during an upgrade of the buildings.
- - Upgrading to multiple standards have demishing returns.
+ - Energy need for heating (heating_rv) is reduced during an upgrade of the buildings.
+ - Upgrading to multiple standards have diminishing returns.
  - Flere❓
 
 
 Limitations
 ===========
-
 
 .. |date| date::
 

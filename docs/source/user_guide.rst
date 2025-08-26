@@ -18,7 +18,7 @@ User Guide
 Setting-up your first model (tutorial)
 ---------------------------------------
 
-This is a step-by-step guide on how to set up your first model using the EBM framework.
+This is a step-by-step guide on how to set up your first model using the EBM model.
 
 ------------------------------------------------
 1. How to run the program from the command line?

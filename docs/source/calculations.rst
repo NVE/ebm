@@ -1,46 +1,6 @@
 Calculations/methods
 ====================
 
-Heating systems efficiencies
-----------------------------
-A heating system in the model is made up of one or more heating technologies providing the heating 
-need for space heating and domestic hot water. The various
-combinations can be found under :ref:`heating_systems Heating systems`. Each heating technology is either a
-base load, peak load, tertiary load or hot water, making up the combined heating system. The
-different heating technologies have an assosicated efficency factor, coverage factor and energy carrier.
-The efficiency factor, together with the related energy carrier, is used to get *energy use* per energy carrier
-from *energy need*. For example without taking the coverage factor into account:
-
-* Air-air heat pumps have an efficiency factor of 2,5 with electricity as an energy product. 
-  If the energy need for space heating is 1000 kWh, then the energy use is 400 kWh of electricity.      
-* Wood fired stoves have an efficency factor of 0,65 with bio as an energy product. 
-  If the energy need for space heating is 1000 kWh, then the energy use is 1538 kWh of bio.       
-
-The coverage/utilization factor decides how much of the heating need is covered by a specific technology. A single air-air heat
-pump can not provide heating to the whole building, and in addtion needs supplementation from another heating technology at 
-extreme temperatures. 
-
-The efficiency and load share for the different combinations of heating systems are shown in a tables below.
-
-.. csv-table:: Heating systems efficiency
-  :file: tables\heating_systems_efficiencies.csv
-  :widths: 15 15 15 15 5 5 5
-  :header-rows: 1
-  :delim: ;
-
-
-.. csv-table:: Heating systems coverage
-  :file: tables\heating_systems_coverage.csv
-  :widths: 15 15 15 15 5 5 5
-  :header-rows: 1
-  :delim: ;
-
-
-.. csv-table:: Heating systems hot tap water
-  :file: tables\heating_systems_dhw.csv
-  :widths: 15 15 15
-  :header-rows: 1
-  :delim: ;
 
 Forecasting of area
 -------------------

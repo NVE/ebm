@@ -83,8 +83,27 @@ The resulting heating systems are then used as an input to the model. An example
 
 A final tuning of the heating systems are done in the calibration step of the model which is documented here.
 
+
+Heating systems efficiencies
+----------------------------
+Each heating technology is either a base load, peak load, tertiary load or hot water, making up the combined heating system. The
+different heating technologies have an assosicated efficency factor, load share factor and energy product.
+The efficiency factor, together with the related energy product, is used to get *energy use* per energy product
+from *energy need*. For example, given that the energy need is only covered by the specific technology:
+
+* Air-air heat pumps have an efficiency factor of 2,5 with electricity as an energy product. 
+  If the energy need for space heating is 1000 kWh, then the energy use is 400 kWh of electricity.      
+* Wood fired stoves have an efficency factor of 0,65 with bio as an energy product. 
+  If the energy need for space heating is 1000 kWh, then the energy use is 1538 kWh of bio.       
+
+The load share factor decides how much of the heating need is covered by a specific technology. A single air-air heat
+pump can not provide heating to the whole building, and in addtion needs supplementation from another heating technology at 
+extreme temperatures. 
+
+All the combinations can be found in the table chapter. 
+
 Forecasting of heating systems
------------
+-------------------------------
 Forecasting of heating systems are necessary to go from *energy need* to *energy use*. 
 The forecasting defines the rate of change in one heating system to another towards 2050. The change is done on a percentage basis compared with the start 
 year and can be specified on building category and building code. The percentage changes are given in the input file "heating_systems_projection". 
@@ -109,6 +128,7 @@ After calibration and forecasting the resulting heating system fractions for hou
 
 .. raw:: html
   :file: images\Hus.html
+
 
 Assumptions
 ===========
@@ -148,8 +168,37 @@ Heating systems glossary
   :widths: 10 10 30 30
   :delim: ;
 
+Tables
+======
+The tables below show the various combinations of heating systems and heating technologies.
+
+.. csv-table:: Heating systems efficiency
+  :file: tables\heating_systems_efficiencies.csv
+  :widths: 15 15 15 15 5 5 5
+  :header-rows: 1
+  :delim: ;
+
+
+.. csv-table:: Heating systems coverage
+  :file: tables\heating_systems_coverage.csv
+  :widths: 15 15 15 15 5 5 5
+  :header-rows: 1
+  :delim: ;
+
+
+.. csv-table:: Heating systems hot tap water
+  :file: tables\heating_systems_dhw.csv
+  :widths: 15 15 15
+  :header-rows: 1
+  :delim: ;
+
+
+.. |br| raw:: html
+
+      <br>
+
 .. |date| date::
 
-Last Updated on |date|
+Last Updated on |date|.
 
 Version: |version|.

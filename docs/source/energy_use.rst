@@ -8,8 +8,7 @@ Energy use is calculated by
 Methods
 =======
 
-The formula for **Total energy use per year** in the EBM (Energibruksmodell) is designed to estimate how much
-energy the building mass use annually. The calculation takes into account efficiency in the technology used and the type of energy carrier.
+The formula for **Total energy use per year** in the EBM (Energibruksmodell) is designed to annual energy use of the building mass. The calculation takes into account the type of energy carrier and efficiency in heating systems.
 
 .. math::
 
@@ -27,12 +26,10 @@ energy the building mass use annually. The calculation takes into account effici
 Explanation of Each Factor
 ++++++++++++++++++++++++++
 
- By default the model use an 60% improvement by the year 2030 for lighting. Electrical equipment has a yearly reduction of 1%. Lighting is expected to decrease by 0.5% yearly after 2030. These values are defined in :ref:`energy_need_improvements.csv <energy_need_improvements>`
-
  * **energy need kWh/m²**
-   - Baseline energy use for the building type and purpose as defined by the building code.
+   - :ref:`Energy need` for the building type, building condition and purpose.
  * **area m²**
-   - area area area
+   - :ref:`area` for building type and condition
  * **heating systems share**
    - heating systems share heating systems share heating systems share
  * **heating systems efficiency**
@@ -45,8 +42,8 @@ Assumptions
  - Flere❓
 
 
-    Limitations
-    ===========
+Limitations
+===========
 
 
 .. |date| date::

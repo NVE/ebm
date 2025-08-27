@@ -6,8 +6,9 @@ Hovedoverskrift
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque molestie arcu non erat vulputate faucibus.
 **This text is bold**. Suspendisse tincidunt feugiat aliquet. Praesent eget felis velit. *This text is italic*
 In rutrum dui eu suscipit accumsan. ``This text is monospaced`` Etiam tellus velit, tincidunt sit amet enim vitae,
-consectetur egestas sapien. `Link med tekst <https://www.jeffquast.com/post/technical_writing_with_sphinx/>`_, In
+consectetur egestas sapien. `Tekst med link <https://www.jeffquast.com/post/technical_writing_with_sphinx/>`_, In
 consequat commodo neque in dapibus.
+
 
 .. contents:: Table of Contents
    :depth: 2
@@ -21,18 +22,57 @@ Duis ac dignissim purus. Integer tempor sem et porttitor egestas. Interdum et ma
 faucibus. Proin molestie iaculis gravida. Praesent sollicitudin a enim non efficitur. Cras
 euismod mi eros, cursus ornare odio accumsan eu.
 
-Etiam quis purus in lacus molestie venenatis. Vestibulum feugiat non lorem non tristique. In nec viverra augue.
+
 
 .. note::
 
-   Simple "inclusion" of one file in another can be done with the
-   :dudir:`include` directive.
+   Etiam quis purus in lacus molestie venenatis. Vestibulum **feugiat** non lorem non tristique. In nec viverra augue.
+
+
+Linker
+------
+
+ * 🌍 https://www.nve.no
+ * 🔗 `Cross referencing with sphinx <https://docs.readthedocs.com/platform/latest/guides/cross-referencing-with-sphinx.html#explicit-targets>`_
+ * 🪧 `Linker til samme som over ved hjelp av alias <Cross referencing with sphinx_>`_
+ * 👇 `Link til nve`_
+ * 👇 `Link til NVE definert under med alternativ tekst <link til nve_>`_
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque molestie arcu non erat vulputate faucibus.
+🌍 https://www.nve.no Suspendisse tincidunt feugiat aliquet. Praesent eget felis velit.
+In rutrum dui eu suscipit accumsan. 🔗 `Cross referencing with sphinx <https://docs.readthedocs.com/platform/latest/guides/cross-referencing-with-sphinx.html#explicit-targets>`_.
+Etiam tellus velit, tincidunt sit amet enim vitae, consectetur egestas sapien. `Link med tekst <https://www.jeffquast.com/post/technical_writing_with_sphinx>`_, In
+consequat commodo neque in dapibus. 👇 `Link til NVE definert under <link til nve_>`_. Maecenas accumsan diam diam, a placerat
+ex dapibus at. Vivamus commodo ex ac enim auctor rutrum.
+🪧 `Linker til samme som over ved hjelp av alias <Cross referencing with sphinx_>`_ Nam auctor bibendum nisi, vitae
+fermentum mauris efficitur vitae. Mauris quis mi tellus. Curabitur lorem nisi, rhoncus vitae lacinia eu, auctor
+vitae massa. `link til nve`_
+
+.. _link til nve: https://www.nve.no/
 
 
 .. seealso::
 
-    `»Using Sphinx »reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
+   `»Using Sphinx basics »hyperlinks <https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html#hyperlinks>`_
 
+
+Referanser
+----------
+
+:ref:`Implisitt referanse til inline csv-tabell på denne siden (Bruker overskrift) <inline csv-tabell>`
+
+:ref:`Eksplisitt refaranse til Etter csvtabell på denne siden (Bruker referansekode)<Etter csvtabeller>`
+
+:ref:`Refaranse til Model Description 👈 The Four Steps of the Model <The Four Steps of the Model>`
+
+
+.. code-block:: rst
+
+   `Eksplisitt refaranse til Etter csvtabell (Bruker referansekode)<Etter csvtabeller>`
+   …
+   …
+   …
+   .. _Etter csvtabell:
 
 
 
@@ -159,15 +199,6 @@ Inline CSV-tabell
     apartment_block,TEK69_RES_1976,6739001
 
 
-CSV-tabell fra fil
-------------------
-
-.. csv-table:: Construction by building category and TEK
-   :file: ../../ebm/data/construction_building_category_yearly.csv
-   :header-rows: 1
-
-
-
 Inline CSV-tabell
 -----------------
 .. csv-table:: Construction by building category and TEK
@@ -182,10 +213,12 @@ Inline CSV-tabell
 CSV-tabell fra fil
 ------------------
 
-.. csv-table:: Construction by building category and TEK
-   :file: ../../ebm/data/construction_building_category_yearly.csv
+.. csv-table:: Area forecast output
+   :file: tables\example_four_output.csv
    :header-rows: 1
 
+
+.. _Etter csvtabeller:
 
 
 Definisjonsliste
@@ -214,7 +247,8 @@ Kode-eksempel
 ==============
 
 python 🐍
-------
+---------
+
 .. code-block:: python
 
    from ebm.model.data_classes import YearRange
@@ -229,8 +263,14 @@ python 🐍
 
    print(df)
 
+
+.. _Etter Python:
+
+
+
+
 powershell 🐚
-----------
+-------------
 
 .. code-block:: powershell
 

@@ -1,7 +1,7 @@
 :orphan:
-===============
+
 Hovedoverskrift
-===============
+###############
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque molestie arcu non erat vulputate faucibus.
 **This text is bold**. Suspendisse tincidunt feugiat aliquet. Praesent eget felis velit. *This text is italic*

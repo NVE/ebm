@@ -148,16 +148,16 @@ If the user wants the output file in horizontal format, the user can use the fol
 
 The energy-requirements is calculated by multiplying the heating demand per square meter by the area from the previous step.
 
-.. Hva er oppvarmingsbehovet per kvadratmeter `=energibruk per m2 * areal`
+.. Hva er oppvarmingsbehovet per kvadratmeter `=energibruk per m2 \times areal`
 
 
 .. .. math::
 
-..   redusert energibehov =  grunnbehov * adferdsfaktor * årligeffektivitetsfaktor * tilstandsfaktor
+..   redusert energibehov =  grunnbehov \times adferdsfaktor \times årligeffektivitetsfaktor \times tilstandsfaktor
 
 .. .. math::
 
-..   totalt energibehov = redusert energibehov * areal
+..   totalt energibehov = redusert energibehov \times areal
 
 
 .. code:: bash

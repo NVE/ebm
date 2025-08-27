@@ -36,8 +36,8 @@ Combining the two:
 
 .. math::
 
-    \text{New construction} (\text{year } x) = &\text{ area/person} * \text{population} (\text{year } x) \\
-                          &-\text{area/person}*\text{population} (\text{year } x-1) \\
+    \text{New construction} (\text{year } x) = &\text{ area/person} \times \text{population} (\text{year } x) \\
+                          &-\text{area/person} \times \text{population} (\text{year } x-1) \\
                           &+ \text{ demolished}(\text{year }x-1)
 
 The area per person is different for each of the non-residental building categories. It can also change from year to year, but currently it is a constant. 

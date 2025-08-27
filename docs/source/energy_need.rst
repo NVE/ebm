@@ -1,9 +1,8 @@
 Energy need
 ###########
 
-Energy need per square metre is defined in the building code. Each building category has a specific energy need according to its building code and energy purpose.
-
-
+The base line energy need per square metre is defined in the building code. Each :ref:`building category <building category and building code>` has a specific energy need according
+to its building code, building condition and :ref:`energy purpose <energy purpose>`.
 
 
 Methods
@@ -43,6 +42,48 @@ Explanation of Each Factor
 
 By default the model use an 60% improvement by the year 2030 for lighting. Electrical equipment has a yearly reduction of 1%. Lighting is expected to decrease by 0.5% yearly after 2030. These values are defined in :ref:`energy_need_improvements.csv <energy_need_improvements>`
 
+
+
+Energy purpose
+++++++++++++++
+
+Energy purpose is used to define level of energy, its source, and assess whether any energy-saving measures are applied.
+
+There are six energy purposes defined in EBM.
+
+
+Heating Room Ventilation (heating_rv)
+    Energy used for space heating in rooms, typically through radiators, underfloor heating, or air systems. This includes the energy required to maintain indoor temperatures at comfortable levels during colder periods.
+
+Heating Domestic Hot Water (heating_dhw)
+    Energy used to heat water for domestic purposes such as bathing, cooking, and cleaning. This is separate from space heating and is often supplied by boilers, heat pumps, or electric water heaters.
+
+Fans and pumps
+    Electricity consumed by mechanical systems that circulate air or fluids within a building. This includes HVAC fans, circulation pumps for heating and cooling systems, and booster pumps for water supply.
+
+Lighting
+    Electricity used for indoor and outdoor lighting, including general illumination, task lighting, and emergency lighting systems. This category often includes both traditional and energy-efficient lighting technologies.
+
+Electrical equipment
+    Energy consumed by plug-in devices and fixed electrical systems not covered by other categories. This includes computers, kitchen appliances, office equipment, elevators, and other miscellaneous electrical loads.
+
+Cooling
+    Energy used for air conditioning and refrigeration systems to maintain comfortable indoor temperatures and preserve perishable goods. This includes chillers, split systems, and centralized cooling systems.
+
+
+Below is an excerpt showing the kilowatt hours per square metre for retail buildings, categorized by energy purpose according to the TEK07 building code:
+
+.. csv-table:: Energy need original condition retail TEK07
+    :header: building_category, building_code, purpose, kwh_m2
+
+    …,…,…,…
+    retail,TEK07,lighting,50.2
+    retail,TEK07,cooling,36.5
+    retail,TEK07,electrical_equipment,3.7
+    retail,TEK07,fans_and_pumps,45.8
+    retail,TEK07,heating_dhw,10.5
+    retail,TEK07,heating_rv,82.7
+    …,…,…,…
 
 
 Assumptions

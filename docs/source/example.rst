@@ -39,21 +39,21 @@ Linker
  * 👇 `Link til NVE definert under med alternativ tekst <link til nve_>`_
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque molestie arcu non erat vulputate faucibus.
-🌍 https://www.nve.no Suspendisse tincidunt feugiat aliquet. Praesent eget felis velit.
+🌍 https://www.nve.no Suspendisse tincidunt feugiat aliquet. Praesent eget felis velit. `Link til nve`_
 In rutrum dui eu suscipit accumsan. 🔗 `Cross referencing with sphinx <https://docs.readthedocs.com/platform/latest/guides/cross-referencing-with-sphinx.html#explicit-targets>`_.
 Etiam tellus velit, tincidunt sit amet enim vitae, consectetur egestas sapien. `Link med tekst <https://www.jeffquast.com/post/technical_writing_with_sphinx>`_, In
 consequat commodo neque in dapibus. 👇 `Link til NVE definert under <link til nve_>`_. Maecenas accumsan diam diam, a placerat
 ex dapibus at. Vivamus commodo ex ac enim auctor rutrum.
 🪧 `Linker til samme som over ved hjelp av alias <Cross referencing with sphinx_>`_ Nam auctor bibendum nisi, vitae
 fermentum mauris efficitur vitae. Mauris quis mi tellus. Curabitur lorem nisi, rhoncus vitae lacinia eu, auctor
-vitae massa. `link til nve`_
+vitae massa.
 
 .. _link til nve: https://www.nve.no/
 
 
 .. seealso::
 
-   `»Using Sphinx basics »hyperlinks <https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html#hyperlinks>`_
+   ℹ️ `»Using Sphinx basics »hyperlinks <https://www.sphinx-doc.org/en/master/usage/restructuredtext/basics.html#hyperlinks>`_
 
 
 Referanser
@@ -69,9 +69,7 @@ Referanser
 .. code-block:: rst
 
    `Eksplisitt refaranse til Etter csvtabell (Bruker referansekode)<Etter csvtabeller>`
-   …
-   …
-   …
+     …
    .. _Etter csvtabell:
 
 
@@ -186,17 +184,6 @@ Legge merke til tommelinjer og innrykk ➡️➡️. Bruken av mellomrom må væ
 
 ⬆️ Det er tom linje mellom denne paragrafen og siste innhold i tabellen ``+-- … --+``.
 
-
-
-Inline CSV-tabell
------------------
-.. csv-table:: Construction by building category and TEK
-
-   :header: building_category,TEK,area
-    building_category,TEK,area
-    apartment_block,PRE_TEK49_RES_1950,11444245
-    apartment_block,TEK49_RES,7133096
-    apartment_block,TEK69_RES_1976,6739001
 
 
 Inline CSV-tabell

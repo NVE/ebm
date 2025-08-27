@@ -292,6 +292,12 @@ energy_need_improvements
  - default 2050
 
 
+.. csv-table:: input/energy_need_improvements.csv
+   :file: ../../ebm/data/energy_need_improvements.csv
+   :header-rows: 1
+
+
+
 holiday_home_by_year
 --------------------
 

@@ -48,6 +48,30 @@ def test_check_for_missing_files_return_list(tmp_path):
     assert len(missing_files) == 16, 'Unexpected list length returned from check_for_missing_files'
 
 
+def test_check_for_missing_files_raises_file_not_found_error(tmp_path):
+    """
+    FileHandler.check_for_missing_files is expected to raise an FileNotFoundError if input directory does not exist
+    """
+
+    new_directory = tmp_path / 'new_directory'
+    fh = FileHandler(directory=new_directory)
+    with pytest.raises(FileNotFoundError):
+        fh.check_for_missing_files()
+
+
+def test_check_for_missing_files_raises_not_a_directory_error(tmp_path):
+    """
+    FileHandler.check_for_missing_files is expected to raise an NotADirectory if input_directory is a file
+    """
+
+    new_file = tmp_path / 'new_file'
+    new_file.write_text('new_file is a file')
+    fh = FileHandler(directory=new_file)
+
+    with pytest.raises(NotADirectoryError):
+        fh.check_for_missing_files()
+
+
 def test_filehandler_init_supports_alternative_path(tmp_path):
     """
     FileHandler.__init__ must support alternative path for input_directory when the directory parameter is set

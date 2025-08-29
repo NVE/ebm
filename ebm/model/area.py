@@ -362,9 +362,9 @@ def calculate_existing_area(area_parameters, building_code_parameters, years):
     return existing_area
 
 
-def calculate_construction_by_building_category(building_category_demolition_by_year: pd.DataFrame,
-                                                database_manager: DatabaseManager,
-                                                years:YearRange):
+def construction_with_building_code(building_category_demolition_by_year: pd.DataFrame,
+                                    database_manager: DatabaseManager,
+                                    years:YearRange):
     construction = ConstructionCalculator.calculate_all_construction(
         demolition_by_year=building_category_demolition_by_year,
         database_manager=database_manager,
@@ -372,16 +372,19 @@ def calculate_construction_by_building_category(building_category_demolition_by_
 
     building_code = database_manager.get_building_codes()
     building_code_years = years.cross_join(building_code)
-    building_code_years = building_code_years.query('year >= period_start_year and year <= period_end_year')
+
+    filtered_building_code_years = building_code_years.query(f'period_end_year>={years.start}')
 
     construction_by_building_category_yearly = pd.merge(
-        left=construction, right=building_code_years[['year', 'building_code']], left_on=['year'], right_on=['year'])
+        left=construction, right=filtered_building_code_years[['year', 'building_code', 'period_start_year', 'period_end_year']], left_on=['year'], right_on=['year'])
 
-    construction_by_building_category_yearly = construction_by_building_category_yearly.set_index(
-        ['building_category', 'building_code', 'year']).accumulated_constructed_floor_area
-    construction_by_building_category_yearly.name = 'area'
+    construction_by_building_category_yearly.loc[construction_by_building_category_yearly.query('period_start_year > year or period_end_year < year').index, 'constructed_floor_area'] = 0.0
 
-    return construction_by_building_category_yearly
+    df = construction_by_building_category_yearly.set_index(['building_category', 'building_code', 'year'])[['constructed_floor_area']]
+    s = df.groupby(by=['building_category', 'building_code'])['constructed_floor_area'].cumsum()
+    s.name = 'area'
+
+    return s
 
 
 def sum_building_category_demolition_by_year(demolition_by_year):

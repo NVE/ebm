@@ -9,7 +9,7 @@ import pytest
 from ebm.model.area import (transform_area_forecast_to_area_change,
                             transform_construction_by_year,
                             transform_cumulative_demolition_to_yearly_demolition, building_condition_scurves,
-                            calculate_construction_by_building_category)
+                            construction_with_building_code)
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 
@@ -190,34 +190,69 @@ def test_building_condition_scurves():
 
 
 @patch('ebm.model.construction.ConstructionCalculator.calculate_all_construction')
-def test_calculate_construction_by_building_category(mock_calculator):
-    building_code_params = pd.DataFrame({'building_code': ['TEK17', 'TEK21'],
-                                         'building_year': [2017, 2021],
-                                         'period_start_year': [2016, 2021],
-                                         'period_end_year': [2020, 2050]})
+def test_construction_with_building_code(mock_calculator):
+    years = YearRange(2020, 2024)
+    demolition_by_year = [0.0, 1, 1, 1, 1] + [0.0, 2, 2, 2, 2]
+    construction_by_year = [0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0]
+
+    demolition = pd.DataFrame({'demolition': demolition_by_year},
+                              index=pd.Index([('house', y) for y in years] + [('retail', y) for y in years]
+                                             , name=('building_category', 'year')))
+    building_code = pd.DataFrame(
+        [{'building_code': 'TEK0X', 'building_year': 2010.0, 'period_start_year': 1945, 'period_end_year': years.start -1},
+         {'building_code': 'TEKAA', 'building_year': years.start + 2, 'period_start_year': years.start, 'period_end_year': years.end}])
 
     mock_database_manager = DatabaseManager()
-    mock_database_manager.get_building_codes = MagicMock(return_value=building_code_params)
+    mock_database_manager.get_building_codes = MagicMock(return_value=building_code)
 
-    demolition = pd.DataFrame({
-        'building_category': ['residential', 'commercial'] * 2,
-        'year': [2020] * 2 + [2021] * 2,
-        'demolished_area': [11, 21, 12, 22]
-    })
-
-    mock_construction = pd.DataFrame({
-        'building_category': ['house']*2 + ['hospital']*2,
-        'year': [2020, 2021, 2020, 2021],
-        'accumulated_constructed_floor_area': [120, 121, 220, 221]
-    })
+    mock_construction = pd.DataFrame(
+        {'year': list(years) + list(years), 'constructed_floor_area': construction_by_year, 'building_category': ['house' for y in years] + ['retail' for y in years]})
     mock_calculator.return_value = mock_construction
+    result = construction_with_building_code(demolition.demolition, mock_database_manager, years)
 
-    result = calculate_construction_by_building_category(demolition, mock_database_manager, YearRange(2020, 2021))
+    expected = pd.Series({('house', 'TEKAA', 2020): 0.0, ('house', 'TEKAA', 2021): 1.0, ('house', 'TEKAA', 2022): 2.0,
+                          ('house', 'TEKAA', 2023): 3.0, ('house', 'TEKAA', 2024): 4.0,
+                          ('retail', 'TEKAA', 2020): 2.0, ('retail', 'TEKAA', 2021): 4.0,
+                          ('retail', 'TEKAA', 2022): 6.0, ('retail', 'TEKAA', 2023): 8.0, ('retail', 'TEKAA', 2024): 10.0})
+    expected.name = 'area'
+    expected.index.names = ['building_category', 'building_code', 'year']
 
-    assert result.loc[('house', 'TEK17', 2020)] == 120
-    assert result.loc[('house', 'TEK21', 2021)] == 121
-    assert result.loc[('hospital', 'TEK17', 2020)] == 220
-    assert result.loc[('hospital', 'TEK21', 2021)] == 221
+    pd.testing.assert_series_equal(result, expected)
+
+
+@patch('ebm.model.construction.ConstructionCalculator.calculate_all_construction')
+def test_construction_with_building_code_more_than_one_building_code(mock_calculator):
+    years = YearRange(2020, 2029)
+    demolition_by_year = [0.0, 1, 1, 1, 1] + [2, 2, 2, 2, 2]
+    construction_by_year = [0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0]
+
+    demolition = pd.DataFrame({'demolition': demolition_by_year},
+                              index=pd.Index([('house', y) for y in years], name=('building_category', 'year')))
+    building_code = pd.DataFrame(
+        [{'building_code': 'TEK0X', 'building_year': 2010.0, 'period_start_year': 1945, 'period_end_year': 2019.0},
+         {'building_code': 'TEK17', 'building_year': 2025.0, 'period_start_year': 2020.0, 'period_end_year': 2026.0},
+         {'building_code': 'TEK21', 'building_year': 2027.0, 'period_start_year': 2027.0, 'period_end_year': 2029.0}])
+
+    mock_database_manager = DatabaseManager()
+    mock_database_manager.get_building_codes = MagicMock(return_value=building_code)
+
+    mock_construction = pd.DataFrame(
+        {'year': years, 'constructed_floor_area': construction_by_year, 'building_category': ['house'] * len(years)})
+    mock_calculator.return_value = mock_construction
+    r = construction_with_building_code(demolition.demolition, mock_database_manager, years)
+
+    expected = pd.Series({('house', 'TEK17', 2020): 0.0, ('house', 'TEK17', 2021): 1.0, ('house', 'TEK17', 2022): 2.0,
+                          ('house', 'TEK17', 2023): 3.0, ('house', 'TEK17', 2024): 4.0, ('house', 'TEK17', 2025): 6.0,
+                          ('house', 'TEK17', 2026): 8.0, ('house', 'TEK17', 2027): 8.0, ('house', 'TEK17', 2028): 8.0,
+                          ('house', 'TEK17', 2029): 8.0, ('house', 'TEK21', 2020): 0.0, ('house', 'TEK21', 2021): 0.0,
+                          ('house', 'TEK21', 2022): 0.0, ('house', 'TEK21', 2023): 0.0, ('house', 'TEK21', 2024): 0.0,
+                          ('house', 'TEK21', 2025): 0.0, ('house', 'TEK21', 2026): 0.0, ('house', 'TEK21', 2027): 2.0,
+                          ('house', 'TEK21', 2028): 4.0, ('house', 'TEK21', 2029): 6.0})
+    expected.name = 'area'
+    expected.index.names = ['building_category', 'building_code', 'year']
+
+    pd.testing.assert_series_equal(r.sort_index(), expected)
+
 
 
 if __name__ == "__main__":

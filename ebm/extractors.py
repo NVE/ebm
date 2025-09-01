@@ -25,7 +25,10 @@ def extract_area_forecast(years: YearRange, s_curves_by_condition: pd.DataFrame,
 
     building_category_demolition_by_year = area.sum_building_category_demolition_by_year(demolition_floor_area_by_year)
 
-    construction_by_building_category_and_year = area.construction_with_building_code(building_category_demolition_by_year, database_manager, years)
+    construction_by_building_category_and_year = area.construction_with_building_code(
+        building_category_demolition_by_year=building_category_demolition_by_year,
+        database_manager=database_manager,
+        years=years)
 
     existing_area = area.calculate_existing_area(area_parameters, building_code_parameters, years)
 

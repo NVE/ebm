@@ -228,8 +228,10 @@ def test_construction_with_building_code(mock_calculator):
     pd.testing.assert_series_equal(result, expected)
 
 
+
 @patch('ebm.model.construction.ConstructionCalculator.calculate_all_construction')
-def test_construction_with_building_code_more_than_one_building_code(mock_calculator):
+@pytest.mark.parametrize("years_parameter", [YearRange(2020, 2029), None])
+def test_construction_with_building_code_more_than_one_building_code(mock_calculator, years_parameter):
     years = YearRange(2020, 2029)
     demolition_by_year = [0.0, 1, 1, 1, 1] + [2, 2, 2, 2, 2]
     construction_by_year = [0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0]
@@ -247,7 +249,7 @@ def test_construction_with_building_code_more_than_one_building_code(mock_calcul
     mock_construction = pd.DataFrame(
         {'year': years, 'constructed_floor_area': construction_by_year, 'building_category': ['house'] * len(years)})
     mock_calculator.return_value = mock_construction
-    r = construction_with_building_code(demolition.demolition, mock_database_manager, years)
+    r = construction_with_building_code(demolition.demolition, mock_database_manager, years=years_parameter)
 
     expected = pd.Series({('house', 'TEK17', 2020): 0.0, ('house', 'TEK17', 2021): 1.0, ('house', 'TEK17', 2022): 2.0,
                           ('house', 'TEK17', 2023): 3.0, ('house', 'TEK17', 2024): 4.0, ('house', 'TEK17', 2025): 6.0,

@@ -89,6 +89,7 @@ Below is an excerpt showing the kilowatt hours per square metre for retail build
 Assumptions
 ===========
 
+
  - Energy need for heating (heating_rv) is reduced during an upgrade of the buildings.
  - Upgrading to multiple standards have diminishing returns.
  - Flere❓

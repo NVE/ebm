@@ -1,11 +1,10 @@
-Model Framework documentation
+EBM Documentation
 =============================
+EBM is is a bottom-up model that estimates area, energy requirement and energy use in the Norwegian building stock towards 2050. 
+The model is developed in-house by the Norwegian Water Resources- and Energy Directorate. 
+On this website you can find documentation on how the model works, what input is required, the expected output in a base scenario and how to create your own
+scenarios and sensitivites. 
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
-
-`RST EXAMPLES <example.html>`_
 
 .. toctree::
    :maxdepth: 1

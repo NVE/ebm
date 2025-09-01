@@ -62,24 +62,32 @@ def test_transform_construction_by_year():
     is used.
     """
     area = pd.DataFrame(
-        data=[('house', 'TEK97', 'original_condition', y, m2) for y, m2 in [(2020, 100), (2021, 90), (2022, 80)]]+
-             [('house', 'TEK97', 'demolition', y, m2 ) for y, m2 in [(2020, 0), (2021, 10), (2022, 20)]]+
-             [('house', 'TEK17', 'original_condition', y, m2 ) for y, m2 in [(2020, 100), (2021, 100), (2022, 100)]]+
-             [('house', 'TEK17', 'demolition', y, m2 ) for y, m2 in [(2020, 0.0), (2021, 0.0), (2022, 0.0)]]+
-             [('house', 'TEK21', 'demolition', y, m2) for y, m2 in [(2020, np.nan), (2021, np.nan), (2022, 0.0)]] +
-             [('house', 'TEK21', 'renovation', y, m2) for y, m2 in [(2020, np.nan), (2021, np.nan), (2022, 1.0)]] +
-             [('house', 'TEK21', 'original_condition', y, m2 ) for y, m2 in [(2020, 10.0), (2021, 20.0), (2022, 33.0)]]
+        data=[('house', 'TEK97', 'original_condition', y, m2) for y, m2 in
+                [(2020, 100), (2021, 90), (2022, 80), (2023,70)]]+
+             [('house', 'TEK97', 'demolition', y, m2 ) for y, m2 in
+                [(2020, 0), (2021, 10), (2022, 20), (2023, 30)]]+
+             [('house', 'TEK17', 'original_condition', y, m2 ) for y, m2 in
+                [(2020, 100), (2021, 110), (2022, 110), (2023, 110)]]+
+             [('house', 'TEK17', 'demolition', y, m2 ) for y, m2 in
+                [(2020, 0.0), (2021, 0.0), (2022, 0.0), (2023, 0.0)]]+
+             [('house', 'TEK22', 'demolition', y, m2) for y, m2 in
+                [(2020, np.nan), (2021, np.nan), (2022, 0.0), (2023, 0.0)]] +
+             [('house', 'TEK22', 'renovation', y, m2) for y, m2 in
+                [(2020, np.nan), (2021, np.nan), (2022, 1.0), (2023, 1.5)]] +
+             [('house', 'TEK22', 'original_condition', y, m2 ) for y, m2 in
+                [(2020, 0), (2021, np.nan), (2022, 11.0), (2023, 22.0)]]
         ,columns=['building_category', 'building_code', 'building_condition', 'year', 'm2'])
 
     building_code_parameters = pd.DataFrame(
-        data=[['TEK97', 2012, 0, 2010], ['TEK17', 2017, 2011, 2019], ['TEK21', 2021, 2020, 2050]],
+        data=[['TEK97', 2012, 0, 2010], ['TEK17', 2017, 2011, 2021], ['TEK22', 2022, 2022, 2050]],
         columns=['building_code', 'building_year', 'period_start_year', 'period_end_year'])
 
     result  = transform_construction_by_year(area, building_code_parameters).reset_index().set_index(
         ['building_category', 'building_code', 'year'])[['m2']]
 
     expected = pd.DataFrame(
-        data=[('house', 'TEK21', y, m2) for y, m2 in enumerate((np.nan, 10.0, 14.0), start=2020)],
+        data=[('house', 'TEK17', 2020, np.nan), ('house', 'TEK17', 2021, 10.0), #('house', 'TEK17', 2022, 0.0), ('house', 'TEK17', 2023, 0.0),
+              ('house', 'TEK22', 2020, np.nan), ('house', 'TEK22', 2021, 0.0), ('house', 'TEK22', 2022, 12.0), ('house', 'TEK22', 2023, 11.5)],
         columns=['building_category', 'building_code', 'year', 'm2']).set_index(['building_category', 'building_code', 'year'])
 
     pd.testing.assert_frame_equal(result, expected)

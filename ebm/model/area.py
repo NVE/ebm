@@ -152,7 +152,7 @@ def transform_construction_by_year(area_forecast: pd.DataFrame,
 
     area_forecast = area_forecast.merge(building_code_params, on='building_code', how='left')
     constructed = area_forecast.query(
-        'year>=period_start_year and year <=period_end_year and building_condition!="demolition"').copy()
+        'period_end_year >= year and building_condition!="demolition"').copy()
     constructed = constructed[['building_category', 'building_code', 'year', 'building_condition', 'm2']]
     constructed = constructed.set_index(['building_category', 'building_code', 'year', 'building_condition'])[['m2']].unstack()
 

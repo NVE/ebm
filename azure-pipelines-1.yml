@@ -8,7 +8,7 @@ trigger:
 
 pr:
   branches:
-    target:
+    include:
       - 'sprint26'
 jobs:
 - job: PytestUbuntu

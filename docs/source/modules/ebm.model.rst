@@ -20,6 +20,7 @@ Submodules
    ebm.model.dataframemodels
    ebm.model.defaults
    ebm.model.energy_need
+   ebm.model.energy_need_filter
    ebm.model.energy_purpose
    ebm.model.energy_requirement
    ebm.model.energy_use

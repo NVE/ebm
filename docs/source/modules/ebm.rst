@@ -22,6 +22,7 @@ Submodules
    ebm.heating_systems_projection
    ebm.holiday_home_energy
    ebm.s_curve
+   ebm.temp_calc
    ebm.validators
 
 Module contents

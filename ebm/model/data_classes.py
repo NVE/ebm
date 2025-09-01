@@ -195,6 +195,12 @@ class YearRange:
                         right=self.to_dataframe(name='year'),
                         how='cross')
 
+    @staticmethod
+    def from_series(s : pd.Series):
+        if s.name == 'year':
+            return YearRange(s.min(), s.max())
+        return YearRange(s.index.get_level_values(level='year').min(), s.index.get_level_values(level='year').max())
+
     def __getitem__(self, key: int | slice) -> pd.Index:
         """
         Returns a pandas Index object for the specified slice of the year range.

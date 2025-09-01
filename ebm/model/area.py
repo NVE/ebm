@@ -363,22 +363,18 @@ def calculate_existing_area(area_parameters, building_code_parameters, years):
 
 
 def construction_with_building_code(building_category_demolition_by_year: pd.Series,
-                                    database_manager: DatabaseManager,
+                                    building_code: pd.DataFrame,
+                                    construction_floor_area_by_year: pd.Series,
                                     years:YearRange) -> pd.Series:
     if not years:
         years = YearRange.from_series(building_category_demolition_by_year)
-    construction = ConstructionCalculator.calculate_all_construction(
-        demolition_by_year=building_category_demolition_by_year,
-        database_manager=database_manager,
-        period=years)
 
-    building_code = database_manager.get_building_codes()
     building_code_years = years.cross_join(building_code)
 
     filtered_building_code_years = building_code_years.query(f'period_end_year>={years.start}')
 
     construction_with_building_code = pd.merge(
-        left=construction,
+        left=construction_floor_area_by_year,
         right=filtered_building_code_years[['year', 'building_code', 'period_start_year', 'period_end_year']],
         left_on=['year'], right_on=['year'])
 

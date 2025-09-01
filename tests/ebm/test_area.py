@@ -197,8 +197,7 @@ def test_building_condition_scurves():
     assert isinstance(res, pd.DataFrame)
 
 
-@patch('ebm.model.construction.ConstructionCalculator.calculate_all_construction')
-def test_construction_with_building_code(mock_calculator):
+def test_construction_with_building_code():
     years = YearRange(2020, 2024)
     demolition_by_year = [0.0, 1, 1, 1, 1] + [0.0, 2, 2, 2, 2]
     construction_by_year = [0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0]
@@ -214,9 +213,12 @@ def test_construction_with_building_code(mock_calculator):
     mock_database_manager.get_building_codes = MagicMock(return_value=building_code)
 
     mock_construction = pd.DataFrame(
-        {'year': list(years) + list(years), 'constructed_floor_area': construction_by_year, 'building_category': ['house' for y in years] + ['retail' for y in years]})
-    mock_calculator.return_value = mock_construction
-    result = construction_with_building_code(demolition.demolition, mock_database_manager, years)
+        {'year': list(years) + list(years), 'constructed_floor_area': construction_by_year,
+         'building_category': ['house' for y in years] + ['retail' for y in years]})
+
+    result = construction_with_building_code(building_category_demolition_by_year=demolition.demolition, construction_floor_area_by_year=mock_construction,
+                                             building_code=building_code,
+                                             years=years)
 
     expected = pd.Series({('house', 'TEKAA', 2020): 0.0, ('house', 'TEKAA', 2021): 1.0, ('house', 'TEKAA', 2022): 2.0,
                           ('house', 'TEKAA', 2023): 3.0, ('house', 'TEKAA', 2024): 4.0,
@@ -228,15 +230,13 @@ def test_construction_with_building_code(mock_calculator):
     pd.testing.assert_series_equal(result, expected)
 
 
-
-@patch('ebm.model.construction.ConstructionCalculator.calculate_all_construction')
 @pytest.mark.parametrize("years_parameter", [YearRange(2020, 2029), None])
-def test_construction_with_building_code_more_than_one_building_code(mock_calculator, years_parameter):
+def test_construction_with_building_code_more_than_one_building_code(years_parameter):
     years = YearRange(2020, 2029)
     demolition_by_year = [0.0, 1, 1, 1, 1] + [2, 2, 2, 2, 2]
     construction_by_year = [0.0, 1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0, 2.0]
 
-    demolition = pd.DataFrame({'demolition': demolition_by_year},
+    demolition = pd.Series(demolition_by_year, name='demolition',
                               index=pd.Index([('house', y) for y in years], name=('building_category', 'year')))
     building_code = pd.DataFrame(
         [{'building_code': 'TEK0X', 'building_year': 2010.0, 'period_start_year': 1945, 'period_end_year': 2019.0},
@@ -248,8 +248,10 @@ def test_construction_with_building_code_more_than_one_building_code(mock_calcul
 
     mock_construction = pd.DataFrame(
         {'year': years, 'constructed_floor_area': construction_by_year, 'building_category': ['house'] * len(years)})
-    mock_calculator.return_value = mock_construction
-    r = construction_with_building_code(demolition.demolition, mock_database_manager, years=years_parameter)
+
+    r = construction_with_building_code(demolition, building_code=building_code,
+                                        construction_floor_area_by_year=mock_construction,
+                                        years=years_parameter)
 
     expected = pd.Series({('house', 'TEK17', 2020): 0.0, ('house', 'TEK17', 2021): 1.0, ('house', 'TEK17', 2022): 2.0,
                           ('house', 'TEK17', 2023): 3.0, ('house', 'TEK17', 2024): 4.0, ('house', 'TEK17', 2025): 6.0,

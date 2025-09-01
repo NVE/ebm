@@ -13,5 +13,5 @@
 12;New buildings residential;Nybygg boliger;Gjennomsnittlig areal nye boliger og andel hus og boligblokk av samlet nybygg boliger per år;Average size of new apartments and houses. Proportion of new homes that are apartments and houses.
 13;Population forecast;Befolkning;Befolkningsframskriving fra SSB med antall personer per husholdning. ;Population forecast from Statistics Norway and average household size.
 14;S curve;S- kurve;Parametere for å lage S-kurve. Parametere for enøk, rehabilitering og riving for hver bygningskategori.  ;Parameters to create S-curves.  Parameters are given for small measures, renovation and demolition for each building category.
-15;Building codes;TEK- ID;Navn på de ulike TEK-ene.;Name of the various building code categories.
+15;Energy need behaviour factor;Energibehov ved tiltak;Definerer reduksjon i energibehov for tiltak og behovsfaktoren som brukes til kalibrering.;Sets the behaviour factor used for calibration purposes. 
 16;Building code parameters;Byggteknisk forskrift;Virkeår per byggeteknisk forskrift. ;Year of operation for the different building code categories.

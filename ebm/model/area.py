@@ -152,7 +152,7 @@ def transform_construction_by_year(area_forecast: pd.DataFrame,
 
     area_forecast = area_forecast.merge(building_code_params, on='building_code', how='left')
     constructed = area_forecast.query(
-        'year>=period_start_year and year <=period_end_year and building_condition!="demolition"').copy()
+        'period_end_year >= year and building_condition!="demolition"').copy()
     constructed = constructed[['building_category', 'building_code', 'year', 'building_condition', 'm2']]
     constructed = constructed.set_index(['building_category', 'building_code', 'year', 'building_condition'])[['m2']].unstack()
 
@@ -362,25 +362,28 @@ def calculate_existing_area(area_parameters, building_code_parameters, years):
     return existing_area
 
 
-def construction_with_building_code(building_category_demolition_by_year: pd.DataFrame,
-                                    database_manager: DatabaseManager,
-                                    years:YearRange):
-    construction = ConstructionCalculator.calculate_all_construction(
-        demolition_by_year=building_category_demolition_by_year,
-        database_manager=database_manager,
-        period=years)
+def construction_with_building_code(building_category_demolition_by_year: pd.Series,
+                                    building_code: pd.DataFrame,
+                                    construction_floor_area_by_year: pd.Series,
+                                    years:YearRange) -> pd.Series:
+    if not years:
+        years = YearRange.from_series(building_category_demolition_by_year)
 
-    building_code = database_manager.get_building_codes()
     building_code_years = years.cross_join(building_code)
 
     filtered_building_code_years = building_code_years.query(f'period_end_year>={years.start}')
 
-    construction_by_building_category_yearly = pd.merge(
-        left=construction, right=filtered_building_code_years[['year', 'building_code', 'period_start_year', 'period_end_year']], left_on=['year'], right_on=['year'])
+    construction_with_building_code = pd.merge(
+        left=construction_floor_area_by_year,
+        right=filtered_building_code_years[['year', 'building_code', 'period_start_year', 'period_end_year']],
+        left_on=['year'], right_on=['year'])
 
-    construction_by_building_category_yearly.loc[construction_by_building_category_yearly.query('period_start_year > year or period_end_year < year').index, 'constructed_floor_area'] = 0.0
+    query_period_start_end = 'period_start_year > year or period_end_year < year'
+    construction_with_building_code.loc[
+        construction_with_building_code.query(query_period_start_end).index, 'constructed_floor_area'] = 0.0
 
-    df = construction_by_building_category_yearly.set_index(['building_category', 'building_code', 'year'])[['constructed_floor_area']]
+    df = construction_with_building_code.set_index(['building_category', 'building_code', 'year'])[['constructed_floor_area']]
+
     s = df.groupby(by=['building_category', 'building_code'])['constructed_floor_area'].cumsum()
     s.name = 'area'
 

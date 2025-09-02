@@ -4,6 +4,7 @@ from loguru import logger
 from ebm.model import area
 from ebm.holiday_home_energy import calculate_energy_use, transform_holiday_homes_to_horizontal
 from ebm.heating_systems_projection import HeatingSystemsProjection
+from ebm.model.construction import ConstructionCalculator
 
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
@@ -24,8 +25,16 @@ def extract_area_forecast(years: YearRange, s_curves_by_condition: pd.DataFrame,
     demolition_floor_area_by_year = area.calculate_demolition_floor_area_by_year(area_parameters, s_curve_demolition)
 
     building_category_demolition_by_year = area.sum_building_category_demolition_by_year(demolition_floor_area_by_year)
+    construction_floor_area_by_year = ConstructionCalculator.calculate_all_construction(
+        demolition_by_year=building_category_demolition_by_year,
+        database_manager=database_manager,
+        period=years)
 
-    construction_by_building_category_and_year = area.construction_with_building_code(building_category_demolition_by_year, database_manager, years)
+    construction_by_building_category_and_year = area.construction_with_building_code(
+        building_category_demolition_by_year=building_category_demolition_by_year,
+        construction_floor_area_by_year=construction_floor_area_by_year,
+        building_code=building_code_parameters,
+        years=years)
 
     existing_area = area.calculate_existing_area(area_parameters, building_code_parameters, years)
 

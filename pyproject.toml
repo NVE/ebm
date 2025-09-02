@@ -21,7 +21,8 @@ dependencies = [
     "rich",
     "pandera",
     "XlsxWriter",
-    "pywin32 ; platform_system == 'Windows'"
+    "pywin32 ; platform_system == 'Windows'",
+    'sphinx-tabs',
 ]
 [project.optional-dependencies]
 test = ["pytest"]

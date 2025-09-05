@@ -6,9 +6,9 @@ User case
 
    DRAFT
 
+Working with input
+==================
 
-Scenario
-========
 How to create different scenarios through a user case. 
 
 
@@ -34,8 +34,12 @@ To run the model with the new scenario you can use
    ebm --input=input_tek30
 
 
-Adding new building code TEK30
-++++++++++++++++++++++++++++++
+User case: Add a new building code
+==================================
+
+
+Define the new building code
+++++++++++++++++++++++++++++
 
 Add tek30 to building_code_parameters.csv with building_year and period_start_year set to 2030 and period_end_year set to 2050.
 
@@ -92,6 +96,8 @@ EBM does not allow  overlapping periods in building_code_parameters.csv. So we m
 
         `Download building_code_parameters.csv <_static/user_case/tek30/building_code_parameters.csv>`_
 
+Define energy need for TEK30
+++++++++++++++++++++++++++++
 
 All building codes must have it's energy need defined in energy_need_original_condition.csv.
 
@@ -266,13 +272,14 @@ All building codes must have it's energy need defined in energy_need_original_co
 
         `Download energy_need_original_condition.csv <_static/user_case/tek30/energy_need_original_condition.csv>`_
 
-
+Define heating system initial shares for TEK30
+++++++++++++++++++++++++++++++++++++++++++++++
 
 Finally `heating_system_initial_shares.csv` must have heating system share defined for TEK30.
 
 .. tabs::
 
-   .. tab:: Summary table heating systems initial shares
+   .. tab:: Summary table
 
         .. csv-table:: Summary heating_system_initial_shares.csv
            :header: building_category,building_code,heating_systems,year,heating_system_share
@@ -590,7 +597,7 @@ Finally `heating_system_initial_shares.csv` must have heating system share defin
 Similarly to TEK17 there is no need to add TEK30 to `area.csv` as all the area will built after the start year 2020.
 
 
-Optionally, add a line to `energy_need_improvements_tek30.csv` if you think there is no yearly_reduction for TEK30 lighting.
+Optionally, you can add a line to `energy_need_improvements_tek30.csv` if you think that there is no yearly reduction lighting with TEK30 .
 
 
 .. code-block:: csv

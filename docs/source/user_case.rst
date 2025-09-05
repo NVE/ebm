@@ -95,7 +95,7 @@ All building codes must have it's energy need defined in energy_need_original_co
 
    .. tab:: Summary table
 
-        bla bla bla
+        Open *formatted table* and *raw csv* for complete listings
 
         .. csv-table:: Summary energy_need_original_condition.csv
            :header: building_category,building_code,purpose,kwh_m2
@@ -115,7 +115,7 @@ All building codes must have it's energy need defined in energy_need_original_co
 
    .. tab:: Formatted table
 
-        bla bla bla
+        You should be able to paste the content of this table into energy_need_original_condition.csv when using Excel
 
         .. csv-table:: Excerpt energy_need_original_condition.csv
            :header: building_category,building_code,purpose,kwh_m2
@@ -188,7 +188,7 @@ All building codes must have it's energy need defined in energy_need_original_co
 
    .. tab:: Raw csv
 
-        Add this CSV text to the end of energy_need_original_condition.csv
+        You can add the raw excel content at the end of energy_need_original_condition.csv using notepad or a similar text editor.
 
         .. code-block:: text
 

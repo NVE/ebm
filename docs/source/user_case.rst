@@ -39,14 +39,14 @@ Adding new building code TEK30
 
 Add tek30 to building_code_parameters.csv with building_year and period_start_year set to 2030 and period_end_year set to 2050.
 
-.. code-block:: csv
+.. code-block:: text
 
    TEK30,2030,2030,2050
 
 
 EBM does not allow  overlapping periods in building_code_parameters.csv. So we must also change the period end year for TEK17 from 2050 to 2029.
 
-.. code-block:: csv
+.. code-block:: text
 
    TEK17,2025,2020,2029
 
@@ -55,7 +55,7 @@ EBM does not allow  overlapping periods in building_code_parameters.csv. So we m
 
    .. tab:: Formatted table
 
-        Tekst inni fane DRAFT
+        `building_code_parameters.csv` content should be the same as below. This is the default file with the addition of TEK30 and period_end_year changed for TEK17.
 
         .. csv-table:: Complete building_code_parameters.csv
            :header: "building_code", "building_year", "period_start_year", "period_end_year"
@@ -73,7 +73,7 @@ EBM does not allow  overlapping periods in building_code_parameters.csv. So we m
 
    .. tab:: Raw CSV
 
-        bla bla bla
+        You can add the raw excel content at the end of building_code_parameters.csv using notepad or a similar text editor.
 
         .. code-block:: csv
 
@@ -87,6 +87,10 @@ EBM does not allow  overlapping periods in building_code_parameters.csv. So we m
             TEK10,2018,2011,2019
             TEK17,2025,2020,2029
             TEK30,2030,2030,2050
+
+   .. tab:: Download
+
+        `Download building_code_parameters.csv <_static/user_case/tek30/building_code_parameters.csv>`_
 
 
 All building codes must have it's energy need defined in energy_need_original_condition.csv.
@@ -258,12 +262,39 @@ All building codes must have it's energy need defined in energy_need_original_co
             hospital,TEK30,heating_rv,78.03709182765022
             kindergarten,TEK30,heating_dhw,10.02333333333333
 
+   .. tab:: Download
+
+        `Download energy_need_original_condition.csv <_static/user_case/tek30/energy_need_original_condition.csv>`_
 
 
 
 Finally `heating_system_initial_shares.csv` must have heating system share defined for TEK30.
 
 .. tabs::
+
+   .. tab:: Summary table heating systems initial shares
+
+        .. csv-table:: Summary heating_system_initial_shares.csv
+           :header: building_category,building_code,heating_systems,year,heating_system_share
+
+            office,TEK30,DH,2023,0.3182453573763764
+            nursing_home,TEK30,DH - Bio,2023,0.0002142250969049
+            office,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
+            school,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
+            school,TEK30,HP Central heating - Electric boiler,2023,0.364043511904947
+            school,TEK30,HP Central heating - Bio,2023,0.00019362655741
+            kindergarten,TEK30,HP Central heating - Electric boiler,2023,0.364043511904947
+            …,…,…,…,…
+            sports,TEK30,Electric boiler,2023,0.0596845137090352
+            sports,TEK30,Electricity,2023,0.0706818896188211
+            sports,TEK30,DH,2023,0.3182453573763764
+            sports,TEK30,HP Central heating - Bio,2023,0.00019362655741
+            sports,TEK30,HP - Electricity,2023,0.1632849356867121
+            sports,TEK30,Electricity - Bio,2023,0.0216740945571909
+            sports,TEK30,Gas,2023,0.0016565044759408
+            sports,TEK30,HP Central heating - Electric boiler,2023,0.364043511904947
+            sports,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
+            sports,TEK30,Electric boiler - Solar,2023,0.0002493794096936
 
    .. tab:: formatted table
 

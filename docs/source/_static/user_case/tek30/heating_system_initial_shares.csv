@@ -1,0 +1,139 @@
+building_category,building_code,heating_systems,year,heating_system_share
+sports,TEK30,DH,2023,0.3182453573763764
+office,TEK30,DH,2023,0.3182453573763764
+nursing_home,TEK30,DH - Bio,2023,0.000214225
+office,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
+school,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
+school,TEK30,HP Central heating - Electric boiler,2023,0.364043512
+school,TEK30,HP Central heating - Bio,2023,0.000193627
+school,TEK30,HP - Electricity,2023,0.1632849356867121
+school,TEK30,Gas,2023,0.001656504
+school,TEK30,Electricity - Bio,2023,0.021674095
+school,TEK30,Electricity,2023,0.07068189
+school,TEK30,Electric boiler - Solar,2023,0.000249379
+school,TEK30,Electric boiler,2023,0.059684514
+school,TEK30,DH - Bio,2023,0.000214225
+school,TEK30,DH,2023,0.3182453573763764
+retail,TEK30,DH,2023,0.3182453573763764
+retail,TEK30,DH - Bio,2023,0.000214225
+retail,TEK30,Electric boiler,2023,0.059684514
+retail,TEK30,Electric boiler - Solar,2023,0.000249379
+retail,TEK30,Electricity,2023,0.07068189
+retail,TEK30,Electricity - Bio,2023,0.021674095
+retail,TEK30,Gas,2023,0.001656504
+retail,TEK30,HP - Electricity,2023,0.1632849356867121
+retail,TEK30,HP Central heating - Bio,2023,0.000193627
+retail,TEK30,HP Central heating - Electric boiler,2023,0.364043512
+retail,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
+office,TEK30,HP Central heating - Electric boiler,2023,0.364043512
+nursing_home,TEK30,DH,2023,0.3182453573763764
+office,TEK30,HP Central heating - Bio,2023,0.000193627
+office,TEK30,Gas,2023,0.001656504
+nursing_home,TEK30,Electric boiler,2023,0.059684514
+nursing_home,TEK30,Electric boiler - Solar,2023,0.000249379
+nursing_home,TEK30,Electricity,2023,0.07068189
+nursing_home,TEK30,Electricity - Bio,2023,0.021674095
+nursing_home,TEK30,Gas,2023,0.001656504
+nursing_home,TEK30,HP - Electricity,2023,0.1632849356867121
+nursing_home,TEK30,HP Central heating - Bio,2023,0.000193627
+nursing_home,TEK30,HP Central heating - Electric boiler,2023,0.364043512
+nursing_home,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
+house,TEK30,HP - Electricity,2023,0.099294732
+house,TEK30,HP - Bio - Electricity,2023,0.5649908788840201
+house,TEK30,Electricity - Bio,2023,0.2247326376682365
+house,TEK30,Electricity,2023,0.052198491
+house,TEK30,Electric boiler - Solar,2023,0.000300859
+house,TEK30,Electric boiler,2023,0.025677593
+house,TEK30,DH - Bio,2023,0.007658007
+house,TEK30,DH,2023,0.021331511
+sports,TEK30,DH - Bio,2023,0.000214225
+office,TEK30,DH - Bio,2023,0.000214225
+office,TEK30,Electric boiler,2023,0.059684514
+office,TEK30,Electric boiler - Solar,2023,0.000249379
+office,TEK30,Electricity,2023,0.07068189
+office,TEK30,Electricity - Bio,2023,0.021674095
+office,TEK30,HP - Electricity,2023,0.1632849356867121
+sports,TEK30,Electric boiler,2023,0.059684514
+storage_repairs,TEK30,DH,2023,0.3182453573763764
+sports,TEK30,Electricity,2023,0.07068189
+hospital,TEK30,HP Central heating - Electric boiler,2023,0.364043512
+hospital,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
+university,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
+university,TEK30,HP Central heating - Electric boiler,2023,0.364043512
+university,TEK30,HP Central heating - Bio,2023,0.000193627
+university,TEK30,HP - Electricity,2023,0.1632849356867121
+university,TEK30,Gas,2023,0.001656504
+university,TEK30,Electricity - Bio,2023,0.021674095
+university,TEK30,Electricity,2023,0.07068189
+university,TEK30,Electric boiler - Solar,2023,0.000249379
+university,TEK30,Electric boiler,2023,0.059684514
+university,TEK30,DH - Bio,2023,0.000214225
+university,TEK30,DH,2023,0.3182453573763764
+hospital,TEK30,HP Central heating - Bio,2023,0.000193627
+hotel,TEK30,DH,2023,0.3182453573763764
+hotel,TEK30,Electric boiler,2023,0.059684514
+hotel,TEK30,Electric boiler - Solar,2023,0.000249379
+hotel,TEK30,Electricity,2023,0.07068189
+hotel,TEK30,Electricity - Bio,2023,0.021674095
+hotel,TEK30,Gas,2023,0.001656504
+hotel,TEK30,HP - Electricity,2023,0.1632849356867121
+hotel,TEK30,HP Central heating - Bio,2023,0.000193627
+sports,TEK30,Electric boiler - Solar,2023,0.000249379
+hotel,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
+house,TEK30,HP Central heating - Electric boiler,2023,0.00381529
+storage_repairs,TEK30,Gas,2023,0.001656504
+storage_repairs,TEK30,HP - Electricity,2023,0.1632849356867121
+storage_repairs,TEK30,HP Central heating - Bio,2023,0.000193627
+hotel,TEK30,DH - Bio,2023,0.000214225
+hospital,TEK30,HP - Electricity,2023,0.1632849356867121
+hospital,TEK30,Gas,2023,0.001656504
+hospital,TEK30,Electricity - Bio,2023,0.021674095
+storage_repairs,TEK30,Electric boiler,2023,0.059684514
+storage_repairs,TEK30,Electric boiler - Solar,2023,0.000249379
+storage_repairs,TEK30,Electricity,2023,0.07068189
+storage_repairs,TEK30,Electricity - Bio,2023,0.021674095
+culture,TEK30,DH,2023,0.3182453573763764
+culture,TEK30,DH - Bio,2023,0.000214225
+culture,TEK30,Electric boiler,2023,0.059684514
+culture,TEK30,Electric boiler - Solar,2023,0.000249379
+culture,TEK30,Electricity,2023,0.07068189
+culture,TEK30,Electricity - Bio,2023,0.021674095
+culture,TEK30,Gas,2023,0.001656504
+culture,TEK30,HP - Electricity,2023,0.1632849356867121
+culture,TEK30,HP Central heating - Bio,2023,0.000193627
+culture,TEK30,HP Central heating - Electric boiler,2023,0.364043512
+culture,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
+apartment_block,TEK30,HP Central heating - Electric boiler,2023,0.1487089355849942
+apartment_block,TEK30,HP Central heating - Bio,2023,0.008664794
+apartment_block,TEK30,HP - Electricity,2023,0.007304632
+apartment_block,TEK30,Electricity - Bio,2023,0.1128016818166627
+apartment_block,TEK30,Electricity,2023,0.4560101624930742
+apartment_block,TEK30,Electric boiler - Solar,2023,0.000339067
+apartment_block,TEK30,Electric boiler,2023,0.056017026
+apartment_block,TEK30,DH - Bio,2023,0.003394661
+apartment_block,TEK30,DH,2023,0.2067590404511287
+hospital,TEK30,DH,2023,0.3182453573763764
+hospital,TEK30,DH - Bio,2023,0.000214225
+hospital,TEK30,Electric boiler,2023,0.059684514
+hospital,TEK30,Electric boiler - Solar,2023,0.000249379
+hospital,TEK30,Electricity,2023,0.07068189
+storage_repairs,TEK30,HP Central heating - Electric boiler,2023,0.364043512
+storage_repairs,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
+hotel,TEK30,HP Central heating - Electric boiler,2023,0.364043512
+sports,TEK30,HP Central heating - Electric boiler,2023,0.364043512
+sports,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
+kindergarten,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
+kindergarten,TEK30,Gas,2023,0.001656504
+kindergarten,TEK30,HP - Electricity,2023,0.1632849356867121
+storage_repairs,TEK30,DH - Bio,2023,0.000214225
+kindergarten,TEK30,DH,2023,0.3182453573763764
+kindergarten,TEK30,DH - Bio,2023,0.000214225
+kindergarten,TEK30,Electric boiler,2023,0.059684514
+kindergarten,TEK30,Electricity - Bio,2023,0.021674095
+kindergarten,TEK30,Electricity,2023,0.07068189
+kindergarten,TEK30,HP Central heating - Bio,2023,0.000193627
+kindergarten,TEK30,HP Central heating - Electric boiler,2023,0.364043512
+sports,TEK30,HP Central heating - Bio,2023,0.000193627
+sports,TEK30,HP - Electricity,2023,0.1632849356867121
+sports,TEK30,Electricity - Bio,2023,0.021674095
+sports,TEK30,Gas,2023,0.001656504

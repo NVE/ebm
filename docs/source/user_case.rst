@@ -93,6 +93,26 @@ All building codes must have it's energy need defined in energy_need_original_co
 
 .. tabs::
 
+   .. tab:: Summary table
+
+        bla bla bla
+
+        .. csv-table:: Summary energy_need_original_condition.csv
+           :header: building_category,building_code,purpose,kwh_m2
+
+                office,TEK30,cooling,15.44310555555556
+                university,TEK30,cooling,19.2249
+                sports,TEK30,cooling,0.0
+                office,TEK30,heating_rv,25.89288134147665
+                office,TEK30,electrical_equipment,34.45833333333334
+                …,…,…,…
+                hospital,TEK30,electrical_equipment,46.72
+                hospital,TEK30,cooling,30.77232222222222
+                kindergarten,TEK30,heating_rv,74.22534704119848
+                kindergarten,TEK30,fans_and_pumps,22.46678333333334
+                hospital,TEK30,heating_rv,78.03709182765022
+                kindergarten,TEK30,heating_dhw,10.02333333333333
+
    .. tab:: Formatted table
 
         bla bla bla
@@ -168,7 +188,9 @@ All building codes must have it's energy need defined in energy_need_original_co
 
    .. tab:: Raw csv
 
-        .. code-block:: csv
+        Add this CSV text to the end of energy_need_original_condition.csv
+
+        .. code-block:: text
 
             office,TEK30,cooling,15.44310555555556
             university,TEK30,cooling,19.2249
@@ -235,6 +257,7 @@ All building codes must have it's energy need defined in energy_need_original_co
             kindergarten,TEK30,fans_and_pumps,22.46678333333334
             hospital,TEK30,heating_rv,78.03709182765022
             kindergarten,TEK30,heating_dhw,10.02333333333333
+
 
 
 

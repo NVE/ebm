@@ -2,53 +2,111 @@ User case
 #########
 
 
-.. note::
+This guide demonstrates how to create and configure a new scenario in EBM by introducing a hypothetical future building code: *TEK30*.
+Scenario-based modeling in EBM allows users to explore alternative planning assumptions, regulatory changes, and energy performance impacts by managing separate input directories.
 
-   DRAFT
+The TEK30 scenario showcases how to:
+ - Create a dedicated input directory for scenario data
+ - Define a new building code and its timeline
+ - Specify energy needs across building categories
+ - Configure heating system shares
+ - Optionally adjust lighting improvements
+
 
 Working with input
 ==================
 
-How to create different scenarios through a user case. 
+EBM supports scenario-based modeling by allowing users to create and manage separate input directories. This enables
+flexible experimentation with different assumptions and configurations.
 
 
-EBM has built in support for making and using different directories as it's input.
+Creating an input directory for a scenario
+++++++++++++++++++++++++++++++++++++++++++
 
-Creating a new scenario
-+++++++++++++++++++++++
-
-To create a new scenario with EBM the default input use the command:
+To create a new scenario with EBM the default input open your favourite terminal program and type the command:
 
 .. code-block:: bash
 
    ebm --create-input --input=input_tek30
 
 
-Running a scenario
-++++++++++++++++++
+The input directory will be created path defined after `--input==`. In this case the files will be added to the
+subdirectory `input_tek30`.
+If the directory you name does not already exist, the program will attempt to create it. All input files necessary to run ebm will be created, with their default values, in the supplied path.
 
-To run the model with the new scenario you can use
+
+.. tip::
+
+    You can choose any valid directory name, but it is a good idea to limit to letters, numbers, and underscore. Avoid using space.
+
+
+.. admonition:: Endringsforslag
+
+   Bruke usercase-tek30 i stedet for input_tek30?
+
+
+Using the input directory
++++++++++++++++++++++++++
+
+Once the input directory is ready, you can run the model using:
 
 .. code-block:: bash
 
    ebm --input=input_tek30
 
 
+
 User case: Add a new building code
 ==================================
 
+This example demonstrates how to use EBM’s scenario functionality by adding a new building code. TEK30 represents
+a hypothetical future building code introduced as part of a user case to demonstrate how EBM handles scenario-based
+modeling.
 
-Define the new building code
-++++++++++++++++++++++++++++
 
-Add tek30 to building_code_parameters.csv with building_year and period_start_year set to 2030 and period_end_year set to 2050.
+To add TEK30 to ebm you will need to
+ - Add the new building code to the model in building_code_parameters.csv
+ - Define energy needs for TEK30 in energy_need_original_condition.csv
+ - Specify heating system shares in heating_system_initial_shares.csv
+
+
+This process showcases how EBM can be extended to simulate future regulations or alternative planning assumptions.
+
+
+Add the new building code
++++++++++++++++++++++++++
+
+The timeline and classification of building codes used by EBM are defined in the csv file ``building_code_parameters.csv``.
+To include TEK30 in your scenario, you must first define it in the file.
+
+You can edit building_code_parameters.csv using a
+plain text editor (e.g., Notepad) or spreadsheet software such as Microsoft Excel or LibreOffice Calc.
+
+
+.. tip::
+
+When using spreadsheet software, ensure the correct formatting is preserved when saving as CSV.
+
+    - comma ``,`` as the delimiter
+    - full stop ``.`` as the decimal separator
+
+
+.. Set the following values in building_code_parameters.csv:
+     - building_code: TEK30
+     - building_year: 2030
+     - period_start_year: 2030
+     - period_end_year: 2050
+
+Add the following line to building_code_parameters.csv to define TEK30 as a new building code entry:
 
 .. code-block:: text
 
    TEK30,2030,2030,2050
 
 
-EBM does not allow  overlapping periods in building_code_parameters.csv. So we must also change the period end year for TEK17 from 2050 to 2029.
+EBM does not allow overlapping periods in building_code_parameters.csv. Since TEK17 currently ends in 2050, we must adjust the end year for TEK17 as well:
+
+ To avoid overlapping periods, update the TEK17 entry in ``building_code_parameters.csv`` as follows:
 
 .. code-block:: text
 
@@ -59,7 +117,7 @@ EBM does not allow  overlapping periods in building_code_parameters.csv. So we m
 
    .. tab:: Formatted table
 
-        `building_code_parameters.csv` content should be the same as below. This is the default file with the addition of TEK30 and period_end_year changed for TEK17.
+        Below is the updated content of building_code_parameters.csv, including the new TEK30 entry and the adjusted period for TEK17.
 
         .. csv-table:: Complete building_code_parameters.csv
            :header: "building_code", "building_year", "period_start_year", "period_end_year"
@@ -67,7 +125,7 @@ EBM does not allow  overlapping periods in building_code_parameters.csv. So we m
 
            PRE_TEK49, 1945, 0, 1948
            TEK49,1962,1949,1968
-           TEK69,1977,1969,1986
+           TEK  69,1977,1969,1986
            TEK87,1991,1987,1996
            TEK97,2002,1997,2006
            TEK07,2012,2007,2010
@@ -96,8 +154,8 @@ EBM does not allow  overlapping periods in building_code_parameters.csv. So we m
 
         `Download building_code_parameters.csv <_static/user_case/tek30/building_code_parameters.csv>`_
 
-Define energy need for TEK30
-++++++++++++++++++++++++++++
+Define energy needs for TEK30
++++++++++++++++++++++++++++++
 
 All building codes must have it's energy need defined in energy_need_original_condition.csv.
 
@@ -272,8 +330,8 @@ All building codes must have it's energy need defined in energy_need_original_co
 
         `Download energy_need_original_condition.csv <_static/user_case/tek30/energy_need_original_condition.csv>`_
 
-Define heating system initial shares for TEK30
-++++++++++++++++++++++++++++++++++++++++++++++
+Specify heating system shares
++++++++++++++++++++++++++++++
 
 Finally `heating_system_initial_shares.csv` must have heating system share defined for TEK30.
 
@@ -591,12 +649,6 @@ Finally `heating_system_initial_shares.csv` must have heating system share defin
             sports,TEK30,Gas,2023,0.0016565044759408
 
 
-
-
-
-Similarly to TEK17 there is no need to add TEK30 to `area.csv` as all the area will built after the start year 2020.
-
-
 Optionally, you can add a line to `energy_need_improvements_tek30.csv` if you think that there is no yearly reduction lighting with TEK30 .
 
 
@@ -605,6 +657,7 @@ Optionally, you can add a line to `energy_need_improvements_tek30.csv` if you th
    default,TEK30,lighting,yearly_reduction,2031,0.0,2050
 
 
+Similarly to TEK17, there is no need to add TEK30 to `area.csv` as all the area in both TEKs will be built after the start year 2020.
 
 
 

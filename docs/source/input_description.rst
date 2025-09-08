@@ -335,8 +335,8 @@ Historical energy use of fuel wood, electricity and fossil fuel in holiday homes
 ``fossilfuel``
  - integer or empty
 
-heating_systems_forecast
-------------------------
+heating_system_forecast
+-----------------------
 Defines the rate of change in heating systems towards 2050. The change is made on a percentage basis compared with the start year.
 
 

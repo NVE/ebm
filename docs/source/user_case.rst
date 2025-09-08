@@ -161,7 +161,7 @@ When done correctly ``building_code_parameters.csv`` should look like the exampl
 Define energy needs for TEK30
 +++++++++++++++++++++++++++++
 
-All building codes must have it's energy need defined in energy_need_original_condition.csv.
+All building codes must have it's energy need defined in :ref:`energy_need_original_condition.csv<energy_need_original_condition>`.
 
 .. tabs::
 
@@ -337,7 +337,7 @@ All building codes must have it's energy need defined in energy_need_original_co
 Specify heating system shares
 +++++++++++++++++++++++++++++
 
-Finally `heating_system_initial_shares.csv` must have heating system share defined for TEK30.
+Finally :ref:`heating_system_initial_shares.csv<heating_system_initial_shares>` must have heating system share defined for TEK30.
 
 .. tabs::
 
@@ -653,7 +653,7 @@ Finally `heating_system_initial_shares.csv` must have heating system share defin
             sports,TEK30,Gas,2023,0.0016565044759408
 
 
-Optionally, you can add a line to `energy_need_improvements.csv` if you think that there is no yearly reduction lighting with TEK30 .
+Optionally, you can add a line to :ref:`energy_need_improvements.csv<energy_need_improvements>` if you think that there is no yearly reduction lighting with TEK30 .
 
 
 .. code-block:: csv
@@ -661,18 +661,18 @@ Optionally, you can add a line to `energy_need_improvements.csv` if you think th
    default,TEK30,lighting,yearly_reduction,2031,0.0,2050
 
 
-Similarly to TEK17, there is no need to add TEK30 to ``area.csv`` as all the area in both TEKs will be built after the start year 2020.
+Similarly to TEK17, there is no need to add TEK30 to :ref:`area.csv<area>` as all the area in both TEKs will be built after the start year 2020.
 
 
 Extra credit
 ++++++++++++
 
-The input files ``heating_system_forecast.csv``, ``improvement_building_upgrade.csv`` and ``energy_need_behaviour_factor.csv``
+The input files :ref:`heating_system_forecast.csv<heating_system_forecast>`, :ref:`improvement_building_upgrade.csv<improvement_building_upgrade>` and :ref:`energy_need_behaviour_factor.csv<energy_need_behaviour_factor>`
 have defined default values under the column building_code that will apply to TEK30. For extra credit you may override the defaults with your own values.
 
 Example:
 
-In ``energy_need_behaviour_factor.csv`` add TEK30 to the house row's building_code column:
+In :ref:`energy_need_behaviour_factor.csv<energy_need_behaviour_factor>` add TEK30 to the house row's building_code column:
 
 This row:
 

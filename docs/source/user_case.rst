@@ -653,24 +653,27 @@ Finally :ref:`heating_system_initial_shares.csv<heating_system_initial_shares>` 
             sports,TEK30,Gas,2023,0.0016565044759408
 
 
-Optionally, you can add a line to :ref:`energy_need_improvements.csv<energy_need_improvements>` if you think that there is no yearly reduction lighting with TEK30 .
-
-
-.. code-block:: csv
-
-   default,TEK30,lighting,yearly_reduction,2031,0.0,2050
-
-
 Similarly to TEK17, there is no need to add TEK30 to :ref:`area.csv<area>` as all the area in both TEKs will be built after the start year 2020.
 
 
 Extra credit
 ++++++++++++
 
-The input files :ref:`heating_system_forecast.csv<heating_system_forecast>`, :ref:`improvement_building_upgrade.csv<improvement_building_upgrade>` and :ref:`energy_need_behaviour_factor.csv<energy_need_behaviour_factor>`
+The input files :ref:`energy_need_improvements.csv<energy_need_improvements>`, :ref:`heating_system_forecast.csv<heating_system_forecast>`, :ref:`improvement_building_upgrade.csv<improvement_building_upgrade>` and :ref:`energy_need_behaviour_factor.csv<energy_need_behaviour_factor>`
 have defined default values under the column building_code that will apply to TEK30. For extra credit you may override the defaults with your own values.
 
-Example:
+
+energy need improvements
+""""""""""""""""""""""""
+
+Optionally, you can add a line to :ref:`energy_need_improvements.csv<energy_need_improvements>` if you think that there is no yearly reduction lighting with TEK30 .
+
+.. code-block:: csv
+
+   default,TEK30,lighting,yearly_reduction,2031,0.0,2050
+
+energy need behaviour factor
+""""""""""""""""""""""""""""
 
 In :ref:`energy_need_behaviour_factor.csv<energy_need_behaviour_factor>` add TEK30 to the house row's building_code column:
 
@@ -685,8 +688,6 @@ Becomes:
 .. code-block::
 
    house,TEK07+TEK10+TEK17+TEK30,lighting,0.85,2020,noop,2050
-
-
 
 
 Troubleshooting

@@ -158,7 +158,7 @@ only uses the area attributed to storage and warehouses, and the category is the
   :delim: ;
 
 .. csv-table:: Building codes and their active years
-  :file: tables\building_code.csv
+  :file: tables\building_code_parameters.csv
   :header-rows: 1
   :widths: 25 25 25 25
   :delim: ,

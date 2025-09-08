@@ -23,7 +23,7 @@ flexible experimentation with different assumptions and configurations.
 Creating an input directory for a scenario
 ++++++++++++++++++++++++++++++++++++++++++
 
-To create a new scenario with EBM the default input open your favourite terminal program and type the command:
+To create a new scenario in EBM, open your preferred terminal and run the following command:
 
 .. code-block:: bash
 
@@ -668,7 +668,24 @@ Extra credit
 ++++++++++++
 
 The input files ``heating_system_forecast.csv``, ``improvement_building_upgrade.csv`` and ``energy_need_behaviour_factor.csv``
-have defined default values that will apply to TEK30. Replace the defaults with your own values.
+have defined default values under the column building_code that will apply to TEK30. For extra credit you may override the defaults with your own values.
+
+Example:
+
+In ``energy_need_behaviour_factor.csv`` add TEK30 to the house row's building_code column:
+
+This row:
+
+.. code-block::
+
+   house,TEK07+TEK10+TEK17,lighting,0.85,2020,noop,2050
+
+Becomes:
+
+.. code-block::
+
+   house,TEK07+TEK10+TEK17+TEK30,lighting,0.85,2020,noop,2050
+
 
 
 

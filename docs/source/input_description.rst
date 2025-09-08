@@ -371,6 +371,87 @@ heating_systems_efficiencies
 ----------------------------
 Parameters of the various heating technologies. Includes load shares, efficiencies and the related energy product.
 
+``heating_systems``
+ - required
+ - string
+
+``Grunnlast``
+ - required
+ - string
+
+``Spisslast``
+ - required
+ - string
+
+``Ekstralast``
+ - required
+ - string
+
+``Grunnlast energivare``
+ - required
+ - string
+
+``Spisslast energivare``
+ - required
+ - string
+
+``Ekstralast energivare``
+ - required
+ - string
+
+``Ekstralast andel``
+ - required
+ - float
+ - float using a decimal point ('.') as the separator
+ - **0.0** ≤ value ≤ **1.0**
+
+``Grunnlast andel``
+ - required
+ - float
+ - **0.0** ≤ value ≤ **1.0**
+
+``Spisslast andel``
+ - required
+ - float
+ - **0.0** ≤ value ≤ **1.0**
+
+``Grunnlast virkningsgrad``
+ - required
+ - float
+ - value > **0.0**
+
+``Spisslast virkningsgrad``
+ - required
+ - float
+ - value > **0.0**
+
+``Ekstralast virkningsgrad``
+ - required
+ - float
+ - value > **0.0**
+
+``Tappevann``
+ - required
+ - string
+
+``Tappevann energivare``
+ - required
+ - string
+
+``Tappevann virkningsgrad``
+ - required
+ - float
+ - value > **0.0**
+
+``Spesifikt elforbruk``
+ - required
+ - float
+
+``Kjoling virkningsgrad``
+ - required
+ - float
+ - value > **0.0**
+
 .. |date| date::
 
 Last Updated on |date|.

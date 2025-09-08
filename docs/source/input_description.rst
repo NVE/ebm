@@ -1,5 +1,5 @@
 Input
-#############################
+#####
 
 Each input file is described here. The heading is the file name, followed by a short description of its contents and constraints. Text in orange is the column name.
 
@@ -8,7 +8,7 @@ Input constraints
 
 
 area
-----------------
+----
 Useful floor area in the start year 2020 distributed by building category and building code.
 
 ``building_category``
@@ -25,7 +25,7 @@ Useful floor area in the start year 2020 distributed by building category and bu
  - **≥** 0.0
 
 area_new_residential_buildings
--------------------------------------
+------------------------------
 New useful floor area for residential buildings in 2020 and 2021 from statistics.
 
 ``year``
@@ -58,7 +58,7 @@ Useful floor area for new non-residential buildings based on population growth.
 
 
 building_code
---------------
+-------------
 Year of operation for the different building codes. 
 
 ``building_code``
@@ -122,7 +122,7 @@ Average size of new apartments and houses. Proportion of new homes that are apar
  - 0 **≤** value **≤** 1000
 
 population_forecast
-----------
+-------------------
 Population forecast from Statistics Norway and average household size.
 
 ``year``
@@ -141,7 +141,7 @@ Population forecast from Statistics Norway and average household size.
  - float using a decimal point ('.') as the separator
 
 s_curve
------------------
+-------
 Parameters to create S-curves. Parameters are given for small measures, renovation and demolition for each building category.
 
 ``building_category``
@@ -181,7 +181,7 @@ Parameters to create S-curves. Parameters are given for small measures, renovati
  - **0.0** < value ≤ **1.0** (not including zero)
 
 energy_need_original_condition
--------------------------------------
+------------------------------
 Energy need per square meter for various energy purposes differentiated by building code and building category. The given energy need is only for a buildings
 original purpose. 
 
@@ -202,7 +202,7 @@ original purpose.
  - float using a decimal point ('.') as the separator
  - value **≥** 0.0
 
-improvment_building_upgrade
+improvement_building_upgrade
 ----------------------------
 Reduction in heating energy need from completed small measures, renovation and small measures + renovation. Percentage reduction compared to the original condition. 
 
@@ -228,7 +228,7 @@ Reduction in heating energy need from completed small measures, renovation and s
  - **0.0** ≤ value ≤ **1.0**
 
 energy_need_behaviour_factor
---------------------------------------
+----------------------------
 Changes in energy need not related to the improvements in heating need from the s-curves. 
 
 ``building_category``
@@ -302,7 +302,7 @@ Reduction in lighting and equipment energy need from implementation of ecodesign
 
 
 holiday_home_stock
---------------------
+------------------
 Stock of holiday homes per year from 2001. Statistics from Statistics Norway. 
 
 ``year``
@@ -341,7 +341,7 @@ Defines the rate of change in heating systems towards 2050. The change is made o
 
 
 heating_system_initial_shares
----------------------------------
+-----------------------------
 Distribution of heating systems per building category and building code in the start year.
 
 ``building_category``

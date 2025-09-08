@@ -1,37 +1,69 @@
 Input
 #############################
 
-Input description
-=================
-Forklaring av de ulike inputfilene. 
-
-
+Each input file is described here. The heading is the file name, followed by a short description of its contents and constraints. Text in orange is the column name.
 
 Input constraints
 =================
 
-area_parameters
+
+area
 ----------------
+Useful floor area in the start year 2020 distributed by building category and building code.
 
 ``building_category``
  - required
  - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
 
-``TEK``
+``building_code``
  - required
- - values: Any string containing ``TEK``
+ - values: Any string containing ``building_code``
 
 ``area``
  - required
  - float using a decimal point ('.') as the separator
  - **≥** 0.0
 
+area_new_residential_buildings
+-------------------------------------
+New useful floor area for residential buildings in 2020 and 2021 from statistics.
+
+``year``
+ - required
+ - integer
+ - Values outside of model start year and model start year +1 might not be supported (2020, 2021)
+
+``house``
+ - required
+ - float using a decimal point ('.') as the separator
+ - **≥** 0.0
+
+``apartment_block``
+ - required
+ - float using a decimal point ('.') as the separator
+ - **≥** 0.0
+
+area_per_person
+---------------
+Useful floor area for new non-residential buildings based on population growth.
+
+``building_category``
+ - required
+ - values: kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
+
+``area_per_person``
+ - required
+ - value **≥** 0
+ - float using a decimal point ('.') as the separator
+
+
 building_code
 --------------
+Year of operation for the different building codes. 
 
-``TEK``
+``building_code``
  - required
- - values: Any string containing ``TEK``
+ - values: Any string containing ``building_code``
 
 ``building_year``
  - required
@@ -57,26 +89,10 @@ building_code
 
 must cover all years within lowest period_start_year to highest period_end_year
 
-construction_building_category_yearly
--------------------------------------
 
-``year``
- - required
- - integer
- - Values outside of model start year and model start year +1 might not be supported (2020, 2021)
-
-``house``
- - required
- - float using a decimal point ('.') as the separator
- - **≥** 0.0
-
-``apartment_block``
- - required
- - float using a decimal point ('.') as the separator
- - **≥** 0.0
-
-new_buildings_house_share
+new_buildings_residential
 -------------------------
+Average size of new apartments and houses. Proportion of new homes that are apartments and houses per year. 
 
 ``year``
  - required
@@ -105,8 +121,9 @@ new_buildings_house_share
  - Integer
  - 0 **≤** value **≤** 1000
 
-population
+population_forecast
 ----------
+Population forecast from Statistics Norway and average household size.
 
 ``year``
  - required
@@ -123,8 +140,9 @@ population
  - value **≥** 0
  - float using a decimal point ('.') as the separator
 
-scurve_parameters
+s_curve
 -----------------
+Parameters to create S-curves. Parameters are given for small measures, renovation and demolition for each building category.
 
 ``building_category``
  - required
@@ -162,14 +180,16 @@ scurve_parameters
  - float using a decimal point ('.') as the separator
  - **0.0** < value ≤ **1.0** (not including zero)
 
-energy_requirement_original_condition
+energy_need_original_condition
 -------------------------------------
+Energy need per square meter for various energy purposes differentiated by building code and building category. The given energy need is only for a buildings
+original purpose. 
 
 ``building_category``
  - required
  - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
 
-``TEK``
+``building_code``
  - required
  - values: Any string containing ``TEK``
 
@@ -182,14 +202,15 @@ energy_requirement_original_condition
  - float using a decimal point ('.') as the separator
  - value **≥** 0.0
 
-energy_requirement_reduction_per_condition
-------------------------------------------
+improvment_building_upgrade
+----------------------------
+Reduction in heating energy need from completed small measures, renovation and small measures + renovation. Percentage reduction compared to the original condition. 
 
 ``building_category``
  - required
  - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
 
-``TEK``
+``building_code``
  - required
  - values: Any string containing ``TEK``
 
@@ -206,34 +227,15 @@ energy_requirement_reduction_per_condition
  - float using a decimal point ('.') as the separator
  - **0.0** ≤ value ≤ **1.0**
 
-energy_requirement_yearly_improvements
+energy_need_behaviour_factor
 --------------------------------------
+Changes in energy need not related to the improvements in heating need from the s-curves. 
 
 ``building_category``
  - required
  - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
 
-``TEK``
- - required
- - values: Any string containing ``TEK``
-
-``purpose``
- - required
- - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling'
-
-``yearly_efficiency_improvement``
- - required
- - float using a decimal point ('.') as the separator
- - **0.0** ≤ value ≤ **1.0**
-
-energy_requirement_policy_improvements
---------------------------------------
-
-``building_category``
- - required
- - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
-
-``TEK``
+``building_code``
  - required
  - values: Any string containing ``TEK``
 
@@ -258,14 +260,15 @@ energy_requirement_policy_improvements
 
 energy_need_improvements
 ------------------------
+Reduction in lighting and equipment energy need from implementation of ecodesign.
 
 ``building_category``
  - required
  - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs, default, residential, non_residential
 
-``TEK``
+``building_code``
  - required
- - values: Any string containing ``TEK``
+ - values: Any string containing ``building_code``
 
 ``purpose``
  - required
@@ -298,14 +301,15 @@ energy_need_improvements
 
 
 
-holiday_home_by_year
+holiday_home_stock
 --------------------
+Stock of holiday homes per year from 2001. Statistics from Statistics Norway. 
 
 ``year``
  - required
  - integer
 
-``Existing buildings Chalet, summerhouses and other holiday house``
+``Existing buildings Chalet, summerhouses and other holiday houses``
  - required
  - integer
 
@@ -315,6 +319,8 @@ holiday_home_by_year
 
 holiday_home_energy_consumption
 -------------------------------
+Historical energy use of fuel wood, electricity and fossil fuel in holiday homes.
+
 
 ``year``
  - required
@@ -326,17 +332,23 @@ holiday_home_energy_consumption
 ``fuelwood``
  - integer or empty
 
-``fossil``
+``fossilfuel``
  - integer or empty
 
-heating_systems_shares_start_year
+heating_systems_forecast
+------------------------
+Defines the rate of change in heating systems towards 2050. The change is made on a percentage basis compared with the start year.
+
+
+heating_system_initial_shares
 ---------------------------------
+Distribution of heating systems per building category and building code in the start year.
 
 ``building_category``
  - required
  - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
 
-``TEK``
+``building_code``
  - required
  - values: Any string containing ``TEK``
 
@@ -347,15 +359,20 @@ heating_systems_shares_start_year
 ``heating_systems``
  - required
  - string
- - value: 'Electricity', 'Electricity - Bio', 'Electric boiler', 'Electric boiler - Solar', 'Gas', 'DH', 'DH - Bio
+ - value: 'Electricity', 'Electricity - Bio', 'Electric boiler', 'Electric boiler - Solar', 'Gas', 'DH', 'DH - Bio'
+
+ ``heating_system_share``
+ - required
+ - float
+ - float using a decimal point ('.') as the separator
+ - **0.0** ≤ value
+
+heating_systems_efficiencies
+----------------------------
+Parameters of the various heating technologies. Includes load shares, efficiencies and the related energy product.
 
 .. |date| date::
 
 Last Updated on |date|.
 
  Version: |version|.
-
-
-Last Updated on |date|.
-
-Version: |version|.

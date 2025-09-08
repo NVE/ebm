@@ -54,6 +54,11 @@ Once the input directory is ready, you can run the model using:
 
    ebm --input=input_tek30
 
+The model result as defined in with input_tek30 will be written to the subdirectory ``output``.
+
+.. seealso::
+
+   :ref:`Results <results>`
 
 
 User case: Add a new building code
@@ -65,9 +70,9 @@ modeling.
 
 
 To add TEK30 to ebm you will need to
- - Add the new building code to the model in building_code_parameters.csv
- - Define energy needs for TEK30 in energy_need_original_condition.csv
- - Specify heating system shares in heating_system_initial_shares.csv
+ - :ref:`Add the new building code to the model in building_code_parameters.csv<add the new building code>`
+ - :ref:`Define energy needs for TEK30 in energy_need_original_condition.csv<define energy needs for TEK30>`
+ - :ref:`Specify heating system shares in heating_system_initial_shares.csv<Specify heating system shares>`
 
 
 This process showcases how EBM can be extended to simulate future regulations or alternative planning assumptions.

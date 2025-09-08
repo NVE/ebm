@@ -361,7 +361,7 @@ Distribution of heating systems per building category and building code in the s
  - string
  - value: 'Electricity', 'Electricity - Bio', 'Electric boiler', 'Electric boiler - Solar', 'Gas', 'DH', 'DH - Bio'
 
- ``heating_system_share``
+``heating_system_share``
  - required
  - float
  - float using a decimal point ('.') as the separator

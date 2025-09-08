@@ -27,11 +27,11 @@ To create a new scenario with EBM the default input open your favourite terminal
 
 .. code-block:: bash
 
-   ebm --create-input --input=input_tek30
+   ebm --create-input --input=user-case-tek30
 
 
 The input directory will be created path defined after `--input==`. In this case the files will be added to the
-subdirectory `input_tek30`.
+subdirectory `user-case-tek30`.
 If the directory you name does not already exist, the program will attempt to create it. All input files necessary to run ebm will be created, with their default values, in the supplied path.
 
 
@@ -40,9 +40,7 @@ If the directory you name does not already exist, the program will attempt to cr
     You can choose any valid directory name, but it is a good idea to limit to letters, numbers, and underscore. Avoid using space.
 
 
-.. admonition:: Endringsforslag
 
-   Bruke usercase-tek30 i stedet for input_tek30?
 
 
 Using the input directory
@@ -52,9 +50,9 @@ Once the input directory is ready, you can run the model using:
 
 .. code-block:: bash
 
-   ebm --input=input_tek30
+   ebm --input=user-case-tek30
 
-The model result as defined in with input_tek30 will be written to the subdirectory ``output``.
+The model result as defined in with user-case-tek30 will be written to the subdirectory ``output``.
 
 .. seealso::
 
@@ -82,7 +80,7 @@ Add the new building code
 +++++++++++++++++++++++++
 
 The timeline and classification of building codes used by EBM are defined in the csv file ``building_code_parameters.csv``.
-To include TEK30 in your scenario, you must first define it in the file.
+To include TEK30 in your scenario, you must first define it in that file.
 
 You can edit building_code_parameters.csv using a
 plain text editor (e.g., Notepad) or spreadsheet software such as Microsoft Excel or LibreOffice Calc.
@@ -90,10 +88,9 @@ plain text editor (e.g., Notepad) or spreadsheet software such as Microsoft Exce
 
 .. tip::
 
-When using spreadsheet software, ensure the correct formatting is preserved when saving as CSV.
-
-    - comma ``,`` as the delimiter
-    - full stop ``.`` as the decimal separator
+   When using spreadsheet software, ensure the correct formatting is preserved when saving as CSV.
+    - Use comma ``,`` as the delimiter
+    - Use full stop ``.`` as the decimal separator
 
 
 .. Set the following values in building_code_parameters.csv:
@@ -118,11 +115,13 @@ EBM does not allow overlapping periods in building_code_parameters.csv. Since TE
    TEK17,2025,2020,2029
 
 
+When done correctly ``building_code_parameters.csv`` should look like the example below.
+
 .. tabs::
 
    .. tab:: Formatted table
 
-        Below is the updated content of building_code_parameters.csv, including the new TEK30 entry and the adjusted period for TEK17.
+        Below is the updated content of building_code_parameters.csv. The new TEK30 entry and the adjusted end period for TEK17 are outlined in bold.
 
         .. csv-table:: Complete building_code_parameters.csv
            :header: "building_code", "building_year", "period_start_year", "period_end_year"
@@ -157,7 +156,7 @@ EBM does not allow overlapping periods in building_code_parameters.csv. Since TE
 
    .. tab:: Download
 
-        `Download building_code_parameters.csv <_static/user_case/tek30/building_code_parameters.csv>`_
+        Optionally, `Download building_code_parameters.csv <_static/user_case/tek30/building_code_parameters.csv>`_ working example.
 
 Define energy needs for TEK30
 +++++++++++++++++++++++++++++
@@ -654,7 +653,7 @@ Finally `heating_system_initial_shares.csv` must have heating system share defin
             sports,TEK30,Gas,2023,0.0016565044759408
 
 
-Optionally, you can add a line to `energy_need_improvements_tek30.csv` if you think that there is no yearly reduction lighting with TEK30 .
+Optionally, you can add a line to `energy_need_improvements.csv` if you think that there is no yearly reduction lighting with TEK30 .
 
 
 .. code-block:: csv

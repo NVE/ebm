@@ -29,6 +29,11 @@ euismod mi eros, cursus ornare odio accumsan eu.
    Etiam quis purus in lacus molestie venenatis. Vestibulum **feugiat** non lorem non tristique. In nec viverra augue.
 
 
+.. admonition:: Endringsforslag/admonition?
+
+   What is an admonition? An admonition is a gentle or formal warning, advice, or reprimand. It’s often used to correct behavior or guide someone toward better choices without being overly harsh.
+
+
 Autonummerert liste
 -------------------
 

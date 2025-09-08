@@ -23,6 +23,11 @@ faucibus. Proin molestie iaculis gravida. Praesent sollicitudin a enim non effic
 euismod mi eros, cursus ornare odio accumsan eu.
 
 
+.. |term-foo| replace:: Foo is a concept that means ...
+
+This is an inline explanation: |term-foo|.
+
+
 
 .. note::
 
@@ -32,6 +37,36 @@ euismod mi eros, cursus ornare odio accumsan eu.
 .. admonition:: Endringsforslag/admonition?
 
    What is an admonition? An admonition is a gentle or formal warning, advice, or reprimand. It’s often used to correct behavior or guide someone toward better choices without being overly harsh.
+
+
+
+Paragraph with Glossary Terms
+=============================
+
+Class aptent taciti sociosqu ad litora torquent per :term:`source directory` conubia nostra, per inceptos himenaeos.
+Vestibulum ornare neque sed purus laoreet, et maximus velit imperdiet. Suspendisse :term:`environment` enim justo,
+aliquam et pharetra eu, facilisis sit amet eros. Sed ac dignissim arcu, sed dapibus nunc. Pellentesque massa ante,
+semper non eros sed, feugiat tincidunt quam. Integer eu nisi eu erat ultricies scelerisque vel id risus. Morbi faucibus
+tempus placerat. Vivamus facilisis dui libero. Curabitur in tellus mi. Aenean fringilla velit sit amet consequat varius.
+Aliquam vel lacus id nulla interdum molestie. Pellentesque nulla nisl, tincidunt nec nunc fermentum, porta interdum metus.
+Quisque sit amet dolor quis eros consequat tincidunt. Cras in viverra risus, :term:`source directory` eget elementum leo.
+Etiam eleifend quis ex et mollis. Aenean sed vulputate arcu, id tempor metus.
+
+
+Glossary
+========
+
+.. glossary::
+
+   environment
+      A structure where information about all documents under the root is
+      saved, and used for cross-referencing.  The environment is pickled
+      after the parsing stage, so that successive runs only need to read
+      and parse new and changed documents.
+
+   source directory
+      The directory which, including its subdirectories, contains all
+      source files for one Sphinx project.
 
 
 Autonummerert liste

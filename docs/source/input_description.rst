@@ -17,7 +17,7 @@ Useful floor area in the start year 2020 distributed by building category and bu
 
 ``building_code``
  - required
- - values: Any string containing ``building_code``
+ - values: Any string containing ``TEK``
 
 ``area``
  - required
@@ -63,7 +63,7 @@ Year of operation for the different building codes.
 
 ``building_code``
  - required
- - values: Any string containing ``building_code``
+ - values: Any string containing ``TEK``
 
 ``building_year``
  - required
@@ -268,7 +268,7 @@ Reduction in lighting and equipment energy need from implementation of ecodesign
 
 ``building_code``
  - required
- - values: Any string containing ``building_code``
+ - values: Any string containing ``TEK``
 
 ``purpose``
  - required

@@ -51,6 +51,9 @@ def configure_json_log(log_directory: str|bool=False):
 
     >>> configure_json_log(False)
     """
+    if not log_directory:
+        return
+
     script_name = pathlib.Path(pathlib.Path(sys.argv[0]))
     file_stem = script_name.stem if script_name.stem!='__main__' else script_name.parent.name + script_name.stem
     if 'PYTEST_CURRENT_TEST' in os.environ and os.environ.get('PYTEST_CURRENT_TEST'):
@@ -58,8 +61,10 @@ def configure_json_log(log_directory: str|bool=False):
         file_stem = pathlib.Path(pytest_current_test[0]).stem + pytest_current_test[1].replace('(call)', '').strip()
 
     env_log_directory = os.environ.get('LOG_DIRECTORY', log_directory)
-    log_to_json = env_log_directory.upper().strip()!='FALSE'
-    env_log_directory = env_log_directory if log_to_json and env_log_directory.upper().strip() != 'TRUE' else 'log'
+    if isinstance(env_log_directory, bool):
+        env_log_directory = pathlib.Path(os.getcwd()) / 'log'
+    log_to_json = str(env_log_directory).upper().strip()!='FALSE'
+    env_log_directory = env_log_directory if log_to_json and str(env_log_directory).upper().strip() != 'TRUE' else 'log'
 
     if log_to_json:
         log_directory = pathlib.Path(env_log_directory if env_log_directory else log_directory)

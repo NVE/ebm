@@ -161,7 +161,7 @@ When done correctly ``building_code_parameters.csv`` should look like the exampl
 Define energy needs for TEK30
 +++++++++++++++++++++++++++++
 
-All building codes must have it's energy need defined in :ref:`energy_need_original_condition.csv<energy_need_original_condition>`.
+All building codes must have it's energy need defined in :ref:`energy_need_original_condition.csv<energy_need_original_condition>`. For this scenario we assume a TEK30 have a 2/3 energy need reduction for heating_rv and 1/4 reduction for heating_dhw, cooling, fans_and_pumps and electrical_equipment.
 
 .. tabs::
 
@@ -172,18 +172,18 @@ All building codes must have it's energy need defined in :ref:`energy_need_origi
         .. csv-table:: Summary energy_need_original_condition.csv
            :header: building_category,building_code,purpose,kwh_m2
 
-                office,TEK30,cooling,15.44310555555556
-                university,TEK30,cooling,19.2249
-                sports,TEK30,cooling,0.0
-                office,TEK30,heating_rv,25.89288134147665
-                office,TEK30,electrical_equipment,34.45833333333334
-                …,…,…,…
-                hospital,TEK30,electrical_equipment,46.72
-                hospital,TEK30,cooling,30.77232222222222
-                kindergarten,TEK30,heating_rv,74.22534704119848
-                kindergarten,TEK30,fans_and_pumps,22.46678333333334
-                hospital,TEK30,heating_rv,78.03709182765022
-                kindergarten,TEK30,heating_dhw,10.02333333333333
+               house,TEK30,heating_rv,15.83
+               house,TEK30,heating_dhw,16.76
+               house,TEK30,fans_and_pumps,3.61
+               house,TEK30,electrical_equipment,9.86
+               house,TEK30,cooling,0.0
+               …,…,…,…
+               storage_repairs,TEK30,heating_rv,25.27
+               storage_repairs,TEK30,heating_dhw,5.64
+               storage_repairs,TEK30,fans_and_pumps,8.5
+               storage_repairs,TEK30,electrical_equipment,13.22
+               storage_repairs,TEK30,cooling,8.16
+
 
    .. tab:: Formatted table
 
@@ -192,71 +192,72 @@ All building codes must have it's energy need defined in :ref:`energy_need_origi
         .. csv-table:: Excerpt energy_need_original_condition.csv
            :header: building_category,building_code,purpose,kwh_m2
 
-                office,TEK30,cooling,15.44310555555556
-                university,TEK30,cooling,19.2249
-                sports,TEK30,cooling,0.0
-                office,TEK30,heating_rv,25.89288134147665
-                office,TEK30,electrical_equipment,34.45833333333334
-                university,TEK30,electrical_equipment,34.45833333333334
-                sports,TEK30,heating_dhw,49.02
-                sports,TEK30,heating_rv,54.79322499007694
-                office,TEK30,heating_dhw,5.011111111111111
-                university,TEK30,heating_dhw,5.011111111111111
-                university,TEK30,fans_and_pumps,19.49136035
-                office,TEK30,fans_and_pumps,16.24322837777778
-                sports,TEK30,fans_and_pumps,17.6285983125
-                sports,TEK30,electrical_equipment,2.58
-                retail,TEK30,cooling,29.89947777777778
-                retail,TEK30,electrical_equipment,3.743888888888889
-                school,TEK30,cooling,0.0
-                school,TEK30,electrical_equipment,12.9
-                school,TEK30,fans_and_pumps,23.91209403333333
-                school,TEK30,heating_dhw,9.804166666666667
-                school,TEK30,heating_rv,46.01008020969308
-                storage_repairs,TEK30,heating_rv,75.81893646684172
-                storage_repairs,TEK30,fans_and_pumps,15.11833333333333
-                university,TEK30,heating_rv,25.59177873258427
-                nursing_home,TEK30,heating_dhw,29.78416666666667
-                nursing_home,TEK30,electrical_equipment,23.36
-                nursing_home,TEK30,cooling,0.0
-                storage_repairs,TEK30,electrical_equipment,23.49
-                storage_repairs,TEK30,cooling,14.51195
-                retail,TEK30,heating_rv,49.66536669467513
-                retail,TEK30,heating_dhw,10.48333333333333
-                retail,TEK30,fans_and_pumps,39.77525066666666
-                nursing_home,TEK30,fans_and_pumps,48.44664545
-                storage_repairs,TEK30,heating_dhw,10.0225
-                nursing_home,TEK30,heating_rv,90.03560739873801
-                hospital,TEK30,fans_and_pumps,43.3837432
-                hotel,TEK30,cooling,20.92845
-                apartment_block,TEK30,cooling,0.0
-                apartment_block,TEK30,electrical_equipment,17.52
-                apartment_block,TEK30,fans_and_pumps,7.566666666666666
-                apartment_block,TEK30,heating_dhw,29.76888888888889
-                apartment_block,TEK30,heating_rv,28.84117055278729
-                house,TEK30,heating_dhw,29.78125
-                hotel,TEK30,electrical_equipment,5.84
-                hotel,TEK30,fans_and_pumps,28.3693625
-                kindergarten,TEK30,cooling,0.0
-                hotel,TEK30,heating_dhw,29.78416666666667
-                culture,TEK30,heating_rv,58.50821023656364
-                culture,TEK30,heating_dhw,10.0225
-                culture,TEK30,fans_and_pumps,20.29445719583333
-                culture,TEK30,electrical_equipment,2.870833333333333
-                culture,TEK30,cooling,15.93465
-                hospital,TEK30,heating_dhw,29.76944444444445
-                house,TEK30,cooling,0.0
-                house,TEK30,electrical_equipment,17.51875
-                house,TEK30,heating_rv,47.48088503199805
-                hotel,TEK30,heating_rv,50.81432489054104
-                kindergarten,TEK30,electrical_equipment,5.22
-                house,TEK30,fans_and_pumps,6.407520999999999
-                hospital,TEK30,electrical_equipment,46.72
-                hospital,TEK30,cooling,30.77232222222222
-                kindergarten,TEK30,heating_rv,74.22534704119848
-                kindergarten,TEK30,fans_and_pumps,22.46678333333334
-                hospital,TEK30,heating_rv,78.03709182765022
-                kindergarten,TEK30,heating_dhw,10.02333333333333
+               house,TEK30,heating_rv,15.83
+               house,TEK30,heating_dhw,16.76
+               house,TEK30,fans_and_pumps,3.61
+               house,TEK30,electrical_equipment,9.86
+               house,TEK30,cooling,0.0
+               apartment_block,TEK30,heating_rv,9.61
+               apartment_block,TEK30,heating_dhw,16.75
+               apartment_block,TEK30,fans_and_pumps,4.26
+               apartment_block,TEK30,electrical_equipment,9.86
+               apartment_block,TEK30,cooling,0.0
+               retail,TEK30,heating_rv,16.56
+               retail,TEK30,heating_dhw,5.9
+               retail,TEK30,fans_and_pumps,22.38
+               retail,TEK30,electrical_equipment,2.1
+               retail,TEK30,cooling,16.82
+               office,TEK30,heating_rv,8.63
+               office,TEK30,heating_dhw,2.82
+               office,TEK30,fans_and_pumps,9.14
+               office,TEK30,electrical_equipment,19.38
+               office,TEK30,cooling,8.68
+               kindergarten,TEK30,heating_rv,24.74
+               kindergarten,TEK30,heating_dhw,5.64
+               kindergarten,TEK30,fans_and_pumps,12.64
+               kindergarten,TEK30,electrical_equipment,2.94
+               kindergarten,TEK30,cooling,0.0
+               school,TEK30,heating_rv,15.34
+               school,TEK30,heating_dhw,5.51
+               school,TEK30,fans_and_pumps,13.45
+               school,TEK30,electrical_equipment,7.26
+               school,TEK30,cooling,0.0
+               university,TEK30,heating_rv,8.53
+               university,TEK30,heating_dhw,2.82
+               university,TEK30,fans_and_pumps,10.96
+               university,TEK30,electrical_equipment,19.38
+               university,TEK30,cooling,10.82
+               hospital,TEK30,heating_rv,26.01
+               hospital,TEK30,heating_dhw,16.75
+               hospital,TEK30,fans_and_pumps,24.4
+               hospital,TEK30,electrical_equipment,26.28
+               hospital,TEK30,cooling,17.31
+               nursing_home,TEK30,heating_rv,30.01
+               nursing_home,TEK30,heating_dhw,16.76
+               nursing_home,TEK30,fans_and_pumps,27.26
+               nursing_home,TEK30,electrical_equipment,13.14
+               nursing_home,TEK30,cooling,0.0
+               hotel,TEK30,heating_rv,16.94
+               hotel,TEK30,heating_dhw,16.76
+               hotel,TEK30,fans_and_pumps,15.96
+               hotel,TEK30,electrical_equipment,3.28
+               hotel,TEK30,cooling,11.77
+               sports,TEK30,heating_rv,18.26
+               sports,TEK30,heating_dhw,27.57
+               sports,TEK30,fans_and_pumps,9.92
+               sports,TEK30,electrical_equipment,1.46
+               sports,TEK30,cooling,0.0
+               culture,TEK30,heating_rv,19.5
+               culture,TEK30,heating_dhw,5.64
+               culture,TEK30,fans_and_pumps,11.42
+               culture,TEK30,electrical_equipment,1.61
+               culture,TEK30,cooling,8.96
+               storage_repairs,TEK30,heating_rv,25.27
+               storage_repairs,TEK30,heating_dhw,5.64
+               storage_repairs,TEK30,fans_and_pumps,8.5
+               storage_repairs,TEK30,electrical_equipment,13.22
+               storage_repairs,TEK30,cooling,8.16
+
 
    .. tab:: Raw csv
 
@@ -264,75 +265,79 @@ All building codes must have it's energy need defined in :ref:`energy_need_origi
 
         .. code-block:: text
 
-            office,TEK30,cooling,15.44310555555556
-            university,TEK30,cooling,19.2249
-            sports,TEK30,cooling,0.0
-            office,TEK30,heating_rv,25.89288134147665
-            office,TEK30,electrical_equipment,34.45833333333334
-            university,TEK30,electrical_equipment,34.45833333333334
-            sports,TEK30,heating_dhw,49.02
-            sports,TEK30,heating_rv,54.79322499007694
-            office,TEK30,heating_dhw,5.011111111111111
-            university,TEK30,heating_dhw,5.011111111111111
-            university,TEK30,fans_and_pumps,19.49136035
-            office,TEK30,fans_and_pumps,16.24322837777778
-            sports,TEK30,fans_and_pumps,17.6285983125
-            sports,TEK30,electrical_equipment,2.58
-            retail,TEK30,cooling,29.89947777777778
-            retail,TEK30,electrical_equipment,3.743888888888889
-            school,TEK30,cooling,0.0
-            school,TEK30,electrical_equipment,12.9
-            school,TEK30,fans_and_pumps,23.91209403333333
-            school,TEK30,heating_dhw,9.804166666666667
-            school,TEK30,heating_rv,46.01008020969308
-            storage_repairs,TEK30,heating_rv,75.81893646684172
-            storage_repairs,TEK30,fans_and_pumps,15.11833333333333
-            university,TEK30,heating_rv,25.59177873258427
-            nursing_home,TEK30,heating_dhw,29.78416666666667
-            nursing_home,TEK30,electrical_equipment,23.36
-            nursing_home,TEK30,cooling,0.0
-            storage_repairs,TEK30,electrical_equipment,23.49
-            storage_repairs,TEK30,cooling,14.51195
-            retail,TEK30,heating_rv,49.66536669467513
-            retail,TEK30,heating_dhw,10.48333333333333
-            retail,TEK30,fans_and_pumps,39.77525066666666
-            nursing_home,TEK30,fans_and_pumps,48.44664545
-            storage_repairs,TEK30,heating_dhw,10.0225
-            nursing_home,TEK30,heating_rv,90.03560739873801
-            hospital,TEK30,fans_and_pumps,43.3837432
-            hotel,TEK30,cooling,20.92845
-            apartment_block,TEK30,cooling,0.0
-            apartment_block,TEK30,electrical_equipment,17.52
-            apartment_block,TEK30,fans_and_pumps,7.566666666666666
-            apartment_block,TEK30,heating_dhw,29.76888888888889
-            apartment_block,TEK30,heating_rv,28.84117055278729
-            house,TEK30,heating_dhw,29.78125
-            hotel,TEK30,electrical_equipment,5.84
-            hotel,TEK30,fans_and_pumps,28.3693625
-            kindergarten,TEK30,cooling,0.0
-            hotel,TEK30,heating_dhw,29.78416666666667
-            culture,TEK30,heating_rv,58.50821023656364
-            culture,TEK30,heating_dhw,10.0225
-            culture,TEK30,fans_and_pumps,20.29445719583333
-            culture,TEK30,electrical_equipment,2.870833333333333
-            culture,TEK30,cooling,15.93465
-            hospital,TEK30,heating_dhw,29.76944444444445
-            house,TEK30,cooling,0.0
-            house,TEK30,electrical_equipment,17.51875
-            house,TEK30,heating_rv,47.48088503199805
-            hotel,TEK30,heating_rv,50.81432489054104
-            kindergarten,TEK30,electrical_equipment,5.22
-            house,TEK30,fans_and_pumps,6.407520999999999
-            hospital,TEK30,electrical_equipment,46.72
-            hospital,TEK30,cooling,30.77232222222222
-            kindergarten,TEK30,heating_rv,74.22534704119848
-            kindergarten,TEK30,fans_and_pumps,22.46678333333334
-            hospital,TEK30,heating_rv,78.03709182765022
-            kindergarten,TEK30,heating_dhw,10.02333333333333
+               house,TEK30,heating_rv,15.83
+               house,TEK30,heating_dhw,16.76
+               house,TEK30,fans_and_pumps,3.61
+               house,TEK30,electrical_equipment,9.86
+               house,TEK30,cooling,0.0
+               apartment_block,TEK30,heating_rv,9.61
+               apartment_block,TEK30,heating_dhw,16.75
+               apartment_block,TEK30,fans_and_pumps,4.26
+               apartment_block,TEK30,electrical_equipment,9.86
+               apartment_block,TEK30,cooling,0.0
+               retail,TEK30,heating_rv,16.56
+               retail,TEK30,heating_dhw,5.9
+               retail,TEK30,fans_and_pumps,22.38
+               retail,TEK30,electrical_equipment,2.1
+               retail,TEK30,cooling,16.82
+               office,TEK30,heating_rv,8.63
+               office,TEK30,heating_dhw,2.82
+               office,TEK30,fans_and_pumps,9.14
+               office,TEK30,electrical_equipment,19.38
+               office,TEK30,cooling,8.68
+               kindergarten,TEK30,heating_rv,24.74
+               kindergarten,TEK30,heating_dhw,5.64
+               kindergarten,TEK30,fans_and_pumps,12.64
+               kindergarten,TEK30,electrical_equipment,2.94
+               kindergarten,TEK30,cooling,0.0
+               school,TEK30,heating_rv,15.34
+               school,TEK30,heating_dhw,5.51
+               school,TEK30,fans_and_pumps,13.45
+               school,TEK30,electrical_equipment,7.26
+               school,TEK30,cooling,0.0
+               university,TEK30,heating_rv,8.53
+               university,TEK30,heating_dhw,2.82
+               university,TEK30,fans_and_pumps,10.96
+               university,TEK30,electrical_equipment,19.38
+               university,TEK30,cooling,10.82
+               hospital,TEK30,heating_rv,26.01
+               hospital,TEK30,heating_dhw,16.75
+               hospital,TEK30,fans_and_pumps,24.4
+               hospital,TEK30,electrical_equipment,26.28
+               hospital,TEK30,cooling,17.31
+               nursing_home,TEK30,heating_rv,30.01
+               nursing_home,TEK30,heating_dhw,16.76
+               nursing_home,TEK30,fans_and_pumps,27.26
+               nursing_home,TEK30,electrical_equipment,13.14
+               nursing_home,TEK30,cooling,0.0
+               hotel,TEK30,heating_rv,16.94
+               hotel,TEK30,heating_dhw,16.76
+               hotel,TEK30,fans_and_pumps,15.96
+               hotel,TEK30,electrical_equipment,3.28
+               hotel,TEK30,cooling,11.77
+               sports,TEK30,heating_rv,18.26
+               sports,TEK30,heating_dhw,27.57
+               sports,TEK30,fans_and_pumps,9.92
+               sports,TEK30,electrical_equipment,1.46
+               sports,TEK30,cooling,0.0
+               culture,TEK30,heating_rv,19.5
+               culture,TEK30,heating_dhw,5.64
+               culture,TEK30,fans_and_pumps,11.42
+               culture,TEK30,electrical_equipment,1.61
+               culture,TEK30,cooling,8.96
+               storage_repairs,TEK30,heating_rv,25.27
+               storage_repairs,TEK30,heating_dhw,5.64
+               storage_repairs,TEK30,fans_and_pumps,8.5
+               storage_repairs,TEK30,electrical_equipment,13.22
+               storage_repairs,TEK30,cooling,8.16
 
    .. tab:: Download
 
-        `Download energy_need_original_condition.csv <_static/user_case/tek30/energy_need_original_condition.csv>`_
+        Download `energy_need_original_condition.csv <_static/user_case/tek30/energy_need_original_condition.csv>`_ complete with all building codes.
+
+
+For clarity, all energy needs have been sorted and rounded to two decimal places.
+
 
 Specify heating system shares
 +++++++++++++++++++++++++++++
@@ -688,6 +693,69 @@ Becomes:
 .. code-block::
 
    house,TEK07+TEK10+TEK17+TEK30,lighting,0.85,2020,noop,2050
+
+energy_need_original_condition
+""""""""""""""""""""""""""""""
+
+While the default values for lighting in `energy_need_original_condition.csv<energy_need_original_condition>` are handy for editing, you might want to set explicit values for TEK30.
+
+.. tabs::
+
+   .. tab:: default values
+
+      .. csv-table:: default values in energy_need_original_condition.csv
+         :header: building_category,building_code,purpose,kwh_m2
+
+               house,default,lighting,8.2
+               apartment_block,default,lighting,8.2
+               retail,default,lighting,50.2
+               office,default,lighting,22.55
+               kindergarten,default,lighting,18.79
+               school,default,lighting,19.35
+               university,default,lighting,22.55
+               hospital,default,lighting,42.05
+               nursing_home,default,lighting,42.05
+               hotel,default,lighting,42.05
+               sports,default,lighting,18.58
+               culture,default,lighting,20.67
+               storage_repairs,default,lighting,16.91
+
+   .. tab:: explicit TEK30
+
+      .. csv-table:: Excerpt TEK30 lighting energy_need_original_condition.csv
+         :header: building_category,building_code,purpose,kwh_m2
+
+           house,TEK30,lighting,8
+           apartment_block,TEK30,lighting,8
+           retail,TEK30,lighting,50
+           office,TEK30,lighting,22
+           kindergarten,TEK30,lighting,18
+           school,TEK30,lighting,19
+           university,TEK30,lighting,22
+           hospital,TEK30,lighting,42
+           nursing_home,TEK30,lighting,42
+           hotel,TEK30,lighting,42
+           sports,TEK30,lighting,18
+           culture,TEK30,lighting,20
+           storage_repairs,TEK30,lighting,16
+
+   .. tab:: grouping with TEK17
+
+      Plus (+) can be used to combine the definition for multiple building categories and building codes
+
+      .. csv-table:: Excerpt TEK30+TEK17 lighting energy_need_original_condition.csv
+         :header: building_category,building_code,purpose,kwh_m2
+
+           **apartment_block+house**,*TEK17+TEK30*,lighting,8.2
+           retail,*TEK17+TEK30*,lighting,50.2
+           office,*TEK17+TEK30*,lighting,22.55
+           kindergarten,*TEK17+TEK30*,lighting,18.79
+           school,*TEK17+TEK30*,lighting,19.35
+           university,*TEK17+TEK30*,lighting,22.55
+           **hospital+nursing_home+hotel**,*TEK17+TEK30*,lighting,42.05
+           sports,*TEK17+TEK30*,lighting,18.58
+           culture,*TEK17+TEK30*,lighting,20.67
+           storage_repairs,*TEK17+TEK30*,lighting,16.91
 
 
 Troubleshooting

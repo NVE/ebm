@@ -335,7 +335,8 @@ All building codes must have it's energy need defined in :ref:`energy_need_origi
 
         Download `energy_need_original_condition.csv <_static/user_case/tek30/energy_need_original_condition.csv>`_ complete with all building codes.
 
-   For clarity, all energy needs have been sorted and rounded to two decimal places.
+
+For clarity, all energy needs have been sorted and rounded to two decimal places.
 
 
 Specify heating system shares
@@ -692,6 +693,69 @@ Becomes:
 .. code-block::
 
    house,TEK07+TEK10+TEK17+TEK30,lighting,0.85,2020,noop,2050
+
+energy_need_original_condition
+""""""""""""""""""""""""""""""
+
+While the default values for lighting in `energy_need_original_condition.csv<energy_need_original_condition>` are handy for editing, you might want to set explicit values for TEK30.
+
+.. tabs::
+
+   .. tab:: default values
+
+      .. csv-table:: default values in energy_need_original_condition.csv
+         :header: building_category,building_code,purpose,kwh_m2
+
+               house,default,lighting,8.2
+               apartment_block,default,lighting,8.2
+               retail,default,lighting,50.2
+               office,default,lighting,22.55
+               kindergarten,default,lighting,18.79
+               school,default,lighting,19.35
+               university,default,lighting,22.55
+               hospital,default,lighting,42.05
+               nursing_home,default,lighting,42.05
+               hotel,default,lighting,42.05
+               sports,default,lighting,18.58
+               culture,default,lighting,20.67
+               storage_repairs,default,lighting,16.91
+
+   .. tab:: explicit TEK30
+
+      .. csv-table:: Excerpt TEK30 lighting energy_need_original_condition.csv
+         :header: building_category,building_code,purpose,kwh_m2
+
+           house,TEK30,lighting,8
+           apartment_block,TEK30,lighting,8
+           retail,TEK30,lighting,50
+           office,TEK30,lighting,22
+           kindergarten,TEK30,lighting,18
+           school,TEK30,lighting,19
+           university,TEK30,lighting,22
+           hospital,TEK30,lighting,42
+           nursing_home,TEK30,lighting,42
+           hotel,TEK30,lighting,42
+           sports,TEK30,lighting,18
+           culture,TEK30,lighting,20
+           storage_repairs,TEK30,lighting,16
+
+   .. tab:: grouping with TEK17
+
+      Plus (+) can be used to combine the definition for multiple building categories and building codes
+
+      .. csv-table:: Excerpt TEK30+TEK17 lighting energy_need_original_condition.csv
+         :header: building_category,building_code,purpose,kwh_m2
+
+           **apartment_block+house**,*TEK17+TEK30*,lighting,8.2
+           retail,*TEK17+TEK30*,lighting,50.2
+           office,*TEK17+TEK30*,lighting,22.55
+           kindergarten,*TEK17+TEK30*,lighting,18.79
+           school,*TEK17+TEK30*,lighting,19.35
+           university,*TEK17+TEK30*,lighting,22.55
+           **hospital+nursing_home+hotel**,*TEK17+TEK30*,lighting,42.05
+           sports,*TEK17+TEK30*,lighting,18.58
+           culture,*TEK17+TEK30*,lighting,20.67
+           storage_repairs,*TEK17+TEK30*,lighting,16.91
 
 
 Troubleshooting

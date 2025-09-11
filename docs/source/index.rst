@@ -5,8 +5,6 @@ The model is developed in-house by the Norwegian Water Resources- and Energy Dir
 On this website you can find documentation on how the model works, what input is required, the expected output in a base scenario and how to create your own
 scenarios and sensitivites. 
 
-Dette er en test
-
 
 .. toctree::
    :maxdepth: 1
@@ -27,7 +25,6 @@ Dette er en test
 
    architecture
    model-description
-   assumptions
    area
    energy_need
    energy_use

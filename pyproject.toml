@@ -22,13 +22,12 @@ dependencies = [
     "pandera",
     "XlsxWriter",
     "pywin32 ; platform_system == 'Windows'",
-    'sphinx-tabs',
 ]
 [project.optional-dependencies]
 test = ["pytest"]
 build = ["build"]
 dev = ["energibruksmodell[test]", "energibruksmodell[build]"]
-docs = ['sphinx', 'sphinx-rtd-theme', 'sphinx-autodoc-typehints', 'numpydoc']
+docs = ['sphinx', 'sphinx-rtd-theme', 'sphinx-autodoc-typehints', 'numpydoc', 'sphinx-tabs']
 tqdm = ['tqdm', 'XlsxWriter']
 [project.urls]
 Homepage = "https://www.nve.no/"

@@ -5,34 +5,39 @@ The model is developed in-house by the Norwegian Water Resources- and Energy Dir
 On this website you can find documentation on how the model works, what input is required, the expected output in a base scenario and how to create your own
 scenarios and sensitivites. 
 
-Dette er en test
+.. toctree::
+   :maxdepth: 1
+
+   about_the_model 
 
 
 .. toctree::
    :maxdepth: 1
    :caption: Using the Model
 
-   introduction
    getting_started
    user_guide
+   user_case 
+   configuration
+   calibrating_the_model
+   troubleshooting
    input_description
    results
-   calibrating_the_model
-   user_case   
    limitations
+   glossary
 
 .. toctree::
    :maxdepth: 1
    :caption: Model Functionality
 
-   architecture
    model-description
-   assumptions
+   architecture
    area
    energy_need
+   heating_systems
    energy_use
    geographical_distribution
-   heating_systems
+   
    
 
 .. toctree::
@@ -40,19 +45,13 @@ Dette er en test
    :titlesonly:
    :caption: Technical Documentation
 
-   configuration
    sphinx_guide
    api_reference
-
-.. toctree::
-   :maxdepth: 1
-   :titlesonly:
-   :caption: Miscellaneous
-
-   troubleshooting
    contributing
    changelog
-   glossary
+  
+   
+   
 
 Indices and tables
 ==================

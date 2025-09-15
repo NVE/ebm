@@ -124,7 +124,8 @@ the heating system "HP Central heating - Electric boiler". If the heating system
 2024 are 4,5 % "Gas" and 10,5 % "HP Central heating - Electric boiler". As 10 % of 5 % has changed from one heating system 
 to another, as per the table.
 
-After calibration and forecasting the resulting heating system fractions for houses are shown in the figure below. 
+An example on how the forecasted heating systems are shown in the figure below. Here the share of air-air heatpumps is increased over time by shrinking
+the share of "Electriciy - Bio" and increasing the share of "HP - Electricty - Bio". 
 
 .. raw:: html
   :file: images\Hus.html
@@ -138,7 +139,7 @@ Initial shares
 During calculation of the intial shares about 130 000 certificates from the building energy performance database do not have information about the
 buildings heating system. The certificates have information on "delivered energy" for various energy products. All the delivered energy coulumns are 
 put together and an aggregation is made to create the most common combinations. Oil based heating was banned in 2020, but the database contains a lot of 
-certificates issued before this ban. For the intiial shares we assume that half of the buildings who used oil-based heating switch to electric boilers and
+certificates issued before this ban. For the intital shares we assume that half of the buildings who used oil-based heating switch to electric boilers and
 the other half to a water-borne heatpump.  
 
 The building energy performance database gives us information on heating systems across the various building codes. However for some building categories,
@@ -160,13 +161,7 @@ systems is simplified, meaning it is not based on an economic optimization model
 
 
 
-Heating systems glossary
-========================
-.. csv-table:: Glossary of terms used in heating systems
-  :file: tables\heating_systems_glossary_csv.csv
-  :header-rows: 1
-  :widths: 10 10 30 30
-  :delim: ;
+
 
 Tables
 ======

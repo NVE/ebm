@@ -1,8 +1,8 @@
-Results
-########
+Result files
+############
 
 Overview
-========
+--------
 Running the model without any arguments results in 6 different excel files. 
 
 1. **"area"**.

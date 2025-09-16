@@ -15,11 +15,6 @@ accurate representation of energy use patterns across the country.
 
 
 
-
-Limitations
------------
-
-
 .. |date| date::
 
 Last Updated on |date|

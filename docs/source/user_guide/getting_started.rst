@@ -1,4 +1,4 @@
-===============
+
 Getting started
 ===============
 This page is a quick guide to get you started with the Energibruksmodell (EBM) framework. The framework is designed to calculate energy use in buildings. The framework is developed by the Norwegian Water Resources and Energy Directorate (NVE).

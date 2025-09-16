@@ -15,12 +15,8 @@ scenarios and sensitivites.
    :maxdepth: 1
    :caption: Using the Model
 
-   getting_started
-   user_guide
-   user_case 
-   configuration
-   calibrating_the_model
-   troubleshooting
+   
+   user_guide/index
    input_description
    results
    limitations

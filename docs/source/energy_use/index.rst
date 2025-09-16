@@ -14,12 +14,6 @@ Energy use is the product of energy need, area and heating systems.
 
 
 
-
-
-Limitations
------------
-
-
 .. |date| date::
 
 Last Updated on |date|

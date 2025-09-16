@@ -15,6 +15,19 @@ User Guide
 .. - Running multiple workflows
 
 
+.. toctree::
+   :caption: Content
+   :maxdepth: 1
+
+   getting_started
+   user_case
+   calibrating_the_model
+   configuration
+   troubleshooting
+   
+
+
+
 Setting-up your first model (tutorial)
 ---------------------------------------
 

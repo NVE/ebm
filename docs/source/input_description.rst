@@ -1,5 +1,5 @@
-Input
-#####
+Input files
+###########
 
 Each input file is described here. The heading is the file name, followed by a short description of its contents. Constraints are given in the tab 
 formatted box after the descriptions.

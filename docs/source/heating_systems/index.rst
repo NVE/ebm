@@ -8,6 +8,9 @@ demand of space heating and hot tap water. Various heating technologies have dif
 The energy useage per carrier and building category is compared with the national energy balance to fine tune the distribution of the various 
 heating technologies. 
 
+The current implementation of forecasting for energy
+systems is simplified, meaning it is not based on an economic optimization model such as `TIMES <https://iea-etsap.org/index.php/etsap-tools/model-generators/times>`_.
+
 .. toctree::
    :caption: Content
    :maxdepth: 1
@@ -25,10 +28,8 @@ heating technologies.
 
  
 
-Limitations
------------
-The current implementation of forecasting for energy
-systems is simplified, meaning it is not based on an economic optimization model such as `TIMES <https://iea-etsap.org/index.php/etsap-tools/model-generators/times>`_.
+
+
 
 
 

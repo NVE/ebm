@@ -30,11 +30,10 @@ scenarios and sensitivites.
    :maxdepth: 1
    :caption: Model Functionality
 
-   model-description
-   architecture
-   area
-   energy_need
-   heating_systems
+   model_description/index
+   area/index
+   energy_need/index
+   heating_systems/index
    energy_use
    geographical_distribution
    

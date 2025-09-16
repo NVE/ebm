@@ -1,14 +1,6 @@
-Geographical distribution
-#############################
+Assumptions
+===========
 
-This page offers a comprehensive desciption of the ``ebmgeodist`` geographical distribution module in the EBM package.
-The module geographically distributes EBM energy use projection results per each Norwegian municipality, providing a more detailed and
-accurate representation of energy use patterns across the country.
-
-
-
-Methods
-=======
 
 Elhub data has been used to find representative distribution keys for each Norwegian municipality. Elhub is a central data hub for Norway's power industry, and
 the hub provides among other things, electricity consumption data per each measurement point for different regions and municipalities in Norway. Knowing the 
@@ -26,7 +18,7 @@ gives an overview of the implemented functionality introduced in the module.
 
 
 Detailed description
-+++++++++++++++++++++
+--------------------
 
 The following is a more detailed description of how the distribution keys for each energy type are obtained:
 
@@ -50,8 +42,7 @@ The following is a more detailed description of how the distribution keys for ea
 - Fossil fuels: the distribution keys for fossil fuels are loaded from an input file under the ``input`` folder. The file name is
   is ``ved_kommune_fordelingsnøkler.xlsx``.
 
-Assumptions
-===========
+
 
 The geographical distribution module makes the following assumptions:
 
@@ -84,13 +75,3 @@ The geographical distribution module makes the following assumptions:
 
 - For the combination of fossil fuels and holiday homes, the module assumes that the distribution keys for fossil fuel consumption in holiday homes 
   are the same as for those for electricity and holiday homes. This assumption is made due to the lack of specific data on fossil fuel consumption in holiday homes.
-
-Limitations
-===========
-
-
-.. |date| date::
-
-Last Updated on |date|
-
-Version: |version|.

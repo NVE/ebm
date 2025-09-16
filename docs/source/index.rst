@@ -34,8 +34,8 @@ scenarios and sensitivites.
    area/index
    energy_need/index
    heating_systems/index
-   energy_use
-   geographical_distribution
+   energy_use/index
+   geographical_distribution/index
    
    
 

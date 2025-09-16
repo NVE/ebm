@@ -1,10 +1,3 @@
-Energy use
-###########
-
-Energy use is calculated by
-
-
-
 Methods
 =======
 
@@ -24,7 +17,7 @@ The formula for **Total energy use per year** in the EBM (Energibruksmodell) is 
 
 
 Explanation of Each Factor
-++++++++++++++++++++++++++
+--------------------------
 
  * **energy need kWh/m²**
    - :ref:`Energy need` for the building type, building condition and purpose.
@@ -34,20 +27,3 @@ Explanation of Each Factor
    - Distribution of :ref:`heating systems <Aggregating the heating systems>` across the building stock
  * **heating systems efficiency**
    - Thermal efficiency of heating systems
-
-
-Assumptions
-===========
-
- - Flere❓
-
-
-Limitations
-===========
-
-
-.. |date| date::
-
-Last Updated on |date|
-
-Version: |version|.

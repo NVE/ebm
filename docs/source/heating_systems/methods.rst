@@ -118,10 +118,10 @@ the share of "Electriciy - Bio" and increasing the share of "HP - Electricty - B
 
 
 Assumptions
-===========
+-----------
 
 Initial shares
-------------
+--------------
 During calculation of the intial shares about 130 000 certificates from the building energy performance database do not have information about the
 buildings heating system. The certificates have information on "delivered energy" for various energy products. All the delivered energy coulumns are 
 put together and an aggregation is made to create the most common combinations. Oil based heating was banned in 2020, but the database contains a lot of 
@@ -141,7 +141,7 @@ heating in new apartment blocks and non-residential buildings from building code
 central heating heat pumps. The final assumption is that the share of distrcit heating will increase in both non-residental buildings and in apartment blocks.  
 
 Limitations
-===========
+-----------
 The current implementation of forecasting for energy
 systems is simplified, meaning it is not based on an economic optimization model such as `TIMES <https://iea-etsap.org/index.php/etsap-tools/model-generators/times>`_.
 
@@ -150,7 +150,7 @@ systems is simplified, meaning it is not based on an economic optimization model
 
 
 Tables
-======
+------
 The tables below show the various combinations of heating systems and heating technologies.
 
 .. csv-table:: Heating systems efficiency

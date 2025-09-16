@@ -11,6 +11,7 @@ accurate representation of energy use patterns across the country.
 
    methods
    assumptions
+   limitations
 
 
 

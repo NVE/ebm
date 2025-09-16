@@ -1,5 +1,5 @@
 User case
-#########
+=========
 
 
 This guide demonstrates how to create and configure a new scenario in EBM by introducing a hypothetical future building code: *TEK30*.

@@ -1,7 +1,7 @@
 Energy use
 ###########
 
-Energy use is calculated by
+Energy use is the product of energy need, area and heating systems.
 
 .. toctree::
    :caption: Content

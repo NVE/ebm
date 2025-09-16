@@ -1,7 +1,7 @@
 Methods
 =======
 
-The formula for **Total energy use per year** in the EBM (Energibruksmodell) is designed to annual energy use of the building mass. The calculation takes into account the type of energy carrier and efficiency in heating systems.
+The formula for **Total energy use per year** in the EBM (Energibruksmodell) is designed for annual energy use of the building mass. The calculation takes into account the type of energy product and efficiency in heating systems.
 
 .. math::
 
@@ -27,3 +27,5 @@ Explanation of Each Factor
    - Distribution of :ref:`heating systems <Aggregating the heating systems>` across the building stock
  * **heating systems efficiency**
    - Thermal efficiency of heating systems
+
+Energy use per year can be broken down into energy use per purpose and energy product across building categories and building codes. 

@@ -14,12 +14,6 @@ Energy use is calculated by
 
 
 
-
-
-Limitations
------------
-
-
 .. |date| date::
 
 Last Updated on |date|

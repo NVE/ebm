@@ -13,13 +13,6 @@ Area
 
 
 
-
-
-
-Limitations
------------
-
-
 .. |date| date::
 
 Last Updated on |date|

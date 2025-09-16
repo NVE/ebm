@@ -27,7 +27,7 @@ possibilites are affected.
 .. csv-table:: Energy need behaviour factor.
   :file: tables\energy_need_behaviour_factor.csv
   :header-rows: 1
-  :widths: 10 10 10 10 10 10
+  :widths: 10 10 10 10 10
   :delim: ,
 
 It is also possible to modify the

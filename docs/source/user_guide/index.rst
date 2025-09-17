@@ -141,7 +141,7 @@ options:
   ebm area-forecast output/area-forecast-vertical.xlsx
   
 .. csv-table:: Output from using the command above
-  :file: tables\example_four_output.csv
+  :file: ..\tables\example_four_output.csv
   :header-rows: 1
   
 
@@ -153,12 +153,13 @@ If the user wants the output file in horizontal format, the user can use the fol
   ebm --horizontal area-forecast output/area-forecast.xlsx
 
 .. csv-table:: Output from using the command above (horizontal format)
-  :file: tables\example_four_output_horizontal.csv
+  :file: ..\tables\example_four_output_horizontal.csv
   :header-rows: 1
 
 .. Beregne energibehov
+
 5. Calculate energy-requirements
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The energy-requirements is calculated by multiplying the heating demand per square meter by the area from the previous step.
 
@@ -181,7 +182,7 @@ The energy-requirements is calculated by multiplying the heating demand per squa
   ebm energy-requirements output/energy-requirements-vertical.xlsx
 
 .. csv-table:: Output from using the command above 
-  :file: tables\example_five_output.csv
+  :file: ..\tables\example_five_output.csv
   :header-rows: 1
 
 If the user wants the output file in horizontal format, the user can use the following command:
@@ -192,7 +193,7 @@ If the user wants the output file in horizontal format, the user can use the fol
   ebm --horizontal energy-requirements output/energy-requirements.xlsx
 
 .. csv-table:: Output from using the command above (horizontal format)
-  :file: tables\example_five_output_horizontal.csv
+  :file: ..\tables\example_five_output_horizontal.csv
   :header-rows: 1
 
 

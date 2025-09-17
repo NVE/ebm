@@ -9,6 +9,12 @@ demand of space heating and hot tap water. Various heating technologies have dif
 The energy useage per carrier and building category is compared with the national energy balance to fine tune the distribution of the various 
 heating technologies. 
 
+A combination of different heating systems can be assigned to each building category and each age group. It is also possible to do it on  
+an aggregated level, like treating all non-residental area the same way. For instance, X % of the house area use only direct resistance heating to heat the home, while Y % of the house area 
+use both direct resistance heating, an air-to-air heat pump and a wood stove, and so on. The composition of heating solutions can be changed 
+over time in the forecast period. 
+
+
 The current implementation of forecasting for energy
 systems is simplified, meaning it is not based on an economic optimization model such as `TIMES <https://iea-etsap.org/index.php/etsap-tools/model-generators/times>`_.
 

@@ -33,7 +33,7 @@ Explanation of Each Factor
  * **Behaviour factor**
    - Captures changes in user behavior that affect energy consumption, like floor area utilization.
 
-By default the model use an 60% improvement by the year 2030 for lighting. Electrical equipment has a yearly reduction of 1%. Lighting is expected to decrease by 0.5% yearly after 2030. These values are defined in :ref:`energy_need_improvements.csv <energy_need_improvements>`
+
 
 
 

@@ -63,7 +63,7 @@ The parameters listed above are optional. The default choice for the ``step`` pa
 
 
 .. csv-table:: Difference between switch and step
-  :file: tables\diff_switch_step.csv
+  :file: ..\tables\diff_switch_step.csv
   :widths: 3, 20
   :header-rows: 1
 
@@ -197,7 +197,7 @@ If the user wants the output file in horizontal format, the user can use the fol
 
 
 6. Energy consumption
-^^^^^^^^^^^^^^^^^^^	
+^^^^^^^^^^^^^^^^^^^^^
 
 The energy consumption is calculated by multiplying the energy requirements from the previous step by the efficiency factor.
 
@@ -210,12 +210,12 @@ The energy consumption is calculated by multiplying the energy requirements from
 
 .. code:: bash
 
-  # This is the default cammand, where the output file is heating-systems-vertical.xlsx located
+  # This is the default command, where the output file is heating-systems-vertical.xlsx located
   # in the output directory
   ebm heating-systems output/heating-systems-vertical.xlsx
 
 .. csv-table:: Output from using the command above 
-  :file: tables\example_six_output.csv
+  :file: ..\tables\example_six_output.csv
   :header-rows: 1
 
 .. If the user wants the output file in horizontal format, the user can use the following command:
@@ -227,17 +227,18 @@ The energy consumption is calculated by multiplying the energy requirements from
 
 
 .. Energibruk fritidsboliger
+
 7. Holiday homes energy consumption
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code:: bash
 
-  # This is the default cammand, where the output file is energy-use-vertical.xlsx located
+  # This is the default command, where the output file is energy-use-vertical.xlsx located
   # in the output directory
   ebm energy-use output/energy-use-vertical.xlsx
 
 .. csv-table:: Output from using the command above
-  :file: tables\example_seven_output.csv
+  :file: ..\tables\example_seven_output.csv
   :header-rows: 1
 
 .. # This command will write the output file in horizontal format with the name energy-use.xlsx

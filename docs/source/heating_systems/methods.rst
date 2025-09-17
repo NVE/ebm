@@ -9,8 +9,7 @@ non-residental buildings, the number of certificates are low. Some cleaning is d
 
 * Removed certificates missing building category, heated floor area or energy performance label
 * Removed certificates where calculated delivered energy is above 1000 kWh/m:sup:'2'.
-* If a certificate has been issued to the same address more than once, the most recent certificate is kept. This is done for all building categories
-except for apartment blocks or hospitals as one address can contain multiple buildings or apartments. For apartments the house number is often missing.
+* If a certificate has been issued to the same address more than once, the most recent certificate is kept. This is done for all building categories except for apartment blocks or hospitals as one address can contain multiple buildings or apartments. For apartments the house number is often missing.
 
 After these three steps there are about 1 million certificates remaining. The associated building code classification is added to the certificates based on the supplied 
 building year. 
@@ -22,9 +21,10 @@ About 130 000 certificates do not have this information. For certificates missin
 corresponding technology for the different loads and hot tap water. 
 
 .. csv-table:: Heating systems overview
-  :file: tables\heating_systems_table.csv
-  :widths: 15, 15, 15, 15, 15
-  :header-rows: 1
+   :file: ..\tables\heating_systems_table.csv
+   :widths: 15, 15, 15, 15, 15
+   :header-rows: 1
+
 
 The share of each heating system is the useful area summed up per heating system, building category and building code and then divided by the total useful
 area of the given building category and building code. The useful area is part of the energy certificates.  
@@ -63,7 +63,7 @@ Meaning that a TEK69 house has the same share heating systems as a TEK17 house, 
 The resulting heating systems are then used as an input to the model. An example on the aggreagted heating systems is given below for houses.
 
 .. csv-table:: Aggregated heating systems - house
-  :file: tables\shares_house_pretek49.csv
+  :file: ..\tables\shares_house_pretek49.csv
   :widths: 15, 15, 15, 15, 15
   :header-rows: 1
 
@@ -100,7 +100,7 @@ to distrcit heating, but a house retrofitting an air-air heat pump is possible.
 
 
 .. csv-table:: Heating systems forecasting example.
-  :file: tables\heating_systems_projection.csv
+  :file: ..\tables\heating_systems_projection.csv
   :widths: 10, 10, 15, 15, 5, 5 ,5, 5, 5
   :header-rows: 1
 
@@ -114,7 +114,7 @@ An example on how the forecasted heating systems are shown in the figure below. 
 the share of "Electriciy - Bio" and increasing the share of "HP - Electricty - Bio". 
 
 .. raw:: html
-  :file: images\Hus.html
+  :file: ..\images\Hus.html
 
 
 Assumptions
@@ -154,21 +154,21 @@ Tables
 The tables below show the various combinations of heating systems and heating technologies.
 
 .. csv-table:: Heating systems efficiency
-  :file: tables\heating_systems_efficiencies.csv
+  :file: ..\tables\heating_systems_efficiencies.csv
   :widths: 15 15 15 15 5 5 5
   :header-rows: 1
   :delim: ;
 
 
 .. csv-table:: Heating systems coverage
-  :file: tables\heating_systems_coverage.csv
+  :file: ..\tables\heating_systems_coverage.csv
   :widths: 15 15 15 15 5 5 5
   :header-rows: 1
   :delim: ;
 
 
 .. csv-table:: Heating systems hot tap water
-  :file: tables\heating_systems_dhw.csv
+  :file: ..\tables\heating_systems_dhw.csv
   :widths: 15 15 15
   :header-rows: 1
   :delim: ;

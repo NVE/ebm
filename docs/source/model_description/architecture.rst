@@ -11,7 +11,7 @@ Describes the models overall architecture and inner workings.
 
 
 EBM Pipeline Component diagram
---------------------------
+------------------------------
 
 Describes how the pipeline container interacts with components
 

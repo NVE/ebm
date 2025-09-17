@@ -103,48 +103,48 @@ The input constraints, datatypes and accepted values are listed per input file i
             - value **≥** 0
             - float using a decimal point ('.') as the separator
 
-            .. tab:: new_buildings_residential
-               ``year``
-               - required
-               - integer value
-               - **≥** 0
-               - **≤** 2070
+         .. tab:: new_buildings_residential
+            ``year``
+            - required
+            - integer value
+            - **≥** 0
+            - **≤** 2070
 
-               ``new_house_share``
-               - required
-               - float using a decimal point ('.') as the separator
-               - **≥** 0.0
-               - **≤** 1.0
+            ``new_house_share``
+            - required
+            - float using a decimal point ('.') as the separator
+            - **≥** 0.0
+            - **≤** 1.0
 
-               ``new_apartment_block_share``
-               - required
-               - float using a decimal point ('.') as the separator
-               - 0.0 **≤** value **≤** 1.0
+            ``new_apartment_block_share``
+            - required
+            - float using a decimal point ('.') as the separator
+            - 0.0 **≤** value **≤** 1.0
 
-               ``floor_area_new_house``
-               - required
-               - Integer
-               - 0 **≤** value **≤** 1000
+            ``floor_area_new_house``
+            - required
+            - Integer
+            - 0 **≤** value **≤** 1000
 
-               ``flood_area_new_apartment_block``
-               - required
-               - Integer
-               - 0 **≤** value **≤** 1000
+            ``floor_area_new_apartment_block``
+            - required
+            - Integer
+            - 0 **≤** value **≤** 1000
 
    .. tab:: Energy need
       .. tabs::
          .. tab:: energy_need_original_condition
             ``building_category``
             - required
-            - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
+            - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs, default, residential, non_residential
 
             ``building_code``
             - required
-            - values: Any string containing ``TEK``
+            - values: Any string containing ``TEK``, 'default' 
 
             ``purpose``
             - required
-            - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling'
+            - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling, default'
 
             ``kwh_m2``
             - required
@@ -154,15 +154,15 @@ The input constraints, datatypes and accepted values are listed per input file i
          .. tab:: improvement_building_upgrade
             ``building_category``
             - required
-            - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
+            - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs, default, residential, non_residential
 
             ``building_code``
             - required
-            - values: Any string containing ``building_code``
+            - values: Any string containing ``TEK``, 'default' 
 
             ``purpose``
             - required
-            - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling'
+            - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling, default'
 
             ``condition``
             - required
@@ -176,15 +176,15 @@ The input constraints, datatypes and accepted values are listed per input file i
          .. tab:: energy_need_behaviour_factor
             ``building_category``
             - required
-            - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
+            - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs, default, residential, non_residential
 
             ``building_code``
             - required
-            - values: Any string containing ``building_code``
+            - values: Any string containing ``TEK``, 'default' 
 
             ``purpose``
             - required
-            - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling'
+            - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling, default'
 
             ``period_start_year``
             - required
@@ -208,7 +208,7 @@ The input constraints, datatypes and accepted values are listed per input file i
 
             ``building_code``
             - required
-            - values: Any string containing ``TEK``
+            - values: Any string containing ``TEK``, 'default' 
 
             ``purpose``
             - required
@@ -238,7 +238,7 @@ The input constraints, datatypes and accepted values are listed per input file i
                :file: ../../ebm/data/energy_need_improvements.csv
                :header-rows: 1
 
-   .. tab:: Energy need
+   .. tab:: Holiday home
       .. tabs::
          .. tab:: holiday_home_stock
             ``year``
@@ -270,7 +270,28 @@ The input constraints, datatypes and accepted values are listed per input file i
    .. tab:: Heating systems 
       .. tabs::
          .. tab:: heating_system_forecast
-            Defines the rate of change in heating systems towards 2050. The change is made on a percentage basis compared with the start year.
+            ``building_category``
+            - required
+            - values: house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs, default, residential, non_residential
+
+            ``building_code``
+            - required
+            - values: Any string containing ``TEK``, 'default'
+            
+            ``heating_systems``
+            - required
+            - string
+            - value: 'DH', 'DH - Bio', 'HP Central heating - Bio', 'HP Central heating - Electric boiler', 'HP Central heating - Gas', 'Electric boiler', 'Electric boiler - Solar', 'Gas', 'Electricity', 'Electricity - Bio', 'HP - Bio - Electricity', 'HP - Electricity'
+            
+            ``new_heating_systems``
+            - required
+            - string
+            - value: 'DH', 'DH - Bio', 'HP Central heating - Bio', 'HP Central heating - Electric boiler', 'HP Central heating - Gas', 'Electric boiler', 'Electric boiler - Solar', 'Gas', 'Electricity', 'Electricity - Bio', 'HP - Bio - Electricity', 'HP - Electricity'
+
+            Year columns: ``2024-2050``
+            - required
+            - float using a decimal point ('.') as the separator
+            - **0** ≤ value ≤ **1**
 
          .. tab:: heating_system_initial_shares
             ``building_category``
@@ -288,7 +309,7 @@ The input constraints, datatypes and accepted values are listed per input file i
             ``heating_systems``
             - required
             - string
-            - value: 'Electricity', 'Electricity - Bio', 'Electric boiler', 'Electric boiler - Solar', 'Gas', 'DH', 'DH - Bio'
+            - value: 'DH', 'DH - Bio', 'HP Central heating - Bio', 'HP Central heating - Electric boiler', 'HP Central heating - Gas', 'Electric boiler', 'Electric boiler - Solar', 'Gas', 'Electricity', 'Electricity - Bio', 'HP - Bio - Electricity', 'HP - Electricity'
 
             ``heating_system_share``
             - required
@@ -461,6 +482,18 @@ The input constraints, datatypes and accepted values are listed per input file i
             - required
             - float using a decimal point ('.') as the separator
             - **0.0** < value ≤ **1.0** (not including zero)
+
+Use of "default"
+================
+When making changes to an input file, for example **energy_need_improvements**, you can use aggregated 
+commands instead of specifying each individual *building category*, *building code* and *purpose*. The common aggregated
+command is **default**. When **default** is input the model chooses all valid options. For example **default** 
+building code means all building codes. 
+
+*Building category* has two additional categories: **residential** and
+**non-residental**. **residential** consists of houses and apartment blocks and **non-residential** are the other
+building categories. In the input constraint overview these aggregated categories are specified when available. 
+
 
 .. |br| raw:: html
 

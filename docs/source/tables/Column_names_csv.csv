@@ -9,7 +9,7 @@
 ;Apartment block;Boligblokk;Areal for nybygging I 2020 og 2021.;New useful floor area for apartments in 2020 and 2021
 4;Building category;Bygningskategori;Bygningskategoriene som brukes i TEK.;Building categories used in the building code.    
 ;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår.;Building code in construction year. 
-;Energy purpose;Energiformål;Hva energien skal brukes til. Eks. belysning eller romoppvarming. ;What the energy is used for. Ex. lighting or space heating.
+;Purpose;Energiformål;Hva energien skal brukes til. Eks. belysning eller romoppvarming. ;What the energy is used for. Ex. lighting or space heating.
 ;Energy need[kWh/m\ :sup:`2`];Energibehov [kWh/m\ :sup:`2`];Beregnet energibehov per kvadratmeter per energiformål fra TEK.;Calculated energy requirement per square meter for a specific purpose from the building code.
 ;Behaviour factor;Adferdsfaktor;Faktor for å justere på energibehovet per formål, bygningskategori og TEK.;A factor to change the energy requirement for each energy purpose, building category and building code. 
 5;Building category;bygningskategori;Bygningskategoriene som brukes i TEK.;Building categories used in the building code.    
@@ -20,7 +20,7 @@
 ;Improvement at end year;Endring ved sluttår;Prosentvis endring i sluttår sammenlignet med startår;Percentage change at end year compared to start year.
 6;Building category;bygningskategori;Bygningskategoriene som brukes i TEK.;Building categories used in TEK.   
 ;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår.;Building code in construction year. 
-;Purpose;Energiformål;Type energiformål.;Energy purpose.
+;Purpose;Energiformål;Hva energien skal brukes til. Eks. belysning eller romoppvarming.;What the energy is used for. Ex. lighting or space heating.
 ;Building condition;Arealtilstand;Arealets rehabiliteringstilstand. Arealet kan ha en av følgende tilstander: uberørt, ENØK, rehabilitering, ENØK og rehabilitering eller revet.;The condition of the useful floor area in question. It can have one of the following conditions: original, small measures, renovation, small measures and renovation or demolished. 
 ;Energy improvement [%];Energiforbedring [%];Prosentvis reduksjon i energibehovet til oppvarming per tilstand.;Percentage reduction in heating requirement based on condition. 
 7;Heating systems;Oppvarmingsløsninger;En av de 12 tilgjengelige oppvarmingsløsningene. Dette kan være en kombinasjon av en til tre ulike oppvarmingsteknologier.;One of the 12 available heating systems. A combination of up to three different heating technologies.
@@ -45,14 +45,14 @@
 ;Initial heating system;Oppvarmingsløsning utgangspunkt;En av de 12 tilgjengelige oppvarmingsløsningene. Oppvarmingsløsningen som er i bruk.;One of the 12 available heating systems. The initial heating system. 
 ;New heating systems;Ny oppvarmingsløsning;En av de 12 tilgjengelige oppvarmingsløsningene. Fremskrevet endring.;One of the 12 available heating systems. Forecasted change. . 
 ;2024-2050;2024-2050;Hvert år er en kolonne som inneholder andelen som skal gå fra oppvarmingsløsningen i bruk til en ny oppvarmingsløsning.;Each year is a new column containing the share defining the change from the initial heating system to a new heating system.
-9;Building category;bygningskategori;Bygningskategoriene som brukes i TEK.;Building categories used in the building code.
+9;Building category;Bygningskategori;Bygningskategoriene som brukes i TEK.;Building categories used in the building code.
 ;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår.;Building code in construction year. 
 ;Heating systems;Oppvarmingsløsninger;En av de 12 tilgjengelige oppvarmingsløsningene.;One of the 12 available heating systems. 
 ;Year;år;Startår;Start year
 ;Heating system share;Oppvarmingsløsning andel;Andel av bygningskategori og TEK med den gitte oppvarmingsløsningen. Summeres til 1 innenfor hver bygningskategori og TEK.;Share of building category and TEK with a specific heating system. Adds up to 1 for each TEK and building category.
 10;Number of holiday houses;Antall fritidsboliger;Antall fritidsboliger. Historisk statistikk hentet fra SSB.  ;Historical statistics on number of holiday houses.
 ;Detached houses and farmhouses used as holiday houses;Helårsboliger og våningshus benyttet som fritidsbolig;Antall bygg. Historisk statistikk hentet fra SSB. ;Historical statistics on number of holiday houses.
-11;year;År;År I modellen;Year in the model
+11;Year;År;År I modellen;Year in the model
 ;Electricity;Elektrisitet;Framskrevet elektrisitetsbruk i fritidsboliger.;Historical electricity use in holiday homes.
 ;Fuelwood;Ved;Historisk vedforbruk i fritidsbolig.;Historical use of fuelwood in holiday homes. 
 ;Fossilfuel;Fossil;Historisk fossilforbruk i fritidsbolig.;Historical use of fossil fuels in holiday homes.
@@ -61,7 +61,7 @@
 ;New apartment share;Andel nybygg leilighet;Andelen av nybygd areal til boliger som er i boligblokker.;Apartment share of total new residential area.
 ;Floor area new house;Areal nye småhus;Gjennomsnittlig areal for nye småhus (175 m\ :sup:`2`);Average area for new houses (175 (m\ :sup:`2`)).
 ;Floor area new apartments;Areal ny leilighet;Gjennomsnittlig areal for nye leiligheter (75 m\ :sup:`2`).;Average area for new apartments (75 (m\ :sup:`2`)).
-13;Building category;bygningskategori;Bygningskategoriene som brukes i TEK.;Building categories used in the building code.
+13;Building category;Bygningskategori;Bygningskategoriene som brukes i TEK.;Building categories used in the building code.
 ;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår.;Building code in construction year. 
 ;Household size;Husholdningsstørrelse;Antall personer per husholdning (gjennomsnitt), historisk og fremskrevet;Average household size, historical and forecasted. 
 14;Building category;bygningskategori;Bygningskategoriene som brukes i TEK.;Building categories used in the building code.
@@ -72,7 +72,12 @@
 ;Last age for measure;Siste alder ved tiltak;Siste mulig alder tiltak gjennomføres.;Deadline for when a measure can be completed. 
 ;Rush share;Andel i hurtigperiode;Hvor stor andel av bygningsmassen som utfører tiltaket i hurtigperioden;Share of buildings completing the measure during the rush period. 
 ;Never share;Andel ingen tiltak;Andel av bygg som aldri gjennomfører et tiltak. ;Share of buildings never completing a measure. 
-15;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår.;Building code in construction year.
+15;Building category;Bygningskategori;Bygningskategoriene som brukes i TEK.;Building categories used in the building code.
+;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår.;Building code in construction year.
+;Purpose;Energiformål;Hva energien skal brukes til. Eks. belysning eller romoppvarming.;What the energy is used for. Ex. lighting or space heating.
+;Behavior factor;Adferdsfaktor;Faktor for å justere på energibehovet per formål, bygningskategori og TEK.;A factor to change the energy requirement for each energy purpose, building category and building code.
+;Start year;Periodestart;Når tiltaket skal starte.;When the given measure begins.
+;End year;Periodeslutt;Når tiltaket skal slutte.;When the given measure ends. 
 16;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår.;Building code in construction year.
 ;Building year;Byggeår;Gjennomsnittlig byggeår for bygg innenfor en TEK;Average year of construction for buildings in a building code.  
 ;Period start year;Periodestart;Startår for en spesifikk TEK.;Start year for a building code category.

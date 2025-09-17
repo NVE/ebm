@@ -4,6 +4,7 @@ Calibrating the model
 To get a good starting point the model needs to be calibrated. The starting point is either energy use per energy product 
 in a given year from temperature corrected statistics or a constructed year based on statistics. 
 
+.. _Calibrating the model:
 
 How to calibrate
 ^^^^^^^^^^^^^^^^^^^^

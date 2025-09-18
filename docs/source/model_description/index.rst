@@ -7,6 +7,7 @@ The annual energy use can be distributted geographically as defined by the user.
 
 .. toctree::
    :caption: Content
+   :hidden:
    :maxdepth: 1
 
    architecture

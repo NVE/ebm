@@ -18,6 +18,7 @@ User Guide
 .. toctree::
    :caption: Content
    :maxdepth: 1
+   :hidden:
 
    getting_started
    user_case

@@ -2,7 +2,7 @@ Model Description
 #############################
 
 This is a bottom-up model that estimates how area, energy need, heating systems and energy use in the building stock changes over time. 
-The annual energy use can be distributted geographically as defined by the user. 
+The annual energy use can be distributed geographically as defined by the user.
 
 
 .. toctree::
@@ -25,7 +25,7 @@ Each building category is treated individually, and there are four steps in the 
     b. Renovation
     c. Demolition
     d. New construction
-#. Project area development, with area distributed by condition, i.e., whether the area is in origial condition or has undergone small measures or renovation or both.
+#. Project area development, with area distributed by condition, i.e., whether the area is in original condition or has undergone small measures or renovation or both.
 #. Link area to relevant energy requirement distributed by energy purpose.
 #. Assign heating system to the area to determine the use of different energy products (electricity, district heating, wood, natural gas).
 

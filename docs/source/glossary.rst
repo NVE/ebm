@@ -10,7 +10,7 @@ and describe their contents. "column names" explains the columns for each input 
    :backlinks: none
 
 
-Building energy
+Various terms
 -------------
 .. csv-table:: Various terms used in the model and its description. 
   :file: tables\glossary_various_terms_csv.csv

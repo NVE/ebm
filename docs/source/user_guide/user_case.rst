@@ -14,14 +14,14 @@ The TEK30 scenario showcases how to:
 
 
 Working with input
-==================
+------------------
 
 EBM supports scenario-based modeling by allowing users to create and manage separate input directories. This enables
 flexible experimentation with different assumptions and configurations.
 
 
 Creating an input directory for a scenario
-++++++++++++++++++++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To create a new scenario in EBM, open your preferred terminal and run the following command:
 
@@ -44,7 +44,7 @@ If the directory you name does not already exist, the program will attempt to cr
 
 
 Using the input directory
-+++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Once the input directory is ready, you can run the model using:
 
@@ -60,7 +60,7 @@ The model result as defined in with user-case-tek30 will be written to the subdi
 
 
 User case: Add a new building code
-==================================
+----------------------------------
 
 This example demonstrates how to use EBM’s scenario functionality by adding a new building code. TEK30 represents
 a hypothetical future building code introduced as part of a user case to demonstrate how EBM handles scenario-based
@@ -77,7 +77,7 @@ This process showcases how EBM can be extended to simulate future regulations or
 
 
 Add the new building code
-+++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The timeline and classification of building codes used by EBM are defined in the csv file ``building_code_parameters.csv``.
 To include TEK30 in your scenario, you must first define it in that file.
@@ -159,7 +159,7 @@ When done correctly ``building_code_parameters.csv`` should look like the exampl
         Optionally, `Download building_code_parameters.csv <_static/user_case/tek30/building_code_parameters.csv>`_ working example.
 
 Define energy needs for TEK30
-+++++++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 All building codes must have it's energy need defined in :ref:`energy_need_original_condition.csv<energy_need_original_condition>`. For this scenario we assume a TEK30 have a 2/3 energy need reduction for heating_rv and 1/4 reduction for heating_dhw, cooling, fans_and_pumps and electrical_equipment.
 
@@ -340,7 +340,7 @@ For clarity, all energy needs have been sorted and rounded to two decimal places
 
 
 Specify heating system shares
-+++++++++++++++++++++++++++++
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Finally :ref:`heating_system_initial_shares.csv<heating_system_initial_shares>` must have heating system share defined for TEK30.
 
@@ -662,7 +662,7 @@ Similarly to TEK17, there is no need to add TEK30 to :ref:`area.csv<area>` as al
 
 
 Extra credit
-++++++++++++
+^^^^^^^^^^^^
 
 The input files :ref:`energy_need_improvements.csv<energy_need_improvements>`, :ref:`heating_system_forecast.csv<heating_system_forecast>`, :ref:`improvement_building_upgrade.csv<improvement_building_upgrade>` and :ref:`energy_need_behaviour_factor.csv<energy_need_behaviour_factor>`
 have defined default values under the column building_code that will apply to TEK30. For extra credit you may override the defaults with your own values.
@@ -759,7 +759,7 @@ While the default values for lighting in `energy_need_original_condition.csv<ene
 
 
 Troubleshooting
-+++++++++++++++
+---------------
 
 .. admonition:: Suggested issues for troubleshooting
 

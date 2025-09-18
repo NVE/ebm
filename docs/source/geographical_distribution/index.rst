@@ -7,6 +7,7 @@ accurate representation of energy use patterns across the country.
 
 .. toctree::
    :caption: Content
+   :hidden:
    :maxdepth: 1
 
    methods

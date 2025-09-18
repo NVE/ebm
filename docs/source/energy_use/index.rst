@@ -9,6 +9,7 @@ different energy products. The energy products included in the model are electri
 
 .. toctree::
    :caption: Content
+   :hidden:
    :maxdepth: 1
 
    methods

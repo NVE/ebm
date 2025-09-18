@@ -19,6 +19,7 @@ is shown in the flowchart below.
 
 .. toctree::
    :caption: Content
+   :hidden:
    :maxdepth: 1
 
    methods

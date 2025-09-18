@@ -12,6 +12,7 @@ to its building code, building condition and :ref:`energy purpose <energy purpos
 
 .. toctree::
    :caption: Content
+   :hidden:
    :maxdepth: 1
 
    methods

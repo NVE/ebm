@@ -19,21 +19,22 @@ The area in the model can have on of the following conditions:
 An user defined S- curve determines how often and how much the area undergoes renovation and small measures. 
 
 New area replaces demolished area
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------
 
 When new area is replacing demolished area the total amount of area does not change. However, the new area is given the newest building code standard, which impacts the energy need.  
 Demolition is controlled by an user defined s-curve, that decides how much area is demolished each year. The demolition rates are
 set in relation to the area's age, and a development comparable to an S-curve is expected. The rates can be defines individually for each building category.
 
 New area from population growth
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------
 
 When new area is added due to changes in population, the total amount of area grows. The model has two different methods for forecasting newly built area due to changes in population. 
 One method for residental area and another one for non-residental area.
 
--------------------
+
 Non-residental area
--------------------
+^^^^^^^^^^^^^^^^^^^
+
 Population growth is the driver for new area in non-residential buildings. How the population develops is defined in the input file "population_forecast".
 The total area in a given year is the sum of the area in the previous year minus the demolished amount the previous year plus new construction. 
 
@@ -66,17 +67,18 @@ The area per person is different for each of the non-residental building categor
   :widths: 40, 20
   :header-rows: 1
 
-----------------
 Residential area
-----------------
-New construction in residential area is based on population, but with some key differences compared to the non-residential area. Instead of forecasting square-meters per person 
+^^^^^^^^^^^^^^^^
+
+New construction in residential area is based on population, but with some key differences compared to the non-residential area. Instead of forecasting square-meters per person
 as is done in non-residential area, we first have to calculate the required number of new dwellings. Number of new dwellings is calculated from the "population_forecast" input file which contains 
 both the popluation forecast and average household size. The new dwellings can be either apartments or houses and the ratio between them, and the area per dwelling, is given 
 in the input file "new_buildings_residential".  
 
 
 Renovation and small measures 
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------
+
 The rates for implementing small measures and renovation are determined. The rates are
 set in relation to the area's age, and a development comparable to an S-curve is expected. The rates can be defined 
 individually for each building category. The proportion of a building type that is
@@ -96,5 +98,3 @@ area undergoes small measures each year. This high rate continues until the buil
 only 0.5 % of the building stock will undergo small measures annually. It is assumed that 1 % of the area
 will never have small measures implemented, and that the buildings that are to have small measures implemented will have had 
 them done within 50 years.
-
-

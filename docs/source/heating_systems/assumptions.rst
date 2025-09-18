@@ -28,7 +28,7 @@ from *energy need*. For example, given that the energy need is only covered by t
 
 The load share factor decides how much of the heating need is covered by a specific technology. A single air-air heat
 pump can not provide heating to the whole building, and in addtion needs supplementation from another heating technology at 
-extreme temperatures. 
+extreme temperatures. The current efficiencies and coverage factors are assumptions made by NVE. 
 
 All the combinations can be found in the :any:`Tables and glossary` subchapter.
 

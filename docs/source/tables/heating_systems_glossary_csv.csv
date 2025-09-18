@@ -8,7 +8,7 @@ Peak load energy product;Spisslast energivare;Energivaren som brukes av spisslas
 Tertiary load energy product;Ekstralast energivare;Energivaren som brukes av ekstralasten. ;The energy carrier used by the tertiary load. 
 Base load coverage;Grunnlast andel;Andelen av varmebehovet som dekkes av grunnlasten.;Share of the heating need covered by the base load.
 Peak load coverage;Spisslast andel;Andelen av varmebehovet som dekkes av spisslasten.;Share of the heating need covered by the peak load.
-Tertiary load utilisation factor;Ekstralast andel;Andelen av varmebehovet som dekkes av ekstralasten.;Share of the heating need covered by the tertiary load. 
+Tertiary load coverage;Ekstralast andel;Andelen av varmebehovet som dekkes av ekstralasten.;Share of the heating need covered by the tertiary load. 
 Base load efficiency;Grunnlast virkningsgrad;Virkningsgrad, kan være over eller under 1. ;Efficiency factor, can be smaller or larger than 1
 Peak load efficiency;Spisslast virkningsgrad;Virkningsgrad, kan være over eller under 1. ;Efficiency factor, can be smaller or larger than 1.
 Tertiary load efficiency ;Ekstralast virkningsgrad;Virkningsgrad, kan være over eller under 1. ;Efficiency factor, can be smaller or larger than 1

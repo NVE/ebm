@@ -1,9 +1,9 @@
 EBM Documentation
 =============================
-EBM is is a bottom-up model that estimates area, energy requirement and energy use in the Norwegian building stock towards 2050. 
-The model is developed in-house by the Norwegian Water Resources- and Energy Directorate. 
-On this website you can find documentation on how the model works, what input is required, the expected output in a base scenario and how to create your own
-scenarios and sensitivites. 
+EBM is a bottom-up model that estimates how area, energy need, heating systems and energy use in the building stock changes over time. 
+The model is developed in-house by the Norwegian Water Resources- and Energy Directorate (NVE). It is an open source model, with an accompanying dataset developed by NVE.   
+On this website you will find information on how to use the model and an overview of the model architecture and functionality. 
+In addition a description of the dataset and assumptions is provided. 
 
 .. toctree::
    :maxdepth: 1

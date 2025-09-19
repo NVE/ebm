@@ -8,10 +8,40 @@ stock in 2020 in Norway, distributed by building categories and age. The area is
 to the periods during which the various building codes (TEK) have been in effect. The age is suitable for use with the
 age-specific rates for small measures, renovation, and demolition.
 
+inputfile: 'area'
 
-Constant area per person in non- residential buildings
+Demolition of area 
+------------------
+The rates for demolition in the dataset is based on .........
+
+*NOTE! The current data on demolition and building of new area differs from available statistics. 
+Changes in building stock area and energy consumption should therefore be used with caution. 
+An updated and improved dataset will be published along with the next version of the model.*
+
+inputfile: 's-curve'
+
+Population forecast
+-------------------
+
+The population forecast in the dataset is the SSB 
+
+HVILKEN AV FRAMSKRIVINGENE BRUKER VI? 
+
+inputfile: 'population forecast'
+
+New dwellings in residential area
+---------------------------------
+
+The number of new dwellings 
+
+Average household size in the dataset is based on .........
+
+inputfile: 'new_buildings_residential'
+
+
+Area per person in non- residential buildings
 ------------------------------------------------------
-For non-residential buildings, it is assumed that the area of a building type (e.g. office buildings) distributed by the
+For non-residential buildings, NVE has assumed that the area of a building type (e.g. office buildings) distributed by the
 number of inhabitants in Norway (m²/person) will remain constant going forward. This assumption, along with the
 calculated demolition, leads to new construction that will vary from year to year and between building categories.
 

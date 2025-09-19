@@ -53,6 +53,7 @@ should be excuted like:
     python -m ebm heating-systems
 
 
+.. _user-guide-additional-arguments:
 --------------------
 2. Additional arguments
 --------------------

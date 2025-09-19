@@ -1,7 +1,7 @@
 Assumptions
 ===========
 
-The energy need in a buldings original condition is based on the energy requirement given by the building code. This energy requirement is one common value in in kWh per square. 
+In the NVE dataset, the "original condition" of the area has an energy need given by the building code. This energy need is in kWh per square meter. 
 To get the energy need per energy purpose in the original condition, representative buildings per building category and building code
 have been simulated in Simien. This work was originally done by Multiconsult in 2014 to simulate the energy purpose for buildings built built after different building codes to calculate a 
 new building performance energy scale. There have been changes in the energy purpose since then, especially in lighting, due to new legislation from ecodesign. 

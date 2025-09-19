@@ -26,8 +26,8 @@ scenarios and sensitivites.
    :maxdepth: 1
    :caption: Model Functionality
 
-   building_parameters/index
    model_description/index
+   building_parameters/index
    area/index
    energy_need/index
    heating_systems/index

@@ -27,6 +27,7 @@ scenarios and sensitivites.
    :caption: Model Functionality
 
    model_description/index
+   building_parameters/index
    area/index
    energy_need/index
    heating_systems/index

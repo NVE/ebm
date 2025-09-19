@@ -2,7 +2,15 @@ Model Description
 #############################
 
 This is a bottom-up model that estimates how area, energy need, heating systems and energy use in the building stock changes over time. 
-The annual energy use can be distributed geographically as defined by the user.
+The annual energy use can be distributed geographically as defined by the user. In the model description you will find an explanation of how the model works and the assumptions the dataset in the model is based on. 
+Methods and data assumptions are organized by the following themes: 
+
+* Building category and building code
+* Area
+* Energy need
+* Heating systems
+* Energy use
+* Geographical distribution 
 
 
 .. toctree::
@@ -13,10 +21,6 @@ The annual energy use can be distributed geographically as defined by the user.
    architecture
    assumptions
 
-
-
-The Four Steps of the Model
----------------------------
 
 Each building category is treated individually, and there are four steps in the calculations for each building category:
 

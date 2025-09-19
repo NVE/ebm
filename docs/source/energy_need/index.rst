@@ -3,8 +3,13 @@ Energy need
 
 The different "types" of area (variations in building category, age and condition) can have different energy needs. 
 In the model it is possible to assigns each area group (same building category, age and condition) an energy need. In addition the energy need can be distributed on different energy purposes. 
-By default the energy need is distributed by these energy purposes: heating the building, heating domestic hot water, lighting, appliances, 
-fans and pumps and cooling.
+By default the energy need is distributed by these energy purposes: 
+* heating the building
+* heating domestic hot water
+* lighting
+* appliances
+* fans and pumps 
+* cooling
 
 The base line energy need per square metre is defined in the building code. Each :ref:`building category <building category and building code>` has a specific energy need according
 to its building code, building condition and :ref:`energy purpose <energy purpose>`.

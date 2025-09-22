@@ -42,7 +42,7 @@ steps:
   displayName: 'Twine Authenticate'
 
 - script: |
-    python -m twine upload -r NVE.ebm --skip-existing --config-file $(PYPIRC_PATH) --password=$(VSS_SESSION_TOKEN) -u VssSessionToken dist/*.whl
+    python -m twine upload -r NVE.ebm --config-file $(PYPIRC_PATH) --password=$(VSS_SESSION_TOKEN) -u VssSessionToken dist/*.whl
   displayName: 'Upload to feed'
 
 - script: | 

@@ -15,6 +15,11 @@
     content: "+";
     text-decoration: none;
 }
+.rst-content .expected-output:open .admonition-title:before {
+    content: "-";
+}
+
+
 
 .rst-content .expected-output .admonition-title {
     background-color: transparent;

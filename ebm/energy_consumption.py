@@ -19,7 +19,7 @@ COOLING = 'cooling'
 DHW_EFFICIENCY = 'Tappevann virkningsgrad'
 
 HEATING_SYSTEMS = 'heating_systems'
-TEK_SHARES = 'TEK_shares'
+HEATING_SYSTEM_SHARE = 'heating_system_share'
 GRUNNLAST_ANDEL = 'Grunnlast andel'
 GRUNNLAST_VIRKNINGSGRAD = 'Grunnlast virkningsgrad'
 KJOLING_VIRKNINGSGRAD = 'Kjoling virkningsgrad'
@@ -51,14 +51,14 @@ class EnergyConsumption:
             heating_systems_parameters grouped and summed
         """
         df = self.heating_systems_parameters
-        df = df.rename(columns={'tek_share': TEK_SHARES})
+        df = df.rename(columns={'heating_system_share': HEATING_SYSTEM_SHARE})
 
         aggregates = {'Grunnlast energivare': 'first', 'Spisslast energivare': 'first',
-                      'Ekstralast energivare': 'first', 'Tappevann energivare': 'first', TEK_SHARES: 'sum',
+                      'Ekstralast energivare': 'first', 'Tappevann energivare': 'first', HEATING_SYSTEM_SHARE: 'sum',
                       EKSTRALAST_ANDEL: 'sum', GRUNNLAST_ANDEL: 'sum', SPISSLAST_ANDEL: 'sum',
                       GRUNNLAST_VIRKNINGSGRAD: 'sum', SPISSLAST_VIRKNINGSGRAD: 'sum', EKSTRALAST_VIRKNINGSGRAD: 'sum',
                       DHW_EFFICIENCY: 'sum', SPESIFIKT_ELFORBRUK: 'sum', KJOLING_VIRKNINGSGRAD: 'sum'}
-        grouped = df.groupby(by=['building_category', 'TEK', 'year', HEATING_SYSTEMS]).agg(aggregates)
+        grouped = df.groupby(by=['building_category', 'building_code', 'year', HEATING_SYSTEMS]).agg(aggregates)
         return grouped.reset_index()
 
     def calculate(self, energy_requirements: pd.DataFrame) -> pd.DataFrame:
@@ -75,22 +75,22 @@ class EnergyConsumption:
 
         """
         logger.debug('Calculate heating systems')
-        if all([col in energy_requirements.columns for col in ['building_category', 'TEK', 'building_condition', 'year', 'purpose']]):
-            energy_requirements = energy_requirements.set_index(['building_category', 'TEK', 'building_condition', 'year', 'purpose'])
-        energy_requirements = self._remove_tek_suffix(energy_requirements)
-        energy_requirements = self._group_and_sum_same_tek(energy_requirements)
+        if all([col in energy_requirements.columns for col in ['building_category', 'building_code', 'building_condition', 'year', 'purpose']]):
+            energy_requirements = energy_requirements.set_index(['building_category', 'building_code', 'building_condition', 'year', 'purpose'])
+        energy_requirements = self._remove_building_code_suffix(energy_requirements)
+        energy_requirements = self._group_and_sum_same_building_code(energy_requirements)
 
-        # If _RES of _COM is in TEK this will not work
+        # If _RES of _COM is in building_codethis will not work
         # energy_requirements.index[energy_requirements.index.str.endswith('_RES')]
-        if energy_requirements.index.get_level_values('TEK').str.endswith(
-                '_RES').any() or energy_requirements.index.get_level_values('TEK').str.endswith('_COM').any():
+        if energy_requirements.index.get_level_values('building_code').str.endswith(
+                '_RES').any() or energy_requirements.index.get_level_values('building_code').str.endswith('_COM').any():
             raise ValueError('Found _RES or _COM in energy_requirements')
-        self.heating_systems_parameters = self.heating_systems_parameters.rename(columns={'tek_share': TEK_SHARES})
+        self.heating_systems_parameters = self.heating_systems_parameters.rename(columns={'heating_system_share': HEATING_SYSTEM_SHARE})
         # Merge energy_requirements and heating_systems into df
         df = self._merge_energy_requirement_and_heating_systems(energy_requirements)
 
-        # Make column eq_ts for tek_share adjusted energy requirement
-        df[ADJUSTED_REQUIREMENT] = (df.energy_requirement * df[TEK_SHARES]).astype(float)
+        # Make column eq_ts for heating_system_share adjusted energy requirement
+        df[ADJUSTED_REQUIREMENT] = (df.energy_requirement * df[HEATING_SYSTEM_SHARE]).astype(float)
 
         # Zero fill columns before calculating to prevent NaN from messing up sums
         df.loc[:, [HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HEATIG_RV_EKSTRALAST, DHW_TV, COOLING_KV, OTHER_SV,
@@ -112,8 +112,8 @@ class EnergyConsumption:
 
         df.loc[:, 'gwh'] = df.loc[:, 'kwh'] / 10 ** 6
 
-        df = df.sort_index(level=['building_category', 'TEK', 'year', 'building_condition', 'purpose', HEATING_SYSTEMS])
-        return df[[TEK_SHARES, ADJUSTED_REQUIREMENT,
+        df = df.sort_index(level=['building_category', 'building_code', 'year', 'building_condition', 'purpose', HEATING_SYSTEMS])
+        return df[[HEATING_SYSTEM_SHARE, ADJUSTED_REQUIREMENT,
                    HEATING_RV_GRUNNLAST, GRUNNLAST_ENERGIVARE, GRUNNLAST_VIRKNINGSGRAD,
                    HEATING_RV_SPISSLAST, SPISSLAST_ENERGIVARE, SPISSLAST_VIRKNINGSGRAD,
                    HEATIG_RV_EKSTRALAST, EKSTRALAST_ENERGIVARE, EKSTRALAST_VIRKNINGSGRAD,
@@ -176,29 +176,29 @@ class EnergyConsumption:
 
     def _merge_energy_requirement_and_heating_systems(self, energy_requirements):
         df = energy_requirements.reset_index().merge(self.heating_systems_parameters.reset_index(),
-            left_on=['building_category', 'TEK', 'year'], right_on=['building_category', 'TEK', 'year'])[
-            ['building_category', 'building_condition', 'purpose', 'TEK', 'year', 'kwh_m2', 'm2', 'energy_requirement',
-             HEATING_SYSTEMS, TEK_SHARES, GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE,
+            left_on=['building_category', 'building_code', 'year'], right_on=['building_category', 'building_code', 'year'])[
+            ['building_category', 'building_condition', 'purpose', 'building_code', 'year', 'kwh_m2', 'm2', 'energy_requirement',
+             HEATING_SYSTEMS, HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE,
              SPISSLAST_ANDEL, SPISSLAST_VIRKNINGSGRAD, SPISSLAST_ENERGIVARE, EKSTRALAST_VIRKNINGSGRAD, EKSTRALAST_ANDEL,
              EKSTRALAST_ENERGIVARE, TAPPEVANN_ENERGIVARE, DHW_EFFICIENCY, SPESIFIKT_ELFORBRUK, KJOLING_VIRKNINGSGRAD]]
         # Unused columns
         # ,'Innfyrt_energi_kWh','Innfyrt_energi_GWh','Energibehov_samlet_GWh']]
         df = df.set_index(
-            ['building_category', 'building_condition', 'purpose', 'TEK', 'year', HEATING_SYSTEMS]).sort_index()
+            ['building_category', 'building_condition', 'purpose', 'building_code', 'year', HEATING_SYSTEMS]).sort_index()
         return df
 
     @staticmethod
-    def _group_and_sum_same_tek(energy_requirements):
-        energy_requirements = FilterTek.merge_tek(energy_requirements, 'TEK69', ['TEK69_1976', 'TEK69_1986'])
-        energy_requirements = FilterTek.merge_tek(energy_requirements, 'PRE_TEK49',
+    def _group_and_sum_same_building_code(energy_requirements):
+        energy_requirements = FilterTek.merge_building_code(energy_requirements, 'TEK69', ['TEK69_1976', 'TEK69_1986'])
+        energy_requirements = FilterTek.merge_building_code(energy_requirements, 'PRE_TEK49',
                                                   ['PRE_TEK49_1940', 'PRE_TEK49_1950'])
         energy_requirements = energy_requirements.sort_index()
         return energy_requirements
 
     @staticmethod
-    def _remove_tek_suffix(energy_requirements):
-        energy_requirements = FilterTek.remove_tek_suffix(energy_requirements, suffix='_RES')
-        energy_requirements = FilterTek.remove_tek_suffix(energy_requirements, suffix='_COM')
+    def _remove_building_code_suffix(energy_requirements):
+        energy_requirements = FilterTek.remove_building_code_suffix(energy_requirements, suffix='_RES')
+        energy_requirements = FilterTek.remove_building_code_suffix(energy_requirements, suffix='_COM')
         return energy_requirements
 
 
@@ -222,40 +222,40 @@ def calibrate_heating_systems(df: pd.DataFrame, factor: pd.DataFrame, multiply=F
                              right_on=['building_category', 'from'])
 
     # Calculate value to add
-    df_to_add = df_to.set_index(['building_category', 'TEK', 'year', 'to'])
+    df_to_add = df_to.set_index(['building_category', 'building_code', 'year', 'to'])
 
     if multiply:
-        df_to_add['v'] = (df_to_add.TEK_shares * df_to_add.factor)/100 - df_to_add.TEK_shares
+        df_to_add['v'] = (df_to_add.heating_system_share * df_to_add.factor)/100 - df_to_add.heating_system_share
     else:
-        df_to_add['v'] = df_to_add.TEK_shares * df_to_add.factor - df_to_add.TEK_shares
+        df_to_add['v'] = df_to_add.heating_system_share * df_to_add.factor - df_to_add.heating_system_share
 
     # Calculate value to subtract
-    df_to_subtract = df_from.set_index(['building_category', 'TEK', 'year', 'from', 'to'])
+    df_to_subtract = df_from.set_index(['building_category', 'building_code', 'year', 'from', 'to'])
 
     df_to_subtract = df_to_subtract.sort_index()
-    df_to_subtract.loc[:, 'v'] = -df_to_add.reset_index().groupby(by=['building_category', 'TEK', 'year', 'from', 'to']).agg(
+    df_to_subtract.loc[:, 'v'] = -df_to_add.reset_index().groupby(by=['building_category', 'building_code', 'year', 'from', 'to']).agg(
         {'v': 'sum'})
 
     # Join add and substract rows
-    addition_grouped = df_to_add.groupby(by=['building_category', 'TEK', 'year', 'to']).agg(
-        {'v': 'sum', 'heating_systems': 'first', 'TEK_shares': 'first', 'factor': 'first', 'from': 'first'})
-    subtraction_grouped = df_to_subtract.groupby(by=['building_category', 'TEK', 'year', 'from']).agg(
-        {'v': 'sum', 'heating_systems': 'first', 'TEK_shares': 'first', 'factor': 'first'})
+    addition_grouped = df_to_add.groupby(by=['building_category', 'building_code', 'year', 'to']).agg(
+        {'v': 'sum', 'heating_systems': 'first', 'heating_system_share': 'first', 'factor': 'first', 'from': 'first'})
+    subtraction_grouped = df_to_subtract.groupby(by=['building_category', 'building_code', 'year', 'from']).agg(
+        {'v': 'sum', 'heating_systems': 'first', 'heating_system_share': 'first', 'factor': 'first'})
 
-    df_to_sum = original.set_index(['building_category', 'TEK', 'year', 'heating_systems'])
+    df_to_sum = original.set_index(['building_category', 'building_code', 'year', 'heating_systems'])
     df_to_sum = df_to_sum.sort_index()
     df_to_sum.loc[:, 'add'] = addition_grouped.loc[:, 'v']
     df_to_sum.loc[:, 'sub'] = subtraction_grouped.loc[:, 'v'].fillna(0)
     df_to_sum.loc[:, 'sub'] = df_to_sum.loc[:, 'sub'].fillna(0)
 
-    df_to_sum.TEK_shares = df_to_sum.TEK_shares + df_to_sum['add'].fillna(0) + df_to_sum['sub'].fillna(0)
+    df_to_sum.heating_system_share = df_to_sum.heating_system_share + df_to_sum['add'].fillna(0) + df_to_sum['sub'].fillna(0)
 
     calibrated_and_original = pd.concat([df_to_sum.reset_index(), original.reset_index()]).drop_duplicates(
-        ['building_category', 'TEK', 'year', 'heating_systems'],
+        ['building_category', 'building_code', 'year', 'heating_systems'],
         keep='first').drop(columns='index',
                            errors='ignore')
 
-    columns_to_keep = ['building_category', 'TEK', 'year', 'heating_systems', 'TEK_shares']
+    columns_to_keep = ['building_category', 'building_code', 'year', 'heating_systems', 'heating_system_share']
     return calibrated_and_original[columns_to_keep].reset_index(drop=True)
 
 
@@ -276,32 +276,32 @@ def calibrate_heating_systems_adder(df: pd.DataFrame, factor: pd.DataFrame) -> p
                              right_on=['building_category', 'from'])
 
     # Calculate value to add
-    df_to_add = df_to.set_index(['building_category', 'TEK', 'year', 'to'])
+    df_to_add = df_to.set_index(['building_category', 'building_code', 'year', 'to'])
 
     df_to_add['v'] = df_to_add.factor
 
     # Calculate value to subtract
-    df_to_subtract = df_from.set_index(['building_category', 'TEK', 'year', 'from', 'to'])
-    df_to_subtract.loc[:, 'v'] = -df_to_add.reset_index().groupby(by=['building_category', 'TEK', 'year', 'from', 'to']).agg(
+    df_to_subtract = df_from.set_index(['building_category', 'building_code', 'year', 'from', 'to'])
+    df_to_subtract.loc[:, 'v'] = -df_to_add.reset_index().groupby(by=['building_category', 'building_code', 'year', 'from', 'to']).agg(
         {'v': 'sum'})
 
     # Join add and substract rows
-    addition_grouped = df_to_add.groupby(by=['building_category', 'TEK', 'year', 'to']).agg(
-        {'v': 'sum', 'heating_systems': 'first', 'TEK_shares': 'first', 'factor': 'first', 'from': 'first'})
-    subtraction_grouped = df_to_subtract.groupby(by=['building_category', 'TEK', 'year', 'from']).agg(
-        {'v': 'sum', 'heating_systems': 'first', 'TEK_shares': 'first', 'factor': 'first'})
+    addition_grouped = df_to_add.groupby(by=['building_category', 'building_code', 'year', 'to']).agg(
+        {'v': 'sum', 'heating_systems': 'first', 'heating_system_share': 'first', 'factor': 'first', 'from': 'first'})
+    subtraction_grouped = df_to_subtract.groupby(by=['building_category', 'building_code', 'year', 'from']).agg(
+        {'v': 'sum', 'heating_systems': 'first', 'heating_system_share': 'first', 'factor': 'first'})
 
-    df_to_sum = original.set_index(['building_category', 'TEK', 'year', 'heating_systems'])
+    df_to_sum = original.set_index(['building_category', 'building_code', 'year', 'heating_systems'])
     df_to_sum.loc[:, 'add'] = addition_grouped.loc[:, 'v']
     df_to_sum.loc[:, 'sub'] = subtraction_grouped.loc[:, 'v'].fillna(0)
     df_to_sum.loc[:, 'sub'] = df_to_sum.loc[:, 'sub'].fillna(0)
 
-    df_to_sum.TEK_shares = df_to_sum.TEK_shares + df_to_sum['add'].fillna(0) + df_to_sum['sub'].fillna(0)
+    df_to_sum.heating_system_share = df_to_sum.heating_system_share + df_to_sum['add'].fillna(0) + df_to_sum['sub'].fillna(0)
 
     calibrated_and_original = pd.concat([df_to_sum.reset_index(), original.reset_index()]).drop_duplicates(
-        ['building_category', 'TEK', 'year', 'heating_systems'],
+        ['building_category', 'building_code', 'year', 'heating_systems'],
         keep='first').drop(columns='index',
                            errors='ignore')
 
-    columns_to_keep = ['building_category', 'TEK', 'year', 'heating_systems', 'TEK_shares']
+    columns_to_keep = ['building_category', 'building_code', 'year', 'heating_systems', 'heating_system_share']
     return calibrated_and_original[columns_to_keep].reset_index(drop=True)

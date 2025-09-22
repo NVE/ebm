@@ -58,3 +58,22 @@ def test_year_range_to_index():
     pd.testing.assert_index_equal(YearRange(2010, 2011).to_index(name='foo'),
                                   pd.Index(data=[2010, 2011], name='foo'))
 
+def test_year_range_cross_join():
+    df = pd.DataFrame(data=[('a', 1), ('b', 2)], columns=['L', 'N'])
+    result = YearRange(2010, 2012).cross_join(df)
+
+    expected = pd.DataFrame(
+        data=[('a', 1, 2010), ('a', 1, 2011), ('a', 1, 2012),
+              ('b', 2, 2010), ('b', 2, 2011), ('b', 2, 2012)], columns=['L', 'N', 'year'])
+
+    pd.testing.assert_frame_equal(result, expected)
+
+
+def test_year_range_from_series():
+    s = pd.Series([1, 2, 3, 4], pd.Index([2001, 2002, 2003, 2004], name='year'))
+    assert YearRange(2001, 2004) == YearRange.from_series(s), 'YearRange not loaded correctly from index.level==year'
+
+    s = pd.Series([2010, 2011, 2012, 2013], name='year', index=pd.Index([2004, 2008, 2012, 2016], name='leap years'))
+    assert YearRange(2010, 2013) == YearRange.from_series(s), 'YearRange not loaded correctly from index.level==year'
+
+

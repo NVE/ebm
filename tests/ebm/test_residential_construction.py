@@ -15,17 +15,17 @@ def test_calculate_yearly_floor_area_change_accept_int_and_list():
 
     years = YearRange(2010, 2029)
     building_change = pd.Series({y: 1 for y in years})
-    expected_values = [0, 0, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
+    expected_values = [0.0, 0.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]
 
     assert expected_values == ConstructionCalculator().calculate_yearly_floor_area_change(
-        building_change=building_change, period=years, average_floor_area=100).tolist()
+        building_change=building_change, average_floor_area=100).tolist()
 
-    average_floor_area = pd.Series({y: 100 for y in YearRange(2009, 2060)})
+    average_floor_area = pd.Series({y: 100 for y in YearRange(2010, 2060)})
     assert expected_values == ConstructionCalculator().calculate_yearly_floor_area_change(
-        building_change=building_change, period=years, average_floor_area=average_floor_area).tolist()
+        building_change=building_change, average_floor_area=average_floor_area).tolist()
 
     assert expected_values == ConstructionCalculator().calculate_yearly_floor_area_change(
-        building_change=building_change, period=years, average_floor_area=average_floor_area).tolist()
+        building_change=building_change, average_floor_area=average_floor_area).tolist()
 
 
 def test_calculate_yearly_floor_area_change():
@@ -40,7 +40,7 @@ def test_calculate_yearly_floor_area_change():
                                 index=[2010, 2011, 2012, 2013, 2014, 2015])
 
     yearly_floor_area_change = ConstructionCalculator().calculate_yearly_floor_area_change(
-        building_change=building_change, period=years, average_floor_area=2)
+        building_change=building_change, average_floor_area=2)
 
     pd.testing.assert_series_equal(yearly_floor_area_change, expected_values)
 
@@ -118,13 +118,10 @@ def test_calculate_residential_construction():
 
     expected_data = {
         'population': population,
-        'population_growth': pd.Series([None, 0.1, 0.1, 0.1], index=[2010, 2011, 2012, 2013], name='population_growth'),
         'household_size': household_size,
         'households': pd.Series([400, 458.33, 526.09, 605], index=[2010, 2011, 2012, 2013], name='households'),
         'households_change': pd.Series([None, 58.33, 67.75, 78.91], index=[2010, 2011, 2012, 2013],
                                        name='household_change'),
-        'building_growth': pd.Series([None, 29.17, 33.88, 39.46], index=[2010, 2011, 2012, 2013],
-                                     name='building_growth'),
         'net_constructed_floor_area': pd.Series([0, 0, 5928.44, 6904.89], index=[2010, 2011, 2012, 2013],
                                                    name='house_floor_area_change'),
         'demolished_floor_area': yearly_demolished_floor_area,
@@ -156,14 +153,10 @@ def test_calculate_residential_construction_2011():
 
     expected_data = {
         'population': population,
-        'population_growth': pd.Series([None, 0.1, 0.1, 0.1], index=period.to_index(),
-                                       name='population_growth'),
         'household_size': household_size,
         'households': pd.Series([400, 458.33, 526.09, 605], index=period.to_index(), name='households'),
         'households_change': pd.Series([None, 58.33, 67.75, 78.91], index=period.to_index(),
                                        name='household_change'),
-        'building_growth': pd.Series([None, 29.17, 33.88, 39.46], index=period.to_index(),
-                                     name='building_growth'),
         'net_constructed_floor_area': pd.Series([0, 0, 5928.44, 6904.89], index=period.to_index(),
                                                    name='house_floor_area_change'),
         'demolished_floor_area': yearly_demolished_floor_area,

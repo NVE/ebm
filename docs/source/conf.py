@@ -27,7 +27,8 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "sphinx.ext.githubpages",
-    "sphinx.ext.autosectionlabel"
+    "sphinx.ext.autosectionlabel",
+    "sphinx_tabs.tabs",
 ]
 
 templates_path = ["_templates"]
@@ -48,6 +49,10 @@ html_css_files = [
     'css/custom.css',
 ]
 
+#html_theme_options = {
+#    "show_navbar_depth": 1,
+#}
+
 autodoc_default_options = {
     "members": True,
     "member-order": "bysource",
@@ -55,6 +60,8 @@ autodoc_default_options = {
     "undoc-members": True,
     "exclude-members": "__weakref__",
 }
+
+suppress_warnings = ['autosectionlabel.*']
 
 # Konfigurasjon for Napoleon
 napoleon_google_docstring = True

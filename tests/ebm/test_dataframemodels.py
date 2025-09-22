@@ -17,7 +17,7 @@ def test_from_energy_need_yearly_improvements_handle_duplicate_keys():
 
     """
     energy_need_improvements_csv = io.StringIO("""
-building_category,TEK,purpose,value,start_year,function,end_year
+building_category,building_code,purpose,value,start_year,function,end_year
 default,default,cooling,0.5,2021,yearly_reduction,2029
 default,default,cooling,0.5,2021,improvement_at_end_year,2029
 default,default,electrical_equipment,0.01,2021,yearly_reduction,
@@ -38,18 +38,18 @@ def test_from_energy_need_yearly_improvements():
             ['house', 'TEK1', 'lighting', 2021, 'yearly_reduction', 2023,0.2],
             # ['house', 'TEK1', 'heating_rv', 1.0, 2021, 'improvement_at_end_year', 2023]
         ],
-        columns=['building_category', 'TEK', 'purpose', 'start_year', 'function', 'end_year', 'value']
+        columns=['building_category', 'building_code', 'purpose', 'start_year', 'function', 'end_year', 'value']
     ))
     df = YearlyReduction.from_energy_need_yearly_improvements(dfm)
 
     # Casting df to DataFrame so that Pycharm stops warning about DataFrameBase not having the method set_index
-    df = cast(pd.DataFrame, df).set_index(['building_category','TEK','purpose','start_year', 'end_year'])
+    df = cast(pd.DataFrame, df).set_index(['building_category','building_code','purpose','start_year', 'end_year'])
 
     expected_yearly_reduction_factor = pd.Series(
         data=[0.2],
         name='yearly_efficiency_improvement',
         index=pd.Index(data=[('house', 'TEK1', 'lighting', 2021, 2023)],
-                       name=('building_category', 'TEK', 'purpose' ,'start_year',  'end_year')
+                       name=('building_category', 'building_code', 'purpose' ,'start_year',  'end_year')
                        )
     )
 
@@ -64,7 +64,7 @@ def test_from_energy_need_yearly_improvements_default_start_year_is_2020():
             ['house', 'TEK2', 'lighting', 2020, 'yearly_reduction', None, 0.2],
             ['house', 'TEK3', 'lighting', None, 'yearly_reduction', None, 0.3],
         ],
-        columns=['building_category', 'TEK', 'purpose', 'start_year', 'function', 'end_year', 'value']
+        columns=['building_category', 'building_code', 'purpose', 'start_year', 'function', 'end_year', 'value']
     ))
     df = YearlyReduction.from_energy_need_yearly_improvements(dfm)
 
@@ -83,7 +83,7 @@ def test_from_energy_need_yearly_improvements_fill_optional_columns():
             ['house', 'TEK2', 'lighting', 'yearly_reduction', 0.2],
             ['house', 'TEK3', 'lighting', 'yearly_reduction', 0.3],
         ],
-        columns=['building_category', 'TEK', 'purpose', 'function', 'value']
+        columns=['building_category', 'building_code', 'purpose', 'function', 'value']
     ))
     df = YearlyReduction.from_energy_need_yearly_improvements(dfm)
 
@@ -96,7 +96,7 @@ def test_from_energy_need_yearly_improvements_fill_optional_columns():
 
 
 def test_from_energy_need_policy_improvement():
-    csv_file="""building_category,TEK,purpose,value,start_year,function,end_year
+    csv_file="""building_category,building_code,purpose,value,start_year,function,end_year
 default,default,lighting,0.005,2031,yearly_reduction,2050
 house,TEK01,lighting,0.5555555555555556,2020,improvement_at_end_year,2030
 house,TEK01,electrical_equipment,0.8,2025,improvement_at_end_year,2029
@@ -105,7 +105,7 @@ house,TEK01,electrical_equipment,0.8,2025,improvement_at_end_year,2029
     df = PolicyImprovement.from_energy_need_yearly_improvements(EnergyNeedYearlyImprovements(df_input))
 
     assert isinstance(df, pd.DataFrame), f'Expected df to be a DataFrame. Was: {type(df)}'
-    df = cast(pd.DataFrame, df).set_index(['building_category','TEK','purpose','start_year', 'end_year'])
+    df = cast(pd.DataFrame, df).set_index(['building_category','building_code','purpose','start_year', 'end_year'])
 
     lighting = df.query('purpose=="lighting"')
 
@@ -117,7 +117,7 @@ house,TEK01,electrical_equipment,0.8,2025,improvement_at_end_year,2029
 
 
 def test_from_energy_need_policy_improvement_explode_groups():
-    csv_file="""building_category,TEK,purpose,value,start_year,function,end_year
+    csv_file="""building_category,building_code,purpose,value,start_year,function,end_year
 residential,TEK01+TEK02,lighting,0.1,2020,improvement_at_end_year,2021
 non_residential,TEK02,default,0.2,2020,improvement_at_end_year,2021
 non_residential,TEK02,default,0.2,2020,yearly_reduction,2021
@@ -127,7 +127,7 @@ non_residential,TEK02,default,0.2,2020,yearly_reduction,2021
     df = PolicyImprovement.from_energy_need_yearly_improvements(EnergyNeedYearlyImprovements(df_input))
 
     assert isinstance(df, pd.DataFrame), f'Expected df to be a DataFrame. Was: {type(df)}'
-    df = cast(pd.DataFrame, df).set_index(['building_category','TEK','purpose','start_year', 'end_year'])
+    df = cast(pd.DataFrame, df).set_index(['building_category','building_code','purpose','start_year', 'end_year'])
 
     house_light = df.query('building_category=="house" and purpose=="lighting"')
 
@@ -136,7 +136,7 @@ non_residential,TEK02,default,0.2,2020,yearly_reduction,2021
         name='improvement_at_end_year',
         index=pd.Index(data=[('house', 'TEK01', 'lighting', 2020, 2021),
                             ('house', 'TEK02', 'lighting', 2020, 2021)],
-                       name=('building_category', 'TEK', 'purpose', 'start_year', 'end_year')))
+                       name=('building_category', 'building_code', 'purpose', 'start_year', 'end_year')))
 
     pd.testing.assert_series_equal(house_light.improvement_at_end_year, expected_house_lighting)
 
@@ -156,7 +156,7 @@ non_residential,TEK02,default,0.2,2020,yearly_reduction,2021
 @pytest.fixture
 def policy_improvements_df():
     df = pd.DataFrame(
-        columns=['building_category', 'TEK', 'purpose', 'start_year', 'end_year',
+        columns=['building_category', 'building_code', 'purpose', 'start_year', 'end_year',
                  'improvement_at_end_year'],
         data=[['default', 'default', 'lighting', 2018, 2030, 0.6],
               ['house', 'TEK01', 'default', 2020, 2040, 0.9]])
@@ -199,7 +199,7 @@ def test_energy_req_policy_improvements_value_between_zero_and_one(policy_improv
 
 def test_energy_req_policy_improvements_require_unique_rows():
     duplicate_df = pd.DataFrame(
-        columns=['building_category', 'TEK', 'purpose', 'start_year', 'end_year', 'improvement_at_period_end'],
+        columns=['building_category', 'building_code', 'purpose', 'start_year', 'end_year', 'improvement_at_period_end'],
         data=[['default', 'default', 'lighting', 2018, 2030, 0.6],
               ['default', 'default', 'lighting', 2018, 2030, 0.6],
               ['default', 'default', 'lighting', 2018, 2030, 0.1]])
@@ -214,7 +214,7 @@ def test_from_policy_improvements__fill_optional_columns():
             ['house', 'TEK2', 'lighting', 'improvement_at_period_end', 0.2],
             ['house', 'TEK3', 'lighting', 'improvement_at_period_end', 0.3],
         ],
-        columns=['building_category', 'TEK', 'purpose', 'function', 'value']
+        columns=['building_category', 'building_code', 'purpose', 'function', 'value']
     ))
     df = PolicyImprovement.from_energy_need_yearly_improvements(dfm)
 

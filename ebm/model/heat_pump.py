@@ -6,7 +6,7 @@ from ebm.energy_consumption import HP_ENERGY_SOURCE, HEAT_PUMP
 def air_source_heat_pump(heating_systems_parameters: pd.DataFrame):
     df = heating_systems_parameters.copy()
     el_slice = df[df['heating_system'] == 'HP'].index
-    df.loc[el_slice, 'pump_factor'] = df.loc[el_slice, 'load_share'] * df.loc[el_slice, 'TEK_shares']
+    df.loc[el_slice, 'pump_factor'] = df.loc[el_slice, 'load_share'] * df.loc[el_slice, 'heating_system_share']
     df.loc[el_slice, HP_ENERGY_SOURCE] = 'Luft/luft'
     df.loc[el_slice, 'purpose'] = 'heating_rv'
 
@@ -16,7 +16,7 @@ def air_source_heat_pump(heating_systems_parameters: pd.DataFrame):
 def district_heating_heat_pump(heating_systems_parameters: pd.DataFrame):
     df = heating_systems_parameters.copy()
     vann_slice = df[df['heating_system'] == 'HP Central heating'].index
-    df.loc[vann_slice, 'pump_factor'] = df.loc[vann_slice, 'load_share'] * df.loc[vann_slice, 'TEK_shares']
+    df.loc[vann_slice, 'pump_factor'] = df.loc[vann_slice, 'load_share'] * df.loc[vann_slice, 'heating_system_share']
     df.loc[vann_slice, HP_ENERGY_SOURCE] = 'Vannbåren varme'
     df.loc[vann_slice, 'purpose'] = 'heating_rv,heating_dhw'
     df = df.assign(**{'purpose': df['purpose'].str.split(',')}).explode('purpose')
@@ -29,9 +29,9 @@ def heat_pump_production(energy_need, air_air, district_heating):
     df_hp = pd.concat([air_air, district_heating])
 
     df = pd.merge(left=df_en,
-                  left_on=['building_category', 'TEK', 'purpose', 'year'],
+                  left_on=['building_category', 'building_code', 'purpose', 'year'],
                   right=df_hp,
-                  right_on=['building_category', 'TEK', 'purpose', 'year'])
+                  right_on=['building_category', 'building_code', 'purpose', 'year'])
 
 
     df[HEAT_PUMP] = df.energy_requirement * df.pump_factor

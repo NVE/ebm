@@ -1,3 +1,6 @@
+# requirements-geodist.txt is used to install the dependencies for the geographical distribution package. 
+# Please comment out the line below if you plan to use the geographical distribution package.
+# -r requirements-geodist.txt
 pandas==2.2.3
 openpyxl
 loguru
@@ -8,6 +11,7 @@ pandera==0.20.4
 sphinx[docs]
 sphinx-rtd-theme[docs]
 sphinx-autodoc-typehints[docs]
+sphinx-tabs[docs]
 numpydoc[docs]
 pytest[test]
 build[build]

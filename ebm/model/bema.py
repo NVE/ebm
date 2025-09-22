@@ -1,480 +1,149 @@
-import itertools
-import os
-import typing
+from types import MappingProxyType
 
-import pandas as pd
-from loguru import logger
-from openpyxl.worksheet.worksheet import Worksheet
-
-from ebm.model.building_category import BuildingCategory
-from ebm.model.database_manager import DatabaseManager
-from ebm.model.bema_validation import get_building_category_sheet
+from ebm.model.building_category import BuildingCategory, RESIDENTIAL, NON_RESIDENTIAL
 from ebm.model.building_condition import BuildingCondition
-from ebm.model.data_classes import YearRange
-from ebm.model.data_classes import YearRange
 
-from ebm.services.spreadsheet import iter_cells
+_building_category_order = {
+    BuildingCategory.HOUSE: 101, BuildingCategory.APARTMENT_BLOCK: 102, RESIDENTIAL: 199,
+    'holiday_home': 299,
+    BuildingCategory.RETAIL: 301, BuildingCategory.OFFICE: 302, BuildingCategory.KINDERGARTEN: 303, BuildingCategory.SCHOOL: 304,
+    BuildingCategory.UNIVERSITY: 305, BuildingCategory.HOSPITAL: 306, BuildingCategory.NURSING_HOME: 307,
+    BuildingCategory.HOTEL: 308, BuildingCategory.SPORTS: 309, BuildingCategory.CULTURE: 310,
+    BuildingCategory.STORAGE: 312, 'storage': 311, NON_RESIDENTIAL: 399}
 
-START_ROWS_CONSTRUCTION_BUILDING_CATEGORY = {
-    BuildingCategory.HOUSE: 11,
-    BuildingCategory.APARTMENT_BLOCK: 23,
-    BuildingCategory.KINDERGARTEN: 41,
-    BuildingCategory.SCHOOL: 55,
-    BuildingCategory.UNIVERSITY: 69,
-    BuildingCategory.OFFICE: 83,
-    BuildingCategory.RETAIL: 97,
-    BuildingCategory.HOTEL: 111,
-    BuildingCategory.HOSPITAL: 125,
-    BuildingCategory.NURSING_HOME: 139,
-    BuildingCategory.CULTURE: 153,
-    BuildingCategory.SPORTS: 167,
-    BuildingCategory.STORAGE: 182
-}
+BUILDING_CATEGORY_ORDER = MappingProxyType(_building_category_order)
+"""An immutable dict of BeMa sorting order for building_category"""
+
+_building_group_order = {'residential': 199, 'holiday_home': 299, 'non_residential': 399}
+
+BUILDING_GROUP_ORDER = MappingProxyType(_building_group_order)
+"""An immutable dict of BeMa sorting order for building_group"""
 
 
-def load_row_series(worksheet: Worksheet, row: int = 104) -> pd.Series:
+_building_mix_order = _building_group_order| _building_category_order
+
+
+_building_code_order = {'PRE_TEK49': 1814, 'TEK49': 1949, 'TEK69': 1969, 'TEK87': 1987, 'TEK97': 1997,
+              'TEK07': 2007, 'TEK10': 2010, 'TEK17': 2017,
+              'TEK21': 2021, 'default': 9998, 'all': 9999}
+
+TEK_ORDER = MappingProxyType(_building_code_order)
+"""A dict of BeMa sorting order for TEK"""
+
+_purpose_order = {'heating_rv': 1, 'heating_dhw': 2, 'fans_and_pumps': 3, 'lighting': 4,
+                    'electrical_equipment': 5, 'cooling': 6}
+
+PURPOSE_ORDER = MappingProxyType(_purpose_order)
+"""A dict of BeMa sorting order for purpose"""
+
+_building_condition_order = {BuildingCondition.ORIGINAL_CONDITION: 1, BuildingCondition.SMALL_MEASURE: 2,
+    BuildingCondition.RENOVATION: 3, BuildingCondition.RENOVATION_AND_SMALL_MEASURE: 4, BuildingCondition.DEMOLITION: 5}
+
+BUILDING_CONDITION_ORDER = MappingProxyType(_building_condition_order)
+"""A dict of BeMa sorting order for building_condition"""
+
+_start_row_building_category_construction = {BuildingCategory.HOUSE: 11, BuildingCategory.APARTMENT_BLOCK: 23,
+    BuildingCategory.KINDERGARTEN: 41, BuildingCategory.SCHOOL: 55, BuildingCategory.UNIVERSITY: 69,
+    BuildingCategory.OFFICE: 83, BuildingCategory.RETAIL: 97, BuildingCategory.HOTEL: 111,
+    BuildingCategory.HOSPITAL: 125, BuildingCategory.NURSING_HOME: 139, BuildingCategory.CULTURE: 153,
+    BuildingCategory.SPORTS: 167, BuildingCategory.STORAGE: 182}
+
+START_ROWS_CONSTRUCTION_BUILDING_CATEGORY = MappingProxyType(_start_row_building_category_construction)
+"""A dict of BeMa sorting order for start row of each building category in the sheet `nybygging`"""
+
+
+def get_building_category_sheet(building_category: BuildingCategory, area_sheet: bool = True) -> str:
     """
-        Load a row starting from column E and continue for 40 columns (2010 - 2050)
-        series title is read from column D
-
-        Args:
-                   worksheet (Worksheet) the worksheet to retrieve
-                   row (int) row number to read
-
-        Returns: row_series (pd.Series)
-    """
-    logger.debug(f'loading {row=}')
-    title = worksheet[f'D{row}'].value
-    years = list(range(2010, 2051))
-    columns = list(itertools.islice(iter_cells(first_column='E'), 0, 41))
-
-    values = []
-    for column, year in zip(columns, years):
-        cell_address = f'{column}{row}'
-        values.append(worksheet[f'{cell_address}'].value)
-
-    row_series = pd.Series(
-        data=values,
-        index=years,
-        name=title)
-
-    row_series.index.name = 'year'
-    return row_series
-
-
-def load_building_category_from_rows(worksheet: Worksheet, start_row_no: int = 97) -> typing.Dict[str, pd.Series]:
-    """ Load rows related to building_category construction  using start_row from worksheet. The function
-        assume the worksheet is formatted like `BEMA 2019-Tekniske kommentarer.XLSM`. With `house` starting at E11
-        then reading the other rows relative to 11.
-
-            Args:
-                worksheet (Worksheet) the worksheet to retrieve
-                start_row_no (int)
-
-            Returns:
-                  construction (typing.Dict[str, pd.Series])
-                    keys:
-                        - column (example E)
-                        - total_floor_area
-                        - demolished_floor_area
-                        - constructed_floor_area
-                        - accumulated_constructed_floor_area
-                        - construction_rate
-                        - floor_area_over_population_growth
-            """
-    column_letters = list(itertools.islice(iter_cells('E'), 0, 41))
-    column_years = [year for year in range(2010, 2051)]
-    return {
-        'column': pd.Series(data=column_letters, index=column_years),
-        'total_floor_area': load_row_series(worksheet=worksheet, row=start_row_no),
-        'building_growth': load_row_series(worksheet=worksheet, row=start_row_no + 1),
-        'demolished_floor_area': load_row_series(worksheet=worksheet, row=start_row_no + 5),
-        'constructed_floor_area': load_row_series(worksheet=worksheet, row=start_row_no + 6),
-        'accumulated_constructed_floor_area': load_row_series(worksheet=worksheet, row=start_row_no + 7),
-        'construction_rate': load_row_series(worksheet=worksheet, row=start_row_no + 11),
-        'floor_area_over_population_growth': load_row_series(worksheet=worksheet, row=start_row_no + 12)
-    }
-
-
-def load_construction_building_category(building_category: BuildingCategory,
-                                        spreadsheet: str = '', worksheet: str = 'Nybygging') -> pd.DataFrame:
-    """ Load rows related to construction for the supplied building_category from worksheet. The function
-        assume the worksheet is formatted like `BEMA 2019-Tekniske kommentarer.xlsm`. With `house` starting at E11
-        `kindergarten` at E41 and so on.
-
-            Args:
-                building_category (BuildingCategory)
-                spreadsheet (str) spreadsheet file
-                worksheet (str) worksheet name, default(Nybygging)
-
-            Returns:
-                  construction_df (pd.DataFrame)
-                    index:
-                        - year
-                    columns:
-                        - column (example E)
-                        - total_floor_area
-                        - demolished_floor_area
-                        - constructed_floor_area
-                        - accumulated_constructed_floor_area
-                        - construction_rate
-                        - floor_area_over_population_growth
-
-
-            Raises:
-                KeyError: Invalid building_category
-            """
-    filename = spreadsheet if spreadsheet else os.environ.get('BEMA_SPREADSHEET')
-
-    start_row = START_ROWS_CONSTRUCTION_BUILDING_CATEGORY.get(building_category) - 1
-    end_row = start_row + 13
-
-    rows_to_skip = [i for i in range(3, 350) if i >= end_row or i < start_row]
-    more_rows = [0, 1, start_row + 2, start_row + 3, start_row + 4, start_row + 8, start_row + 9, start_row + 10]
-    rows_to_skip = more_rows + rows_to_skip
-    logger.debug(f'{filename=} {start_row=}')
-    names = ['year', 'total_floor_area', 'building_growth', 'demolished_floor_area', 'constructed_floor_area',
-             'accumulated_constructed_floor_area', 'construction_rate', 'floor_area_over_population_growth']
-    df = pd.read_excel(filename,
-                       usecols='D:AS',
-                       header=None,
-                       skiprows=rows_to_skip,
-                       sheet_name=worksheet)
-
-    # Switch columns and rows of the dataframe then set index to year
-    df_transposed = df.transpose().iloc[1:].copy()
-    df_transposed.columns = names
-    df_transposed.year = df_transposed.year.astype(int)
-    df_transposed = df_transposed.set_index('year')
-
-    return df_transposed
-
-
-def filter_existing_area(area_forecast: pd.DataFrame) -> pd.DataFrame:
-    """
-
-    Filter area_forecast to only include TEK and year defined as existing. The cut-off value is TEK10 for 2020 and later
-        in addition to any TEK beyond TEK10.
+    Returns the appropriate sheet name based on the building category and area sheet type.
 
     Parameters
     ----------
-    area_forecast : pd.DataFrame
-        DataFrame with columns year, building_category, TEK, building_condition, area
+    - building_category: An instance of BuildingCategory.
+    - area_sheet (bool): Determines whether to return the area sheet ('A') or rates sheet ('R') name. Defaults to True for the area sheet.
 
     Returns
     -------
-    pd.Series
-        pct percentage of total floor area by year, building_category, TEK and building_condition
-
+    - sheet (str): The sheet name corresponding to the building category and sheet type.
     """
-    area_forecast = area_forecast.reset_index()
-    area_existing = area_forecast.loc[~area_forecast.TEK.isin(['TEK10', 'TEK17', 'TEK21'])][
-        ['year', 'building_category', 'building_condition', 'TEK', 'area']]
-    #tek10_before_2020 = area_forecast.loc[area_forecast.TEK.isin(['TEK10'])][
-    #    ['year', 'building_category', 'building_condition', 'TEK', 'area']]
+    building_category_sheets = {BuildingCategory.HOUSE: ['A hus', 'R hus'],
+        BuildingCategory.APARTMENT_BLOCK: ['A leil', 'R leil'], BuildingCategory.KINDERGARTEN: ['A bhg', 'R bhg'],
+        BuildingCategory.SCHOOL: ['A skole', 'R skole'], BuildingCategory.UNIVERSITY: ['A uni', 'R uni'],
+        BuildingCategory.OFFICE: ['A kont', 'R kont'], BuildingCategory.RETAIL: ['A forr', 'R forr'],
+        BuildingCategory.HOTEL: ['A hotell', 'R hotell'], BuildingCategory.HOSPITAL: ['A shus', 'R shus'],
+        BuildingCategory.NURSING_HOME: ['A shjem', 'R shjem'], BuildingCategory.CULTURE: ['A kult', 'R kult'],
+        BuildingCategory.SPORTS: ['A idr', 'R idr'], BuildingCategory.STORAGE: ['A ind', 'R ind']}
 
-    return area_existing.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+    if area_sheet:
+        sheet = building_category_sheets[building_category][0]
+    else:
+        sheet = building_category_sheets[building_category][1]
 
-    area_2019 = tek10_before_2020.loc[(tek10_before_2020['year'] == 2019) & (
-                tek10_before_2020['building_condition'] == 'original_condition'), 'area'].values
-
-    # Update the area for all rows in tek10_before_2020 to the area from 2019
-    tek10_before_2020.loc[(tek10_before_2020['year'] > 2019) & (
-            tek10_before_2020['building_condition'] == 'original_condition'), 'area'] = area_2019[0]
-    tek10_before_2020.loc[(tek10_before_2020['year'] > 2019) & (
-            tek10_before_2020['building_condition'] != 'original_condition'), 'area'] = 0.0
-    existing_area = pd.concat([area_existing, tek10_before_2020])
-
-    return existing_area.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+    return sheet
 
 
-def filter_transition_area2(area_forecast: pd.DataFrame, tek_name='TEK10') -> pd.DataFrame:
-    df = area_forecast.query(f'TEK == "{tek_name}"')
-    df = df.reset_index()
-
-    # Lag filter for byggningskategori og tilstand
-    logger.warning('Assuming building_category kindergarten')
-    filter_building_category = df.building_category == 'kindergarten'
-    filter_original_condition = df.building_condition == 'original_condition'
-
-    # Finn areal TEK10 i 2019 som skal trekkes fra original_condition i TEK10n
-    # 391409.25
-
-    #Dataframe for area after 2019 (TEK10n)
-    tr = df.copy()
-
-    area_2019 = df.loc[filter_building_category & filter_original_condition & (tr.year == 2019), 'area'].iloc[0]
-    values = df.loc[filter_building_category &  (tr.year == 2019), 'area'].values
-
-    tr = tr.set_index(['building_category', 'TEK', 'year'])
-    s = tr.groupby(by=['building_category', 'TEK', 'year']).sum()['area'] - area_2019
-
-    tr.loc[:, 'area_n'] = s
-    tr.loc[tr['building_condition'] != 'original_condition', 'area_n'] = 0
-    tr.loc[tr.index.get_level_values('year') < 2020, 'area_n'] = 0.0
-
-    tr = tr.reset_index().set_index(['building_category', 'TEK', 'building_condition', 'year'])
-    after_2019 = tr.index.get_level_values('year') > 2019
-    tr.loc[after_2019, 'area'] = tr.loc[after_2019, 'area'] - tr.loc[after_2019, 'area_n']
-
-    #df = df.set_index(['building_category', 'TEK', 'building_condition', 'year'])
-
-    return tr
-
-
-def filter_transition_area(area_forecast: pd.DataFrame, tek_name='TEK10') -> pd.DataFrame:
-    df = area_forecast.query(f'TEK == "{tek_name}"')
-    df = df.reset_index()
-
-    df = df.reset_index()
-
-    # Lag filter for byggningskategori og tilstand
-    logger.warning('Assuming building_category kindergarten')
-    filter_building_category = df.building_category == 'kindergarten'
-    filter_original_condition = df.building_condition == 'original_condition'
-
-    tr = df.copy()
-
-    tr = tr.reset_index()
-    tr['area_n'] = tr['area']
-
-    # Find are for 2019
-    area_2019 = df.loc[filter_building_category & filter_original_condition & (tr.year == 2019), 'area'].iloc[0]
-
-    # Remove any area before 0 for tek10n
-    tr.loc[tr.year < 2020, 'area_n'] = 0
-    # Set original_condition to area in 2019 for all years after 2020 for TEK10
-    tr.loc[(tr.year > 2019) & (tr.building_condition == 'original_condition'), 'area'] = area_2019
-
-    # area_n remove existing TEK10 area from area_n original_condition
-    after_2020 = (tr.year > 2019) & (tr.building_condition == 'original_condition')
-    tr.loc[after_2020, 'area_n'] = tr.loc[after_2020, 'area_n'] - tr.loc[after_2020, 'area']
-
-    # Remove building_condition area after 2019 for existing TEK10
-    tr.loc[(tr.year > 2019) & (tr.building_condition != 'original_condition'), 'area'] = 0
-    tr = tr.set_index(['building_category', 'TEK', 'building_condition', 'year'])[['area', 'area_n']]
-
-    return tr
-
-
-def filter_future_area(area_forecast: pd.DataFrame, tek_name) -> pd.DataFrame:
-    future_tek = area_forecast.query(f'TEK == "{tek_name}"').copy().reset_index()
-
-    if 'index' in future_tek.columns.names:
-        future_tek = future_tek.drop(columns=['index'])
-
-    future_tek = future_tek.set_index(['building_category', 'TEK', 'building_condition', 'year'])
-    return future_tek
-
-
-def calculate_area_distribution(area_requirements: pd.DataFrame, existing_area: pd.DataFrame) -> pd.Series:
+# noinspection PyTypeChecker
+def map_sort_order(column):
     """
-    Calculate the distribution of building_conditions (pct) and recalculate area_requirements.kwh_m2 based
-        on area distribution (adjusted).
+    Map the sort order from bema to a DataFrame. The function is meant to be used as the key parameter for
+    a pandas DataFrame methods sort_values and sort_index.
+
+    Example below.
 
     Parameters
     ----------
-    area_requirements : pd.DataFrame
-        Pandas Dataframe with building_category, year and kwh_m2
-    existing_area : pd.DataFrame
-        Pandas Dataframe with building_category, year, area
+    column : pandas.Series
+        A pandas Series whose `name` attribute determines which predefined
+        mapping to apply to its values.
 
     Returns
     -------
-    pd.DataFrame
-        building_category, year indexed dataframe with the sum of all kwh_m2 adjusted by relative area
+    pandas.Series
+        A Series with values mapped to integers according to the corresponding
+        sort order. If the column name does not match any predefined mapping,
+        the original Series is returned unchanged.
 
+    Notes
+    -----
+    The function supports the following mappings:
+
+    - 'building_category': uses `_building_mix_order`
+    - 'building_group': uses `BUILDING_GROUP_ORDER`
+    - 'building_condition': uses `BUILDING_CONDITION_ORDER`
+    - 'purpose': uses `PURPOSE_ORDER`
+    - 'building_code': uses `TEK_ORDER`
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> df = pd.DataFrame(
+    >>>    data=[('culture', 'PRE_TEK49', 'heating_rv', 2022, 'LAST'),
+    >>>          ('house', 'TEK07', 'heating_dhw', 2021, 'FIRST')],
+    >>>    columns=['building_category', 'building_code', 'purpose', 'year', 'value'])
+    >>> df.sort_values(by=['building_category', 'building_code', 'purpose', 'year'], key=map_sort_order)
+        building_category        building_code     purpose  year  value
+     1  house      TEK07  heating_dhw  2020  FIRST
+     0  culture  PRE_TEK49   heating_rv  2021   LAST
+    …
+    >>> from ebm.model.bema import map_sort_order
+    >>> import pandas as pd
+    >>> df = pd.DataFrame(data=['3', '2', 'last', 'first'],
+    >>>                  index=pd.Index(['non_residential', 'holiday_home', 'all', 'residential'],
+    >>>                                 name='building_group'))
+    >>> df.sort_index(key=map_sort_order)
+      building_group
+      residential      first
+      holiday_home         2
+      non_residential      3
+      all               last
     """
-    total_area = existing_area.groupby(level=['building_category', 'year']).sum()[['area']]
-    existing_area['pct'] = existing_area.area / total_area.area
-    area_requirements['adjusted'] = existing_area.pct * area_requirements.kwh_m2
-    existing_heating_rv_by_year = area_requirements.groupby(level=['building_category', 'year'])['adjusted'].sum()
-    existing_heating_rv_by_year.name = 'kwh_m2'
-    return existing_heating_rv_by_year
-
-
-def load_heating_reduction(purpose='heating_rv'):
-    def make_zero_reduction():
-        r = [{'building_condition': condition, 'reduction_share': 0} for condition in BuildingCondition if condition != BuildingCondition.DEMOLITION]
-        return r
-    heating_reduction = pd.read_csv('input/energy_requirement_reduction_per_condition.csv')
-    if purpose != 'heating_rv':
-        return pd.DataFrame(data=make_zero_reduction())
-
-    heating_reduction = heating_reduction[heating_reduction.TEK == 'default'][['building_condition', 'reduction_share']]
-    return heating_reduction
-
-
-def load_energy_by_floor_area(building_category, purpose='heating_rv'):
-    energy_by_floor_area = pd.read_csv('input/energy_requirement_original_condition.csv')
-    df = energy_by_floor_area[(energy_by_floor_area.building_category == building_category) &
-                              (energy_by_floor_area.purpose == purpose)]
-    return df
-
-
-def load_area_forecast(building_category: BuildingCategory = BuildingCategory.KINDERGARTEN) -> pd.DataFrame:
-    dm = DatabaseManager()
-    area = calculate_building_category_area_forecast(building_category=building_category,
-                                                     database_manager=dm,
-                                                     start_year=2010,
-                                                     end_year=2050)
-
-    data = {'building_category': [], 'TEK': [], 'building_condition': [], 'year': [], 'area': []}
-    for tek, item in area.items():
-        for condition, years in item.items():
-            if condition == BuildingCondition.DEMOLITION:
-                continue
-            for year, area in enumerate(years, start=2010):
-                data.get('building_category').append(building_category)
-                data.get('TEK').append(tek)
-                data.get('building_condition').append(condition)
-                data.get('year').append(year)
-                data.get('area').append(area)
-
-    area_forecast = pd.DataFrame(data=data)
-    return area_forecast
-
-
-def distribute_energy_requirement_over_area(area_forecast, requirement_by_condition):
-    area_requirements = pd.merge(left=area_forecast,
-                                 right=requirement_by_condition,
-                                 on=['building_category', 'TEK', 'building_condition', 'year']).copy()
-    area_requirements = area_requirements.set_index(['building_category', 'TEK', 'building_condition', 'year'])
-    existing_area = filter_existing_area(area_forecast)
-    existing_heating_rv_by_year = calculate_area_distribution(area_requirements, existing_area)
-    return existing_heating_rv_by_year
-
-
-def calculate_heating_reduction(building_category=BuildingCategory.KINDERGARTEN, purpose='heating_rv'):
-    heating_reduction = load_heating_reduction(purpose)
-
-    heating_rv_requirements = load_energy_by_floor_area(building_category, purpose=purpose)
-
-    requirement_by_condition = calculate_energy_requirement_reduction_by_condition(
-        energy_requirements=heating_rv_requirements,
-        condition_reduction=heating_reduction)
-   # return requirement_by_condition
-    heating_reduction = pd.merge(left=requirement_by_condition,
-                                 right=pd.DataFrame({'year': YearRange(2010, 2050).year_range}),
-                                 how='cross')
-    return heating_reduction
-
-
-def calculate_electrical_equipment(building_category, heating_reduction, purpose):
-    # By default there is no heating_reduction defined for fans n pumps
-
-    # heating_reduction.reduction = 0
-    lighting = load_energy_by_floor_area(building_category, purpose=purpose)
-    requirement_by_condition = pd.merge(lighting, heating_reduction, how='cross')
-
-    idx = YearRange(2010, 2050).to_index()
-    idx.name = 'year'
-    energy_requirement = pd.Series([requirement_by_condition['kwh_m2'].iloc[0]] * 41, index=idx,
-                                   name='kwh_m2')
-    light_requirements = calculate_energy_requirement_reduction(energy_requirements=energy_requirement,
-                                                                yearly_reduction=0.01,
-                                                                reduction_period=YearRange(2020, 2050))
-    merged = pd.merge(
-        requirement_by_condition[['building_category', 'TEK', 'building_condition']],
-        pd.DataFrame({'kwh_m2': light_requirements, 'year': light_requirements.index.values}),
-        how='cross')
-
-    return merged
-
-
-def calculate_lighting(building_category, purpose):
-    heating_reduction = load_heating_reduction(purpose)
-
-    # heating_reduction.reduction = 0
-    lighting = load_energy_by_floor_area(building_category=building_category, purpose=purpose)
-    requirement_by_condition = pd.merge(lighting, heating_reduction, how='cross')
-
-    idx = YearRange(2010, 2050).to_index()
-    idx.name = 'year'
-    energy_requirement = pd.Series([requirement_by_condition['kwh_m2'].iloc[0]] * 41, index=idx,
-                                   name='kwh_m2')
-    end_year_requirement = requirement_by_condition['kwh_m2'].iloc[0] * (1-0.6)
-    light_requirements = calculate_lighting_reduction(
-            energy_requirement=energy_requirement,
-            yearly_reduction=0.005,
-            end_year_energy_requirement=end_year_requirement,
-            interpolated_reduction_period=YearRange(2018, 2030),
-            year_range=YearRange(2010, 2050))
-    merged = pd.merge(
-        requirement_by_condition[['building_category', 'TEK', 'building_condition']],
-        pd.DataFrame({'kwh_m2': light_requirements, 'year': light_requirements.index.values}),
-        how='cross')
-    return merged
-
-
-def beregne_energibehov(building_category = BuildingCategory.KINDERGARTEN):
-    area_forecast = load_area_forecast(building_category=building_category)
-
-    return pd.DataFrame({
-        'heating_rv': distribute_energy_requirement_over_area(
-            area_forecast=area_forecast,
-            requirement_by_condition=calculate_heating_reduction(
-                building_category=building_category)),
-        'fans_and_pumps': distribute_energy_requirement_over_area(
-            area_forecast=area_forecast,
-            requirement_by_condition=calculate_heating_reduction(
-                building_category=building_category, purpose='fans_and_pumps')),
-        'heating_dhw': distribute_energy_requirement_over_area(
-            area_forecast=area_forecast,
-            requirement_by_condition=calculate_heating_reduction(
-                building_category=building_category,
-                purpose='heating_dhw')),
-        'lighting': distribute_energy_requirement_over_area(
-            area_forecast=area_forecast,
-            requirement_by_condition=calculate_lighting(building_category, 'lighting')),
-        'electrical_equipment': distribute_energy_requirement_over_area(
-            area_forecast=area_forecast,
-            requirement_by_condition=calculate_electrical_equipment(
-                building_category=building_category,
-                heating_reduction=load_heating_reduction('electrical_equipment'),
-                purpose='electrical_equipment')),
-        'cooling': distribute_energy_requirement_over_area(
-            area_forecast=area_forecast,
-            requirement_by_condition=calculate_heating_reduction(
-                building_category=building_category,
-                purpose='cooling'))
-        })
-
-def make_building_condition(v):
-    if 'u' in v:
-        return BuildingCondition.ORIGINAL_CONDITION
-    if 're' in v:
-        return BuildingCondition.RENOVATION_AND_SMALL_MEASURE
-    if 'r' in v:
-        return BuildingCondition.RENOVATION
-    if 'e' in v:
-        return BuildingCondition.SMALL_MEASURE
-    if 'd' in v:
-        return BuildingCondition.DEMOLITION
-    return v
-
-def make_tek(v):
-    if '48' in v:
-        return 'PRE_TEK49'
-    return f'TEK{v[0:2]}'
-
-def load_building_categories_area(spreadsheet_file):
-    df = pd.concat([load_building_category_area(spreadsheet_file, bc) for bc in BuildingCategory]).reset_index(drop=True)
-    return df
-
-def load_building_category_area(spreadsheet_file, building_category):
-    sheet_name = get_building_category_sheet(building_category, area_sheet=True)
-    df = pd.read_excel(spreadsheet_file, sheet_name=sheet_name, skiprows=346, nrows=36)
-    df = df.rename(columns={'Unnamed: 3': 'TEK_condition'})
-    df.loc[:, 'building_category'] = building_category
-    df.loc[:, 'building_condition'] = df['TEK_condition'].apply(make_building_condition)
-    df.loc[:, 'TEK'] = df['TEK_condition'].apply(make_tek)
-    df = df.drop(columns=[c for c in df.columns.to_list() if str(c).startswith("Unnamed")] + ['Samlet arealutvikling scenario R', 'TEK_condition'], errors='ignore')
-
-    return df
-
-
-def merge_teks(df, teks, merged_tek_name = None):
-    merged_df = df[df.TEK.isin(teks)].groupby(by=['building_category', 'building_condition'], as_index=False).sum()
-    merged_df.TEK = merged_tek_name if merged_tek_name else teks[0]
-    return pd.concat([df[~df.TEK.isin(teks)], merged_df]).reset_index(drop=True)
+    if column.name=='building_category':
+        return column.map(_building_mix_order)
+    if column.name=='building_group':
+        return column.map(BUILDING_GROUP_ORDER)
+    if column.name=='building_condition':
+        return column.map(BUILDING_CONDITION_ORDER)
+    if column.name=='purpose':
+        return column.map(PURPOSE_ORDER)
+    if column.name=='building_code':
+        return column.map(TEK_ORDER)
+    return column

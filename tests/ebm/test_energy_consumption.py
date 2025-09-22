@@ -6,8 +6,8 @@ from ebm.energy_consumption import EnergyConsumption
 
 
 @pytest.fixture
-def heating_systems_parameters_house_tek07():
-    heating_systems_parameters_house_tek07 = pd.DataFrame(
+def heating_systems_parameters_house_building_code07():
+    heating_systems_parameters_house_building_code07 = pd.DataFrame(
         data=[
             ['house', 'TEK07', np.int64(2020), 'DH', np.float64(0.11371747224812079), 'DH', 'Ingen', 'Ingen', 'DH', 'Ingen', 'Ingen', np.float64(0.0), np.float64(1.0), np.float64(0.0), np.float64(0.99), np.float64(1.0), np.int64(1), 'DH', 'DH', np.float64(0.99), np.int64(1), np.int64(4)],
             ['house', 'TEK07', np.int64(2020), 'DH - Bio', np.float64(0.0033946606308616), 'DH', 'Bio', 'Ingen', 'DH', 'Bio', 'Ingen', np.float64(0.0), np.float64(0.95), np.float64(0.05), np.float64(0.99), np.float64(0.65), np.int64(1), 'DH', 'DH', np.float64(0.99), np.int64(1), np.int64(4)],
@@ -23,14 +23,14 @@ def heating_systems_parameters_house_tek07():
             ['house', 'TEK49', np.int64(2020), 'HP - Bio - Electricity', np.float64(0.5197916085732984), 'HP', 'Bio', 'Electricity', 'Electricity', 'Bio', 'Electricity', np.float64(0.28), np.float64(0.62), np.float64(0.1), np.float64(2.5), np.float64(0.65), np.int64(1), 'Electricity', 'Electricity', np.float64(0.98), np.int64(1), np.int64(4)],
             ['house', 'TEK49', np.int64(2020), 'HP - Electricity', np.float64(0.12326471144131464), 'HP', 'Electricity', 'Ingen', 'Electricity', 'Electricity', 'Ingen', np.float64(0.0), np.float64(0.62), np.float64(0.38), np.float64(2.5), np.float64(1.0), np.int64(1), 'Electricity', 'Electricity', np.float64(0.98), np.int64(1), np.int64(4)],
             ['house', 'TEK49', np.int64(2020), 'HP Central heating - Electric boiler', np.float64(0.0038152903302471), 'HP Central heating', 'Electric boiler', 'Ingen', 'Electricity', 'Electricity', 'Ingen', np.float64(0.0), np.float64(0.85), np.float64(0.15), np.float64(3.0), np.float64(0.99), np.int64(1), 'HP Central heating', 'Electricity', np.float64(3.0), np.int64(1), np.int64(4)]],
-        columns=['building_category', 'TEK', 'year', 'heating_systems', 'TEK_shares', 'Grunnlast', 'Spisslast', 'Ekstralast', 'Grunnlast energivare', 'Spisslast energivare', 'Ekstralast energivare', 'Ekstralast andel', 'Grunnlast andel', 'Spisslast andel', 'Grunnlast virkningsgrad', 'Spisslast virkningsgrad', 'Ekstralast virkningsgrad', 'Tappevann', 'Tappevann energivare', 'Tappevann virkningsgrad', 'Spesifikt elforbruk', 'Kjoling virkningsgrad'])
-    return heating_systems_parameters_house_tek07
+        columns=['building_category', 'building_code', 'year', 'heating_systems', 'heating_system_share', 'Grunnlast', 'Spisslast', 'Ekstralast', 'Grunnlast energivare', 'Spisslast energivare', 'Ekstralast energivare', 'Ekstralast andel', 'Grunnlast andel', 'Spisslast andel', 'Grunnlast virkningsgrad', 'Spisslast virkningsgrad', 'Ekstralast virkningsgrad', 'Tappevann', 'Tappevann energivare', 'Tappevann virkningsgrad', 'Spesifikt elforbruk', 'Kjoling virkningsgrad'])
+    return heating_systems_parameters_house_building_code07
 
 
-def test_calculate(heating_systems_parameters_house_tek07):
-    ec = EnergyConsumption(heating_systems_parameters_house_tek07)
+def test_calculate(heating_systems_parameters_house_building_code07):
+    ec = EnergyConsumption(heating_systems_parameters_house_building_code07)
 
-    energy_need_house_tek07 = pd.DataFrame(
+    energy_need_house_building_code07 = pd.DataFrame(
         data=[
             ['house', 'TEK07', 'original_condition', np.int64(2020), 'heating_rv', np.float64(131957628.54948647), np.float64(39.52794605), np.float64(3338337.6)],
             ['house', 'TEK07', 'original_condition', np.int64(2020), 'heating_dhw', np.float64(99378601.09170927), np.float64(29.76888889), np.float64(3338337.6)],
@@ -44,11 +44,11 @@ def test_calculate(heating_systems_parameters_house_tek07):
             ['house', 'TEK07', 'renovation_and_small_measure', np.int64(2020), 'lighting', np.float64(0.0), np.float64(8.1968), np.float64(0.0)],
             ['house', 'TEK07', 'renovation_and_small_measure', np.int64(2020), 'electrical_equipment', np.float64(0.0), np.float64(17.52), np.float64(0.0)],
             ['house', 'TEK07', 'renovation_and_small_measure', np.int64(2020), 'cooling', np.float64(0.0), np.float64(0.0), np.float64(0.0)]],
-        columns=['building_category', 'TEK', 'building_condition', 'year', 'purpose', 'energy_requirement', 'kwh_m2',
+        columns=['building_category', 'building_code', 'building_condition', 'year', 'purpose', 'energy_requirement', 'kwh_m2',
                  'm2']
     )
 
-    energy_need_house_tek49 = pd.DataFrame(
+    energy_need_house_building_code49 = pd.DataFrame(
         data=[['house', 'TEK49', 'original_condition', np.int64(2020), 'cooling', np.float64(0.0), np.float64(0.0), np.float64(3559592.800000003)],
               ['house', 'TEK49', 'original_condition', np.int64(2020), 'electrical_equipment', np.float64(53005673.910250045), np.float64(14.8909375), np.float64(3559592.800000003)],
               ['house', 'TEK49', 'original_condition', np.int64(2020), 'fans_and_pumps', np.float64(1758661.3177500016), np.float64(0.4940625), np.float64(3559592.800000003)],
@@ -62,17 +62,17 @@ def test_calculate(heating_systems_parameters_house_tek07):
               ['house', 'TEK49', 'renovation_and_small_measure', np.int64(2020), 'heating_rv', np.float64(5992018656.144107), np.float64(98.99782890000002), np.float64(60526768.34152376)],
               ['house', 'TEK49', 'renovation_and_small_measure', np.int64(2020), 'lighting', np.float64(421820127.5873303), np.float64(6.96915), np.float64(60526768.34152376)]
         ],
-        columns=['building_category', 'TEK', 'building_condition', 'year', 'purpose', 'energy_requirement', 'kwh_m2',
+        columns=['building_category', 'building_code', 'building_condition', 'year', 'purpose', 'energy_requirement', 'kwh_m2',
                  'm2'])
 
     ec.heating_systems_parameters = ec.grouped_heating_systems()
 
-    df = pd.concat([energy_need_house_tek07, energy_need_house_tek49])
-    result = ec.calculate(df.set_index(['building_category', 'TEK', 'building_condition', 'year', 'purpose']))
+    df = pd.concat([energy_need_house_building_code07, energy_need_house_building_code49])
+    result = ec.calculate(df.set_index(['building_category', 'building_code', 'building_condition', 'year', 'purpose']))
 
     assert len(result) == 216
 
-    expected_tek07_kwh = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6651070.530467674, 198545.80687125237,
+    expected_building_code07_kwh = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 6651070.530467674, 198545.80687125237,
                           1310522.239040187, 19831.232696061743, 26778564.233474825, 11931702.891071877,
                           427230.9229484828,
                           506783.6796580713, 10663423.21577154, 3589587.1522666374, 107155.30292705327,
@@ -96,7 +96,7 @@ def test_calculate(heating_systems_parameters_house_tek07):
                           0.0,
                           0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-    expected_tek49_kwh = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1130691.13497985, 405917.80504834,
+    expected_building_code49_kwh = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1130691.13497985, 405917.80504834,
                           1361058.1262976967, 15947.25557140727, 6393631.07032074, 9410562.878294008,
                           27551904.505320586, 6533729.099299392, 202232.03511800797, 37514.90387196791,
                           13467.840124686272, 45158.18970591716, 529.1097995507943, 212132.60418830856,
@@ -120,21 +120,21 @@ def test_calculate(heating_systems_parameters_house_tek07):
                           10831325.594704788, 126908.55305771256, 50880633.616611466, 74889432.41645971,
                           219258562.6472124, 51995536.30719079, 1609366.2538875393]
 
-    assert result.query('TEK=="TEK07"').kwh.tolist() == expected_tek07_kwh
-    assert result.query('TEK=="TEK49"').kwh.tolist() == expected_tek49_kwh
+    assert result.query('building_code=="TEK07"').kwh.tolist() == expected_building_code07_kwh
+    assert result.query('building_code=="TEK49"').kwh.tolist() == expected_building_code49_kwh
     assert result.kwh.sum() == 8686021800.905739
 
 
-def test_calculate_supports_non_index_energy_need(heating_systems_parameters_house_tek07):
+def test_calculate_supports_non_index_energy_need(heating_systems_parameters_house_building_code07):
     """ Most functions works with row num indexed dataframes
 
     Make sure EnergyConsumption.calculate does not surprise by expecting the parameter dataframe to be indexed by
-        'building_category', 'TEK', 'building_condition', 'year', 'purpose'
+        'building_category', 'building_code', 'building_condition', 'year', 'purpose'
     """
 
-    ec = EnergyConsumption(heating_systems_parameters_house_tek07)
+    ec = EnergyConsumption(heating_systems_parameters_house_building_code07)
 
-    energy_need_house_tek07 = pd.DataFrame(
+    energy_need_house_building_code07 = pd.DataFrame(
         data=[
             ['house', 'TEK07', 'original_condition', np.int64(2020), 'heating_rv', np.float64(131957628.54948647),
              np.float64(39.52794605), np.float64(3338337.6)],
@@ -148,11 +148,11 @@ def test_calculate_supports_non_index_energy_need(heating_systems_parameters_hou
              np.float64(17.52), np.float64(3338337.6)],
             ['house', 'TEK07', 'original_condition', np.int64(2020), 'cooling', np.float64(0.0), np.float64(0.0),
              np.float64(3338337.6)]],
-        columns=['building_category', 'TEK', 'building_condition', 'year', 'purpose', 'energy_requirement', 'kwh_m2',
+        columns=['building_category', 'building_code', 'building_condition', 'year', 'purpose', 'energy_requirement', 'kwh_m2',
                  'm2']
     )
     ec.heating_systems_parameters = ec.grouped_heating_systems()
-    result = ec.calculate(energy_need_house_tek07)
+    result = ec.calculate(energy_need_house_building_code07)
 
     assert len(result) == 54
     assert round(result.kwh.sum(), 0) == 327690852

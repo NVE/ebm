@@ -8,14 +8,14 @@ import pandas as pd
 from ebm.model.building_category import BuildingCategory
 from ebm.model.energy_need_filter import filter_original_condition
 from ebm.model.energy_purpose import EnergyPurpose
-from ebm.model.energy_requirement_filter import EnergyRequirementFilter
+from ebm.model.energy_requirement import EnergyRequirement
 from ebm.model.exceptions import AmbiguousDataError
 
 
 @pytest.fixture
 def yearly_improvements() -> pd.DataFrame:
     return pd.read_csv(io.StringIO("""
-building_category,TEK,purpose,yearly_efficiency_improvement
+building_category,building_code,purpose,yearly_efficiency_improvement
 default,default,cooling,0.0
 default,default,electrical_equipment,0.1
 default,default,fans_and_pumps,0.0
@@ -33,7 +33,7 @@ default,default,default,0.9
 @pytest.fixture
 def no_default_df() -> pd.DataFrame:
     return pd.read_csv(io.StringIO("""
-building_category,TEK,purpose,yearly_efficiency_improvement
+building_category,building_code,purpose,yearly_efficiency_improvement
 apartment_block,TEK90,cooling,0.99
 """.strip()), skipinitialspace=True)
 
@@ -59,9 +59,6 @@ def test_yearly_improvements_return_value_for_best_match(default_parameters,
     """
     Return value for best match on filter variables (building_category, tek and purpose). 
     """
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters})
-    result = e_r_filter.get_yearly_improvements(tek=tek, purpose=purpose)
-    assert result == expected_value
 
     rs = filter_original_condition(default_parameters.get('yearly_improvements'),
                               building_category=default_parameters.get('building_category'),
@@ -77,10 +74,6 @@ def test_get_yearly_improvements_default_value_when_not_found(default_parameters
     original dataframe, and there is a 'default' option available for those variables, then return the
     value of those 'default' options.  
     """
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
-                                            'building_category': BuildingCategory.HOUSE})
-    result = e_r_filter.get_yearly_improvements(tek='TEK21', purpose=EnergyPurpose.HEATING_RV)
-    assert result == 0.9
     rs = filter_original_condition(default_parameters.get('yearly_improvements'),
                               building_category=default_parameters.get('building_category'),
                               tek='TEK21',
@@ -96,12 +89,6 @@ def test_get_yearly_improvements_return_false_value_when_building_category_not_f
     original dataframe, and there isn't a 'default' option available for that variable, then return 
     the false_return_value of the function.
     """
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
-                                            'building_category': BuildingCategory.HOUSE,
-                                            'yearly_improvements': no_default_df})
-    
-    result = e_r_filter.get_yearly_improvements(tek='TEK90', purpose=EnergyPurpose.COOLING) 
-    assert result == 0.0
 
     rs = filter_original_condition(default_parameters.get('yearly_improvements'),
                               building_category=default_parameters.get('building_category'),
@@ -118,10 +105,6 @@ def test_get_yearly_improvements_return_false_value_when_purpose_not_found(defau
     original dataframe, and there isn't a 'default' option available for that variable, then return 
     the false_return_value of the function.
     """
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
-                                            'yearly_improvements': no_default_df})
-    result = e_r_filter.get_yearly_improvements(tek='TEK90', purpose=EnergyPurpose.LIGHTING) 
-    assert result == 0.0
 
     rs = filter_original_condition(default_parameters.get('yearly_improvements'),
                                    building_category=default_parameters.get('building_category'),
@@ -130,21 +113,17 @@ def test_get_yearly_improvements_return_false_value_when_purpose_not_found(defau
     assert len(rs) == 0
 
 
-def test_get_yearly_improvements_return_false_value_when_tek_not_found(default_parameters,
+def test_get_yearly_improvements_return_false_value_when_building_code_not_found(default_parameters,
                                                                            no_default_df):
     """
     When the specified filter variable (building_category, tek or purpose) isn't present in the
     original dataframe, and there isn't a 'default' option available for that variable, then return 
     the false_return_value of the function.
     """
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
-                                            'yearly_improvements': no_default_df})
-    result = e_r_filter.get_yearly_improvements(tek='TEK', purpose=EnergyPurpose.COOLING) 
-    assert result == 0.0
 
     rs = filter_original_condition(no_default_df,
                                    building_category=default_parameters.get('building_category'),
-                                   tek='TEK',
+                                   tek='building_code',
                                    purpose=EnergyPurpose.cooling)
     assert len(rs) == 0
 
@@ -156,18 +135,13 @@ def test_get_yearly_improvements_return_value_when_match_has_same_priority(defau
     order in which they should be prioritized is as follows: building_category, tek and purpose.
     """
     yearly_improvements = pd.read_csv(io.StringIO("""
-            building_category,TEK,purpose,yearly_efficiency_improvement
+            building_category,building_code,purpose,yearly_efficiency_improvement
             default,TEK01,lighting,0.3
             house,default,lighting,0.2
             house,TEK01,default,0.1
             default,default,default,0.99                                                                                                                                                     
             """), skipinitialspace=True)
     yearly_improvements.columns = yearly_improvements.columns.str.strip()
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
-                                            'building_category': BuildingCategory.HOUSE,
-                                            'yearly_improvements': yearly_improvements})
-    result = e_r_filter.get_yearly_improvements(tek='TEK01', purpose=EnergyPurpose.LIGHTING) 
-    assert result == 0.1
 
     rs = filter_original_condition(yearly_improvements,
                               building_category=default_parameters.get('building_category'),
@@ -177,6 +151,7 @@ def test_get_yearly_improvements_return_value_when_match_has_same_priority(defau
     assert rs.iloc[0].yearly_efficiency_improvement == 0.3 # diverging implementation
 
 
+@pytest.mark.skip(reason="EnergyRequirementFilter deprecated")
 def test_get_yearly_improvements_raise_error_for_duplicate_rows_with_different_values(default_parameters):
     """
     Raise an AmbiguousDataError when there are duplicate rows for 'building_category', 'tek' and 'purpose' 
@@ -184,18 +159,20 @@ def test_get_yearly_improvements_raise_error_for_duplicate_rows_with_different_v
     are different. In this case, the method have no way of deciding which value is correct and the program should crash.
     """
     yearly_improvements = pd.read_csv(io.StringIO("""
-            building_category,TEK,purpose,yearly_efficiency_improvement
+            building_category,building_code,purpose,yearly_efficiency_improvement
             house,TEK01,lighting,0.1 
             house,TEK01,lighting,0.2
             default,TEK01,lighting,0.3
             default,TEK01,lighting,0.4                                                                                                                                                                                                                                
             """.strip()), skipinitialspace=True)
-    e_r_filter = EnergyRequirementFilter(**{**default_parameters, 
+    class EnergyRequirementFilter:
+        pass
+    e_r_filter = EnergyRequirementFilter(**{**default_parameters,
                                             'building_category': BuildingCategory.HOUSE,
-                                            'yearly_improvements': yearly_improvements}) 
+                                            'yearly_improvements': yearly_improvements})
     expected_error_msg = re.escape(
         "Conflicting data found in 'yearly_improvements' dataframe for "
         "building_category='house', tek='TEK01' and purpose='lighting'."
-    ) 
+    )
     with pytest.raises(AmbiguousDataError, match=expected_error_msg):
-        e_r_filter.get_yearly_improvements(tek='TEK01', purpose=EnergyPurpose.LIGHTING)    
+        e_r_filter.get_yearly_improvements(tek='TEK01', purpose=EnergyPurpose.LIGHTING)

@@ -69,7 +69,7 @@ def transform_by_energy_source(df, energy_class_column, energy_source_column):
     rv_gl = rv_gl.reset_index().set_index(['building_category',
                                    'building_condition',
                                    'purpose',
-                                   'TEK',
+                                   'building_code',
                                    'year',
                                    'heating_systems',
                                    'typ'])
@@ -174,7 +174,7 @@ class DistributionOfHeatingSystems:
         df.loc[df['building_category'].isin(['house']), 'building_group'] = 'Småhus'
 
         distribution_of_heating_systems_by_building_group = df.groupby(by=['building_group', 'heating_systems'])[
-            ['TEK_shares']].mean()
+            ['heating_system_share']].mean()
         return distribution_of_heating_systems_by_building_group
 
 

@@ -1,4 +1,4 @@
-building_category,building_condition,purpose,TEK,year,heating_systems,TEK_shares,eq_ts,RV_GL,Grunnlast energivare,Grunnlast virkningsgrad,RV_SL,Spisslast energivare,Spisslast virkningsgrad,RV_EL,Ekstralast energivare,Ekstralast virkningsgrad,DHW_TV,Tappevann energivare,CL_KV,O_SV,RV_HP,hp_source,kwh,gwh
+building_category,building_condition,purpose,TEK,year,heating_systems,heating_system_share,eq_ts,RV_GL,Grunnlast energivare,Grunnlast virkningsgrad,RV_SL,Spisslast energivare,Spisslast virkningsgrad,RV_EL,Ekstralast energivare,Ekstralast virkningsgrad,DHW_TV,Tappevann energivare,CL_KV,O_SV,RV_HP,hp_source,kwh,gwh
 apartment_block,original_condition,cooling,PRE_TEK49,2020,DH,0.20675904,0,0,DH,0.99,0,Ingen,1,0,Ingen,1,0,DH,0,0,0,,0,0
 apartment_block,original_condition,cooling,PRE_TEK49,2020,DH - Bio,0.003394661,0,0,DH,0.99,0,Bio,0.65,0,Ingen,1,0,DH,0,0,0,,0,0
 apartment_block,original_condition,cooling,PRE_TEK49,2020,Electric boiler,0.056017026,0,0,Electricity,0.98,0,Ingen,1,0,Ingen,1,0,Electricity,0,0,0,,0,0

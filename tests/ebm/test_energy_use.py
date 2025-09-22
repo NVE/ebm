@@ -3,14 +3,14 @@ import pandas as pd
 import pytest
 
 from ebm.energy_consumption import GRUNNLAST_ENERGIVARE, GRUNNLAST_VIRKNINGSGRAD, GRUNNLAST_ANDEL, \
-    TEK_SHARES, KJOLING_VIRKNINGSGRAD, DHW_EFFICIENCY, TAPPEVANN_ENERGIVARE, SPISSLAST_VIRKNINGSGRAD, \
+    HEATING_SYSTEM_SHARE, KJOLING_VIRKNINGSGRAD, DHW_EFFICIENCY, TAPPEVANN_ENERGIVARE, SPISSLAST_VIRKNINGSGRAD, \
     SPISSLAST_ENERGIVARE, EKSTRALAST_VIRKNINGSGRAD, EKSTRALAST_ENERGIVARE, SPISSLAST_ANDEL, EKSTRALAST_ANDEL
 from ebm.model import energy_use
 
 
 @pytest.fixture
-def heating_systems_parameters_house_tek07():
-    heating_systems_parameters_house_tek07 = pd.DataFrame(
+def heating_systems_parameters_house_building_code07():
+    heating_systems_parameters_house_building_code07 = pd.DataFrame(
         data=[
             ['house', 'TEK07', np.int64(2020), 'DH', np.float64(0.11371747224812079), 'DH', 'Ingen', 'Ingen', 'DH', 'Ingen', 'Ingen', np.float64(0.0), np.float64(1.0), np.float64(0.0), np.float64(0.99), np.float64(1.0), np.int64(1), 'DH', 'DH', np.float64(0.99), np.int64(1), np.int64(4)],
             ['house', 'TEK07', np.int64(2020), 'DH - Bio', np.float64(0.0033946606308616), 'DH', 'Bio', 'Ingen', 'DH', 'Bio', 'Ingen', np.float64(0.0), np.float64(0.95), np.float64(0.05), np.float64(0.99), np.float64(0.65), np.int64(1), 'DH', 'DH', np.float64(0.99), np.int64(1), np.int64(4)],
@@ -26,8 +26,8 @@ def heating_systems_parameters_house_tek07():
             ['house', 'TEK49', np.int64(2020), 'HP - Bio - Electricity', np.float64(0.5197916085732984), 'HP', 'Bio', 'Electricity', 'Electricity', 'Bio', 'Electricity', np.float64(0.28), np.float64(0.62), np.float64(0.1), np.float64(2.5), np.float64(0.65), np.int64(1), 'Electricity', 'Electricity', np.float64(0.98), np.int64(1), np.int64(4)],
             ['house', 'TEK49', np.int64(2020), 'HP - Electricity', np.float64(0.12326471144131464), 'HP', 'Electricity', 'Ingen', 'Electricity', 'Electricity', 'Ingen', np.float64(0.0), np.float64(0.62), np.float64(0.38), np.float64(2.5), np.float64(1.0), np.int64(1), 'Electricity', 'Electricity', np.float64(0.98), np.int64(1), np.int64(4)],
             ['house', 'TEK49', np.int64(2020), 'HP Central heating - Electric boiler', np.float64(0.0038152903302471), 'HP Central heating', 'Electric boiler', 'Ingen', 'Electricity', 'Electricity', 'Ingen', np.float64(0.0), np.float64(0.85), np.float64(0.15), np.float64(3.0), np.float64(0.99), np.int64(1), 'HP Central heating', 'Electricity', np.float64(3.0), np.int64(1), np.int64(4)]],
-        columns=['building_category', 'TEK', 'year', 'heating_systems', 'TEK_shares', 'Grunnlast', 'Spisslast', 'Ekstralast', 'Grunnlast energivare', 'Spisslast energivare', 'Ekstralast energivare', 'Ekstralast andel', 'Grunnlast andel', 'Spisslast andel', 'Grunnlast virkningsgrad', 'Spisslast virkningsgrad', 'Ekstralast virkningsgrad', 'Tappevann', 'Tappevann energivare', 'Tappevann virkningsgrad', 'Spesifikt elforbruk', 'Kjoling virkningsgrad'])
-    return heating_systems_parameters_house_tek07
+        columns=['building_category', 'building_code', 'year', 'heating_systems', 'heating_system_share', 'Grunnlast', 'Spisslast', 'Ekstralast', 'Grunnlast energivare', 'Spisslast energivare', 'Ekstralast energivare', 'Ekstralast andel', 'Grunnlast andel', 'Spisslast andel', 'Grunnlast virkningsgrad', 'Spisslast virkningsgrad', 'Ekstralast virkningsgrad', 'Tappevann', 'Tappevann energivare', 'Tappevann virkningsgrad', 'Spesifikt elforbruk', 'Kjoling virkningsgrad'])
+    return heating_systems_parameters_house_building_code07
 
 
 def test_heating_rv():
@@ -43,15 +43,15 @@ def test_heating_rv():
                 0.3, 0.68, 'Bio',
                 0.1,0.99, 'Electricity'],
         ],
-        columns=['building_category', 'TEK', 'year', 'heating_systems', TEK_SHARES,
+        columns=['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE,
                  GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE,
                  SPISSLAST_ANDEL, SPISSLAST_VIRKNINGSGRAD, SPISSLAST_ENERGIVARE,
                  EKSTRALAST_ANDEL, EKSTRALAST_VIRKNINGSGRAD, EKSTRALAST_ENERGIVARE]
     )
 
     result = energy_use.heating_rv(heating_systems_projection)
-    result = result.reset_index().drop(columns=['index'], errors='ignore')[['building_category','TEK','year','heating_systems','heating_system',
-                 'TEK_shares', 'load_share','load_efficiency','energy_product','load','purpose']]
+    result = result.reset_index().drop(columns=['index'], errors='ignore')[['building_category','building_code','year','heating_systems','heating_system',
+                 'heating_system_share', 'load_share','load_efficiency','energy_product','load','purpose']]
 
     expected = pd.DataFrame(
         data=[
@@ -67,8 +67,8 @@ def test_heating_rv():
              0.4, 0.0, 1.0, 'Ingen', 'tertiary', 'heating_rv'],
             ['house', 'TEK99', 1977, 'HP - Bio - Electricity', 'Electricity',
              0.5, 0.1, 0.99, 'Electricity', 'tertiary', 'heating_rv'],],
-        columns=['building_category','TEK','year','heating_systems','heating_system',
-                 'TEK_shares', 'load_share','load_efficiency','energy_product','load','purpose'])
+        columns=['building_category','building_code','year','heating_systems','heating_system',
+                 'heating_system_share', 'load_share','load_efficiency','energy_product','load','purpose'])
 
     assert len(result) == 6
 
@@ -82,7 +82,7 @@ def test_heating_dhw():
             ['house', 'TEK99', 1977, 'DH - Bio', 0.5, 99.0, 1.0, 'DH'],
             ['house', 'TEK99', 1977, 'Electric boiler', 1.0, 52.0, 0.98, 'Electricity'],
         ],
-        columns=['building_category', 'TEK', 'year', 'heating_systems', TEK_SHARES, GRUNNLAST_ANDEL, DHW_EFFICIENCY, TAPPEVANN_ENERGIVARE]
+        columns=['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, DHW_EFFICIENCY, TAPPEVANN_ENERGIVARE]
     )
 
     result = energy_use.heating_dhw(heating_systems_projection)
@@ -92,7 +92,7 @@ def test_heating_dhw():
             ['house', 'TEK99', 1977, 'DH - Bio', 0.5, 1.0, 1.0, 'DH', 'dhw', 'heating_dhw'],
             ['house', 'TEK99', 1977, 'Electric boiler', 1.0, 1.0, 0.98, 'Electricity', 'dhw', 'heating_dhw'],
         ],
-        columns=['building_category','TEK','year','heating_systems','TEK_shares', 'load_share','load_efficiency','energy_product','load','purpose'])
+        columns=['building_category','building_code','year','heating_systems','heating_system_share', 'load_share','load_efficiency','energy_product','load','purpose'])
 
     assert len(result) == 2
 
@@ -105,7 +105,7 @@ def test_cooling():
             ['house', 'TEK99', 1971, 'HP - BIO', 0.5, 99.0, 0.99, 'Nuclear waste'],
             ['house', 'TEK99', 1972, 'HP - BIO', 1.0, 52.0, 3.0, 'Nuclear waste'],
         ],
-        columns=['building_category', 'TEK', 'year', 'heating_systems', TEK_SHARES, GRUNNLAST_ANDEL, KJOLING_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE]
+        columns=['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, KJOLING_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE]
     )
 
     result = energy_use.cooling(heating_systems_projection)
@@ -115,7 +115,7 @@ def test_cooling():
             ['house', 'TEK99', 1971, 'HP - BIO', 0.5, 1.0, 0.99, 'Electricity', 'base', 'cooling'],
             ['house', 'TEK99', 1972, 'HP - BIO', 1.0, 1.0, 3.0, 'Electricity', 'base', 'cooling'],
         ],
-        columns=['building_category','TEK','year','heating_systems','TEK_shares', 'load_share','load_efficiency','energy_product','load','purpose'])
+        columns=['building_category','building_code','year','heating_systems','heating_system_share', 'load_share','load_efficiency','energy_product','load','purpose'])
 
     assert len(result) == 2
 
@@ -127,14 +127,14 @@ def test_other():
         data=[
             ['house', 'TEK99', 1971, 'HP - BIO', 0.5, 0.2, 1.0, 'Electricity'],
         ],
-        columns=['building_category', 'TEK', 'year', 'heating_systems', TEK_SHARES, GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE]
+        columns=['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE]
     )
 
     result = energy_use.other(heating_systems_projection)
 
     expected = pd.DataFrame(
         data=[['house', 'TEK99', 1971, 'HP - BIO', 0.5, 1.0, 1.0, 'Electricity', 'base', purpose] for purpose in ['electrical_equipment', 'fans_and_pumps', 'lighting']],
-        columns=['building_category','TEK','year','heating_systems','TEK_shares', 'load_share','load_efficiency','energy_product','load','purpose'])
+        columns=['building_category','building_code','year','heating_systems','heating_system_share', 'load_share','load_efficiency','energy_product','load','purpose'])
 
     assert len(result) == 3
     assert result.purpose.to_list() == ['electrical_equipment', 'fans_and_pumps', 'lighting']
@@ -149,13 +149,13 @@ def test_energy_use_kwh():
             ['house', 'TEK07', 'original_condition', 'heating_rv', 1978, 240],
             ['shack', 'TEK07', 'original_condition', 'heating_rv', 1978, 240],
         ],
-        columns='building_category,TEK,building_condition,purpose,year,energy_requirement'.split(','))
+        columns='building_category,building_code,building_condition,purpose,year,energy_requirement'.split(','))
     efficiency_factor = pd.DataFrame(
         data=[
             ['house', 'TEK07', 'heating_rv', 1977, 0.5, 0.2, 4],
             ['house', 'TEK07', 'heating_rv', 1978, 1.0, 0.2, 4],
             ['house', 'TEKXX', 'heating_rv', 1977, 2, 2, 2]],
-        columns='building_category,TEK,purpose,year,TEK_shares,load_share,load_efficiency'.split(','))
+        columns='building_category,building_code,purpose,year,heating_system_share,load_share,load_efficiency'.split(','))
 
     result = energy_use.energy_use_kwh(energy_need, efficiency_factor)
     result = result.drop(columns=['index'], errors='ignore')
@@ -164,13 +164,13 @@ def test_energy_use_kwh():
             ['house', 'TEK07', 'original_condition', 'heating_rv', 1977, 200, 0.5, 0.2, 4, 5.0, np.nan],
             ['house', 'TEK07', 'original_condition', 'heating_rv', 1978, 240, 1.0, 0.2, 4, 12.0, np.nan],
         ],
-        columns=['building_category', 'TEK', 'building_condition', 'purpose', 'year', 'energy_requirement', 'TEK_shares', 'load_share',
+        columns=['building_category', 'building_code', 'building_condition', 'purpose', 'year', 'energy_requirement', 'heating_system_share', 'load_share',
        'load_efficiency', 'kwh', 'kwh_m2'],
     )
 
     assert len(result) == 2
     assert result.building_category.to_list() == ['house']*2
-    assert result.TEK.to_list() == ['TEK07']*2
+    assert result.building_code.to_list() == ['TEK07']*2
     assert result.building_condition.to_list() == ['original_condition']*2
     assert result.year.to_list() == [1977, 1978]
     assert result.kwh.to_list() == [5.0, 12.0]
@@ -187,13 +187,13 @@ def test_energy_use_kwh_m2():
             ['house', 'TEK07', 'original_condition', 'heating_rv', 1978, 100, 10],
             ['house', 'TEK07', 'original_condition', 'heating_rv', 1977, 100, 20],
         ],
-        columns='building_category,TEK,building_condition,purpose,year,energy_requirement,kwh_m2'.split(','))
+        columns='building_category,building_code,building_condition,purpose,year,energy_requirement,kwh_m2'.split(','))
     efficiency_factor = pd.DataFrame(
         data=[
             ['house', 'TEK07', 'lighting', 1977, 0.5, 0.2, 1, 0.1],
             ['house', 'TEK07', 'heating_rv', 1978, 1.0, 1.0, 2, 0.5],
             ['house', 'TEK07', 'heating_rv', 1977, 2, 2, 2, 2.0]],
-        columns='building_category,TEK,purpose,year,TEK_shares,load_share,load_efficiency,efficiency_factor'.split(','))
+        columns='building_category,building_code,purpose,year,heating_system_share,load_share,load_efficiency,efficiency_factor'.split(','))
 
     result = energy_use.energy_use_kwh(energy_need, efficiency_factor)
     result = result.drop(columns=['index'], errors='ignore')
@@ -203,13 +203,13 @@ def test_energy_use_kwh_m2():
             ['house', 'TEK07', 'original_condition', 'heating_rv', 1978, 100, 5.0, 1.0, 1.0, 2, 0.5, 50.0],
             ['house', 'TEK07', 'original_condition', 'heating_rv', 1977, 100, 40, 2.0, 2.0, 2, 2.0, 200.0],
         ],
-        columns=['building_category', 'TEK', 'building_condition', 'purpose', 'year', 'energy_requirement', 'kwh_m2', 'TEK_shares', 'load_share',
+        columns=['building_category', 'building_code', 'building_condition', 'purpose', 'year', 'energy_requirement', 'kwh_m2', 'heating_system_share', 'load_share',
        'load_efficiency', 'efficiency_factor', 'kwh'],
     )
 
     assert len(result) == 3
     assert result.building_category.to_list() == ['house']*3
-    assert result.TEK.to_list() == ['TEK07']*3
+    assert result.building_code.to_list() == ['TEK07']*3
     assert result.building_condition.to_list() == ['original_condition'] * 3
     assert result.year.to_list() == [1977, 1978, 1977]
     assert result.kwh_m2.to_list() == [5.4, 5.0, 40.0]
@@ -225,7 +225,7 @@ def test_efficiency_factor():
             ['house', 'TEK07', 'heating_rv', 1977, 0.5, 0.2, 4],
             ['house', 'TEK07', 'lighting', 1977, 0.5, 0.2, 1],
         ],
-        columns='building_category,TEK,purpose,year,TEK_shares,load_share,load_efficiency'.split(','))
+        columns='building_category,building_code,purpose,year,heating_system_share,load_share,load_efficiency'.split(','))
 
     result = energy_use.efficiency_factor(heating_systems)
     assert 'efficiency_factor' in result.columns
@@ -234,8 +234,8 @@ def test_efficiency_factor():
 
 
 @pytest.mark.skip
-def test_calculate(heating_systems_parameters_house_tek07):
-    energy_need_house_tek07 = pd.DataFrame(
+def test_calculate(heating_systems_parameters_house_building_code07):
+    energy_need_house_building_code07 = pd.DataFrame(
         data=[
             ['house', 'TEK07', 'original_condition', np.int64(2020), 'heating_rv', np.float64(131957628.54948647), np.float64(39.52794605), np.float64(3338337.6)],
             ['house', 'TEK07', 'original_condition', np.int64(2020), 'heating_dhw', np.float64(99378601.09170927), np.float64(29.76888889), np.float64(3338337.6)],
@@ -249,11 +249,11 @@ def test_calculate(heating_systems_parameters_house_tek07):
             ['house', 'TEK07', 'renovation_and_small_measure', np.int64(2020), 'lighting', np.float64(0.0), np.float64(8.1968), np.float64(0.0)],
             ['house', 'TEK07', 'renovation_and_small_measure', np.int64(2020), 'electrical_equipment', np.float64(0.0), np.float64(17.52), np.float64(0.0)],
             ['house', 'TEK07', 'renovation_and_small_measure', np.int64(2020), 'cooling', np.float64(0.0), np.float64(0.0), np.float64(0.0)]],
-        columns=['building_category', 'TEK', 'building_condition', 'year', 'purpose', 'energy_requirement', 'kwh_m2',
+        columns=['building_category', 'building_code', 'building_condition', 'year', 'purpose', 'energy_requirement', 'kwh_m2',
                  'm2']
     )
 
-    energy_need_house_tek49 = pd.DataFrame(
+    energy_need_house_building_code49 = pd.DataFrame(
         data=[['house', 'TEK49', 'original_condition', np.int64(2020), 'cooling', np.float64(0.0), np.float64(0.0), np.float64(3559592.800000003)],
               ['house', 'TEK49', 'original_condition', np.int64(2020), 'electrical_equipment', np.float64(53005673.910250045), np.float64(14.8909375), np.float64(3559592.800000003)],
               ['house', 'TEK49', 'original_condition', np.int64(2020), 'fans_and_pumps', np.float64(1758661.3177500016), np.float64(0.4940625), np.float64(3559592.800000003)],
@@ -267,12 +267,12 @@ def test_calculate(heating_systems_parameters_house_tek07):
               ['house', 'TEK49', 'renovation_and_small_measure', np.int64(2020), 'heating_rv', np.float64(5992018656.144107), np.float64(98.99782890000002), np.float64(60526768.34152376)],
               ['house', 'TEK49', 'renovation_and_small_measure', np.int64(2020), 'lighting', np.float64(421820127.5873303), np.float64(6.96915), np.float64(60526768.34152376)]
         ],
-        columns=['building_category', 'TEK', 'building_condition', 'year', 'purpose', 'energy_requirement', 'kwh_m2',
+        columns=['building_category', 'building_code', 'building_condition', 'year', 'purpose', 'energy_requirement', 'kwh_m2',
                  'm2'])
 
-    energy_need = pd.concat([energy_need_house_tek07, energy_need_house_tek49])
+    energy_need = pd.concat([energy_need_house_building_code07, energy_need_house_building_code49])
 
-    result = energy_use.energy_use_kwh(energy_need, energy_use.efficiency_factor(energy_use.all_purposes(heating_systems_parameters_house_tek07)))
+    result = energy_use.energy_use_kwh(energy_need, energy_use.efficiency_factor(energy_use.all_purposes(heating_systems_parameters_house_building_code07)))
 
 
 

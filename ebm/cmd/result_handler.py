@@ -7,44 +7,29 @@ import pandas as pd
 from ebm.cmd.run_calculation import (calculate_building_category_area_forecast,
                                      calculate_building_category_energy_requirements,
                                      calculate_heating_systems)
+from ebm.model import bema
 from ebm.model.calibrate_heating_systems import group_heating_systems_by_energy_carrier
-from ebm.model.building_condition import BEMA_ORDER as building_condition_order
-from ebm.model.building_category import BEMA_ORDER as building_category_order, BuildingCategory
+from ebm.model.building_category import BuildingCategory
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
-from ebm.model.tek import BEMA_ORDER as tek_order
 from ebm.services.spreadsheet import detect_format_from_values, find_max_column_width
 
 
-def transform_model_to_horizontal(model):
+def transform_model_to_horizontal(model, value_column = 'm2'):
     hz = model.reset_index().copy()
-    value_column = 'm2'
     if 'energy_requirement' in hz.columns:
         value_column = 'GWh'
         hz['GWh'] = hz['energy_requirement'] / 10**6
-    hz = hz.groupby(by=['building_category', 'TEK', 'building_condition', 'year'], as_index=False).sum()[
-        ['building_category', 'TEK', 'building_condition', 'year', value_column]]
-    hz = hz.pivot(columns=['year'], index=['building_category', 'TEK', 'building_condition'], values=[
+    hz = hz.groupby(by=['building_category', 'building_code', 'building_condition', 'year'], as_index=False).sum()[
+        ['building_category', 'building_code', 'building_condition', 'year', value_column]]
+    hz = hz.pivot(columns=['year'], index=['building_category', 'building_code', 'building_condition'], values=[
         value_column]).reset_index()
 
-    hz = hz.sort_values(by=['building_category', 'TEK', 'building_condition'],
-                        key=lambda x: x.map(building_category_order) if x.name == 'building_category' else x.map(
-                            tek_order) if x.name == 'TEK' else x.map(
-                            building_condition_order) if x.name == 'building_condition' else x)
+    hz = hz.sort_values(by=['building_category', 'building_code', 'building_condition'], key=bema.map_sort_order)
     hz.insert(3, 'U', value_column)
-    hz.columns = ['building_category', 'TEK', 'building_condition', 'U'] + [y for y in range(2020, 2051)]
+    hz.columns = ['building_category', 'building_code', 'building_condition', 'U'] + [y for y in range(2020, 2051)]
 
     return hz
-
-
-def transform_holiday_homes_to_horizontal(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.reset_index()
-    df = df.rename(columns={'energy_type': 'energy_source'})
-    columns_to_keep = [y for y in YearRange(2020, 2050)] + ['building_category', 'energy_source']
-    df = df.drop(columns=[c for c in df.columns if c not in columns_to_keep])
-    df['energy_source'] = df['energy_source'].apply(lambda x: 'Elektrisitet' if x == 'electricity' else 'Bio' if x == 'fuelwood' else x)
-    df['building_category'] = 'Fritidsboliger'
-    return df
 
 
 def transform_to_sorted_heating_systems(df: pd.DataFrame, holiday_homes: pd.DataFrame,
@@ -168,7 +153,7 @@ class EbmDefaultHandler:
         area_forecast = self.extract_area_forecast(b_c,
                                                    database_manager,
                                                    period=year_range)
-        area_forecast = area_forecast.set_index(['building_category', 'TEK', 'building_condition', 'year'])
+        area_forecast = area_forecast.set_index(['building_category', 'building_code', 'building_condition', 'year'])
         df = area_forecast
 
         if 'energy-requirements' in step_choice or 'heating-systems' in step_choice or 'energy-use' in step_choice:
@@ -185,6 +170,7 @@ class EbmDefaultHandler:
                                                database_manager=database_manager)
         return df
 
+    # noinspection PyTypeChecker
     @staticmethod
     def extract_energy_requirements(building_categories,
                                     database_manager: DatabaseManager,
@@ -218,17 +204,13 @@ class EbmDefaultHandler:
     def extract_area_forecast(building_categories,
                               database_manager: DatabaseManager,
                               period: YearRange) -> pd.DataFrame:
-        area_forecast_results = []
-        logger.debug('Extracting area forecast')
-        for building_category in building_categories:
-            area_forecast = calculate_building_category_area_forecast(
-                building_category=building_category,
+
+        area_forecast = calculate_building_category_area_forecast(
                 database_manager=database_manager,
                 start_year=period.start,
                 end_year=period.end)
-            area_forecast_results.append(area_forecast)
-        df = pd.concat(area_forecast_results)
-        return df
+
+        return area_forecast
 
     @staticmethod
     def write_tqdm_result(output_file: pathlib.Path, output: pd.DataFrame, csv_delimiter: str=',', reset_index=True):

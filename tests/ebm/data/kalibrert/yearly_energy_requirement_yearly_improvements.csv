@@ -1,0 +1,10 @@
+building_category,building_code,purpose,function,efficiency_improvement,year,end_year,end_value
+default,default,cooling,none,0.0,
+default,default,electrical_equipment,yearly,0.01,
+default,default,fans_and_pumps,none,0.0,
+default,default,heating_dhw,none,0.0,
+default,default,lighting,interpolate,1.0,2024,2030,0.56666
+default,default,lighting,yearly_reduction,0.5%,2025
+house,default,lighting,yearly_reduction,0.005,2025
+default,default,lighting,yearly_change,-0.005,2025,2026
+,,

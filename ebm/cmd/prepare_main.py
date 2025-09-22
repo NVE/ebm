@@ -46,7 +46,7 @@ class EbmConfig:
 
     #building_categories: typing.List[BuildingCategory]
     #building_conditions = typing.List[BuildingCondition]
-    #tek_filter: typing.List[str]
+    #building_code_filter: typing.List[str]
 
 
 def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespace:

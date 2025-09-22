@@ -18,23 +18,22 @@ class FileHandler:
 
     # Filenames
     BUILDING_CONDITIONS = 'building_conditions.csv'
-    TEK_ID = 'TEK_ID.csv'
-    TEK_PARAMS = 'TEK_parameters.csv'
-    SCURVE_PARAMETERS = 'scurve_parameters.csv'
-    CONSTRUCTION_POPULATION = 'population.csv'
-    CONSTRUCTION_BUILDING_CATEGORY_SHARE = 'new_buildings_house_share.csv'
-    CONSTRUCTION_BUILDING_CATEGORY_AREA = 'construction_building_category_yearly.csv'
-    AREA_PARAMETERS = 'area_parameters.csv'
+    BUILDING_CODE_PARAMS = 'building_code_parameters.csv'
+    S_CURVE = 's_curve.csv'
+    POPULATION_FORECAST = 'population_forecast.csv'
+    NEW_BUILDINGS_RESIDENTIAL = 'new_buildings_residential.csv'
+    AREA_NEW_RESIDENTIAL_BUILDINGS = 'area_new_residential_buildings.csv'
+    AREA = 'area.csv'
     BEHAVIOUR_FACTOR = 'energy_need_behaviour_factor.csv'
-    ENERGY_REQ_ORIGINAL_CONDITION = 'energy_requirement_original_condition.csv'
-    ENERGY_REQ_REDUCTION_CONDITION = 'energy_requirement_reduction_per_condition.csv'
+    ENERGY_NEED_ORIGINAL_CONDITION = 'energy_need_original_condition.csv'
+    IMPROVEMENT_BUILDING_UPGRADE = 'improvement_building_upgrade.csv'
     ENERGY_NEED_YEARLY_IMPROVEMENTS = 'energy_need_improvements.csv'
-    HOLIDAY_HOME_BY_YEAR = 'holiday_home_by_year.csv'
+    HOLIDAY_HOME_STOCK = 'holiday_home_stock.csv'
     HOLIDAY_HOME_ENERGY_CONSUMPTION = 'holiday_home_energy_consumption.csv'
     AREA_PER_PERSON = 'area_per_person.csv'
-    HS_SHARES_START_YEAR = 'heating_systems_shares_start_year.csv'
-    HS_EFFICIENCIES = 'heating_systems_efficiencies.csv'
-    HS_PROJECTION = 'heating_systems_projection.csv'
+    HEATING_SYSTEM_INITIAL_SHARES = 'heating_system_initial_shares.csv'
+    HEATING_SYSTEMS_EFFICIENCIES = 'heating_systems_efficiencies.csv'
+    HEATING_SYSTEM_FORECAST = 'heating_system_forecast.csv'
     CALIBRATE_ENERGY_REQUIREMENT = 'calibrate_heating_rv.xlsx'
     CALIBRATE_ENERGY_CONSUMPTION = 'calibrate_energy_consumption.xlsx'
 
@@ -55,12 +54,12 @@ class FileHandler:
             directory = os.environ.get('EBM_INPUT_DIRECTORY', 'input')
 
         self.input_directory = directory if isinstance(directory, pathlib.Path) else pathlib.Path(directory)
-        self.files_to_check = [self.TEK_ID, self.TEK_PARAMS, self.SCURVE_PARAMETERS, self.CONSTRUCTION_POPULATION,
-                               self.CONSTRUCTION_BUILDING_CATEGORY_SHARE, self.CONSTRUCTION_BUILDING_CATEGORY_AREA,
-                               self.AREA_PARAMETERS, self.BEHAVIOUR_FACTOR, self.ENERGY_REQ_ORIGINAL_CONDITION,
-                               self.ENERGY_REQ_REDUCTION_CONDITION, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
-                               self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_BY_YEAR,
-                               self.AREA_PER_PERSON, self.HS_SHARES_START_YEAR, self.HS_EFFICIENCIES, self.HS_PROJECTION]
+        self.files_to_check = [self.BUILDING_CODE_PARAMS, self.S_CURVE, self.POPULATION_FORECAST,
+                               self.NEW_BUILDINGS_RESIDENTIAL, self.AREA_NEW_RESIDENTIAL_BUILDINGS,
+                               self.AREA, self.BEHAVIOUR_FACTOR, self.ENERGY_NEED_ORIGINAL_CONDITION,
+                               self.IMPROVEMENT_BUILDING_UPGRADE, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
+                               self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_STOCK,
+                               self.AREA_PER_PERSON, self.HEATING_SYSTEM_INITIAL_SHARES, self.HEATING_SYSTEMS_EFFICIENCIES, self.HEATING_SYSTEM_FORECAST]
 
     def __repr__(self):
         return f'FileHandler(input_directory="{self.input_directory}")'
@@ -122,34 +121,24 @@ class FileHandler:
             logger.error(f'Unable to open {file_path}. Unable to read file.')
             raise
 
-    def get_tek_id(self):
-        """
-        Get TEK ID DataFrame.
-
-        Returns:
-        - tek_id (pd.DataFrame): DataFrame containing TEK IDs.
-        """        
-        tek_id = self.get_file(self.TEK_ID)
-        return tek_id
-
-    def get_tek_params(self) -> pd.DataFrame:
+    def get_building_code(self) -> pd.DataFrame:
         """
         Get TEK parameters DataFrame.
 
         Returns:
-        - tek_params (pd.DataFrame): DataFrame containing TEK parameters.
+        - building_code_params (pd.DataFrame): DataFrame containing TEK parameters.
         """
-        tek_params = self.get_file(self.TEK_PARAMS)
-        return tek_params
+        building_code_params = self.get_file(self.BUILDING_CODE_PARAMS)
+        return building_code_params
     
-    def get_scurve_params(self) -> pd.DataFrame:
+    def get_s_curve(self) -> pd.DataFrame:
         """
         Get S-curve parameters DataFrame.
 
         Returns:
         - scurve_params (pd.DataFrame): DataFrame containing S-curve parameters.
         """
-        scurve_params = self.get_file(self.SCURVE_PARAMETERS)
+        scurve_params = self.get_file(self.S_CURVE)
         return scurve_params
 
     def get_construction_population(self) -> pd.DataFrame:
@@ -160,7 +149,7 @@ class FileHandler:
         - construction_population (pd.DataFrame): Dataframe containing population numbers
           year population household_size
         """
-        return self.get_file(self.CONSTRUCTION_POPULATION)
+        return self.get_file(self.POPULATION_FORECAST)
 
     def get_population(self) -> pd.DataFrame:
         """
@@ -173,7 +162,7 @@ class FileHandler:
         -------
 
         """
-        file_path = self.input_directory / self.CONSTRUCTION_POPULATION
+        file_path = self.input_directory / self.POPULATION_FORECAST
         logger.debug(f'{file_path=}')
         return pd.read_csv(file_path, dtype={"household_size": "float64"})
 
@@ -188,7 +177,7 @@ class FileHandler:
         - construction_population (pd.DataFrame): Dataframe containing population numbers
           "year", "Andel nye småhus", "Andel nye leiligheter", "Areal nye småhus", "Areal nye leiligheter"
         """
-        return self.get_file(self.CONSTRUCTION_BUILDING_CATEGORY_SHARE)
+        return self.get_file(self.NEW_BUILDINGS_RESIDENTIAL)
 
     def get_building_category_area(self) -> pd.DataFrame:
         """
@@ -198,7 +187,7 @@ class FileHandler:
         - construction_population (pd.DataFrame): Dataframe containing population numbers
           "area","type of building","2010","2011"
         """
-        file_path = self.input_directory / self.CONSTRUCTION_BUILDING_CATEGORY_AREA
+        file_path = self.input_directory / self.AREA_NEW_RESIDENTIAL_BUILDINGS
         logger.debug(f'{file_path=}')
         return pd.read_csv(file_path,
                            index_col=0, header=0)
@@ -211,7 +200,7 @@ class FileHandler:
         - area_parameters (pd.DataFrame): Dataframe containing total area (m^2) per
                                           building category and TEK.
         """
-        return self.get_file(self.AREA_PARAMETERS)
+        return self.get_file(self.AREA)
     
     def get_energy_req_original_condition(self) -> pd.DataFrame:
         """
@@ -223,7 +212,7 @@ class FileHandler:
             Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
             per building category and purpose.
         """
-        return self.get_file(self.ENERGY_REQ_ORIGINAL_CONDITION)
+        return self.get_file(self.ENERGY_NEED_ORIGINAL_CONDITION)
     
     def get_energy_req_reduction_per_condition(self) -> pd.DataFrame:
         """
@@ -235,7 +224,7 @@ class FileHandler:
             Dataframe containing energy requirement reduction shares for the different building conditions, 
             per building category, TEK and purpose.
         """
-        return self.get_file(self.ENERGY_REQ_REDUCTION_CONDITION)
+        return self.get_file(self.IMPROVEMENT_BUILDING_UPGRADE)
     
     def get_energy_need_yearly_improvements(self) -> pd.DataFrame:
         """
@@ -248,24 +237,12 @@ class FileHandler:
             per building category, tek and purpose.
         """
         return self.get_file(self.ENERGY_NEED_YEARLY_IMPROVEMENTS)
-    
-    def get_energy_req_policy_improvements(self) -> pd.DataFrame:
-        """
-        Get dataframe with total energy requirement improvement in a period related to a policy.
-
-        Returns
-        -------
-        pd.DataFrame
-            Dataframe containing total energy requirement improvement (%) in a policy period,
-            per building category, tek and purpose.
-        """
-        return self.get_file(self.ENERGY_REQ_POLICY_IMPROVEMENTS)
 
     def get_holiday_home_energy_consumption(self) -> pd.DataFrame:
         return self.get_file(self.HOLIDAY_HOME_ENERGY_CONSUMPTION)
 
     def get_holiday_home_by_year(self) -> pd.DataFrame:
-        return self.get_file(self.HOLIDAY_HOME_BY_YEAR)
+        return self.get_file(self.HOLIDAY_HOME_STOCK)
 
     def get_area_per_person(self):
         return self.get_file(self.AREA_PER_PERSON)
@@ -285,17 +262,17 @@ class FileHandler:
     def get_heating_systems_shares_start_year(self) -> pd.DataFrame:
         """
         """
-        return self.get_file(self.HS_SHARES_START_YEAR)
+        return self.get_file(self.HEATING_SYSTEM_INITIAL_SHARES)
     
     def get_heating_systems_efficiencies(self) -> pd.DataFrame:
         """
         """
-        return self.get_file(self.HS_EFFICIENCIES)
+        return self.get_file(self.HEATING_SYSTEMS_EFFICIENCIES)
 
     def get_heating_systems_projection(self) -> pd.DataFrame:
         """
         """
-        return self.get_file(self.HS_PROJECTION)
+        return self.get_file(self.HEATING_SYSTEM_FORECAST)
 
     def _check_is_file(self, filename: str) -> bool:
         """
@@ -318,7 +295,19 @@ class FileHandler:
         Returns
         -------
         missing_files : List[str]
+
+        Raises
+        ------
+        FileNotFoundError
+            If FileHandler::input_directory not found
+        NotADirectoryError
+            If FileHandler::input_directory is not a directory
         """
+        if not self.input_directory.exists():
+            raise FileNotFoundError(f'No such directory {self.input_directory}')
+        if not self.input_directory.is_dir():
+            raise NotADirectoryError(f'{self.input_directory} is not a directory')
+
         missing_files = [file for file in self.files_to_check if not self._check_is_file(file)]
         if missing_files:
             plural = 's' if len(missing_files) != 1 else ''
@@ -381,11 +370,9 @@ class FileHandler:
             multiple errors may be listed in the exception.
         """
         for file_to_validate in self.files_to_check:
-            if file_to_validate == 'TEK_ID.csv':
-                # No validator for tek_id exists. Fix this later.
-                continue
             df = self.get_file(file_to_validate)
             validator = getattr(validators, file_to_validate[:-4].lower())
+
             try:
                 validator.validate(df, lazy=True)
             except (SchemaErrors, SchemaError):

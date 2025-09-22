@@ -20,13 +20,14 @@ dependencies = [
     "python-dotenv", 
     "rich",
     "pandera",
-    "pywin32 ; platform_system == 'Windows'"
+    "XlsxWriter",
+    "pywin32 ; platform_system == 'Windows'",
 ]
 [project.optional-dependencies]
 test = ["pytest"]
 build = ["build"]
 dev = ["energibruksmodell[test]", "energibruksmodell[build]"]
-docs = ['sphinx', 'sphinx-rtd-theme', 'sphinx-autodoc-typehints', 'numpydoc']
+docs = ['sphinx', 'sphinx-rtd-theme', 'sphinx-autodoc-typehints', 'numpydoc', 'sphinx-tabs']
 tqdm = ['tqdm', 'XlsxWriter']
 [project.urls]
 Homepage = "https://www.nve.no/"
@@ -46,3 +47,4 @@ version = {attr = "ebm.__version__.version"}
 mypackage = ["*.csv"]
 [tool.pytest.ini_options]
 pythonpath = "."
+testpaths = ["tests"]

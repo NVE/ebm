@@ -177,6 +177,29 @@ class YearRange:
         """
         return pd.DataFrame(self.year_range, columns=[name])
 
+    def cross_join(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Join every row in df with every year in a YearRange
+
+        Parameters
+        ----------
+        df : pd.DataFrame
+            dataframe to join with YearRange
+
+        Returns
+        -------
+        pd.DataFrame
+            Pandas Dataframe containing the original dataframe and a year column
+        """
+        return pd.merge(left=df,
+                        right=self.to_dataframe(name='year'),
+                        how='cross')
+
+    @staticmethod
+    def from_series(s : pd.Series):
+        if s.name == 'year':
+            return YearRange(s.min(), s.max())
+        return YearRange(s.index.get_level_values(level='year').min(), s.index.get_level_values(level='year').max())
 
     def __getitem__(self, key: int | slice) -> pd.Index:
         """

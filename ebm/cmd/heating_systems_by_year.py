@@ -5,7 +5,7 @@ from ebm.model.data_classes import YearRange
 
 
 def group_heating_systems_energy_source_by_year(hs: pd.DataFrame) -> pd.DataFrame:
-    df = hs.set_index(['building_category', 'building_condition', 'purpose', 'TEK', 'year', 'heating_systems'])
+    df = hs.set_index(['building_category', 'building_condition', 'purpose', 'building_code', 'year', 'heating_systems'])
 
     return group_heating_systems_by_energy_carrier(df)
 

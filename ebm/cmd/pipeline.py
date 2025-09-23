@@ -62,7 +62,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     logger.debug('Transform fane 1 (wide)')
     merged_building_code_and_condition = a_f.merge_building_code_and_condition(existing_area)
     area_wide = transform_model_to_horizontal(merged_building_code_and_condition)
-    area_wide = area_wide.drop(columns=['building_code', 'building_condition'])
+    area_wide = area_wide.drop(columns=['building_code', 'building_condition']) #🏙️
 
     logger.debug('Transform fane 2 (long')
 
@@ -70,7 +70,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     area_by_year_category_building_code = area_by_year_category_building_code.rename(columns={'m2': 'area'})
     area_by_year_category_building_code.insert(0, 'U', 'm2')
     area_long = area_by_year_category_building_code.reset_index().sort_values(
-        by=['building_category', 'building_code', 'year'], key=bema.map_sort_order)
+        by=['building_category', 'building_code', 'year'], key=bema.map_sort_order) #🏙️
 
     logger.debug('Write file area.xlsx')
 
@@ -78,8 +78,8 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
 
     with pd.ExcelWriter(area_output, engine='xlsxwriter') as writer:
         # Write wide first order matters
-        area_wide.to_excel(writer, sheet_name='wide', index=False) # 💾
-        area_long.to_excel(writer, sheet_name='long', index=False) # 💾
+        area_wide.to_excel(writer, sheet_name='wide', index=False) # 🏙️️💾
+        area_long.to_excel(writer, sheet_name='long', index=False) # 🏙️💾
     logger.debug(f'Adding top row filter to {area_output}')
     make_pretty(area_output)
     add_top_row_filter(workbook_file=area_output, sheet_names=['long'])
@@ -95,8 +95,8 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     heating_systems_share = transform_heating_systems_share_long(heating_systems_projection)
 
     logger.debug('Transform fane 1')
-    heating_systems_share_wide = transform_heating_systems_share_wide(heating_systems_share)
-    heating_systems_share_long = heating_systems_share.rename(columns={
+    heating_systems_share_wide = transform_heating_systems_share_wide(heating_systems_share) # ♨️
+    heating_systems_share_long = heating_systems_share.rename(columns={ # ♨️
         'heating_system_share': 'Share',
         'heating_systems': 'Heating system'})
 
@@ -106,8 +106,8 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     heating_system_share_file = output_path / 'heating_system_share.xlsx'
     with pd.ExcelWriter(heating_system_share_file, engine='xlsxwriter') as writer:
         # Write wide first order matters
-        heating_systems_share_wide.to_excel(writer, sheet_name='wide', merge_cells=False, index=False) # 💾
-        heating_systems_share_long.to_excel(writer, sheet_name='long', merge_cells=False) # 💾
+        heating_systems_share_wide.to_excel(writer, sheet_name='wide', merge_cells=False, index=False) # ♨️💾
+        heating_systems_share_long.to_excel(writer, sheet_name='long', merge_cells=False) # ♨️💾
     make_pretty(heating_system_share_file)
     logger.debug(f'Adding top row filter to {heating_system_share_file}')
     add_top_row_filter(workbook_file=heating_system_share_file, sheet_names=['long'])
@@ -123,13 +123,13 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     district_heating = h_p.district_heating_heat_pump(expanded_heating_systems_parameter)
 
     production = h_p.heat_pump_production(total_energy_need, air_air, district_heating)
-    heat_prod_hp_wide = h_p.heat_prod_hp_wide(production)
+    heat_prod_hp_wide = h_p.heat_prod_hp_wide(production) # 🧮
 
     logger.debug('Write file heat_prod_hp.xlsx')
     heat_prod_hp_file = output_path / 'heat_prod_hp.xlsx'
 
     with pd.ExcelWriter(heat_prod_hp_file, engine='xlsxwriter') as writer:
-        heat_prod_hp_wide.to_excel(writer, sheet_name='wide', index=False) # 💾
+        heat_prod_hp_wide.to_excel(writer, sheet_name='wide', index=False) # 🧮💾
     make_pretty(heat_prod_hp_file)
     logger.success(f'Wrote {heat_prod_hp_file.name}')
     yield heat_prod_hp_file
@@ -149,18 +149,18 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
         by=['building_category', 'building_code', 'energy_product', 'year']).sum() / 1_000_000
     energy_use_long = energy_use_long.reset_index()[column_order].rename(columns={'kwh': 'energy_use'})
     energy_use_long = energy_use_long.sort_values(
-        by=['building_category', 'building_code', 'year'], key=bema.map_sort_order)
+        by=['building_category', 'building_code', 'year'], key=bema.map_sort_order) #🔌
 
     logger.debug('Transform fane 1')
     logger.debug('Group by group, product year')
-    energy_use_wide = transform_to_sorted_heating_systems(energy_use_gwh_by_building_group, energy_use_holiday_homes,
+    energy_use_wide = transform_to_sorted_heating_systems(energy_use_gwh_by_building_group, energy_use_holiday_homes, #🔌
                                                           building_column='building_group')
     logger.debug('Write file energy_use')
     energy_use_file = output_path / 'energy_use.xlsx'
     with pd.ExcelWriter(energy_use_file, engine='xlsxwriter') as writer:
         # Write wide first order matters
-        energy_use_wide.to_excel(writer, sheet_name='wide', index=False) # 💾
-        energy_use_long.to_excel(writer, sheet_name='long', index=False) # 💾
+        energy_use_wide.to_excel(writer, sheet_name='wide', index=False) #🔌💾
+        energy_use_long.to_excel(writer, sheet_name='long', index=False) #🔌💾
     make_pretty(energy_use_file)
     logger.debug(f'Adding top row filter to {energy_use_file}')
     add_top_row_filter(workbook_file=energy_use_file, sheet_names=['long'])
@@ -168,17 +168,17 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     yield energy_use_file
 
     logger.debug('Transform fane 1')
-    energy_purpose_wide = e_p.group_energy_use_kwh_by_building_group_purpose_year_wide(energy_use_kwh=energy_use_kwh)
+    energy_purpose_wide = e_p.group_energy_use_kwh_by_building_group_purpose_year_wide(energy_use_kwh=energy_use_kwh) # 🚿
 
     logger.debug('Transform fane 2')
-    energy_purpose_long = e_p.group_energy_use_by_year_category_building_code_purpose(energy_use_kwh=energy_use_kwh)
+    energy_purpose_long = e_p.group_energy_use_by_year_category_building_code_purpose(energy_use_kwh=energy_use_kwh) # 🚿
 
     logger.debug('Write file energy_purpose.xlsx')
     energy_purpose_output = output_path / 'energy_purpose.xlsx'
     with pd.ExcelWriter(energy_purpose_output, engine='xlsxwriter') as writer:
         # Write wide first order matters
-        energy_purpose_wide.to_excel(writer, sheet_name='wide', index=False) # 💾
-        energy_purpose_long.to_excel(writer, sheet_name='long', index=False) # 💾
+        energy_purpose_wide.to_excel(writer, sheet_name='wide', index=False) # 🚿 💾
+        energy_purpose_long.to_excel(writer, sheet_name='long', index=False) # 🚿💾
     make_pretty(energy_purpose_output)
     logger.debug(f'Adding top row filter to {energy_purpose_output}')
     add_top_row_filter(workbook_file=energy_purpose_output, sheet_names=['long'])
@@ -193,12 +193,12 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     demolition_construction_long = demolition_construction_long.rename(columns={'m2': 'Area [m2]',
                                                                       'gwh': 'Energy use [GWh]'})
     demolition_construction_long = demolition_construction_long.sort_values(
-        by=['building_category', 'building_code', 'year', 'demolition_construction'], key=bema.map_sort_order)
+        by=['building_category', 'building_code', 'year', 'demolition_construction'], key=bema.map_sort_order) # 🏗️
 
     logger.debug('Write file demolition_construction.xlsx')
     demolition_construction_file = output_path / 'demolition_construction.xlsx'
     with pd.ExcelWriter(demolition_construction_file, engine='xlsxwriter') as writer:
-        demolition_construction_long.to_excel(writer, sheet_name='long', index=False) # 💾
+        demolition_construction_long.to_excel(writer, sheet_name='long', index=False) # 🏗️💾
     make_pretty(demolition_construction_file)
     logger.debug(f'Adding top row filter to {demolition_construction_file}')
     add_top_row_filter(workbook_file=demolition_construction_file, sheet_names=['long'])

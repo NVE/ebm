@@ -8,6 +8,7 @@ condition, has undergone small measures or renovation or both.
 .. toctree::
    :caption: Content
    :maxdepth: 1
+   :hidden:
 
    methods
    assumptions

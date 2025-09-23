@@ -32,7 +32,7 @@
                                         <div style="box-sizing: border-box; font-size: 0; text-align: center; color: #ffffff; ">
                                             <div style="display: inline-block; font-size: 11px; font-family: Helvetica; color: light-dark(#ffffff, #121212); line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">
                                                 <font style="font-size: 16px">
-                                                    <b>Data Analyst</b>
+                                                    <b>Analyst</b>
                                                 </font>
                                                 <div>[Person]</div>
                                                 <br/>
@@ -47,7 +47,7 @@
                                     </div>
                                 </foreignObject>
                                 <text x="616" y="126" fill="#ffffff" font-family="Helvetica" font-size="11px"
-                                      text-anchor="middle">Data Analyst...
+                                      text-anchor="middle">Analyst...
                                 </text>
                             </switch>
                         </g>
@@ -159,8 +159,7 @@
                                                     <font style="font-size: 11px">
                                                         <font color="#E6E6E6"
                                                               style="color: light-dark(rgb(230, 230, 230), rgb(39, 39, 39));">
-                                                            Command-line application that run<br/>the model for the data
-                                                            analyst
+                                                            Command-line application that run<br/>the model for the analyst
                                                             <br/>
                                                         </font>
                                                     </font>

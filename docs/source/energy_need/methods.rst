@@ -77,3 +77,28 @@ Below is an excerpt showing the kilowatt hours per square metre for retail build
     retail,TEK07,heating_dhw,10.5
     retail,TEK07,heating_rv,82.7
     …,…,…,…
+
+
+
+Renovation and small measures 
+-----------------------------
+
+The rates for implementing small measures and renovation are determined. The rates are
+set in relation to the area's age, and a development comparable to an S-curve is expected. The rates can be defined 
+individually for each building category. The proportion of a building type that is
+demolished, renovated, and undergoes small measures each year will therefore depend on the age distribution of the building stock
+for that building type.
+
+It is not uncommon for buildings that have reached a certain age to have undergone both small measures and renovation. This is
+accounted for in the model. However, this version of the model does not allow small measures and renovation to be done several times on the same building. 
+This is something that we plan to improve in coming versions of the model. 
+
+An example of how the renovation rates can function in the model: 
+Let's look at the small measure rate for office buildings. In the first few years after the
+buildings are constructed, no small measures are implemented. When the buildings are three years old, small measures will 
+be implemented on some of the buildings. Small measures will be implemented in 1.4 % of the relevant office area each year 
+until the buildings are ten years old. At ten years of age, the pace of implementing small measures increases, and 4 % of the 
+area undergoes small measures each year. This high rate continues until the building stock is 30 years old. From then on,
+only 0.5 % of the building stock will undergo small measures annually. It is assumed that 1 % of the area
+will never have small measures implemented, and that the buildings that are to have small measures implemented will have had 
+them done within 50 years.

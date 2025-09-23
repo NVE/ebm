@@ -8,7 +8,7 @@ of certified buildings. There are 1,2 million certificates in total spread out a
 non-residental buildings, the number of certificates are low. Some cleaning is done on the dataset to filter out misleading certificates and duplicates.
 
 * Removed certificates missing building category, heated floor area or energy performance label
-* Removed certificates where calculated delivered energy is above 1000 kWh/m:sup:'2'.
+* Removed certificates where calculated delivered energy is above 1000 kWh/m :sup:`2`.
 * If a certificate has been issued to the same address more than once, the most recent certificate is kept. This is done for all building categories except for apartment blocks or hospitals as one address can contain multiple buildings or apartments. For apartments the house number is often missing.
 
 After these three steps there are about 1 million certificates remaining. The associated building code classification is added to the certificates based on the supplied 
@@ -96,6 +96,17 @@ the share of "Electriciy - Bio" and increasing the share of "HP - Electricty - B
 
 .. raw:: html
   :file: ..\images\Hus.html
+
+Making changes to heating systems
+---------------------------------
+The easiest way to change the initial shares of heating systems is through *Kalibreringsark.xlsx* as part of the calibration process described here :any:`Calibrating the model`.
+The input file *heating_system_initial_shares.csv* remains unchanged with this method. It is possible to change the heating systems share in the input file. 
+All combinations of building code and building category are given their own heating systems share, but the shares themselves are indentical for each respesctive 
+building category of house, apartment block and non-residental building. 
+
+Making changes to the efficiency, energy product or utilisation factor can be done for each of the 12 combinations of heating systems in the input 
+file *heating_systems_efficiencies.csv*. An overview of the heating system combinations can be found in the :any:`Tables and glossary` subchapter.
+
 
 .. |date| date::
 

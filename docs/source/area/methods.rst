@@ -6,24 +6,13 @@ The total area in the model changes due to demolition and building of new area. 
 * New area replaces demolished area 
 * New area is built due to changes in population
 
-In both cases, the new area is given the newest building code. 
-
-Additionaly, the energy condition of the area in the model changes due to renovation and small measures. 
-The area in the model can have on of the following conditions: 
-
-* Original condition
-* Small measure
-* Renovation
-* Renovation and small measure
-
-An user defined S- curve determines how often and how much the area undergoes renovation and small measures. 
 
 New area replaces demolished area
 ---------------------------------
 
 When new area is replacing demolished area the total amount of area does not change. However, the new area is given the newest building code standard, which impacts the energy need.  
 Demolition is controlled by an user defined s-curve, that decides how much area is demolished each year. The demolition rates are
-set in relation to the area's age, and a development comparable to an S-curve is expected. The rates can be defines individually for each building category.
+set in relation to the area's age, and a development comparable to an S-curve is expected. The rates can be defined individually for each building category.
 
 New area from population growth
 -------------------------------
@@ -63,7 +52,7 @@ Combining the two:
 The area per person is different for each of the non-residental building categories. It can also change from year to year, but currently it is a constant. 
 
 .. csv-table:: Area per person per non-residential building category
-  :file: tables\area_per_person.csv
+  :file: ../tables/area_per_person.csv
   :widths: 40, 20
   :header-rows: 1
 
@@ -75,26 +64,7 @@ as is done in non-residential area, we first have to calculate the required numb
 both the popluation forecast and average household size. The new dwellings can be either apartments or houses and the ratio between them, and the area per dwelling, is given 
 in the input file "new_buildings_residential".  
 
+HVA ER FORMELEN VI BRUKER FOR Å BEREGNE ANTALL BYGG SOM MÅ BYGGES NYTT?? 
 
-Renovation and small measures 
------------------------------
 
-The rates for implementing small measures and renovation are determined. The rates are
-set in relation to the area's age, and a development comparable to an S-curve is expected. The rates can be defined 
-individually for each building category. The proportion of a building type that is
-demolished, renovated, and undergoes small measures each year will therefore depend on the age distribution of the building stock
-for that building type.
 
-It is not uncommon for buildings that have reached a certain age to have undergone both small measures and renovation. This is
-accounted for in the model. However, this version of the model does not allow small measures and renovation to be done several times on the same building. 
-This is something that we plan to improve in coming versions of the model. 
-
-An example of how the renovation rates can function in the model: 
-Let's look at the small measure rate for office buildings. In the first few years after the
-buildings are constructed, no small measures are implemented. When the buildings are three years old, small measures will 
-be implemented on some of the buildings. Small measures will be implemented in 1.4 % of the relevant office area each year 
-until the buildings are ten years old. At ten years of age, the pace of implementing small measures increases, and 4 % of the 
-area undergoes small measures each year. This high rate continues until the building stock is 30 years old. From then on,
-only 0.5 % of the building stock will undergo small measures annually. It is assumed that 1 % of the area
-will never have small measures implemented, and that the buildings that are to have small measures implemented will have had 
-them done within 50 years.

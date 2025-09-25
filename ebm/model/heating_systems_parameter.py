@@ -13,5 +13,5 @@ def expand_heating_system_parameters(heating_systems_parameter):
     df = heating_systems_parameter
     df = df.assign(**{'heating_system': df['heating_systems'].str.split('-')}).explode('heating_system')
     df['heating_system'] = df['heating_system'].str.strip()
-    df['load_share'] = df['Grunnlast andel']
+    df['load_share'] = df['base_load_coverage']
     return df

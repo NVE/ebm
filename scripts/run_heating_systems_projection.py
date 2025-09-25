@@ -14,7 +14,7 @@ load_dotenv(pathlib.Path('.env'))
 file_handler = FileHandler(directory=os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
 
 shares_start_year = file_handler.get_heating_systems_shares_start_year()
-efficiencies = file_handler.get_heating_systems_efficiencies()
+efficiencies = file_handler.get_heating_system_efficiencies()
 projection = file_handler.get_heating_systems_projection()
 period = YearRange(2023, 2050)
 

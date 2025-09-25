@@ -6,9 +6,9 @@ from ebm.cmd.run_calculation import calculate_building_category_energy_requireme
 from ebm.model.data_classes import YearRange
 from ebm.model.building_category import BuildingCategory
 
-from ebm.energy_consumption import (HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, GRUNNLAST_ENERGIVARE, SPISSLAST_ENERGIVARE,
-                                 EKSTRALAST_ENERGIVARE, HEATIG_RV_EKSTRALAST, COOLING_KV, OTHER_SV, DHW_TV,
-                                 TAPPEVANN_ENERGIVARE, HEAT_PUMP, HP_ENERGY_SOURCE)
+from ebm.energy_consumption import (HEATING_RV_BASE_TOTAL, HEATING_RV_PEAK_TOTAL, BASE_LOAD_ENERGY_PRODUCT, PEAK_LOAD_ENERGY_PRODUCT,
+                                    TERTIARY_LOAD_ENERGY_PRODUCT, HEATING_RV_TERTIARY_TOTAL, COOLING_TOTAL, OTHER_TOTAL, DHW_TOTAL,
+                                    DOMESTIC_HOT_WATER_ENERGY_PRODUCT, HEAT_PUMP, HP_ENERGY_SOURCE)
 
 ELECTRICITY = 'Elektrisitet'
 DISTRICT_HEATING = 'Fjernvarme'
@@ -94,12 +94,12 @@ def group_heating_systems_by_energy_carrier(df: pd.DataFrame) -> pd.DataFrame:
     # df.loc['apartment_block', 'building_group'] = 'bolig'
 
     df['ALWAYS_ELECTRICITY'] = 'Electricity'
-    rv_gl = transform_by_energy_source(df, HEATING_RV_GRUNNLAST, GRUNNLAST_ENERGIVARE)
-    rv_sl = transform_by_energy_source(df, HEATING_RV_SPISSLAST, SPISSLAST_ENERGIVARE)
-    rv_el = transform_by_energy_source(df, HEATIG_RV_EKSTRALAST, EKSTRALAST_ENERGIVARE)
-    cooling = transform_by_energy_source(df, COOLING_KV, 'ALWAYS_ELECTRICITY')
-    spesifikt_elforbruk = transform_by_energy_source(df, OTHER_SV, 'ALWAYS_ELECTRICITY')
-    tappevann = transform_by_energy_source(df, DHW_TV, TAPPEVANN_ENERGIVARE)
+    rv_gl = transform_by_energy_source(df, HEATING_RV_BASE_TOTAL, BASE_LOAD_ENERGY_PRODUCT)
+    rv_sl = transform_by_energy_source(df, HEATING_RV_PEAK_TOTAL, PEAK_LOAD_ENERGY_PRODUCT)
+    rv_el = transform_by_energy_source(df, HEATING_RV_TERTIARY_TOTAL, TERTIARY_LOAD_ENERGY_PRODUCT)
+    cooling = transform_by_energy_source(df, COOLING_TOTAL, 'ALWAYS_ELECTRICITY')
+    spesifikt_elforbruk = transform_by_energy_source(df, OTHER_TOTAL, 'ALWAYS_ELECTRICITY')
+    tappevann = transform_by_energy_source(df, DHW_TOTAL, DOMESTIC_HOT_WATER_ENERGY_PRODUCT)
     rv_hp = transform_by_energy_source(df, HEAT_PUMP, HP_ENERGY_SOURCE)
 
     energy_use = pd.concat([rv_gl, rv_sl, rv_el, cooling, spesifikt_elforbruk, tappevann, rv_hp])
@@ -136,14 +136,14 @@ def transform_pumps(df: pd.DataFrame, calibration_year) -> pd.DataFrame:
 
 def _calculate_energy_source(df, heating_type, primary_source, secondary_source=None):
     if secondary_source and primary_source == secondary_source:
-        df.loc[(heating_type, slice(None)), primary_source] = df.loc[(heating_type, slice(None)), HEATING_RV_GRUNNLAST] + \
-             df.loc[(heating_type, slice(None)), HEATING_RV_SPISSLAST]
+        df.loc[(heating_type, slice(None)), primary_source] = df.loc[(heating_type, slice(None)), HEATING_RV_BASE_TOTAL] + \
+                                                              df.loc[(heating_type, slice(None)), HEATING_RV_PEAK_TOTAL]
 
         return df
-    df.loc[(heating_type, slice(None)), primary_source] = df.loc[(heating_type, slice(None)), HEATING_RV_GRUNNLAST]
+    df.loc[(heating_type, slice(None)), primary_source] = df.loc[(heating_type, slice(None)), HEATING_RV_BASE_TOTAL]
     if secondary_source:
         df.loc[(heating_type, slice(None)), secondary_source] = df.loc[
-            (heating_type, slice(None)), HEATING_RV_SPISSLAST]
+            (heating_type, slice(None)), HEATING_RV_PEAK_TOTAL]
 
     return df
 

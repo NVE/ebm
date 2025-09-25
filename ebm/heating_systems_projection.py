@@ -126,7 +126,7 @@ class HeatingSystemsProjection:
         """
         dm = database_manager if isinstance(database_manager, DatabaseManager) else DatabaseManager()
         shares_start_year = dm.get_heating_systems_shares_start_year()
-        efficiencies = dm.get_heating_systems_efficiencies()
+        efficiencies = dm.get_heating_system_efficiencies()
         projection = dm.get_heating_systems_projection()
         building_code_list = dm.get_building_code_list()
         return HeatingSystemsProjection(shares_start_year=shares_start_year,

@@ -530,30 +530,26 @@ TODO: how to check columns that are heating systems (but not in enum) and 'energ
         'Grunnlast': pa.Column(str), 
         'Spisslast': pa.Column(str),
         'Ekstralast': pa.Column(str),
-        'Grunnlast energivare': pa.Column(str),
-        'Spisslast energivare': pa.Column(str),
-        'Ekstralast energivare': pa.Column(str),  
+        'base_load_energy_product': pa.Column(str),
+        'peak_load_energy_product': pa.Column(str),
+        'tertiary_load_energy_product': pa.Column(str),  
 """
-heating_systems_efficiencies = pa.DataFrameSchema(
+heating_system_efficiencies = pa.DataFrameSchema(
     columns={
         'heating_systems': pa.Column(str, checks=pa.Check(check_heating_systems)),  
-        'Grunnlast': pa.Column(str), 
-        'Spisslast': pa.Column(str),
-        'Ekstralast': pa.Column(str),
-        'Grunnlast energivare': pa.Column(str),
-        'Spisslast energivare': pa.Column(str),
-        'Ekstralast energivare': pa.Column(str),        
-        'Ekstralast andel': pa.Column(float, coerce=True),
-        'Grunnlast andel': pa.Column(float, coerce=True),
-        'Spisslast andel': pa.Column(float, coerce=True),
-        'Grunnlast virkningsgrad': pa.Column(float, coerce=True),
-        'Spisslast virkningsgrad': pa.Column(float, coerce=True),
-        'Ekstralast virkningsgrad': pa.Column(float, coerce=True),
-        'Tappevann': pa.Column(str),
-        'Tappevann energivare': pa.Column(str),
-        'Tappevann virkningsgrad': pa.Column(float, coerce=True),
+        'base_load_energy_product': pa.Column(str),
+        'peak_load_energy_product': pa.Column(str),
+        'tertiary_load_energy_product': pa.Column(str),        
+        'tertiary_load_coverage': pa.Column(float, coerce=True),
+        'base_load_coverage': pa.Column(float, coerce=True),
+        'peak_load_coverage': pa.Column(float, coerce=True),
+        'base_load_efficiency': pa.Column(float, coerce=True),
+        'peak_load_efficiency': pa.Column(float, coerce=True),
+        'tertiary_load_efficiency': pa.Column(float, coerce=True),
+        'domestic_hot_water_energy_product': pa.Column(str),
+        'domestic_hot_water_efficiency': pa.Column(float, coerce=True),
         'Spesifikt elforbruk': pa.Column(float, coerce=True),
-        'Kjoling virkningsgrad': pa.Column(float, coerce=True)
+        'cooling_efficiency': pa.Column(float, coerce=True)
     }
 )
 

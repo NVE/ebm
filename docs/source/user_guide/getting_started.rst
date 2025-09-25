@@ -67,7 +67,7 @@ First, you need to create a directory with the necessary input files. The recomm
       0:00:01.60 - Creating missing file  input\holiday_home_stock.csv
       0:00:01.62 - Creating missing file  input\area_per_person.csv
       0:00:01.65 - Creating missing file  input\heating_system_initial_shares.csv
-      0:00:01.68 - Creating missing file  input\heating_systems_efficiencies.csv
+      0:00:01.68 - Creating missing file  input\heating_system_efficiencies.csv
       0:00:01.71 - Creating missing file  input\heating_system_forecast.csv
       0:00:01.71 - Finished creating input files in input
 

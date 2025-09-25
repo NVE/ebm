@@ -8,7 +8,7 @@ Tables
 The tables below show the various combinations of heating systems and heating technologies.
 
 .. csv-table:: Heating systems efficiency
-  :file: ..\tables\heating_systems_efficiencies.csv
+  :file: ..\tables\heating_system_efficiencies.csv
   :widths: 15 15 15 15 5 5 5
   :header-rows: 1
   :delim: ;

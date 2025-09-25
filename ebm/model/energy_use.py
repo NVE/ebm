@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 
 from ebm import extractors
-from ebm.energy_consumption import HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE, \
-    SPISSLAST_ENERGIVARE, SPISSLAST_ANDEL, SPISSLAST_VIRKNINGSGRAD, EKSTRALAST_ANDEL, EKSTRALAST_VIRKNINGSGRAD, \
-    EKSTRALAST_ENERGIVARE, KJOLING_VIRKNINGSGRAD, DHW_EFFICIENCY, TAPPEVANN_ENERGIVARE
+from ebm.energy_consumption import HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, BASE_LOAD_EFFICIENCY, BASE_LOAD_ENERGY_PRODUCT, \
+    PEAK_LOAD_ENERGY_PRODUCT, PEAK_LOAD_COVERAGE, PEAK_LOAD_EFFICIENCY, TERTIARY_LOAD_COVERAGE, TERTIARY_LOAD_EFFICIENCY, \
+    TERTIARY_LOAD_ENERGY_PRODUCT, COOLING_EFFICIENCY, DHW_EFFICIENCY, DOMESTIC_HOT_WATER_ENERGY_PRODUCT
 from ebm.model import energy_need as e_n, heating_systems_parameter as h_s_param
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
@@ -14,10 +14,10 @@ from ebm.s_curve import calculate_s_curves
 def base_load(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:
     heating_systems_projection['heating_system'] = '-'
     df = heating_systems_projection[
-        ['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD,
-         GRUNNLAST_ENERGIVARE, 'heating_system']].copy()
-    df = df.rename(columns={GRUNNLAST_ANDEL: 'load_share', GRUNNLAST_VIRKNINGSGRAD: 'load_efficiency',
-                            GRUNNLAST_ENERGIVARE: 'energy_product'})
+        ['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, BASE_LOAD_EFFICIENCY,
+         BASE_LOAD_ENERGY_PRODUCT, 'heating_system']].copy()
+    df = df.rename(columns={GRUNNLAST_ANDEL: 'load_share', BASE_LOAD_EFFICIENCY: 'load_efficiency',
+                            BASE_LOAD_ENERGY_PRODUCT: 'energy_product'})
     df.loc[:, 'load'] = 'base'
     df.loc[:, 'purpose'] = 'heating_rv'
     df['heating_system'] = df.heating_systems.apply(lambda s: s.split('-')[0])
@@ -27,10 +27,10 @@ def base_load(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:
 
 def peak_load(heating_systems_projection:pd.DataFrame) -> pd.DataFrame:
     df = heating_systems_projection[
-        ['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, SPISSLAST_ANDEL, SPISSLAST_VIRKNINGSGRAD,
-         SPISSLAST_ENERGIVARE, 'heating_system']].copy()
-    df = df.rename(columns={SPISSLAST_ANDEL: 'load_share', SPISSLAST_VIRKNINGSGRAD: 'load_efficiency',
-                            SPISSLAST_ENERGIVARE: 'energy_product'})
+        ['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, PEAK_LOAD_COVERAGE, PEAK_LOAD_EFFICIENCY,
+         PEAK_LOAD_ENERGY_PRODUCT, 'heating_system']].copy()
+    df = df.rename(columns={PEAK_LOAD_COVERAGE: 'load_share', PEAK_LOAD_EFFICIENCY: 'load_efficiency',
+                            PEAK_LOAD_ENERGY_PRODUCT: 'energy_product'})
     df.loc[:, 'load'] = 'peak'
     df.loc[:, 'purpose'] = 'heating_rv'
     df['heating_system'] = df.heating_systems.apply(lambda s: s.split('-')[1:2]).explode('heating_system')
@@ -40,10 +40,10 @@ def peak_load(heating_systems_projection:pd.DataFrame) -> pd.DataFrame:
 
 def tertiary_load(heating_systems_projection: pd.DataFrame) ->pd.DataFrame:
     df = heating_systems_projection[
-        ['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, EKSTRALAST_ANDEL, EKSTRALAST_VIRKNINGSGRAD,
-         EKSTRALAST_ENERGIVARE, 'heating_system']].copy()
-    df = df.rename(columns={EKSTRALAST_ANDEL: 'load_share', EKSTRALAST_VIRKNINGSGRAD: 'load_efficiency',
-                            EKSTRALAST_ENERGIVARE: 'energy_product'})
+        ['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, TERTIARY_LOAD_COVERAGE, TERTIARY_LOAD_EFFICIENCY,
+         TERTIARY_LOAD_ENERGY_PRODUCT, 'heating_system']].copy()
+    df = df.rename(columns={TERTIARY_LOAD_COVERAGE: 'load_share', TERTIARY_LOAD_EFFICIENCY: 'load_efficiency',
+                            TERTIARY_LOAD_ENERGY_PRODUCT: 'energy_product'})
     df.loc[:, 'load'] = 'tertiary'
     df.loc[:, 'purpose'] = 'heating_rv'
     df['heating_system'] = df.heating_systems.apply(lambda s: s.split('-')[2:3]).explode('heating_system')
@@ -64,10 +64,10 @@ def heating_rv(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:
 def heating_dhw(heating_systems_projection: pd.DataFrame) ->pd.DataFrame:
     df = heating_systems_projection[
         ['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, DHW_EFFICIENCY,
-         TAPPEVANN_ENERGIVARE]].copy()
+         DOMESTIC_HOT_WATER_ENERGY_PRODUCT]].copy()
     df.loc[:, GRUNNLAST_ANDEL] = 1.0
     df = df.rename(columns={GRUNNLAST_ANDEL: 'load_share', DHW_EFFICIENCY: 'load_efficiency',
-                            TAPPEVANN_ENERGIVARE: 'energy_product'})
+                            DOMESTIC_HOT_WATER_ENERGY_PRODUCT: 'energy_product'})
 
     df.loc[:, 'load'] = 'dhw'
     df['purpose'] = 'heating_dhw'
@@ -76,12 +76,12 @@ def heating_dhw(heating_systems_projection: pd.DataFrame) ->pd.DataFrame:
 
 def cooling(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:
     df = heating_systems_projection[
-        ['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, KJOLING_VIRKNINGSGRAD,
-         GRUNNLAST_ENERGIVARE]].copy()
+        ['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, COOLING_EFFICIENCY,
+         BASE_LOAD_ENERGY_PRODUCT]].copy()
     df.loc[:, GRUNNLAST_ANDEL] = 1.0
-    df.loc[:, GRUNNLAST_ENERGIVARE] = 'Electricity'
-    df = df.rename(columns={GRUNNLAST_ANDEL: 'load_share', KJOLING_VIRKNINGSGRAD: 'load_efficiency',
-        GRUNNLAST_ENERGIVARE: 'energy_product'})
+    df.loc[:, BASE_LOAD_ENERGY_PRODUCT] = 'Electricity'
+    df = df.rename(columns={GRUNNLAST_ANDEL: 'load_share', COOLING_EFFICIENCY: 'load_efficiency',
+                            BASE_LOAD_ENERGY_PRODUCT: 'energy_product'})
 
     df.loc[:, 'load'] = 'base'
     df.loc[:, 'purpose'] = 'cooling'
@@ -90,13 +90,13 @@ def cooling(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:
 
 def other(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:
     df = heating_systems_projection[
-        ['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD,
-         GRUNNLAST_ENERGIVARE]].copy()
+        ['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, BASE_LOAD_EFFICIENCY,
+         BASE_LOAD_ENERGY_PRODUCT]].copy()
     df.loc[:, GRUNNLAST_ANDEL] = 1.0
-    df.loc[:, GRUNNLAST_VIRKNINGSGRAD] = 1.0
-    df.loc[:, GRUNNLAST_ENERGIVARE] = 'Electricity'
-    df = df.rename(columns={GRUNNLAST_ANDEL: 'load_share', GRUNNLAST_VIRKNINGSGRAD: 'load_efficiency',
-                            GRUNNLAST_ENERGIVARE: 'energy_product'})
+    df.loc[:, BASE_LOAD_EFFICIENCY] = 1.0
+    df.loc[:, BASE_LOAD_ENERGY_PRODUCT] = 'Electricity'
+    df = df.rename(columns={GRUNNLAST_ANDEL: 'load_share', BASE_LOAD_EFFICIENCY: 'load_efficiency',
+                            BASE_LOAD_ENERGY_PRODUCT: 'energy_product'})
     df.loc[:, 'load'] = 'base'
     df.loc[:, '_purposes'] = 'electrical_equipment,fans_and_pumps,lighting'
     df = df.assign(**{'purpose': df['_purposes'].str.split(',')}).explode('purpose')

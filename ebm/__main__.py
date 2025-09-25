@@ -7,14 +7,13 @@ import typing
 import pandas as pd
 from loguru import logger
 
-from ebm.cmd.helpers import load_environment_from_dotenv, configure_json_log, configure_loglevel
-from ebm.cmd.result_handler import  append_result, \
-    transform_model_to_horizontal, EbmDefaultHandler
-from ebm.cmd.pipeline import export_energy_model_reports
-from ebm.cmd.run_calculation import validate_years
 from ebm.cmd import prepare_main
+from ebm.cmd.helpers import load_environment_from_dotenv, configure_json_log, configure_loglevel
 from ebm.cmd.initialize import init, create_output_directory
-
+from ebm.cmd.migrate import migrate_directories
+from ebm.cmd.pipeline import export_energy_model_reports
+from ebm.cmd.result_handler import append_result, transform_model_to_horizontal, EbmDefaultHandler
+from ebm.cmd.run_calculation import validate_years
 from ebm.model.building_category import BuildingCategory
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.enums import ReturnCode
@@ -69,6 +68,9 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
             return ReturnCode.OK, None
         # Exit with 0 for success. The assumption is that the user would like to review the input before proceeding.
         return ReturnCode.MISSING_INPUT_FILES, None
+    if arguments.migrate:
+        migrate_directories([database_manager.file_handler.input_directory])
+        return ReturnCode.OK, None
 
     # Make sure all required files exists
     missing_files = database_manager.file_handler.check_for_missing_files()

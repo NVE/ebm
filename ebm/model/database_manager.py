@@ -386,8 +386,8 @@ class DatabaseManager:
 
         return calibrated
 
-    def get_heating_systems_efficiencies(self):
-        return self.file_handler.get_heating_systems_efficiencies()
+    def get_heating_system_efficiencies(self):
+        return self.file_handler.get_heating_system_efficiencies()
 
     def get_heating_systems_projection(self):
         return self.file_handler.get_heating_systems_projection()

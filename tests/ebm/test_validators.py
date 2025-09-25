@@ -23,7 +23,7 @@ from ebm.validators import (building_code_parameters,
                             check_overlapping_building_code_periods,
                             heating_system_initial_shares,
                             heating_system_forecast,
-                            heating_systems_efficiencies,
+                            heating_system_efficiencies,
                             energy_need_behaviour_factor)
     
     
@@ -717,7 +717,7 @@ default,default,Gas,Electric boiler,0.05,0.05
 
 def test_heating_systems_efficiencies_ok():
     efficiencies = pd.read_csv(io.StringIO("""
-heating_systems,Grunnlast,Spisslast,Ekstralast,Grunnlast energivare,Spisslast energivare,Ekstralast energivare,Ekstralast andel,Grunnlast andel,Spisslast andel,Grunnlast virkningsgrad,Spisslast virkningsgrad,Ekstralast virkningsgrad,Tappevann,Tappevann energivare,Tappevann virkningsgrad,Spesifikt elforbruk,Kjoling virkningsgrad
+heating_systems,Grunnlast,Spisslast,Ekstralast,base_load_energy_product,peak_load_energy_product,tertiary_load_energy_product,tertiary_load_coverage,base_load_coverage,peak_load_coverage,base_load_efficiency,peak_load_efficiency,tertiary_load_efficiency,Tappevann,domestic_hot_water_energy_product,domestic_hot_water_efficiency,Spesifikt elforbruk,cooling_efficiency
 Electric boiler,Electric boiler,Ingen,Ingen,Electricity,Ingen,Ingen,0.0,1.0,0.0,0.98,1.0,1,Electric boiler,Electricity,0.98,1,4
 DH,DH,Ingen,Ingen,DH,Ingen,Ingen,0.0,1.0,0.0,0.99,1.0,1,DH,DH,0.99,1,4
 Electricity,Electricity,Ingen,Ingen,Electricity,Ingen,Ingen,0.0,1.0,0.0,1.0,1.0,1,Electricity,Electricity,0.98,1,4
@@ -732,7 +732,7 @@ Electric boiler - Solar,Electric boiler,Solar,Ingen,Electricity,Solar,Ingen,0.0,
 HP Central heating - Bio,HP Central heating,Bio,Ingen,Electricity,Bio,Ingen,0.0,0.85,0.15000000000000002,3.0,0.65,1,HP Central heating,Electricity,3.0,1,4
 """.strip()), skipinitialspace=True) 
     
-    heating_systems_efficiencies.validate(efficiencies)
+    heating_system_efficiencies.validate(efficiencies)
 
 def test_behaviour_factor_validate_and_parse():
     df = pd.read_csv(io.StringIO("""

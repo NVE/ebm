@@ -68,7 +68,7 @@ What is calibrated?
 Calibration is done through an input file called "Kalibreringsark.xlsx" and "energy_requirement_original_condition". 
 "energy_requirement_original_condition" contains a column called "behaviour_factor". The factor modifies the 
 corresponding energy requirement as given by a specific TEK and building category. It is also possible to modify the
-factors given in "heating_systems_efficiencies" to fine tune the coverage of various heating technologies and their
+factors given in "heating_system_efficiencies" to fine tune the coverage of various heating technologies and their
 efficiencies. 
 In the excel file "Kalibreringsark.xlsx" you can adjust various factors which can modify the following:
 

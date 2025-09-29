@@ -39,6 +39,8 @@ jobs:
         pip install pytest pytest-azurepipelines
         pytest
       displayName: 'pytest'
+    - script: |
+        ruff check ebm
 
 - job: PytestWindows
   displayName: 'Run pytest on Windows'

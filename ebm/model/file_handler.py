@@ -310,7 +310,9 @@ class FileHandler:
             If FileHandler::input_directory is not a directory
         """
         if not self.input_directory.exists():
-            raise FileNotFoundError(f'No such directory {self.input_directory}')
+            msg=f'{self.input_directory.absolute()} not found'
+            logger.error(msg)
+            raise FileNotFoundError(f'Input Directory Not Found')
         if not self.input_directory.is_dir():
             raise NotADirectoryError(f'{self.input_directory} is not a directory')
 

@@ -26,7 +26,7 @@ dependencies = [
 [project.optional-dependencies]
 test = ["pytest"]
 build = ["build"]
-dev = ["energibruksmodell[test]", "energibruksmodell[build]"]
+dev = ["energibruksmodell[test]", "energibruksmodell[build]", 'ruff', 'ruff-lsp']
 docs = ['sphinx', 'sphinx-rtd-theme', 'sphinx-autodoc-typehints', 'numpydoc', 'sphinx-tabs']
 tqdm = ['tqdm', 'XlsxWriter']
 [project.urls]

@@ -72,14 +72,21 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
         migrate_directories([database_manager.file_handler.input_directory])
         return ReturnCode.OK, None
 
+    missing_input_error = f"""
+Use `<program name> --create-input --input={input_directory}` to create an input directory with the default input files
+""".strip().replace('\n',  ' ')
+
     # Make sure all required files exists
-    missing_files = database_manager.file_handler.check_for_missing_files()
-    if missing_files:
-        print(f"""
-    Use {program_name} --create-input to create an input directory with default files in the current directory
-    """.strip(),
-              file=sys.stderr)
-        return ReturnCode.MISSING_INPUT_FILES, None
+    try:
+        missing_files = database_manager.file_handler.check_for_missing_files()
+        if missing_files:
+            print(missing_input_error, file=sys.stderr)
+            return ReturnCode.MISSING_INPUT_FILES, None
+    except FileNotFoundError as file_not_found:
+        if str(file_not_found).startswith('Input Directory Not Found'):
+            logger.error(f'Input Directory "{input_directory}" Not Found')
+            print(missing_input_error, file=sys.stderr)
+            return ReturnCode.FILE_NOT_ACCESSIBLE, None
 
     database_manager.file_handler.validate_input_files()
     

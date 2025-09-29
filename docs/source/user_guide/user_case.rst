@@ -342,7 +342,7 @@ For clarity, all energy needs have been sorted and rounded to two decimal places
 Specify heating system shares
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Finally :ref:`heating_system_initial_shares.csv<heating_system_initial_shares>` must have heating system share defined for TEK30.
+Finally :ref:`heating_system_initial_shares.csv<heating_system_initial_shares>` must have the column heating_system_share defined for TEK30.
 
 .. tabs::
 
@@ -660,6 +660,22 @@ Finally :ref:`heating_system_initial_shares.csv<heating_system_initial_shares>` 
 
 Similarly to TEK17, there is no need to add TEK30 to :ref:`area.csv<area>` as all the area in both TEKs will be built after the start year 2020.
 
+Once you have adapted building_code_parameters.csv, energy_need_original_condition.csv and heating_system_initial_shares.csv to TEK30, you cat re-run the model.
+
+.. code-block:: powershell
+
+   ebm --input=user-case-tek30
+
+The model results can be found in the subdirectory named ``output``.
+
+.. tip::
+
+   You can have ebm open the results as they are written by using the ``--open`` option
+
+   .. code-block:: powershell
+
+      ebm --input=user-case-tek30 --open
+
 
 Extra credit
 ^^^^^^^^^^^^
@@ -671,11 +687,12 @@ have defined default values under the column building_code that will apply to TE
 energy need improvements
 """"""""""""""""""""""""
 
-Optionally, you can add a line to :ref:`energy_need_improvements.csv<energy_need_improvements>` if you think that there is no yearly reduction lighting with TEK30 .
+You can add a line to :ref:`energy_need_improvements.csv<energy_need_improvements>` if you think that there is no yearly reduction lighting with TEK30 .
 
 .. code-block:: csv
 
    default,TEK30,lighting,yearly_reduction,2031,0.0,2050
+
 
 energy need behaviour factor
 """"""""""""""""""""""""""""
@@ -697,30 +714,34 @@ Becomes:
 energy_need_original_condition
 """"""""""""""""""""""""""""""
 
+**default values**
+
+By default all building codes have the same energy use per square metre.
+
+.. admonition:: default values
+
+   .. csv-table:: default values in energy_need_original_condition.csv
+      :header: building_category,building_code,purpose,kwh_m2
+
+          house,default,lighting,8.2
+          apartment_block,default,lighting,8.2
+          retail,default,lighting,50.2
+          office,default,lighting,22.55
+          kindergarten,default,lighting,18.79
+          school,default,lighting,19.35
+          university,default,lighting,22.55
+          hospital,default,lighting,42.05
+          nursing_home,default,lighting,42.05
+          hotel,default,lighting,42.05
+          sports,default,lighting,18.58
+          culture,default,lighting,20.67
+          storage_repairs,default,lighting,16.91
+
+**Defining explicit lighting for TEK30**
+
 While the default values for lighting in `energy_need_original_condition.csv<energy_need_original_condition>` are handy for editing, you might want to set explicit values for TEK30.
 
-.. tabs::
-
-   .. tab:: default values
-
-      .. csv-table:: default values in energy_need_original_condition.csv
-         :header: building_category,building_code,purpose,kwh_m2
-
-               house,default,lighting,8.2
-               apartment_block,default,lighting,8.2
-               retail,default,lighting,50.2
-               office,default,lighting,22.55
-               kindergarten,default,lighting,18.79
-               school,default,lighting,19.35
-               university,default,lighting,22.55
-               hospital,default,lighting,42.05
-               nursing_home,default,lighting,42.05
-               hotel,default,lighting,42.05
-               sports,default,lighting,18.58
-               culture,default,lighting,20.67
-               storage_repairs,default,lighting,16.91
-
-   .. tab:: explicit TEK30
+   .. admonition:: explicit TEK30
 
       .. csv-table:: Excerpt TEK30 lighting energy_need_original_condition.csv
          :header: building_category,building_code,purpose,kwh_m2
@@ -739,23 +760,27 @@ While the default values for lighting in `energy_need_original_condition.csv<ene
            culture,TEK30,lighting,20
            storage_repairs,TEK30,lighting,16
 
-   .. tab:: grouping with TEK17
 
-      Plus (+) can be used to combine the definition for multiple building categories and building codes
+**Defining common lighting for TEK17 and TEK30**
 
-      .. csv-table:: Excerpt TEK30+TEK17 lighting energy_need_original_condition.csv
-         :header: building_category,building_code,purpose,kwh_m2
+Plus (+) can be used to combine the definition for multiple building codes. In this case TEK17 and
+TEK30 have the same values for energy use per square metre.
 
-           **apartment_block+house**,*TEK17+TEK30*,lighting,8.2
-           retail,*TEK17+TEK30*,lighting,50.2
-           office,*TEK17+TEK30*,lighting,22.55
-           kindergarten,*TEK17+TEK30*,lighting,18.79
-           school,*TEK17+TEK30*,lighting,19.35
-           university,*TEK17+TEK30*,lighting,22.55
-           **hospital+nursing_home+hotel**,*TEK17+TEK30*,lighting,42.05
-           sports,*TEK17+TEK30*,lighting,18.58
-           culture,*TEK17+TEK30*,lighting,20.67
-           storage_repairs,*TEK17+TEK30*,lighting,16.91
+.. admonition:: grouping with TEK17
+
+ .. csv-table:: Excerpt TEK30+TEK17 lighting energy_need_original_condition.csv
+    :header: building_category,building_code,purpose,kwh_m2
+
+      **apartment_block+house**,*TEK17+TEK30*,lighting,8.2
+      retail,*TEK17+TEK30*,lighting,50.2
+      office,*TEK17+TEK30*,lighting,22.55
+      kindergarten,*TEK17+TEK30*,lighting,18.79
+      school,*TEK17+TEK30*,lighting,19.35
+      university,*TEK17+TEK30*,lighting,22.55
+      **hospital+nursing_home+hotel**,*TEK17+TEK30*,lighting,42.05
+      sports,*TEK17+TEK30*,lighting,18.58
+      culture,*TEK17+TEK30*,lighting,20.67
+      storage_repairs,*TEK17+TEK30*,lighting,16.91
 
 
 .. |date| date::

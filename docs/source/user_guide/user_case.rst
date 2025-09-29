@@ -739,7 +739,7 @@ By default all building codes have the same energy use per square metre.
 
 **Defining explicit lighting for TEK30**
 
-While the default values for lighting in `energy_need_original_condition.csv<energy_need_original_condition>` are handy for editing, you might want to set explicit values for TEK30.
+While the default values for lighting in :ref:`energy_need_original_condition.csv<energy_need_original_condition>` are handy for editing, you might want to set explicit values for TEK30.
 
    .. admonition:: explicit TEK30
 

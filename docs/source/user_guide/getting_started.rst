@@ -117,8 +117,49 @@ the directory is to use ebm:
       0:00:01.71 - Finished creating input files in input
 
 
-The command creates a new directory called ``input`` with the default input parameters. You can use a different directory
-by adding the ``--input=<directory name>`` option.
+The command creates a new directory named ``input``, containing copies of all input files. By default, this directory is
+created in the current working directory. To specify a different location, use the ``--input=<directory name>`` option.
+
+If the directory already exists, only missing files will be copied. Existing files will not be overwritten.
+
+You can use ``ls`` to get a list of all the files in the ``input`` directory:
+
+.. code-block:: bash
+
+    ls input
+
+
+.. admonition:: expected output
+   :collapsible: closed
+   :class: expected-output
+
+   .. code-block:: powershell
+
+      PS C:\Users\user\Documents> ls input
+
+           Directory: C:\Users\user\Documents\input
+      
+      Mode                 LastWriteTime         Length Name
+      ----                 -------------         ------ ----
+      -a----        30.09.2025     12:10           2475 area.csv
+      -a----        30.09.2025     12:10            114 area_new_residential_buildings.csv
+      -a----        30.09.2025     12:10            192 area_per_person.csv
+      -a----        30.09.2025     12:10            238 building_code_parameters.csv
+      -a----        30.09.2025     12:10            305 energy_need_behaviour_factor.csv
+      -a----        30.09.2025     12:10            462 energy_need_improvements.csv
+      -a----        30.09.2025     12:10          23191 energy_need_original_condition.csv
+      -a----        30.09.2025     12:10           1340 heating_system_efficiencies.csv
+      -a----        30.09.2025     12:10           1847 heating_system_forecast.csv
+      -a----        30.09.2025     12:10          67093 heating_system_initial_shares.csv
+      -a----        30.09.2025     12:10            446 holiday_home_energy_consumption.csv
+      -a----        30.09.2025     12:10            652 holiday_home_stock.csv
+      -a----        30.09.2025     12:10            475 improvement_building_upgrade.csv
+      -a----        30.09.2025     12:10           1807 new_buildings_residential.csv
+      -a----        30.09.2025     12:10            959 population_forecast.csv
+      -a----        30.09.2025     12:10           1854 s_curve.csv
+
+
+If your shell does not have the ``ls`` command, you might have better luck with ``dir``.
 
 
 Run the model

@@ -188,7 +188,7 @@ You are now ready to run the model. Use the bare command ``ebm`` with no options
       0:00:18.39 - Wrote output\demolition_construction.xlsx
 
 
-By default the scenario is read from ``input``, and the results are written to the directory ``output``.
+By default the scenario is read from ``input``, and the results are written to the subdirectory ``output``.
 
 You can get a directory listing that shows all the result files created by issuing the command:
 

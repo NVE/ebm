@@ -17,7 +17,7 @@ Additional requirements like pandas, pandera and openpyxl will be installed alon
 Quick Start Guide
 -----------------
 
-Please, open your preferred terminal and follow the instructions below.
+Please, open your preferred terminal application and follow the instructions below.
 
 .. image:: ../_static/getting_started/ebm-in-windows-terminal.png
 

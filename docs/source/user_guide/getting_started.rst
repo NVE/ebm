@@ -219,7 +219,6 @@ The resulting output should look something like:
        -a----        13.02.2025     11:18             50 README.md
 
 
-If your shell does not have the ``ls`` command, you might have better luck with ``dir``.
 
 The files can be opened using your favourite spreadsheet application. I.E. Microsoft Excel or LibreOffice Calc.
 

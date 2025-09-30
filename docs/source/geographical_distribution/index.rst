@@ -1,4 +1,4 @@
-Geographical distribution
+Geographical Distribution
 #############################
 
 This page offers a comprehensive desciption of the ``ebmgeodist`` geographical distribution module in the EBM package.

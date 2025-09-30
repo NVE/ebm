@@ -1,4 +1,4 @@
-Geographical_distribution
+Geographical Distribution
 ################################
 The geographical distribution module ``ebmgeodist`` is an extension of the EBM model that enables the distribution of annual energy use
 projection results from EBM to finer geographical units, such as municipalities, counties, or grid areas.To use the module, you can

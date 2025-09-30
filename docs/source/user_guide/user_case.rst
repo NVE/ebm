@@ -30,9 +30,11 @@ To create a new scenario in EBM, open your preferred terminal and run the follow
    ebm --create-input --input=user-case-tek30
 
 
-The input directory will be created path defined after `--input==`. In this case the files will be added to the
-subdirectory `user-case-tek30`.
-If the directory you name does not already exist, the program will attempt to create it. All input files necessary to run ebm will be created, with their default values, in the supplied path.
+The input directory will be created using the path defined by the `--input` switch. In this case the new input files will be
+created in the subdirectory `user-case-tek30`.
+
+If the directory you name does not exist, the program will attempt to create it. All input files necessary to run ebm
+will be created, with their default values, in the supplied path.
 
 
 .. tip::

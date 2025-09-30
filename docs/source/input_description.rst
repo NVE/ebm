@@ -1,9 +1,8 @@
 Input files
 ###########
 
-Each input file is described here. The heading is the file name, followed by a short description of its contents. Constraints are given in the tab 
+Each input file is described here in alphabetical order. The heading is the file name, followed by a short description of its contents. Constraints are given in the tab 
 formatted box after the descriptions.
-
 
 Description
 ===========
@@ -11,13 +10,40 @@ Description
 Useful floor area in the start year 2020 distributed by building category and building code.
 
 **area_new_residential_buildings.csv** |br|
-New useful floor area for residential buildings in 2020 and 2021 from statistics.Statistics source is Statistics Norway.
+New built useful floor area for residential buildings in 2020 and 2021 from statistics.Statistics source is Statistics Norway.
 
 **area_per_person.csv** |br|
 Useful floor area for new non-residential buildings based on population growth.
 
-**building_code.csv** |br|
-Year of operation for the different building codes in Norway.
+**building_code_parameters.csv** |br|
+Year of operation for the different building codes in Norway. New area is built after a new building code a few years after it is implemented.
+
+**energy_need_behaviour_factor.csv** |br|
+Changes in energy need not related to the improvements in heating need from small measures and renovation. 
+
+**energy_need_improvements.csv** |br| 
+Reduction in energy need for lighting and electrical equipment from implementation of eco design, energy labeling and other measures. 
+
+**energy_need_original_condition.csv** |br| 
+Energy need per square meter for various energy purposes differentiated by building code and building category. The given energy need is only for a building's original condition.
+
+**heating_system_efficiencies.csv** |br|
+Parameters of the various heating technologies. Includes load shares, efficiencies and the related energy product.
+
+**heating_system_forecast.csv** |br|
+Defines the rate of change in heating systems towards 2050. The change is made on a percentage basis compared to the start year. Described in more detail here :any:`Forecasting of heating systems`
+
+**heating_system_initial_shares.csv** |br|
+Distribution of heating systems per building category and building code in the start year.
+
+**holiday_home_energy_consumption.csv** |br|
+Historical energy use of fuel wood, electricity and fossil fuel in holiday homes.
+
+**holiday_home_stock.csv** |br| 
+Stock of holiday homes per year from 2001. Statistics from Statistics Norway.
+
+**improvement_building_upgrade.csv** |br|
+Reduction in heating energy need from completed small measures, renovation and small measures + renovation. Percentage reduction compared to the original condition.
 
 **new_buildings_residential.csv** |br|
 Average size of new apartments and houses. Proportion of new homes that are apartments and houses per year.
@@ -27,34 +53,6 @@ Population forecast from Statistics Norway and average household size.
 
 **s_curve.csv** |br|
 Parameters to create S-curves. Parameters are given for small measures, renovation and demolition for each building category.
-
-**energy_need_original_condition.csv** |br| 
-Energy need per square meter for various energy purposes differentiated by building code and building category. The given energy need is only for a buildings original purpose.
-
-**improvement_building_upgrade.csv** |br|
-Reduction in heating energy need from completed small measures, renovation and small measures + renovation. Percentage reduction compared to the original condition.
-
-**energy_need_behaviour_factor.csv** |br|
-Changes in energy need not related to the improvements in heating need from the s-curves.
-
-**energy_need_improvements.csv** |br| 
-Reduction in lighting and equipment energy need from implementation of ecodesign.
-
-**holiday_home_stock.csv** |br| 
-Stock of holiday homes per year from 2001. Statistics from Statistics Norway.
-
-**holiday_home_energy_consumption.csv** |br|
-Historical energy use of fuel wood, electricity and fossil fuel in holiday homes.
-
-**heating_system_forecast.csv** |br|
-Defines the rate of change in heating systems towards 2050. The change is made on a percentage basis compared with the start year.
-
-**heating_system_initial_shares.csv** |br|
-Distribution of heating systems per building category and building code in the start year.
-
-**heating_system_efficiencies.csv** |br|
-Parameters of the various heating technologies. Includes load shares, efficiencies and the related energy product.
-
 
 Input constraints
 =================
@@ -381,7 +379,7 @@ The input constraints, datatypes and accepted values are listed per input file i
 
    .. tab:: Other
       .. tabs::
-         .. tab:: building_code
+         .. tab:: building_code_parameters
             ``building_code``
             - required
             - values: Any string containing ``TEK``
@@ -463,8 +461,8 @@ The input constraints, datatypes and accepted values are listed per input file i
             - float using a decimal point ('.') as the separator
             - **0.0** < value ≤ **1.0** (not including zero)
 
-Use of "default"
-================
+Use of "default" and categorisation
+===================================
 When making changes to an input file, for example **energy_need_improvements**, you can use aggregated 
 commands instead of specifying each individual *building category*, *building code* and *purpose*. The common aggregated
 command is **default**. When **default** is input the model chooses all valid options. For example **default** 

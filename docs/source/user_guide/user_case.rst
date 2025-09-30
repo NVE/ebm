@@ -94,7 +94,7 @@ plain text editor (e.g., Notepad) or spreadsheet software such as Microsoft Exce
 
 .. Set the following values in building_code_parameters.csv:
      - building_code: TEK30
-     - building_year: 2030
+     - building_year: 2040
      - period_start_year: 2030
      - period_end_year: 2050
 
@@ -104,7 +104,7 @@ Add the following line to ``user-case-tek30/building_code_parameters.csv`` to de
 
 .. code-block:: text
 
-   TEK30,2030,2030,2050
+   TEK30,2040,2030,2050
 
 The comma-separated columns in the line you added represent the following: building code, building year (in relation to S-curves),
 start year for the building code, and end year for the building code. Both the start and end years are inclusive.
@@ -144,7 +144,7 @@ When done correctly ``building_code_parameters.csv`` should look like the exampl
            TEK07,2012,2007,2010
            TEK10,2018,2011,2019
            TEK17,2025,2020,**2029**
-           **TEK30**,**2030**,**2030**,**2050**
+           **TEK30**,**2040**,**2030**,**2050**
 
    .. tab:: Raw CSV
 
@@ -161,7 +161,7 @@ When done correctly ``building_code_parameters.csv`` should look like the exampl
             TEK07,2012,2007,2010
             TEK10,2018,2011,2019
             TEK17,2025,2020,2029
-            TEK30,2030,2030,2050
+            TEK30,2040,2030,2050
 
    .. tab:: Download
 

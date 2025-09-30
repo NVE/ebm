@@ -167,8 +167,8 @@ When done correctly ``building_code_parameters.csv`` should look like the exampl
 
         Optionally, `Download building_code_parameters.csv <_static/user_case/tek30/building_code_parameters.csv>`_ working example.
 
-Define energy needs for TEK30
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Define energy need for TEK30
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 All building codes must have it's energy need defined in :ref:`energy_need_original_condition.csv<energy_need_original_condition>`. For this scenario we assume a TEK30 have a 2/3 energy need reduction for heating_rv and 1/4 reduction for heating_dhw, cooling, fans_and_pumps and electrical_equipment.
 
@@ -345,7 +345,7 @@ All building codes must have it's energy need defined in :ref:`energy_need_origi
         Download `energy_need_original_condition.csv <_static/user_case/tek30/energy_need_original_condition.csv>`_ complete with all building codes.
 
 
-For clarity, all energy needs have been sorted and rounded to two decimal places.
+For clarity, the table above have been sorted and kwh_m2 values rounded to two decimal places.
 
 
 Specify heating system shares
@@ -668,6 +668,10 @@ Finally :ref:`heating_system_initial_shares.csv<heating_system_initial_shares>` 
 
 
 Similarly to TEK17, there is no need to add TEK30 to :ref:`area.csv<area>` as all the area in both TEKs will be built after the start year 2020.
+
+
+Re-run the model
+^^^^^^^^^^^^^^^^
 
 Once you have adapted building_code_parameters.csv, energy_need_original_condition.csv and heating_system_initial_shares.csv to TEK30, you cat re-run the model.
 

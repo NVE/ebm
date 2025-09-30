@@ -45,17 +45,10 @@ Install ebm using pip
 
 
 
-
-.. note::
-
-    To figure out what EBM version you have installed, you can type ``ebm --version``
-    These instructions are made for |version|, but should work for later versions as well.
-
-
 What version of ebm are we running?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Once installed need to setup input files with all the parameters required to  run ``EBM``. But before we do that, let's
+Once installed, you need to setup input files with all the parameters required to  run ``ebm``. But before we do that, let's
 check if ebm is working properly. Open a terminal (powershell) and type:
 
 .. code-block:: bash
@@ -74,8 +67,14 @@ The output should look something like this:
     ebm 1.2.9
     PS C:\Users\user>
 
-The output show what version of ebm you are running. Don't worry if the version number you get is a bit off from the one
-in the example. It will probably be fine.
+The output shows what version of ebm you are running. Don't worry if the version number you get is a bit off from the one
+in the example.
+
+
+.. note::
+
+    These instructions are made for |version|, but should work for later versions as well.
+
 
 
 Create an input directory

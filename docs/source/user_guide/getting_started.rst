@@ -232,8 +232,6 @@ The files can be opened using your favourite spreadsheet application. I.E. Micro
 
        ebm --open
 
-
-
 .. seealso::
 
    :ref:`result files`
@@ -242,7 +240,6 @@ The files can be opened using your favourite spreadsheet application. I.E. Micro
         Shows all the commands available for ``ebm``.
    :ref:`User case`
         gives a run-down on how you can change the input files to better suit your needs.
-
 
 
 .. |date| date::

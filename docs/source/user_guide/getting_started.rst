@@ -9,7 +9,9 @@ energy use in the norwegian building stock. The model is developed by the
 Requirements
 ------------
 
-``EBM`` requires Python 3.11 or newer.
+``ebm`` requires Python 3.11 or newer. Python is available from `python.org <https://www.python.org/downloads/>`_.
+
+Additional requirements like pandas, pandera and openpyxl will be installed along side ``ebm``
 
 
 Quick Start Guide

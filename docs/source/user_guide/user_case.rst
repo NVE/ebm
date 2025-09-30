@@ -42,9 +42,6 @@ will be created, with their default values, in the supplied path.
     You can choose any valid directory name, but it is a good idea to limit to letters, numbers, and underscore. Avoid using space.
 
 
-
-
-
 Using the input directory
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -69,7 +66,7 @@ a hypothetical future building code introduced as part of a user case to demonst
 modeling.
 
 
-To add TEK30 to ebm you will need to
+To add TEK30 to ebm you have to edit a number of files in the subdirectory ``user-case-tek30``
  - :ref:`Add the new building code to the model in building_code_parameters.csv<add the new building code>`
  - :ref:`Define energy needs for TEK30 in energy_need_original_condition.csv<define energy needs for TEK30>`
  - :ref:`Specify heating system shares in heating_system_initial_shares.csv<Specify heating system shares>`
@@ -101,11 +98,21 @@ plain text editor (e.g., Notepad) or spreadsheet software such as Microsoft Exce
      - period_start_year: 2030
      - period_end_year: 2050
 
-Add the following line to building_code_parameters.csv to define TEK30 as a new building code entry:
+
+
+Add the following line to ``user-case-tek30/building_code_parameters.csv`` to define TEK30 as a new building code entry:
 
 .. code-block:: text
 
    TEK30,2030,2030,2050
+
+The comma-separated columns in the line you added represent the following: building code, building year (in relation to S-curves),
+start year for the building code, and end year for the building code. Both the start and end years are inclusive.
+
+
+.. seealso::
+
+   Other -> building_code under :ref:`input constraints`
 
 
 EBM does not allow overlapping periods in building_code_parameters.csv. Since TEK17 currently ends in 2050, we must adjust the end year for TEK17 as well:

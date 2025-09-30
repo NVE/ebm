@@ -1,0 +1,7 @@
+Command, Energy type (switch), Building category (switch), Data source (switch), Years (switch), Output format (switch)
+python -m ebmgeodist, strom, All, Local parquet file, 2022-2024, Wide
+python -m ebmgeodist energy-type, "strom, fjernvarme, ved, fossil", All, Local parquet file, 2022-2024, Wide
+python -m ebmgeodist category, All, "boliger, fritidsboliger, yrkesbygg, alle", Local parquet file, 2022-2024, Wide
+python -m ebmgeodist source, All, All, "azure, lokalt", 2022-2024, Wide
+python -m ebmgeodist years, All, All, Local parquet file, "2022, 2023, 2024, or a combination", Wide
+python -m ebmgeodist start-end-years, All, All, Local parquet file, 2022-2024, Including only the start and end years

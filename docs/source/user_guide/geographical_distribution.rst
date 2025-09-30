@@ -31,7 +31,9 @@ By default, the distribution keys are loaded from `input`, and the results are w
 Running the module without any options will distribute electricity consumption use for all building categories at the municipality level. if
 the user wants to distribute other energy types, this can be specified using the switch ``--energy-type``. For example, to distribute
 district heating consumption, run: ``--energy-type fjernvarme``.
-By default, the distribution keys are loaded from the input file ``yearly_aggregated_elhub_data.parquet`` under the ``input`` folder.
+
+By default and without using any switch, the distribution keys are loaded from the input file
+``yearly_aggregated_elhub_data.parquet`` under the ``input`` folder.
 If the file does not exist, the module will generate the distribution keys using Elhub API inside the module, assuming that the user
 has access to Elhub data via Azure Blob Storage. 
 
@@ -40,13 +42,40 @@ The results are saved in an Excel file named ``ebmgeodist_output.xlsx`` under th
 Additional arguments
 ---------------------------
 
+The module supports several command-line switches to customize the distribution process. The available options are summarized in the table below:
+
 .. csv-table:: Geographical distribution overview
    :file: ..\tables\ebmgeodist_command_options.csv
    :header-rows: 1
 
+.. note::
+
+    The double dashes ``--`` before each switch are required when running the module from the command line. In the table above the double dashes 
+    are omitted for better readability. For more detailed information about each switch option, you can run:
+
+    .. code-block:: bash
+
+      python -m ebmgeodist --help
+
+The general syntax for running the module with specific options is as follows:
 
 .. code-block:: python
   
-  python -m ebmgeodist <--switch> <step> <output filename>
+  python -m ebmgeodist <--switch> 
 
+
+.. tip::
+    
+    The swithces in the table can be combined. For example, to distribute bioenergy (firewood) consumption for residential buildings at the municipality level
+    for all years, you can run:
+    
+    .. code-block:: bash
+
+       python -m ebmgeodist --energy-type ved --category boliger --years 2022 2023 2024
+
+
+.. seealso::
+
+   :ref:`Geographical distribution`
+        A more detailed description of the geographical distribution module, including input file formats and examples.
 

@@ -19,6 +19,17 @@ Please, open your preferred terminal and follow the instructions below.
 Installation
 ^^^^^^^^^^^^
 
+.. only:: internal
+
+   .. attention::
+
+      For kjøring internt hos NVE er ikke dette steget nødvendig. Du kan i stedet åpne
+      ``Tilkobling mot eksternt skrivebord`` og bruke Datamaskin: |ebm_installation_host|. Dersom du ikke
+      har tilgang til |ebm_installation_host|. Kontakt brukerstøtte.
+
+      Når du er koblet til |ebm_installation_host| kan du gå videre til :ref:`What version of ebm are we running?`
+
+
 Install ebm using pip
 
 
@@ -27,16 +38,45 @@ Install ebm using pip
   python -m pip install energibruksmodell
 
 
+
+
 .. note::
 
     To figure out what EBM version you have installed, you can type ``ebm --version``
     These instructions are made for |version|, but should work for later versions as well.
 
 
+What version of ebm are we running?
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Once installed need to setup input files with all the parameters required to  run ``EBM``. But before we do that, let's
+check if ebm is working properly. Open a terminal (powershell) and type:
+
+.. code-block:: bash
+
+   ebm --version
+
+The output should look something like this:
+
+.. admonition:: expected output
+   :collapsible: open
+   :class: expected-output
+
+   .. code-block:: powershell
+
+    PS C:\Users\user> ebm --version
+    ebm 1.2.9
+    PS C:\Users\user>
+
+The output show what version of ebm you are running. Don't worry if the version number you get is a bit off from the one
+in the example. It will probably be fine.
+
+
 Create an input directory
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-First, you need to create a directory with the necessary input files. The recommended way of creating the directory is to use ebm:
+Before running the model you need to create a directory with the necessary input files. The recommended way of creating
+the directory is to use ebm:
 
 .. code-block:: bash
 

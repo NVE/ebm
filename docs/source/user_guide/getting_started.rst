@@ -23,7 +23,7 @@ Installation
 
 .. only:: internal
 
-   .. attention::
+   .. admonition:: For NVE
 
       For kjøring internt hos NVE er ikke dette steget nødvendig. Du kan i stedet åpne
       ``Tilkobling mot eksternt skrivebord`` og bruke Datamaskin: |ebm_installation_host|. Dersom du ikke

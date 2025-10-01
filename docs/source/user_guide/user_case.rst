@@ -734,10 +734,11 @@ energy_need_original_condition
 .. ``default``
 .. ``ebm``
 
+This file sets baseline lighting energy needs (kWh/m²) for different building types and codes used in the EBM model.
 
 **default values**
 
-.. csv-table:: default values in energy_need_original_condition.csv
+.. csv-table:: energy_need_original_condition.csv where purpose is lighting
    :header: building_category,building_code,purpose,kwh_m2
 
     house,default,lighting,8.2
@@ -808,24 +809,29 @@ that the energy need for lighting with TEK30 is half of what earlier building co
 
 **Defining common lighting for TEK17 and TEK30**
 
-Plus (+) can be used to combine the definition for multiple building codes. What if TEK17 and TEK30 have the same halved
-energy need? In that case one can save a bit typing by combining the definitions of TEK17 and TEK30 using plus (+). You
-can also use plus (+) to combine building categories that have the same value.
+To simplify energy need definitions across building codes, you can combine TEK17 and TEK30 using the + symbol. This
+approach allows you to assign a shared lighting energy value to multiple building codes for the same building category.
+
+You can also combine building categories in the same way. This is especially useful when several categories or codes
+share identical lighting requirements, helping reduce duplication and streamline your definitions.
+
+The example below demonstrates how to group both building codes and building categories that share the same lighting
+energy need values.
 
 
 .. csv-table:: Excerpt TEK30+TEK17 lighting energy_need_original_condition.csv
    :header: building_category,building_code,purpose,kwh_m2
 
-    **apartment_block+house**,*TEK17+TEK30*,lighting,4.1
-    retail,*TEK17+TEK30*,lighting,25.1
-    office,*TEK17+TEK30*,lighting,11.27
-    kindergarten,*TEK17+TEK30*,lighting,9.4
-    school,*TEK17+TEK30*,lighting,8.2
-    university,*TEK17+TEK30*,lighting,11.26
-    **hospital+nursing_home+hotel**,*TEK17+TEK30*,lighting,11.01
-    sports,*TEK17+TEK30*,lighting,9.29
-    culture,*TEK17+TEK30*,lighting,10.34
-    storage_repairs,*TEK17+TEK30*,lighting,8.45
+    **apartment_block+house**,**TEK17+TEK30**,lighting,4.1
+    retail,**TEK17+TEK30**,lighting,25.1
+    office,**TEK17+TEK30**,lighting,11.27
+    kindergarten,**TEK17+TEK30**,lighting,9.4
+    school,**TEK17+TEK30**,lighting,8.2
+    university,**TEK17+TEK30**,lighting,11.26
+    **hospital+nursing_home+hotel**,**TEK17+TEK30**,lighting,11.01
+    sports,**TEK17+TEK30**,lighting,9.29
+    culture,**TEK17+TEK30**,lighting,10.34
+    storage_repairs,**TEK17+TEK30**,lighting,8.45
 
 
 .. |date| date::

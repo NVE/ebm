@@ -6,6 +6,9 @@ formatted box after the descriptions.
 
 Description
 ===========
+
+.. _area csv:
+
 **area.csv** |br|
 Useful floor area in the start year 2020 distributed by building category and building code.
 

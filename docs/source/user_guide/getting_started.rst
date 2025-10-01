@@ -9,9 +9,9 @@ energy use in the norwegian building stock. The model is developed by the
 Requirements
 ------------
 
-``ebm`` requires Python 3.11 or newer. Python is available from `python.org <https://www.python.org/downloads/>`_.
+``EBM`` requires Python 3.11 or newer. Python is available from `python.org <https://www.python.org/downloads/>`_.
 
-Additional requirements like pandas, pandera and openpyxl will be installed along side ``ebm``
+Additional requirements like pandas, pandera and openpyxl will be installed along side ``EBM``
 
 
 Quick Start Guide
@@ -48,7 +48,7 @@ Install ebm using pip
 What version of ebm are we running?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Once installed, you need to setup input files with all the parameters required to  run ``ebm``. But before we do that, let's
+Once installed, you need to setup input files with all the parameters required to  run ``EBM``. But before we do that, let's
 check if ebm is working properly. Open a terminal (powershell) and type:
 
 .. code-block:: bash
@@ -81,7 +81,7 @@ Create an input directory
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Before running the model you need to create a directory with the necessary input files. The recommended way of creating
-the directory is to use ebm:
+the input directory is to use ebm:
 
 .. code-block:: bash
 
@@ -165,7 +165,7 @@ If your shell does not have the ``ls`` command, you might have better luck with 
 Run the model
 ^^^^^^^^^^^^^
 
-You are now ready to run the model. Use the bare command ``ebm`` with no options:
+You are now ready to run the model. Use the bare command ``EBM`` with no options:
 
 .. code-block:: bash
 
@@ -188,7 +188,8 @@ You are now ready to run the model. Use the bare command ``ebm`` with no options
       0:00:18.39 - Wrote output\demolition_construction.xlsx
 
 
-By default the scenario is read from ``input``, and the results are written to the subdirectory ``output``.
+By default the scenario is read from ``input``, and the results are written to the subdirectory ``output`` in the
+current working directory.
 
 You can get a directory listing that shows all the result files created by issuing the command:
 
@@ -223,10 +224,9 @@ The resulting output should look something like:
 The files can be opened using your favourite spreadsheet application. I.E. Microsoft Excel or LibreOffice Calc.
 
 
-
 .. tip::
 
-    If you want to open the results automatically as they become available, you can use the switch ``--open``.
+    If you want to open the results automatically as they become available, you can use the ``--open`` option.
 
     .. code-block:: bash
 
@@ -237,7 +237,7 @@ The files can be opened using your favourite spreadsheet application. I.E. Micro
    :ref:`result files`
         An overview of the contents of all the output files.
    :ref:`Additional arguments <user-guide-additional-arguments>`
-        Shows all the commands available for ``ebm``.
+        Shows all the commands available for ``EBM``.
    :ref:`User case`
         gives a run-down on how you can change the input files to better suit your needs.
 

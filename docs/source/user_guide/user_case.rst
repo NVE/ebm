@@ -704,7 +704,12 @@ have defined default values under the column building_code that will apply to TE
 energy need improvements
 """"""""""""""""""""""""
 
-You can add a line to :ref:`user-case-tek30/energy_need_improvements.csv<energy_need_improvements>` if you think that there is no yearly reduction lighting with TEK30 .
+In ``EBM`` there is a 0.5% yearly reduction in energy need for defined the building category house defined in
+`user-case-tek30/energy_need_improvements.csv<energy_need_improvements>`. Since TEK30 is a new code from TEK30 one can
+assume that no such reduction will happen due to the fact that the reduction will already be define in the building
+code.
+
+You can add a line to :ref:`user-case-tek30/energy_need_improvements.csv<energy_need_improvements>` if you think that there is no yearly reduction lighting with TEK30.
 
 .. code-block:: csv
 
@@ -762,7 +767,6 @@ value for lighting unless a more specific definition is provided.
 
 
 
-
 **Defining explicit lighting for TEK30**
 
 While the default values for lighting in :ref:`user-case-tek30/energy_need_original_condition.csv<energy_need_original_condition>` are
@@ -785,6 +789,7 @@ that the energy need for lighting with TEK30 is half of what earlier building co
      sports,TEK30,lighting,9.29
      culture,TEK30,lighting,10.34
      storage_repairs,TEK30,lighting,8.45
+
 
 
 **Defining common lighting for TEK17 and TEK30**

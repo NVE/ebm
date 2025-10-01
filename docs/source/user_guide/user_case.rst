@@ -8,7 +8,7 @@ Scenario-based modeling in EBM allows users to explore alternative planning assu
 The TEK30 scenario showcases how to:
  - Create a dedicated input directory for scenario data
  - Define a new building code and its timeline
- - Specify energy needs across building categories
+ - Specify energy need across building categories
  - Configure heating system shares
  - Optionally adjust lighting improvements
 
@@ -68,7 +68,7 @@ modeling.
 
 To add TEK30 to ebm you have to edit a number of files in the subdirectory ``user-case-tek30``
  - :ref:`Add the new building code to the model in building_code_parameters.csv<add the new building code>`
- - :ref:`Define energy needs for TEK30 in energy_need_original_condition.csv<define energy needs for TEK30>`
+ - :ref:`Define energy need for TEK30 in energy_need_original_condition.csv<define energy need for TEK30>`
  - :ref:`Specify heating system shares in heating_system_initial_shares.csv<Specify heating system shares>`
 
 
@@ -731,7 +731,7 @@ Becomes:
 energy_need_original_condition
 """"""""""""""""""""""""""""""
 
-This file sets baseline lighting energy needs (kWh/m²) for different building types and codes used in the ``EBM`` model.
+This file sets baseline lighting energy need (kWh/m²) for different building types and codes used in the ``EBM`` model.
 
 **default values**
 

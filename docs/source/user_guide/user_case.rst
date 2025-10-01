@@ -351,7 +351,10 @@ For clarity, the table above have been sorted and kwh_m2 values rounded to two d
 Specify heating system shares
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Finally :ref:`heating_system_initial_shares.csv<heating_system_initial_shares>` must have the column heating_system_share defined for TEK30.
+The final input file that needs to be modified is :ref:`heating_system_initial_shares.csv<heating_system_initial_shares>`.
+This file tells ``ebm`` what the share of each heating system is for a given building code. Since TEK30 is a new
+building code, it requires its own definition in this file.
+
 
 .. tabs::
 

@@ -68,13 +68,14 @@ The share of each heating system for a given combination is the useful area summ
 divided by the total useful area of the given building category and building code. The useful area is part of the energy certificates. This can be written as:
 
 .. math::
-  \text{heating system share} = \frac{\sum {area_{hs}}}{\sum {area_{bc}}}
+  \text{heating system share} = \frac{\sum^n_{area_{hs}}}{\sum^k_{area_{bc}}}
 
 Where:
 
-* *area* in this context is the useful area given by the energy performance certificates. 
-* :math:`area_hs` is the useful area for a given group of heating system, building category and building code. For example: *Electricity - Bio, House, TEK49*
-* :math:`area_bc` is the useful area for a given group of building category and building code. For example: *House, TEK49*
+* *area* in this context is the useful area given by the energy performance certificates.
+* :math:`n` and :math:`k` is the number of certificates in the respective group. 
+* :math:`area_{hs}` is the useful area for a given group of heating system, building category and building code. For example: *Electricity - Bio, House, TEK49*
+* :math:`area_{bc}` is the useful area for a given group of building category and building code. For example: *House, TEK49*
 
 
 Manual tuning of heating systems

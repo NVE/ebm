@@ -720,13 +720,13 @@ This row:
 
 .. code-block::
 
-   house,TEK07+TEK10+TEK17,lighting,0.85,2020,noop,2050
+   house,TEK07+TEK10+TEK17,lighting,0.85,2020,2050
 
 Becomes:
 
 .. code-block::
 
-   house,TEK07+TEK10+TEK17+TEK30,lighting,0.85,2020,noop,2050
+   house,TEK07+TEK10+TEK17+TEK30,lighting,0.85,2020,2050
 
 energy_need_original_condition
 """"""""""""""""""""""""""""""

@@ -226,7 +226,7 @@ The files can be opened using your favourite spreadsheet application. I.E. Micro
 
 .. tip::
 
-    If you want to open the results automatically as they become available, you can use the switch ``--open``.
+    If you want to open the results automatically as they become available, you can use the ``--open`` option.
 
     .. code-block:: bash
 

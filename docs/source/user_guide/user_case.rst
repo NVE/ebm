@@ -711,23 +711,6 @@ You can add a line to :ref:`user-case-tek30/energy_need_improvements.csv<energy_
    default,TEK30,lighting,yearly_reduction,2031,0.0,2050
 
 
-energy need behaviour factor
-""""""""""""""""""""""""""""
-
-In :ref:`user-case-tek30/energy_need_behaviour_factor.csv<energy_need_behaviour_factor>` add TEK30 to the house row's building_code column:
-
-This row:
-
-.. code-block::
-
-   house,TEK07+TEK10+TEK17,lighting,0.85,2020,2050
-
-Becomes:
-
-.. code-block::
-
-   house,TEK07+TEK10+TEK17+TEK30,lighting,0.85,2020,2050
-
 energy_need_original_condition
 """"""""""""""""""""""""""""""
 
@@ -829,6 +812,29 @@ energy need values.
     sports,**TEK17+TEK30**,lighting,9.29
     culture,**TEK17+TEK30**,lighting,10.34
     storage_repairs,**TEK17+TEK30**,lighting,8.45
+
+
+
+energy need behaviour factor
+""""""""""""""""""""""""""""
+
+In :ref:`user-case-tek30/energy_need_behaviour_factor.csv<energy_need_behaviour_factor>` there is a specific value set
+for behaviour factor for TEK07, TEK10 and TEK17. It is sensible to add the new building code TEK30 to the file
+building_code column:
+
+This row:
+
+.. code-block::
+
+   house,TEK07+TEK10+TEK17,lighting,0.85,2020,2050
+
+Becomes:
+
+.. code-block::
+
+   house,TEK07+TEK10+TEK17+TEK30,lighting,0.85,2020,2050
+
+
 
 .. |date| date::
 

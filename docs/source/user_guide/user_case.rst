@@ -31,7 +31,7 @@ To create a new scenario in EBM, open your preferred terminal and run the follow
 
 
 The input directory will be created using the path defined by the `--input` switch. In this case the new input files will be
-created in the subdirectory `user-case-tek30`.
+created as the subdirectory `user-case-tek30` in the current working directory.
 
 If the directory you name does not exist, the program will attempt to create it. All input files necessary to run ebm
 will be created, with their default values, in the supplied path.
@@ -78,7 +78,7 @@ This process showcases how EBM can be extended to simulate future regulations or
 Add the new building code
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The timeline and classification of building codes used by EBM are defined in the csv file ``building_code_parameters.csv``.
+The timeline and classification of building codes used by EBM are defined in the csv file :ref:`user-case-tek30/building_code_parameters.csv<building_code_parameters>`.
 To include TEK30 in your scenario, you must first define it in that file.
 
 You can edit building_code_parameters.csv using a
@@ -100,7 +100,7 @@ plain text editor (e.g., Notepad) or spreadsheet software such as Microsoft Exce
 
 
 
-Add the following line to ``user-case-tek30/building_code_parameters.csv`` to define TEK30 as a new building code entry:
+Add the following line to :ref:`user-case-tek30/building_code_parameters.csv<building_code_parameters>` to define TEK30 as a new building code entry:
 
 .. code-block:: text
 
@@ -124,7 +124,7 @@ EBM does not allow overlapping periods in building_code_parameters.csv. Since TE
    TEK17,2025,2020,2029
 
 
-When done correctly ``building_code_parameters.csv`` should look like the example below.
+When done correctly :ref:`user-case-tek30/building_code_parameters.csv<building_code_parameters>` should look like the example below.
 
 .. tabs::
 
@@ -165,12 +165,12 @@ When done correctly ``building_code_parameters.csv`` should look like the exampl
 
    .. tab:: Download
 
-        Optionally, `Download building_code_parameters.csv <_static/user_case/tek30/building_code_parameters.csv>`_ working example.
+        Optionally, `Download building_code_parameters.csv <../_static/user_case/tek30/building_code_parameters.csv>`_ working example.
 
 Define energy need for TEK30
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-All building codes must have it's energy need defined in :ref:`energy_need_original_condition.csv<energy_need_original_condition>`. For this scenario we assume a TEK30 have a 2/3 energy need reduction for heating_rv and 1/4 reduction for heating_dhw, cooling, fans_and_pumps and electrical_equipment.
+All building codes must have it's energy need defined in :ref:`user-case-tek30/energy_need_original_condition.csv<energy_need_original_condition>`. For this scenario we assume a TEK30 have a 2/3 energy need reduction for heating_rv and 1/4 reduction for heating_dhw, cooling, fans_and_pumps and electrical_equipment.
 
 .. tabs::
 
@@ -351,7 +351,7 @@ For clarity, the table above have been sorted and kwh_m2 values rounded to two d
 Specify heating system shares
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The final input file that needs to be modified is :ref:`heating_system_initial_shares.csv<heating_system_initial_shares>`.
+The final input file that needs to be modified is :ref:`user-case-tek30/heating_system_initial_shares.csv<heating_system_initial_shares>`.
 This file tells ``ebm`` what the share of each heating system is for a given building code. Since TEK30 is a new
 building code, it requires its own definition in this file.
 
@@ -670,7 +670,8 @@ building code, it requires its own definition in this file.
             sports,TEK30,Gas,2023,0.0016565044759408
 
 
-Similarly to TEK17, there is no need to add TEK30 to :ref:`area.csv<area>` as all the area in both TEKs will be built after the start year 2020.
+Similarly to TEK17, there is no need to add TEK30 to :ref:`user-case-tek30/area.csv<area csv>` as all the area in both
+TEKs will be built after the start year 2020.
 
 
 Re-run the model
@@ -696,14 +697,14 @@ The model results can be found in the subdirectory named ``output``.
 Extra credit
 ^^^^^^^^^^^^
 
-The input files :ref:`energy_need_improvements.csv<energy_need_improvements>`, :ref:`heating_system_forecast.csv<heating_system_forecast>`, :ref:`improvement_building_upgrade.csv<improvement_building_upgrade>` and :ref:`energy_need_behaviour_factor.csv<energy_need_behaviour_factor>`
+The input files :ref:`energy_need_improvements.csv<energy_need_improvements>`, :ref:`heating_system_forecast.csv <heating_system_forecast>`, :ref:`improvement_building_upgrade.csv<improvement_building_upgrade>` and :ref:`energy_need_behaviour_factor.csv<energy_need_behaviour_factor>`
 have defined default values under the column building_code that will apply to TEK30. For extra credit you may override the defaults with your own values.
 
 
 energy need improvements
 """"""""""""""""""""""""
 
-You can add a line to :ref:`energy_need_improvements.csv<energy_need_improvements>` if you think that there is no yearly reduction lighting with TEK30 .
+You can add a line to :ref:`user-case-tek30/energy_need_improvements.csv<energy_need_improvements>` if you think that there is no yearly reduction lighting with TEK30 .
 
 .. code-block:: csv
 
@@ -713,7 +714,7 @@ You can add a line to :ref:`energy_need_improvements.csv<energy_need_improvement
 energy need behaviour factor
 """"""""""""""""""""""""""""
 
-In :ref:`energy_need_behaviour_factor.csv<energy_need_behaviour_factor>` add TEK30 to the house row's building_code column:
+In :ref:`user-case-tek30/energy_need_behaviour_factor.csv<energy_need_behaviour_factor>` add TEK30 to the house row's building_code column:
 
 This row:
 
@@ -730,11 +731,7 @@ Becomes:
 energy_need_original_condition
 """"""""""""""""""""""""""""""
 
-.. :ref:`user-case-tek30\energy_need_original_condition.csv<energy_need_original_condition>`
-.. ``default``
-.. ``ebm``
-
-This file sets baseline lighting energy needs (kWh/m²) for different building types and codes used in the EBM model.
+This file sets baseline lighting energy needs (kWh/m²) for different building types and codes used in the ``ebm`` model.
 
 **default values**
 
@@ -758,9 +755,9 @@ This file sets baseline lighting energy needs (kWh/m²) for different building t
 By default, all building codes have the same energy need for lighting per square metre. As an illustration on how one
 can redefine energy need we will modify the file :ref:`user-case-tek30/energy_need_original_condition.csv<energy_need_original_condition>`.
 
-If you open the file user-case-tek30/energy_need_original_condition.csv in a spreadsheet application or text editor,
+If you open the file :ref:`user-case-tek30/energy_need_original_condition.csv<energy_need_original_condition>` in a spreadsheet application or text editor,
 you'll see that all building categories with lighting as their purpose use the building code "default."
-This default value acts as a catch-all, telling EBM to apply the specified kWh/m²
+This default value acts as a catch-all, telling ``ebm`` to apply the specified kWh/m²
 value for lighting unless a more specific definition is provided.
 
 .. csv-table:: Example energy_need_original_condition.csv
@@ -785,7 +782,7 @@ value for lighting unless a more specific definition is provided.
 
 **Defining explicit lighting for TEK30**
 
-While the default values for lighting in :ref:`energy_need_original_condition.csv<energy_need_original_condition>` are
+While the default values for lighting in :ref:`user-case-tek30/energy_need_original_condition.csv<energy_need_original_condition>` are
 handy for editing, you might want to set explicit values for TEK30 so that you can define specific values. Let's imagine
 that the energy need for lighting with TEK30 is half of what earlier building code standards required.
 
@@ -809,7 +806,7 @@ that the energy need for lighting with TEK30 is half of what earlier building co
 
 **Defining common lighting for TEK17 and TEK30**
 
-To simplify energy need definitions across building codes, you can combine TEK17 and TEK30 using the + symbol. This
+To simplify energy need definitions across building codes, you can combine TEK17 and TEK30 using the *+* symbol. This
 approach allows you to assign a shared lighting energy value to multiple building codes for the same building category.
 
 You can also combine building categories in the same way. This is especially useful when several categories or codes

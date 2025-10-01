@@ -55,13 +55,13 @@ The model result as defined in with user-case-tek30 will be written to the subdi
 
 .. seealso::
 
-   :ref:`Results <results>`
+   :ref:`Results<results>`
 
 
 User case: Add a new building code
 ----------------------------------
 
-This example demonstrates how to use EBM’s scenario functionality by adding a new building code. TEK30 represents
+This example demonstrates how to use ``EBM`` scenario functionality by adding a new building code. TEK30 represents
 a hypothetical future building code introduced as part of a user case to demonstrate how EBM handles scenario-based
 modeling.
 
@@ -352,7 +352,7 @@ Specify heating system shares
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The final input file that needs to be modified is :ref:`user-case-tek30/heating_system_initial_shares.csv<heating_system_initial_shares>`.
-This file tells ``ebm`` what the share of each heating system is for a given building code. Since TEK30 is a new
+This file tells ``EBM`` what the share of each heating system is for a given building code. Since TEK30 is a new
 building code, it requires its own definition in this file.
 
 
@@ -697,7 +697,7 @@ The model results can be found in the subdirectory named ``output``.
 Extra credit
 ^^^^^^^^^^^^
 
-The input files :ref:`energy_need_improvements.csv<energy_need_improvements>`, :ref:`heating_system_forecast.csv <heating_system_forecast>`, :ref:`improvement_building_upgrade.csv<improvement_building_upgrade>` and :ref:`energy_need_behaviour_factor.csv<energy_need_behaviour_factor>`
+The input files :ref:`energy_need_improvements.csv<energy_need_improvements>`, :ref:`heating_system_forecast.csv<heating_system_forecast>`, :ref:`improvement_building_upgrade.csv<improvement_building_upgrade>` and :ref:`energy_need_behaviour_factor.csv<energy_need_behaviour_factor>`
 have defined default values under the column building_code that will apply to TEK30. For extra credit you may override the defaults with your own values.
 
 
@@ -731,7 +731,7 @@ Becomes:
 energy_need_original_condition
 """"""""""""""""""""""""""""""
 
-This file sets baseline lighting energy needs (kWh/m²) for different building types and codes used in the ``ebm`` model.
+This file sets baseline lighting energy needs (kWh/m²) for different building types and codes used in the ``EBM`` model.
 
 **default values**
 
@@ -757,7 +757,7 @@ can redefine energy need we will modify the file :ref:`user-case-tek30/energy_ne
 
 If you open the file :ref:`user-case-tek30/energy_need_original_condition.csv<energy_need_original_condition>` in a spreadsheet application or text editor,
 you'll see that all building categories with lighting as their purpose use the building code "default."
-This default value acts as a catch-all, telling ``ebm`` to apply the specified kWh/m²
+This default value acts as a catch-all, telling ``EBM`` to apply the specified kWh/m²
 value for lighting unless a more specific definition is provided.
 
 .. csv-table:: Example energy_need_original_condition.csv
@@ -829,7 +829,6 @@ energy need values.
     sports,**TEK17+TEK30**,lighting,9.29
     culture,**TEK17+TEK30**,lighting,10.34
     storage_repairs,**TEK17+TEK30**,lighting,8.45
-
 
 .. |date| date::
 

@@ -81,7 +81,7 @@ Create an input directory
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Before running the model you need to create a directory with the necessary input files. The recommended way of creating
-the directory is to use ebm:
+the input directory is to use ebm:
 
 .. code-block:: bash
 
@@ -188,7 +188,8 @@ You are now ready to run the model. Use the bare command ``ebm`` with no options
       0:00:18.39 - Wrote output\demolition_construction.xlsx
 
 
-By default the scenario is read from ``input``, and the results are written to the subdirectory ``output``.
+By default the scenario is read from ``input``, and the results are written to the subdirectory ``output`` in the
+current working directory.
 
 You can get a directory listing that shows all the result files created by issuing the command:
 

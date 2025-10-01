@@ -730,73 +730,102 @@ Becomes:
 energy_need_original_condition
 """"""""""""""""""""""""""""""
 
+.. :ref:`user-case-tek30\energy_need_original_condition.csv<energy_need_original_condition>`
+.. ``default``
+.. ``ebm``
+
+
 **default values**
 
-By default all building codes have the same energy use per square metre.
+.. csv-table:: default values in energy_need_original_condition.csv
+   :header: building_category,building_code,purpose,kwh_m2
 
-.. admonition:: default values
+    house,default,lighting,8.2
+    apartment_block,default,lighting,8.2
+    retail,default,lighting,50.2
+    office,default,lighting,22.55
+    kindergarten,default,lighting,18.79
+    school,default,lighting,19.35
+    university,default,lighting,22.55
+    hospital,default,lighting,42.05
+    nursing_home,default,lighting,42.05
+    hotel,default,lighting,42.05
+    sports,default,lighting,18.58
+    culture,default,lighting,20.67
+    storage_repairs,default,lighting,16.91
 
-   .. csv-table:: default values in energy_need_original_condition.csv
-      :header: building_category,building_code,purpose,kwh_m2
+By default, all building codes have the same energy need for lighting per square metre. As an illustration on how one
+can redefine energy need we will modify the file :ref:`user-case-tek30/energy_need_original_condition.csv<energy_need_original_condition>`.
 
-          house,default,lighting,8.2
-          apartment_block,default,lighting,8.2
-          retail,default,lighting,50.2
-          office,default,lighting,22.55
-          kindergarten,default,lighting,18.79
-          school,default,lighting,19.35
-          university,default,lighting,22.55
-          hospital,default,lighting,42.05
-          nursing_home,default,lighting,42.05
-          hotel,default,lighting,42.05
-          sports,default,lighting,18.58
-          culture,default,lighting,20.67
-          storage_repairs,default,lighting,16.91
+If you open the file user-case-tek30/energy_need_original_condition.csv in a spreadsheet application or text editor,
+you'll see that all building categories with lighting as their purpose use the building code "default."
+This default value acts as a catch-all, telling EBM to apply the specified kWh/m²
+value for lighting unless a more specific definition is provided.
+
+.. csv-table:: Example energy_need_original_condition.csv
+   :header: building_category,building_code,purpose,kwh_m2
+
+    apartment_block,default,lighting,8.2
+    house,default,lighting,8.2
+    house,TEK17,lighting,5.0
+    house,TEK10,lighting,6.2
+
+
+**In this example**:
+
+- All **apartment_block** buildings, regardless of code, use **8.2 kWh/m²** for lighting.
+- **House** buildings also default to **8.2 kWh/m²**, except:
+
+  - Houses with **TEK10** use **6.2 kWh/m²**
+  - Houses with **TEK17** use **5.0 kWh/m²**
+
+
+
 
 **Defining explicit lighting for TEK30**
 
-While the default values for lighting in :ref:`energy_need_original_condition.csv<energy_need_original_condition>` are handy for editing, you might want to set explicit values for TEK30.
+While the default values for lighting in :ref:`energy_need_original_condition.csv<energy_need_original_condition>` are
+handy for editing, you might want to set explicit values for TEK30 so that you can define specific values. Let's imagine
+that the energy need for lighting with TEK30 is half of what earlier building code standards required.
 
-   .. admonition:: explicit TEK30
+.. csv-table:: Excerpt TEK30 lighting energy_need_original_condition.csv
+   :header: building_category,building_code,purpose,kwh_m2
 
-      .. csv-table:: Excerpt TEK30 lighting energy_need_original_condition.csv
-         :header: building_category,building_code,purpose,kwh_m2
-
-           house,TEK30,lighting,8
-           apartment_block,TEK30,lighting,8
-           retail,TEK30,lighting,50
-           office,TEK30,lighting,22
-           kindergarten,TEK30,lighting,18
-           school,TEK30,lighting,19
-           university,TEK30,lighting,22
-           hospital,TEK30,lighting,42
-           nursing_home,TEK30,lighting,42
-           hotel,TEK30,lighting,42
-           sports,TEK30,lighting,18
-           culture,TEK30,lighting,20
-           storage_repairs,TEK30,lighting,16
+     house,TEK30,lighting,4.1
+     apartment_block,TEK30,lighting,4.1
+     retail,TEK30,lighting,25.1
+     office,TEK30,lighting,11.27
+     kindergarten,TEK30,lighting,9.4
+     school,TEK30,lighting,8.2
+     university,TEK30,lighting,11.26
+     hospital,TEK30,lighting,21.03
+     nursing_home,TEK30,lighting,21.03
+     hotel,TEK30,lighting,21.0
+     sports,TEK30,lighting,9.29
+     culture,TEK30,lighting,10.34
+     storage_repairs,TEK30,lighting,8.45
 
 
 **Defining common lighting for TEK17 and TEK30**
 
-Plus (+) can be used to combine the definition for multiple building codes. In this case TEK17 and
-TEK30 have the same values for energy use per square metre.
+Plus (+) can be used to combine the definition for multiple building codes. What if TEK17 and TEK30 have the same halved
+energy need? In that case one can save a bit typing by combining the definitions of TEK17 and TEK30 using plus (+). You
+can also use plus (+) to combine building categories that have the same value.
 
-.. admonition:: grouping with TEK17
 
- .. csv-table:: Excerpt TEK30+TEK17 lighting energy_need_original_condition.csv
-    :header: building_category,building_code,purpose,kwh_m2
+.. csv-table:: Excerpt TEK30+TEK17 lighting energy_need_original_condition.csv
+   :header: building_category,building_code,purpose,kwh_m2
 
-      **apartment_block+house**,*TEK17+TEK30*,lighting,8.2
-      retail,*TEK17+TEK30*,lighting,50.2
-      office,*TEK17+TEK30*,lighting,22.55
-      kindergarten,*TEK17+TEK30*,lighting,18.79
-      school,*TEK17+TEK30*,lighting,19.35
-      university,*TEK17+TEK30*,lighting,22.55
-      **hospital+nursing_home+hotel**,*TEK17+TEK30*,lighting,42.05
-      sports,*TEK17+TEK30*,lighting,18.58
-      culture,*TEK17+TEK30*,lighting,20.67
-      storage_repairs,*TEK17+TEK30*,lighting,16.91
+    **apartment_block+house**,*TEK17+TEK30*,lighting,4.1
+    retail,*TEK17+TEK30*,lighting,25.1
+    office,*TEK17+TEK30*,lighting,11.27
+    kindergarten,*TEK17+TEK30*,lighting,9.4
+    school,*TEK17+TEK30*,lighting,8.2
+    university,*TEK17+TEK30*,lighting,11.26
+    **hospital+nursing_home+hotel**,*TEK17+TEK30*,lighting,11.01
+    sports,*TEK17+TEK30*,lighting,9.29
+    culture,*TEK17+TEK30*,lighting,10.34
+    storage_repairs,*TEK17+TEK30*,lighting,8.45
 
 
 .. |date| date::

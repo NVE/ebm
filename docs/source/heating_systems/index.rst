@@ -5,7 +5,7 @@ Heating systems
 
 Heating systems is the link from the computed *energy need* to *energy use*. *Energy need* states what the building requires in 
 terms of space heating, non-substitutable electrical use and hot tap water. Heating systems assigns specific heating technologies to meet the energy
-demand of space heating and hot tap water. Various heating technologies have different efficiencies and energy carriers which then gives an *energy use*.
+demand of space heating and hot tap water. Various heating technologies have different efficiencies and energy products which then gives an *energy use*.
 
 A combination of different heating systems can be assigned to each building category and each age group. It is also possible to do it on  
 an aggregated level, like treating all non-residental area the same way. For instance, X % of the house area use only direct resistance heating to heat the home, while Y % of the house area 
@@ -141,13 +141,15 @@ All the combinations can be found in the :any:`Tables and glossary` subchapter.
 
 Forecasting
 -----------
-The current implementation and numbers of forecasting heating systems is based on various assumptions. The first assumption is that natural gas is phased out as a heating
-system for buildings by 2030. The second assumption is the continued growth of air-air heat pumps in houses. The final assumption is an increase in water-borne 
-heating in new apartment blocks and non-residential buildings from building code requirements. The last assumption is causes an increase in electric boilers and 
-central heating heat pumps. The final assumption is that the share of distrcit heating will increase in both non-residental buildings and in apartment blocks.
+The current implementation and numbers of forecasting heating systems is based on various assumptions:
 
-The current implementation of forecasting for energy
-systems is simplified, meaning it is not based on an economic optimization model such as `TIMES <https://iea-etsap.org/index.php/etsap-tools/model-generators/times>`_.
+* Natural gas is phased out as a heating system for buildings by 2030. 
+* Continued growth of air-air heat pumps in houses. 
+* Increase in water-borne heating in new apartment blocks and non-residential buildings from building code requirements. 
+* Increase in electric boilers and central heating heat pumps due to more water-borne heating.
+* Distrcit heating will increase in both non-residental buildings and in apartment blocks.
+
+The current implementation of forecasting for energy systems is simplified, meaning it is not based on an economic optimization model such as `TIMES <https://iea-etsap.org/index.php/etsap-tools/model-generators/times>`_.
 
 
 Methods

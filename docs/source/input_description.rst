@@ -10,7 +10,7 @@ Description
 Useful floor area in the start year 2020 distributed by building category and building code.
 
 **area_new_residential_buildings.csv** |br|
-New built useful floor area for residential buildings in 2020 and 2021 from statistics.Statistics source is Statistics Norway.
+New built useful floor area for residential buildings in 2020 and 2021 from statistics. Statistics source is Statistics Norway.
 
 **area_per_person.csv** |br|
 Useful floor area for new non-residential buildings based on population growth.
@@ -31,7 +31,7 @@ Energy need per square meter for various energy purposes differentiated by build
 Parameters of the various heating technologies. Includes load shares, efficiencies and the related energy product.
 
 **heating_system_forecast.csv** |br|
-Defines the rate of change in heating systems towards 2050. The change is made on a percentage basis compared to the start year. Described in more detail here :any:`Forecasting of heating systems`
+Defines the rate of change in heating systems towards 2050. The change is made on a percentage basis compared to the start year. Described in more detail here :any:`Forecasting of heating systems`.
 
 **heating_system_initial_shares.csv** |br|
 Distribution of heating systems per building category and building code in the start year.

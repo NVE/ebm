@@ -29,7 +29,7 @@ Heating systems
 
 Filenames
 ---------
-.. csv-table:: Overview of the input files and contents. The # column is an identifier for the file name and its corresponding columns.
+.. csv-table:: Overview of the input files and contents. The # column is an identifier for the file name and its corresponding columns. All files are in csv format and with underscore "_" instead of space.
   :file: tables\filenames_csv.csv
   :header-rows: 1
   :widths: 3 7 7 35 35

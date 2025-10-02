@@ -35,7 +35,7 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
         zero when the program exits gracefully
     """
     load_environment_from_dotenv()
-    configure_loglevel(log_format=os.environ.get('LOG_FORMAT', None))
+    configure_loglevel(log_format=os.environ.get('LOG_FORMAT', '{level.icon} <level>{message}</level>'))
     configure_json_log()
 
     logger.debug(f'Starting {sys.executable} {__file__}')

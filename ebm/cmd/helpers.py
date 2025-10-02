@@ -17,8 +17,7 @@ def load_environment_from_dotenv():
 
 
 def configure_json_log(log_directory: str|bool=False):
-    """
-    Configures JSON logging using the `loguru` logger.
+    """Configures JSON logging using the `loguru` logger.
 
     This function sets up structured JSON logging to a file, with the log file path
     determined by the `LOG_DIRECTORY` environment variable or the provided `log_directory` argument.
@@ -121,10 +120,8 @@ def configure_loglevel(log_format: str | None = None, level: str = 'INFO') -> No
     if '--debug' in sys.argv or os.environ.get('DEBUG', '').upper() == 'TRUE':
         options['level'] = 'DEBUG'
 
-    # Add a new handler with a custom format
-    if '--debug' not in sys.argv and os.environ.get('DEBUG', '').upper() != 'TRUE':
-        logger.add(sys.stderr, **options)
-    else:
-        logger.add(sys.stderr,
-                   filter=lambda f: not (f['name'] == 'ebm.model.file_handler' and f['level'].name == 'DEBUG'),
-                   **options)
+    logger.add(sys.stderr,
+               filter=lambda f: not (f['name'] == 'ebm.model.file_handler' and f['level'].name == 'DEBUG'),
+               **options)
+
+

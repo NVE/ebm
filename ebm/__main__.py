@@ -64,12 +64,14 @@ def main() -> tuple[ReturnCode, pd.DataFrame | None]:
     # Create input directory if requested
     if arguments.create_input:
         if init(database_manager.file_handler):
-            logger.info(f'Finished creating input files in {database_manager.file_handler.input_directory}')
+            logger.success('Finished creating input files in {input_directory}',
+                           input_directory=database_manager.file_handler.input_directory)
             return ReturnCode.OK, None
         # Exit with 0 for success. The assumption is that the user would like to review the input before proceeding.
         return ReturnCode.MISSING_INPUT_FILES, None
     if arguments.migrate:
         migrate_directories([database_manager.file_handler.input_directory])
+        logger.success('Finished migration')
         return ReturnCode.OK, None
 
     missing_input_error = f"""
@@ -131,6 +133,7 @@ Use `<program name> --create-input --input={input_directory}` to create an input
             model['building_code'] = 'all'
             df = transform_model_to_horizontal(model)
             append_result(output_file, df, f'{sheet_name_prefix} category')
+            logger.success('Wrote {filename}', filename=output_file)
         else:
             default_handler.write_tqdm_result(output_file, model, csv_delimiter)
 

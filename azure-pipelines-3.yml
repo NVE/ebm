@@ -1,0 +1,52 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  branches:
+    include:
+      - main   # Run when main branch is updated
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  # 1. Setup Python
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: '3.11'
+    displayName: "Use Python 3.11"
+
+  # 2. Install Sphinx + extensions
+  - script: |
+      python -m pip install --upgrade pip
+      pip install sphinx sphinx-tabs
+      pip install .[docs]
+    displayName: 'Install Sphinx dependencies'
+
+  # 3. Build docs
+  - script: |
+      sphinx-build docs/source docs/_build/html
+    displayName: "Build Sphinx documentation"
+
+  # 4. Publish to GitHub Pages
+  - script: |
+      git config --global user.name "Azure DevOps Build Bot"
+      git config --global user.email "$(GIT_USER_EMAIL)"
+
+      # Clone gh-pages branch from GitHub (replace with your repo URL)
+      git clone --branch gh-pages https://$(GITHUB_TOKEN)@$(GITHUB_REPOSITORY).git gh-pages
+
+      # Wipe old contents
+      rm -rf gh-pages/*
+
+      # Copy new docs
+      cp -r docs/_build/html/* gh-pages/
+
+      cd gh-pages
+      git add --all
+      git commit -m "Auto-publish docs from Azure DevOps build $(Build.BuildId)" || echo "No changes to commit"
+      git push origin gh-pages
+    displayName: "Publish HTML to GitHub Pages"
+

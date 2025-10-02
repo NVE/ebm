@@ -156,6 +156,8 @@ a major feature, **thank you** for helping improve Energibruksmodell!
 
 --------------
 
+.. |date| date::
+
 Last Updated on |date|.
 
 Version: |version|.

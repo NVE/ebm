@@ -1,5 +1,5 @@
-Contributing to Energibruksmodell
-=================================
+Contributing
+============
 
 Thank you for your interest in contributing to **Energibruksmodell**!
 Your help is greatly appreciated. This guide outlines how you can get

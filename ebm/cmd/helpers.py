@@ -10,10 +10,10 @@ from loguru import logger
 def load_environment_from_dotenv():
     env_file = pathlib.Path(find_dotenv(usecwd=True))
     if env_file.is_file():
-        logger.debug(f'Loading environment from {env_file}')
+        logger.trace('Loading environment from {env_file}', env_file=env_file)
         load_dotenv(env_file)
     else:
-        logger.trace(f'.env not found in {env_file.absolute()}')
+        logger.trace(f'.env not found in {env_file}', env_file=env_file.absolute())
 
 
 def configure_json_log(log_directory: str|bool=False):

@@ -57,8 +57,8 @@
 ;Fuelwood;Ved;Historisk vedforbruk i fritidsbolig.;Historical use of fuelwood in holiday homes. 
 ;Fossilfuel;Fossil;Historisk fossilforbruk i fritidsbolig.;Historical use of fossil fuels in holiday homes.
 12;Year;År;År I modellen;Year in the model
-;New house share;Andel nybygg småhus;Andelen av nybygd areal til boliger som er småhus.;House share of total new residential area.
-;New apartment share;Andel nybygg leilighet;Andelen av nybygd areal til boliger som er i boligblokker.;Apartment share of total new residential area.
+;New house share;Andel nybygg småhus;Andel av nybygde boliger som er småhus.;House share of newly built dwellings.
+;New apartment share;Andel nybygg leilighet;Andel av nybygde boliger som er leiligheter.;Apartment share of newly built dwellings.
 ;Floor area new house;Areal nye småhus;Gjennomsnittlig areal for nye småhus (175 m\ :sup:`2`);Average area for new houses (175 (m\ :sup:`2`)).
 ;Floor area new apartments;Areal ny leilighet;Gjennomsnittlig areal for nye leiligheter (75 m\ :sup:`2`).;Average area for new apartments (75 (m\ :sup:`2`)).
 13;Building category;Bygningskategori;Bygningskategoriene som brukes i TEK.;Building categories used in the building code.

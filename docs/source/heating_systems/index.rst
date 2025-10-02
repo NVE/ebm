@@ -102,6 +102,7 @@ The building energy performance database gives us information on heating systems
 especially for newer building codes, the amount of certificates are too few to give a good representation of that particular building code and category. In addition the
 energy balance is reported on "residential" and "non-residential" buildings without any other details such as building code or 
 specific building type. To get a good point of comparison we therefore aggregate the heating systems to three categories per building code based on the useful area in EBM:
+
 * House
 * Apartment block
 * Non-residential buildings
@@ -152,8 +153,8 @@ The current implementation and numbers of forecasting heating systems is based o
 The current implementation of forecasting for energy systems is simplified, meaning it is not based on an economic optimization model such as `TIMES <https://iea-etsap.org/index.php/etsap-tools/model-generators/times>`_.
 
 
-Methods
-========
+Model functionality
+===================
 
 Forecasting of heating systems
 -------------------------------

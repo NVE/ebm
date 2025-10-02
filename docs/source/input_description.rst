@@ -142,7 +142,7 @@ The input constraints, datatypes and accepted values are listed per input file i
 
             ``purpose``
             - required
-            - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling, default'
+            - values: heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling, default
 
             ``kwh_m2``
             - required
@@ -160,7 +160,7 @@ The input constraints, datatypes and accepted values are listed per input file i
 
             ``purpose``
             - required
-            - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling, default'
+            - values: heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling, default
 
             ``condition``
             - required
@@ -182,7 +182,7 @@ The input constraints, datatypes and accepted values are listed per input file i
 
             ``purpose``
             - required
-            - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling, default'
+            - values: heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling, default
 
             ``period_start_year``
             - required
@@ -210,7 +210,7 @@ The input constraints, datatypes and accepted values are listed per input file i
 
             ``purpose``
             - required
-            - values: 'heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling, default'
+            - values: heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling, default
 
             ``start_year``
             - integer
@@ -279,12 +279,12 @@ The input constraints, datatypes and accepted values are listed per input file i
             ``heating_systems``
             - required
             - string
-            - value: 'DH', 'DH - Bio', 'HP Central heating - Bio', 'HP Central heating - Electric boiler', 'HP Central heating - Gas', 'Electric boiler', 'Electric boiler - Solar', 'Gas', 'Electricity', 'Electricity - Bio', 'HP - Bio - Electricity', 'HP - Electricity'
+            - value: DH, DH - Bio, HP Central heating - Bio, HP Central heating - Electric boiler, HP Central heating - Gas, Electric boiler, Electric boiler - Solar, Gas, Electricity, Electricity - Bio, HP - Bio - Electricity, HP - Electricity
             
             ``new_heating_systems``
             - required
             - string
-            - value: 'DH', 'DH - Bio', 'HP Central heating - Bio', 'HP Central heating - Electric boiler', 'HP Central heating - Gas', 'Electric boiler', 'Electric boiler - Solar', 'Gas', 'Electricity', 'Electricity - Bio', 'HP - Bio - Electricity', 'HP - Electricity'
+            - value: DH, DH - Bio, HP Central heating - Bio, HP Central heating - Electric boiler, HP Central heating - Gas, Electric boiler, Electric boiler - Solar, Gas, Electricity, Electricity - Bio, HP - Bio - Electricity, HP - Electricity
 
             Year columns: ``2024-2050``
             - required
@@ -307,7 +307,7 @@ The input constraints, datatypes and accepted values are listed per input file i
             ``heating_systems``
             - required
             - string
-            - value: 'DH', 'DH - Bio', 'HP Central heating - Bio', 'HP Central heating - Electric boiler', 'HP Central heating - Gas', 'Electric boiler', 'Electric boiler - Solar', 'Gas', 'Electricity', 'Electricity - Bio', 'HP - Bio - Electricity', 'HP - Electricity'
+            - value: DH, DH - Bio, HP Central heating - Bio, HP Central heating - Electric boiler, HP Central heating - Gas, Electric boiler, Electric boiler - Solar, Gas, Electricity, Electricity - Bio, HP - Bio - Electricity, HP - Electricity
 
             ``heating_system_share``
             - required

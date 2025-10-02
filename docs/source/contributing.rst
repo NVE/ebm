@@ -5,17 +5,6 @@ Thank you for your interest in contributing to **Energibruksmodell**!
 Your help is greatly appreciated. This guide outlines how you can get
 involved, report issues, suggest improvements, and submit code.
 
-About the Project
------------------
-
-EBM is a bottom-up model that estimates how area, energy need, heating
-systems and energy use in the building stock changes over time. The
-model is developed in-house by the Norwegian Water Resources- and Energy
-Directorate (NVE). It is an open source model, with an accompanying
-dataset developed by NVE.
-
-EBM is written in Python.
-
 
 How to Contribute
 -----------------

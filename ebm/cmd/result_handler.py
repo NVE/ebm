@@ -77,12 +77,12 @@ def write_result(output_file, csv_delimiter, output, sheet_name='area forecast')
             print(output.to_string())
     elif output_file.suffix == '.csv':
         output.to_csv(output_file, sep=csv_delimiter)
-        logger.info(f'Wrote {output_file}')
+        logger.success('Wrote {filename}', filename=output_file)
     else:
         excel_writer = pd.ExcelWriter(output_file, engine='openpyxl')
         output.to_excel(excel_writer, sheet_name=sheet_name, merge_cells=False, freeze_panes=(1, 3))
         excel_writer.close()
-        logger.info(f'Wrote {output_file}')
+        logger.success('Wrote {filename}', filename=output_file)
 
     logger.debug(f'  wrote {output_file.stat().st_size/1000:.0} in {time.time() - write_start:.4} seconds')
 
@@ -264,7 +264,7 @@ class EbmDefaultHandler:
                         pbar.update(chunk_size)
                     pbar.set_description(f'Closing {output_file}')
                     closing_file = time.time()
-        logger.info(f'Wrote {output_file}')
+        logger.success('Wrote {filename}', filename=output_file)
         logger.debug(f'  wrote dataframe in { closing_file - write_file:.4} seconds')
         logger.debug(f'  closed file in {time.time() - closing_file:.4} seconds')
         logger.debug(f'  wrote {int(output_file.stat().st_size/1_000_000):_d} MB in {time.time() - write_file:.4} seconds')

@@ -2,17 +2,16 @@
 import os
 import pathlib
 import sys
-import typing
 
 import pandas as pd
 from loguru import logger
 
 from ebm.cmd import prepare_main
-from ebm.cmd.helpers import load_environment_from_dotenv, configure_json_log, configure_loglevel
-from ebm.cmd.initialize import init, create_output_directory
+from ebm.cmd.helpers import configure_json_log, configure_loglevel, load_environment_from_dotenv
+from ebm.cmd.initialize import create_output_directory, init
 from ebm.cmd.migrate import migrate_directories
 from ebm.cmd.pipeline import export_energy_model_reports
-from ebm.cmd.result_handler import append_result, transform_model_to_horizontal, EbmDefaultHandler
+from ebm.cmd.result_handler import EbmDefaultHandler, append_result, transform_model_to_horizontal
 from ebm.cmd.run_calculation import validate_years
 from ebm.model.building_category import BuildingCategory
 from ebm.model.database_manager import DatabaseManager
@@ -22,9 +21,9 @@ from ebm.model.file_handler import FileHandler
 df = None
 
 
-def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
+def main() -> tuple[ReturnCode, pd.DataFrame | None]:
     """
-    Main function to execute the EBM module as a script.
+    Execute the EBM module as a script.
 
     This function serves as the entry point for the script. It handles argument parsing,
     initializes necessary components, and orchestrates the main workflow of the script.
@@ -33,9 +32,10 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
     -------
     exit code : tuple[ReturnCode, pd.DataFrame]
         zero when the program exits gracefully
+
     """
     load_environment_from_dotenv()
-    configure_loglevel(log_format=os.environ.get('LOG_FORMAT', None))
+    configure_loglevel(log_format=os.environ.get('LOG_FORMAT', '{level.icon} <level>{message}</level>'))
     configure_json_log()
 
     logger.debug(f'Starting {sys.executable} {__file__}')
@@ -64,12 +64,14 @@ def main() -> typing.Tuple[ReturnCode, typing.Union[pd.DataFrame, None]]:
     # Create input directory if requested
     if arguments.create_input:
         if init(database_manager.file_handler):
-            logger.info(f'Finished creating input files in {database_manager.file_handler.input_directory}')
+            logger.success('Finished creating input files in {input_directory}',
+                           input_directory=database_manager.file_handler.input_directory)
             return ReturnCode.OK, None
         # Exit with 0 for success. The assumption is that the user would like to review the input before proceeding.
         return ReturnCode.MISSING_INPUT_FILES, None
     if arguments.migrate:
         migrate_directories([database_manager.file_handler.input_directory])
+        logger.success('Finished migration')
         return ReturnCode.OK, None
 
     missing_input_error = f"""
@@ -89,7 +91,7 @@ Use `<program name> --create-input --input={input_directory}` to create an input
             return ReturnCode.FILE_NOT_ACCESSIBLE, None
 
     database_manager.file_handler.validate_input_files()
-    
+
     output_file = arguments.output_file
     create_output_directory(filename=output_file)
 
@@ -131,6 +133,7 @@ Use `<program name> --create-input --input={input_directory}` to create an input
             model['building_code'] = 'all'
             df = transform_model_to_horizontal(model)
             append_result(output_file, df, f'{sheet_name_prefix} category')
+            logger.success('Wrote {filename}', filename=output_file)
         else:
             default_handler.write_tqdm_result(output_file, model, csv_delimiter)
 

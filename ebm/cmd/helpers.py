@@ -3,11 +3,16 @@ import pathlib
 import sys
 from datetime import datetime
 
-from dotenv import load_dotenv, find_dotenv
+from dotenv import find_dotenv, load_dotenv
 from loguru import logger
 
 
-def load_environment_from_dotenv():
+def load_environment_from_dotenv() -> None:
+    """
+    Load environment variables from a .env file located in the current working directory.
+
+    If a .env file is found, its contents are loaded into the environment.
+    """
     env_file = pathlib.Path(find_dotenv(usecwd=True))
     if env_file.is_file():
         logger.trace('Loading environment from {env_file}', env_file=env_file)
@@ -16,8 +21,9 @@ def load_environment_from_dotenv():
         logger.trace(f'.env not found in {env_file}', env_file=env_file.absolute())
 
 
-def configure_json_log(log_directory: str|bool=False):
-    """Configures JSON logging using the `loguru` logger.
+def configure_json_log(log_directory: str|bool=False) -> None:
+    """
+    Configure JSON logging using the `loguru` logger.
 
     This function sets up structured JSON logging to a file, with the log file path
     determined by the `LOG_DIRECTORY` environment variable or the provided `log_directory` argument.
@@ -49,6 +55,7 @@ def configure_json_log(log_directory: str|bool=False):
     >>> os.environ["LOG_DIRECTORY"] = "TRUE"
 
     >>> configure_json_log(False)
+
     """
     if not log_directory:
         return
@@ -61,7 +68,7 @@ def configure_json_log(log_directory: str|bool=False):
 
     env_log_directory = os.environ.get('LOG_DIRECTORY', log_directory)
     if isinstance(env_log_directory, bool):
-        env_log_directory = pathlib.Path(os.getcwd()) / 'log'
+        env_log_directory = pathlib.Path.cwd() / 'log'
     log_to_json = str(env_log_directory).upper().strip()!='FALSE'
     env_log_directory = env_log_directory if log_to_json and str(env_log_directory).upper().strip() != 'TRUE' else 'log'
 

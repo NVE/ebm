@@ -195,7 +195,7 @@ def calculate_energy_use(database_manager: 'DatabaseManager',
     energy_need_kwh_m2 = extractors.extract_energy_need(years, database_manager)  # 📍
     total_energy_need = e_n.transform_total_energy_need(energy_need_kwh_m2, area_forecast)  # 📌
 
-    heating_systems_projection = extractors.extract_heating_systems_projection(years, database_manager)  # 📍
+    heating_systems_projection = extractors.extract_heating_systems_forecast(years, database_manager)  # 📍
     heating_systems_parameter = h_s_param.heating_systems_parameter_from_projection(heating_systems_projection)  # 📌
     energy_use_kwh_with_building_group = building_group_energy_use_kwh(heating_systems_parameter, total_energy_need)
 

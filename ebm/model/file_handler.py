@@ -275,7 +275,7 @@ class FileHandler:
 
         return self.get_file(self.HEATING_SYSTEM_EFFICIENCIES)
 
-    def get_heating_systems_projection(self) -> pd.DataFrame:
+    def get_heating_system_forecast(self) -> pd.DataFrame:
         """
         """
         return self.get_file(self.HEATING_SYSTEM_FORECAST)

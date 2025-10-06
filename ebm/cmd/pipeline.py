@@ -50,7 +50,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     s_curves_by_condition = calculate_s_curves(scurve_parameters, building_code_parameters, years) # 📌
     area_forecast = extractors.extract_area_forecast(years, s_curves_by_condition, building_code_parameters, area_parameters, database_manager) # 📍
     energy_need_kwh_m2 = extractors.extract_energy_need(years, database_manager) # 📍
-    heating_systems_projection = extractors.extract_heating_systems_projection(years, database_manager) # 📍
+    heating_systems_projection = extractors.extract_heating_systems_forecast(years, database_manager) # 📍
     energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(database_manager) # 📍
 
     total_energy_need = e_n.transform_total_energy_need(energy_need_kwh_m2, area_forecast)  # 📌

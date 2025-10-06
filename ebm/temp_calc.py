@@ -20,7 +20,7 @@ def calculate_energy_use_wide(ebm_input):
     database_manager = DatabaseManager(file_handler=fh)
     years = YearRange(2020, 2050)
 
-    heating_systems_projection = extractors.extract_heating_systems_projection(years, database_manager)  # 📍
+    heating_systems_projection = extractors.extract_heating_systems_forecast(years, database_manager)  # 📍
     heating_systems_parameter = h_s_param.heating_systems_parameter_from_projection(heating_systems_projection)  # 📌
 
     building_code_parameters = database_manager.file_handler.get_building_code()  # 📍

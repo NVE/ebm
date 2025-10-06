@@ -3,12 +3,12 @@ import pandas as pd
 import pytest
 
 from ebm.model.data_classes import YearRange
-from ebm.heating_systems_projection import (add_missing_heating_systems,
-                                            expand_building_category_building_code,
-                                            project_heating_systems,
-                                            add_existing_heating_system_shares_to_projection,
-                                            check_sum_of_shares,
-                                            HeatingSystemsProjection)
+from ebm.heating_system_forecast import (add_missing_heating_systems,
+                                         expand_building_category_building_code,
+                                         project_heating_systems,
+                                         add_existing_heating_system_shares_to_projection,
+                                         check_sum_of_shares,
+                                         HeatingSystemsForecast)
 
 
 BUILDING_CATEGORY = 'building_category'
@@ -35,11 +35,11 @@ kindergarten,TEK97,Gas,2020,1
                                     names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, YEAR, HEATING_SYSTEM_SHARE], skipinitialspace=True)
     
     with pytest.raises(ValueError, match='More than one start year in dataframe.'):
-        hsp = HeatingSystemsProjection(shares_start_year=shares_start_year,
-                                efficiencies=pd.DataFrame(),
-                                projection=pd.DataFrame(),
-                                building_code_list=[],
-                                period=YearRange(2020,2022))
+        hsp = HeatingSystemsForecast(shares_start_year=shares_start_year,
+                                     efficiencies=pd.DataFrame(),
+                                     projection=pd.DataFrame(),
+                                     building_code_list=[],
+                                     period=YearRange(2020,2022))
 
 
 def test_validate_years_require_match_on_start_year():
@@ -53,11 +53,11 @@ kindergarten,TEK97,Gas,2020,0.5
                                     names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, YEAR, HEATING_SYSTEM_SHARE], skipinitialspace=True)
     
     with pytest.raises(ValueError, match="Start year in dataframe doesn't match start year for given period."):
-        hsp = HeatingSystemsProjection(shares_start_year=shares_start_year,
-                                    efficiencies=pd.DataFrame(),
-                                    projection=pd.DataFrame(),
-                                    building_code_list=[],
-                                    period=YearRange(2021,2023))
+        hsp = HeatingSystemsForecast(shares_start_year=shares_start_year,
+                                     efficiencies=pd.DataFrame(),
+                                     projection=pd.DataFrame(),
+                                     building_code_list=[],
+                                     period=YearRange(2021,2023))
 
 
 def test_validate_years_require_matching_years_between_dataframes():
@@ -79,11 +79,11 @@ apartment_block,TEK07,Electricity,DH,0.25,0.5,0.55
     
 
     with pytest.raises(ValueError, match="Years don't match between dataframes."):
-        hsp = HeatingSystemsProjection(shares_start_year=shares_start_year,
-                                    efficiencies=pd.DataFrame(),
-                                    projection=projection,
-                                    building_code_list=[],
-                                    period=YearRange(2020,2022))
+        hsp = HeatingSystemsForecast(shares_start_year=shares_start_year,
+                                     efficiencies=pd.DataFrame(),
+                                     projection=projection,
+                                     building_code_list=[],
+                                     period=YearRange(2020,2022))
 
 
 def test_validate_years_require_period_years_present_in_projection():
@@ -104,11 +104,11 @@ apartment_block,TEK07,Electricity,DH,0.25,0.5,0.55
                              names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021, 2022, 2023], skipinitialspace=True)
     
     with pytest.raises(ValueError, match="Years in dataframe not present in given period."):
-        hsp = HeatingSystemsProjection(shares_start_year=shares_start_year,
-                                    efficiencies=pd.DataFrame(),
-                                    projection=projection,
-                                    building_code_list=[],
-                                    period=YearRange(2020,2030))
+        hsp = HeatingSystemsForecast(shares_start_year=shares_start_year,
+                                     efficiencies=pd.DataFrame(),
+                                     projection=projection,
+                                     building_code_list=[],
+                                     period=YearRange(2020,2030))
 
 
 def test_add_missing_heating_systems_ok():
@@ -461,11 +461,11 @@ kindergarten,TEK97,Electricity,DH,0.25,0.5,0.5,0.5
 """.strip()),
                              names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021, 2022, 2023, 2024], skipinitialspace=True)
     
-    hsp = HeatingSystemsProjection(shares_start_year=shares_start_year,
-                                   efficiencies=efficiencies,
-                                   projection=projection,
-                                   building_code_list=building_code_list,
-                                   period=YearRange(2020,2022))
+    hsp = HeatingSystemsForecast(shares_start_year=shares_start_year,
+                                 efficiencies=efficiencies,
+                                 projection=projection,
+                                 building_code_list=building_code_list,
+                                 period=YearRange(2020,2022))
     
     result = hsp.calculate_projection()
     

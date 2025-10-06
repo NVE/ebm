@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
-from ebm.heating_systems_projection import *
+from ebm.heating_system_forecast import *
 
 load_dotenv(pathlib.Path('.env'))
 
@@ -23,11 +23,11 @@ building_code_list = dm.get_building_code_list()
 
 def run_projection():
     start_time = time()
-    hsp = HeatingSystemsProjection(shares_start_year,
-                               efficiencies,
-                               projection,
-                               building_code_list,
-                               period)
+    hsp = HeatingSystemsForecast(shares_start_year,
+                                 efficiencies,
+                                 projection,
+                                 building_code_list,
+                                 period)
 
     print((time() - start_time) * 13)
     df = hsp.calculate_projection()

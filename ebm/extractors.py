@@ -3,7 +3,7 @@ from loguru import logger
 
 from ebm.model import area
 from ebm.holiday_home_energy import calculate_energy_use, transform_holiday_homes_to_horizontal
-from ebm.heating_systems_projection import HeatingSystemsProjection
+from ebm.heating_system_forecast import HeatingSystemsForecast
 from ebm.model.construction import ConstructionCalculator
 
 from ebm.model.data_classes import YearRange
@@ -66,14 +66,14 @@ def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
     return energy_need
 
 
-def extract_heating_systems_projection(years: YearRange, database_manager: DatabaseManager) -> pd.DataFrame:
-    projection_period = YearRange(2023, 2050)
-    hsp = HeatingSystemsProjection.new_instance(projection_period, database_manager)
+def extract_heating_systems_forecast(years: YearRange, database_manager: DatabaseManager) -> pd.DataFrame:
+    forecast_period = YearRange(2023, 2050)
+    hsp = HeatingSystemsForecast.new_instance(forecast_period, database_manager)
     df: pd.DataFrame = hsp.calculate_projection()
     df = hsp.pad_projection(df, YearRange(2020, 2022))
 
-    heating_system_projection = df.copy()
-    return heating_system_projection
+    heating_system_forecast = df.copy()
+    return heating_system_forecast
 
 
 def extract_energy_use_holiday_homes(database_manager):
@@ -105,7 +105,7 @@ def main():
     energy_need_kwh_m2 = extract_energy_need(years, dm)
     print(energy_need_kwh_m2)
 
-    heating_systems_projection = extract_heating_systems_projection(years, dm)
+    heating_systems_projection = extract_heating_systems_forecast(years, dm)
     print(heating_systems_projection)
 
 

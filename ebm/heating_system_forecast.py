@@ -16,7 +16,7 @@ YEAR = 'year'
 TEK_SHARES = 'heating_system_share'
 
 
-class HeatingSystemsProjection:
+class HeatingSystemsForecast:
 
     def __init__(self,
                  shares_start_year: pd.DataFrame,
@@ -106,7 +106,7 @@ class HeatingSystemsProjection:
     
     @staticmethod
     def new_instance(period: YearRange,
-                     database_manager: DatabaseManager = None) -> 'HeatingSystemsProjection':
+                     database_manager: DatabaseManager = None) -> 'HeatingSystemsForecast':
         """
         Creates a new instance of the HeatingSystemsProjection class, using the specified YearRange Period and
         an optional database manager.
@@ -120,7 +120,7 @@ class HeatingSystemsProjection:
 
         Returns 
         -------
-        HeatingSystemsProjection
+        HeatingSystemsForecast
             A new instance of HeatingSystemsProjection initialized with data from the specified
             database manager.
         """
@@ -129,11 +129,11 @@ class HeatingSystemsProjection:
         efficiencies = dm.get_heating_system_efficiencies()
         projection = dm.get_heating_systems_projection()
         building_code_list = dm.get_building_code_list()
-        return HeatingSystemsProjection(shares_start_year=shares_start_year,
-                                        efficiencies=efficiencies,
-                                        projection=projection,
-                                        building_code_list=building_code_list,
-                                        period=period)
+        return HeatingSystemsForecast(shares_start_year=shares_start_year,
+                                      efficiencies=efficiencies,
+                                      projection=projection,
+                                      building_code_list=building_code_list,
+                                      period=period)
 
     @staticmethod
     def pad_projection(hf: pd.DataFrame, years_to_pad: YearRange) -> pd.DataFrame:

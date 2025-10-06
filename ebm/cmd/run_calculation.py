@@ -12,7 +12,7 @@ from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement
 from ebm.energy_consumption import EnergyConsumption
-from ebm.heating_systems_projection import HeatingSystemsProjection
+from ebm.heating_system_forecast import HeatingSystemsForecast
 from ebm.s_curve import calculate_s_curves
 
 
@@ -211,7 +211,7 @@ def calculate_heating_systems(energy_requirements, database_manager: DatabaseMan
 
     """
     projection_period = YearRange(2023, 2050)
-    hsp = HeatingSystemsProjection.new_instance(projection_period, database_manager)
+    hsp = HeatingSystemsForecast.new_instance(projection_period, database_manager)
     hf = hsp.calculate_projection()
     hf = hsp.pad_projection(hf, YearRange(2020, 2022))
     calculator = EnergyConsumption(hf)

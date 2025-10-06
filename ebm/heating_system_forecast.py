@@ -17,11 +17,11 @@ TEK_SHARES = 'heating_system_share'
 
 class HeatingSystemsForecast: # noqa: D101
 
-    def __init__(self, shares_start_year: pd.DataFrame, efficiencies: pd.DataFrame, projection: pd.DataFrame, building_code_list: list[str], period: YearRange):
+    def __init__(self, shares_start_year: pd.DataFrame, efficiencies: pd.DataFrame, forecast: pd.DataFrame, building_code_list: list[str], period: YearRange):
         """Init HeatingSystemsForecast."""
         self.shares_start_year = shares_start_year
         self.efficiencies = efficiencies
-        self.projection = projection
+        self.forecast = forecast
         self.building_code_list = building_code_list
         self.period = period
 
@@ -51,8 +51,8 @@ class HeatingSystemsForecast: # noqa: D101
         if start_year != self.period.start:
             raise ValueError("Start year in dataframe doesn't match start year for given period.")
 
-        projection = self.projection.melt(id_vars = [BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS],
-                                          var_name = YEAR, value_name = "Andel_utskiftning")
+        projection = self.forecast.melt(id_vars = [BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS],
+                                        var_name = YEAR, value_name = "Andel_utskiftning")
         projection[YEAR] = projection[YEAR].astype(int)
         min_df = projection.groupby([BUILDING_CATEGORY, BUILDING_CODE]).agg(min_year=(YEAR, 'min')).reset_index()
         min_mismatch = min_df[min_df['min_year'] != (start_year + 1)]
@@ -69,7 +69,7 @@ class HeatingSystemsForecast: # noqa: D101
         if not period_match[period_match[0] == False].empty: # noqa: E712
             raise ValueError("Years in dataframe not present in given period.")
 
-    def calculate_projection(self) -> pd.DataFrame:
+    def calculate_forecast(self) -> pd.DataFrame:
         """
         Project heating system shares across model years.
 
@@ -87,7 +87,7 @@ class HeatingSystemsForecast: # noqa: D101
         shares_all_heating_systems = add_missing_heating_systems(self.shares_start_year,
                                                                  HeatingSystems,
                                                                  self.period.start)
-        projected_shares = expand_building_category_building_code(self.projection, self.building_code_list)
+        projected_shares = expand_building_category_building_code(self.forecast, self.building_code_list)
         new_shares = project_heating_systems(shares_all_heating_systems, projected_shares, self.period)
         heating_systems_projection = add_existing_heating_system_shares_to_projection(new_shares,
                                                                            self.shares_start_year,
@@ -120,11 +120,11 @@ class HeatingSystemsForecast: # noqa: D101
         dm = database_manager if isinstance(database_manager, DatabaseManager) else DatabaseManager()
         shares_start_year = dm.get_heating_systems_shares_start_year()
         efficiencies = dm.get_heating_system_efficiencies()
-        projection = dm.get_heating_systems_projection()
+        projection = dm.get_heating_system_forecast()
         building_code_list = dm.get_building_code_list()
         return HeatingSystemsForecast(shares_start_year=shares_start_year,
                                       efficiencies=efficiencies,
-                                      projection=projection,
+                                      forecast=projection,
                                       building_code_list=building_code_list,
                                       period=period)
 

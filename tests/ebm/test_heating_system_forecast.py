@@ -37,7 +37,7 @@ kindergarten,TEK97,Gas,2020,1
     with pytest.raises(ValueError, match='More than one start year in dataframe.'):
         hsp = HeatingSystemsForecast(shares_start_year=shares_start_year,
                                      efficiencies=pd.DataFrame(),
-                                     projection=pd.DataFrame(),
+                                     forecast=pd.DataFrame(),
                                      building_code_list=[],
                                      period=YearRange(2020,2022))
 
@@ -55,7 +55,7 @@ kindergarten,TEK97,Gas,2020,0.5
     with pytest.raises(ValueError, match="Start year in dataframe doesn't match start year for given period."):
         hsp = HeatingSystemsForecast(shares_start_year=shares_start_year,
                                      efficiencies=pd.DataFrame(),
-                                     projection=pd.DataFrame(),
+                                     forecast=pd.DataFrame(),
                                      building_code_list=[],
                                      period=YearRange(2021,2023))
 
@@ -81,7 +81,7 @@ apartment_block,TEK07,Electricity,DH,0.25,0.5,0.55
     with pytest.raises(ValueError, match="Years don't match between dataframes."):
         hsp = HeatingSystemsForecast(shares_start_year=shares_start_year,
                                      efficiencies=pd.DataFrame(),
-                                     projection=projection,
+                                     forecast=projection,
                                      building_code_list=[],
                                      period=YearRange(2020,2022))
 
@@ -106,7 +106,7 @@ apartment_block,TEK07,Electricity,DH,0.25,0.5,0.55
     with pytest.raises(ValueError, match="Years in dataframe not present in given period."):
         hsp = HeatingSystemsForecast(shares_start_year=shares_start_year,
                                      efficiencies=pd.DataFrame(),
-                                     projection=projection,
+                                     forecast=projection,
                                      building_code_list=[],
                                      period=YearRange(2020,2030))
 
@@ -413,15 +413,15 @@ def test_check_sum_of_shares_ok():
 house,TEK97,DH,2020,0.5
 house,TEK97,Electricity,2020,0.5
 house,TEK97,DH,2021,0.5
-house,TEK97,Electricity,2021,0.5                                               
+house,TEK97,Electricity,2021,0.5
 house,TEK07,Gas,2020,0.5
 house,TEK07,DH,2020,0.5
 house,TEK07,Gas,2021,0.4
-house,TEK07,DH,2021,0.5                                               
+house,TEK07,DH,2021,0.5
 kindergarten,TEK97,DH,2020,0.4
 kindergarten,TEK97,Gas,2020,0.5
 kindergarten,TEK97,DH,2021,0.5
-kindergarten,TEK97,Gas,2021,0.5                                                                                                                                                                                                                                                                     
+kindergarten,TEK97,Gas,2021,0.5
 """.strip()),
                                    names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, YEAR, HEATING_SYSTEM_SHARE], skipinitialspace=True)
     
@@ -429,9 +429,9 @@ kindergarten,TEK97,Gas,2021,0.5
         check_sum_of_shares(projected_shares, precision=1)
 
 
-def test_calculate_projection_ok(building_code_list):
+def test_calculate_forecast_ok(building_code_list):
     """
-    Test that calculate_projection method runs ok with input that is correct.
+    Test that calculate_forecast method runs ok with input that is correct.
     """
     shares_start_year = pd.read_csv(io.StringIO("""
 kindergarten,TEK97,Electricity,2020,0.5
@@ -463,11 +463,11 @@ kindergarten,TEK97,Electricity,DH,0.25,0.5,0.5,0.5
     
     hsp = HeatingSystemsForecast(shares_start_year=shares_start_year,
                                  efficiencies=efficiencies,
-                                 projection=projection,
+                                 forecast=projection,
                                  building_code_list=building_code_list,
                                  period=YearRange(2020,2022))
     
-    result = hsp.calculate_projection()
+    result = hsp.calculate_forecast()
     
     expected = pd.read_csv(io.StringIO("""
 kindergarten,TEK97,Electricity,2020,0.5,0

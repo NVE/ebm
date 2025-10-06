@@ -15,7 +15,7 @@ file_handler = FileHandler(directory=os.environ.get('EBM_INPUT_DIRECTORY', 'inpu
 
 shares_start_year = file_handler.get_heating_systems_shares_start_year()
 efficiencies = file_handler.get_heating_system_efficiencies()
-projection = file_handler.get_heating_systems_projection()
+projection = file_handler.get_heating_system_forecast()
 period = YearRange(2023, 2050)
 
 dm = DatabaseManager()
@@ -30,7 +30,7 @@ def run_projection():
                                  period)
 
     print((time() - start_time) * 13)
-    df = hsp.calculate_projection()
+    df = hsp.calculate_forecast()
     return df
 
 df = run_projection()

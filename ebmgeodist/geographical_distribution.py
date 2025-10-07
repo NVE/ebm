@@ -82,12 +82,12 @@ def calculate_elhub_factors(df_stacked: pl.DataFrame, normalized: list[str], elh
     """
     elhub_dataframes = {}
 
-    if NameHandler.COLUMN_NAME_BOLIG in normalized:
-        elhub_dataframes[NameHandler.COLUMN_NAME_BOLIG] = get_household_data(df_stacked)
-    if NameHandler.COLUMN_NAME_FRITIDSBOLIG in normalized:
-        elhub_dataframes[NameHandler.COLUMN_NAME_FRITIDSBOLIG] = get_holiday_home_data(df_stacked)
-    if NameHandler.COLUMN_NAME_YRKESBYGG in normalized:
-        elhub_dataframes[NameHandler.COLUMN_NAME_YRKESBYGG] = get_commercial_data(df_stacked)
+    if NameHandler.COLUMN_NAME_RESIDENTIAL in normalized:
+        elhub_dataframes[NameHandler.COLUMN_NAME_RESIDENTIAL] = get_household_data(df_stacked)
+    if NameHandler.COLUMN_NAME_HOLIDAY_HOME in normalized:
+        elhub_dataframes[NameHandler.COLUMN_NAME_HOLIDAY_HOME] = get_holiday_home_data(df_stacked)
+    if NameHandler.COLUMN_NAME_NON_RESIDENTIAL in normalized:
+        elhub_dataframes[NameHandler.COLUMN_NAME_NON_RESIDENTIAL] = get_commercial_data(df_stacked)
 
     if not elhub_dataframes:
         raise ValueError("Ingen gyldig bygningskategori valgt.")
@@ -99,23 +99,23 @@ def calculate_elhub_factors(df_stacked: pl.DataFrame, normalized: list[str], elh
     return df_factor_calculation(dfs_mean, dfs_sum, year_cols)
 
 
-def load_fjernvarme_factors(normalized: list[str], year_cols) -> dict:
+def load_dh_factors(normalized: list[str], year_cols) -> dict:
     input_file = get_output_file("input/fjernvarme_kommune_fordelingsnøkler.xlsx")
     df = pl.from_pandas(pd.read_excel(input_file))
     years_column = [str(year) for year in year_cols]
 
     factor_dict = {}
-    for category in [NameHandler.COLUMN_NAME_BOLIG, NameHandler.COLUMN_NAME_YRKESBYGG]:
+    for category in [NameHandler.COLUMN_NAME_RESIDENTIAL, NameHandler.COLUMN_NAME_NON_RESIDENTIAL]:
         if category in normalized:
-            value_col = "bolig" if category == NameHandler.COLUMN_NAME_BOLIG else "yrkesbygg"
+            value_col = "bolig" if category == NameHandler.COLUMN_NAME_RESIDENTIAL else "yrkesbygg"
             base_df = df.select("kommune_nr", "kommune_navn", value_col)
             extended = base_df.with_columns([pl.col(value_col).alias(year) for year in years_column])
             factor_dict[category] = extended
 
-    logger.info("📍Loaded fjernvarme distribution factors.")
+    logger.info("📍Loaded district heating distribution factors.")
     return factor_dict
 
-def load_ved_factors(year_cols) -> dict:
+def load_wood_factors(year_cols) -> dict:
     input_file = get_output_file("input/ved_kommune_fordelingsnøkler.xlsx")
     df = pl.from_pandas(pd.read_excel(input_file))
     years_column = [str(year) for year in year_cols]
@@ -123,36 +123,36 @@ def load_ved_factors(year_cols) -> dict:
     value_col = "bolig"
     base_df = df.select("kommune_nr", "kommune_navn", value_col)
     extended = base_df.with_columns([pl.col(value_col).alias(year) for year in years_column])
-    factor_dict[NameHandler.COLUMN_NAME_BOLIG] = extended
+    factor_dict[NameHandler.COLUMN_NAME_RESIDENTIAL] = extended
 
-    logger.info("📍Loaded ved distribution factors.")
+    logger.info("📍Loaded fuelwood distribution factors.")
     return factor_dict
 
-def log_distribution_strategy(energitype, category, method):
-    logger.warning(f"Bruker {method} fordelingsnøkkel for {energitype} i {category}.")
+def log_distribution_strategy(energy_product, category, method):
+    logger.warning(f"Using {method} distribution key for {energy_product} in {category}.")
 
 
-def get_distribution_factors(energitype, normalized, elhub_years, step, year_cols):
-    if energitype == "strom":
+def get_distribution_factors(energy_product, normalized, elhub_years, step, year_cols):
+    if energy_product == "electricity":
         df_stacked = prepare_elhub_data(elhub_years, step)
         return calculate_elhub_factors(df_stacked, normalized, elhub_years, year_cols)
-    elif energitype == "fjernvarme":
-        return load_fjernvarme_factors(normalized, year_cols)
-    elif energitype in ["ved", "fossil"]:
+    elif energy_product == "dh":
+        return load_dh_factors(normalized, year_cols)
+    elif energy_product in ["fuelwood", "fossilfuel"]:
         dfs_factors = {}
-        if NameHandler.COLUMN_NAME_FRITIDSBOLIG in normalized:
-                 log_distribution_strategy(energitype, NameHandler.COLUMN_NAME_FRITIDSBOLIG, "Elhub")
+        if NameHandler.COLUMN_NAME_HOLIDAY_HOME in normalized:
+                 log_distribution_strategy(energy_product, NameHandler.COLUMN_NAME_HOLIDAY_HOME, "Elhub")
                  df_stacked = prepare_elhub_data(elhub_years, step)
-                 strom_factors = calculate_elhub_factors(df_stacked, normalized, elhub_years, year_cols)
-                 dfs_factors.update(strom_factors)
-        if NameHandler.COLUMN_NAME_BOLIG in normalized:
-            ved_factors = load_ved_factors(year_cols)
-            dfs_factors[NameHandler.COLUMN_NAME_BOLIG] = ved_factors[NameHandler.COLUMN_NAME_BOLIG]
+                 electricity_factors = calculate_elhub_factors(df_stacked, normalized, elhub_years, year_cols)
+                 dfs_factors.update(electricity_factors)
+        if NameHandler.COLUMN_NAME_RESIDENTIAL in normalized:
+            wood_factors = load_wood_factors(year_cols)
+            dfs_factors[NameHandler.COLUMN_NAME_RESIDENTIAL] = wood_factors[NameHandler.COLUMN_NAME_RESIDENTIAL]
         if not dfs_factors:
-            raise ValueError(f"Ugyldig kombinasjon av bygningskategorier for energitype '{energitype}': {normalized}")
+            raise ValueError(f"Invalid combination of building categories for energy product '{energy_product}': {normalized}")
         return dfs_factors
     else:
-        raise ValueError(f"Unknown energitype: {energitype}")
+        raise ValueError(f"Unknown energy product: {energy_product}")
 
 
 
@@ -170,18 +170,18 @@ def export_distribution_to_excel(dfs: dict, output_file: Path):
 
 def geographical_distribution(
     elhub_years: list[int],
-    energitype: str = None,
+    energy_product: str = None,
     building_category: str = None,
     step: str = None,
     output_format: bool = False
 ) -> Path:
     """
-    Calculate and export energy use distribution based on Elhub or fjernvarme data.
+    Calculate and export energy use distribution based on Elhub or district heating data.
 
     Args:
         elhub_years (list[int]): Years to include in Elhub aggregation.
-        energitype (str): 'strom' or 'fjernvarme'.
-        building_category (str): e.g. 'bolig', 'yrkesbygg'.
+        energy_product (str): 'electricity' or 'district heating'.
+        building_category (str): e.g. 'residential', 'non-residential'.
         step (str): Optional step for Elhub ('azure' or 'local').
         output_format (bool): Whether to use narrow (2020, 2050) or wide (2020–2050) format.
 
@@ -197,19 +197,20 @@ def geographical_distribution(
     year_cols = (2020, 2050) if output_format else range(2020, 2051)
 
     df_ebm = pl.from_pandas(load_energy_use())
+    
 
-    dfs_factors = get_distribution_factors(energitype, normalized, elhub_years, step, year_cols)
+    dfs_factors = get_distribution_factors(energy_product, normalized, elhub_years, step, year_cols)
     
     dfs_distributed = ebm_energy_use_geographical_distribution(
         df_ebm,
         dfs_factors,
         year_cols,
-        energitype=energitype,
+        energy_product=energy_product,
         building_category=normalized
     )
 
     output_file = get_output_file(
-        f"output/{energitype}_energibruk_kommunefordelt.xlsx"
+        f"output/{energy_product}_energibruk_kommunefordelt.xlsx"
     )
 
     export_distribution_to_excel(dfs_distributed, output_file)

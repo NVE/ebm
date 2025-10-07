@@ -1,0 +1,2 @@
+Variable, Description, Type, Default
+``EBM_GEODIST_ELHUB_LOCATION``, Specifies the location of the ELHUB data for the ``ebmgeodist`` module., string, None

@@ -40,7 +40,7 @@ def df_commune_mean(
         df (pl.DataFrame): DataFrame containing Elhub data with 'forbruk_kwh' column.
         years (list[int]): List of years to filter the DataFrame.
         buildingkategory (str, optional): Building category to filter by. 
-            If 'Fritidsboliger', use MWh instead of GWh. Defaults to None.
+            If 'holiday homes', use MWh instead of GWh. Defaults to None.
 
     Returns:
         pl.DataFrame: DataFrame with the average yearly forbruk per kommune in GWh or MWh.
@@ -61,8 +61,8 @@ def df_commune_mean(
         raise NoElhubDataError(f"Missing Elhub data for years: {years}")
 
     # Decide units based on building category
-    unit_divisor = 1_000 if buildingkategory == NameHandler.COLUMN_NAME_FRITIDSBOLIG else 1_000_000
-    value_col = "yearly_forbruk_mwh" if buildingkategory == NameHandler.COLUMN_NAME_FRITIDSBOLIG else "yearly_forbruk_gwh"
+    unit_divisor = 1_000 if buildingkategory == NameHandler.COLUMN_NAME_HOLIDAY_HOME else 1_000_000
+    value_col = "yearly_forbruk_mwh" if buildingkategory == NameHandler.COLUMN_NAME_HOLIDAY_HOME else "yearly_forbruk_gwh"
     mean_col = f"mean_{value_col}"
 
     # Group and aggregate yearly usage per kommune
@@ -94,7 +94,7 @@ def df_total_consumption_buildingcategory(
 )-> pl.DataFrame:
     """
     Sum the values in the 'forbruk_kwh' column and convert it to GWh or MWh for total forbruk per kommune,
-    for each building category boliger, fritidsboliger, and yrkesbygg.
+    for each building category residential, holiday homes, and non-residential buildings.
 
     Args:
         df (pl.DataFrame): DataFrame containing Elhub data with 'forbruk_kwh' column.
@@ -158,12 +158,12 @@ def df_factor_calculation(
 def filter_energy_data(
     df: pl.DataFrame,
     building_categories: list[str],
-    energy_types: list[str]
+    energy_product: list[str]
 ) -> pl.DataFrame:
     """Filter the dataframe by building group and energy source."""
     return df.filter(
         (pl.col("building_group").is_in(building_categories)) &
-        (pl.col("energy_source").is_in(energy_types))
+        (pl.col("energy_source").is_in(energy_product))
     )
 
 
@@ -172,7 +172,7 @@ def distribute_energy_use_for_category(
     dist_df: pl.DataFrame,
     years_column: list[str],
     category: str,
-    energitype: str
+    energy_product: str
 ) -> tuple[str, pl.DataFrame, str, pl.DataFrame]:
     """
     Multiply the energy use with distribution factors and return two named outputs:
@@ -185,14 +185,14 @@ def distribute_energy_use_for_category(
     })
 
     kommune_cols = ["kommune_nr", "kommune_navn"]
-    if energitype == "strom" and "mean_yearly_forbruk_gwh" in dist_df.columns:
+    if energy_product == "electricity" and "mean_yearly_forbruk_gwh" in dist_df.columns:
         kommune_cols.append("mean_yearly_forbruk_gwh")
 
     kommune_info = dist_df.select(kommune_cols)
     energibruk_df = kommune_info.hstack(multiplied)
 
     return (
-        f"{category}_{energitype}", energibruk_df,
+        f"{category}_{energy_product}", energibruk_df,
         f"{category}_fordelingsnøkler", dist_df
     )
 
@@ -201,7 +201,7 @@ def ebm_energy_use_geographical_distribution(
     df_energy_use: pl.DataFrame,
     distribution_factors: dict[str, pl.DataFrame],
     years: list[int],
-    energitype: str,
+    energy_product: str,
     building_category: Union[str, list[str]],
 ) -> dict[str, pl.DataFrame]:
     """
@@ -213,36 +213,36 @@ def ebm_energy_use_geographical_distribution(
 
     years_column = [str(year) for year in years]
 
-    # Define mapping from energitype to column values
-    energy_type_map = {
-        "strom": ['Elektrisitet', 'Electricity'],
-        "fjernvarme": ['DH', 'Fjernvarme', 'District Heating'],
-        "ved": ['Ved', 'Wood', 'Bio'],
-        "fossil": ['Fossil', 'Fossil Fuel']
+    # Define mapping from energy_product to column values
+    energy_product_map = {
+        "electricity": ['Elektrisitet', 'Electricity'],
+        "dh": ['DH', 'Fjernvarme', 'District Heating'],
+        "fuelwood": ['Ved', 'Wood', 'Bio'],
+        "fossilfuel": ['Fossil', 'Fossil Fuel']
     }
 
-    if energitype not in energy_type_map:
-        raise ValueError(f"Ukjent energitype: {energitype}")
+    if energy_product not in energy_product_map:
+        raise ValueError(f"Unknown energy_product: {energy_product}")
 
-    # Filter data for selected energy type and categories
-    df_filtered = filter_energy_data(df_energy_use, building_category, energy_type_map[energitype])
+    # Filter data for selected energy product and categories
+    df_filtered = filter_energy_data(df_energy_use, building_category, energy_product_map[energy_product])
 
     result = {}
-
+    
     for category in building_category:
         if category not in distribution_factors:
-            raise KeyError(f"Mangler fordelingsnøkler for kategori: {category}")
+            raise KeyError(f"Missing distribution factors for category: {category}")
 
         df_cat = df_filtered.filter(pl.col("building_group") == category)
         dist_df = distribution_factors[category]
         energibruk_key, energibruk_df, fordelingsnokkler_key, fordelingsnokkler_df = distribute_energy_use_for_category(
-            df_cat, dist_df, years_column, category, energitype
+            df_cat, dist_df, years_column, category, energy_product
         )
 
         result[energibruk_key] = energibruk_df.with_columns(pl.lit("GWh").alias("Units"))
         result[fordelingsnokkler_key] = (
-            fordelingsnokkler_df.drop(category) if energitype == "fjernvarme" or (energitype == "ved" \
-            and category == NameHandler.COLUMN_NAME_BOLIG) 
+            fordelingsnokkler_df.drop(category) if energy_product == "dh" or (energy_product == "fuelwood" \
+            and category == NameHandler.COLUMN_NAME_RESIDENTIAL) 
             else fordelingsnokkler_df
         )
 

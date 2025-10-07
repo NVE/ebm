@@ -14,7 +14,7 @@ The method involves the following steps:
 1. **Data Collection**: Gather relevant data on energy consumption patterns at the desired geographical level. This may include historical energy use data, 
    demographic information, and other relevant factors that influence energy consumption.
 
-2. **Distribution Key Calculation**: Calculate distribution keys for each energy type (electricity, district heating, bioenergy, and fossil fuels) based on the collected data.
+2. **Distribution Key Calculation**: Calculate distribution keys for each energy product (electricity, district heating, bioenergy, and fossil fuels) based on the collected data.
    
    These keys represent the share of total energy consumption attributed to each geographical unit.
 
@@ -24,4 +24,4 @@ The method involves the following steps:
 
 5. **Output Generation**: Generate output files that contain the distributed energy use data for each geographical unit, which can be used for further analysis and planning.
 
-The geographical distribution method is designed to be flexible and can be adapted to different geographical levels and energy types as needed.
+The geographical distribution method is designed to be flexible and can be adapted to different geographical levels and energy products as needed.

@@ -12,13 +12,13 @@ class NameHandler:
     """
     Handles column names
     """
-    COLUMN_NAME_BOLIG = "bolig"
-    COLUMN_NAME_FRITIDSBOLIG = "Fritidsboliger"
-    COLUMN_NAME_YRKESBYGG = "yrkesbygg"
-    ENERGY_TYPE_STROM = "strom"
-    ENERGY_TYPE_FJERNVARME = "fjernvarme"
-    ENERGY_TYPE_VED = "ved"
-    ENERGY_TYPE_FOSSIL = "fossil"
+    COLUMN_NAME_RESIDENTIAL = "bolig"
+    COLUMN_NAME_HOLIDAY_HOME = "Fritidsboliger"
+    COLUMN_NAME_NON_RESIDENTIAL = "yrkesbygg"
+    ENERGY_PRODUCT_ELECTRICITY = "electricity"
+    ENERGY_PRODUCT_DISTRICT_HEATING = "dh"
+    ENERGY_PRODUCT_FUELWOOD = "fuelwood"
+    ENERGY_PRODUCT_FOSSILFUEL = "fossilfuel"
 
     
     @classmethod
@@ -28,21 +28,24 @@ class NameHandler:
         """
         value = value.strip().lower()
         mapping = {
-            "bolig": cls.COLUMN_NAME_BOLIG,
-            "boliger": cls.COLUMN_NAME_BOLIG,
-            "fritid": cls.COLUMN_NAME_FRITIDSBOLIG,
-            "fritidsbolig": cls.COLUMN_NAME_FRITIDSBOLIG,
-            "fritidsboliger": cls.COLUMN_NAME_FRITIDSBOLIG,
-            "yrkesbygg": cls.COLUMN_NAME_YRKESBYGG,
-            "yrke": cls.COLUMN_NAME_YRKESBYGG,
-            "alle": [cls.COLUMN_NAME_BOLIG, cls.COLUMN_NAME_FRITIDSBOLIG, cls.COLUMN_NAME_YRKESBYGG]
+            "residential": cls.COLUMN_NAME_RESIDENTIAL,
+            "residential-building": cls.COLUMN_NAME_RESIDENTIAL,
+            "bolig": cls.COLUMN_NAME_RESIDENTIAL,
+            "holiday": cls.COLUMN_NAME_HOLIDAY_HOME,
+            "holiday-home": cls.COLUMN_NAME_HOLIDAY_HOME,
+            "holiday-homes": cls.COLUMN_NAME_HOLIDAY_HOME,
+            "fritidsboliger": cls.COLUMN_NAME_HOLIDAY_HOME,
+            "non-residential": cls.COLUMN_NAME_NON_RESIDENTIAL,
+            "non-residential-building": cls.COLUMN_NAME_NON_RESIDENTIAL,
+            "yrkesbygg": cls.COLUMN_NAME_NON_RESIDENTIAL,
+            "all": [cls.COLUMN_NAME_RESIDENTIAL, cls.COLUMN_NAME_HOLIDAY_HOME, cls.COLUMN_NAME_NON_RESIDENTIAL]
         }
         
         if value in mapping:
             return mapping[value]
         else:
             raise argparse.ArgumentTypeError(
-                f"Ugyldig kategori: '{value}'. Gyldige verdier er: boliger, fritidsboliger, yrkesbygg, alle"
+                f"Invalid building category: '{value}'. Valid values are: residential, holiday home, non-residential, all."
             )
     
     @classmethod
@@ -77,11 +80,11 @@ def make_arguments(program_name: str, default_path: Path) -> argparse.Namespace:
                             default=Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input')),
                             help='path to the directory with input files')
     
-    arg_parser.add_argument('--category', '-c', 
+    arg_parser.add_argument('--building-category', '-c', 
         type=NameHandler.normalize_to_list,
         nargs='?',
-        default=NameHandler.normalize_to_list("alle"),
-        help="Velg bygningskategori: boliger, fritidsboliger, yrkesbygg eller alle"
+        default=NameHandler.normalize_to_list("all"),
+        help="Choose building category: residential, holiday home, non-residential or all (default: all)"
     )
 
     arg_parser.add_argument(
@@ -90,13 +93,13 @@ def make_arguments(program_name: str, default_path: Path) -> argparse.Namespace:
         nargs="+",
         metavar="ÅR",
         default=[2022,2023,2024],
-        help="Årene som skal inkluderes i beregningen av fordelingsnøklene, f.eks: --years 2022 2023 2024"
+        help="Years to be included in the calculation of distribution keys, e.g.: --years 2022 2023 2024 (default: 2022 2023 2024)"
     )
 
-    arg_parser.add_argument('--source','-s', choices=['azure', 'lokalt'], default='lokalt',
+    arg_parser.add_argument('--source','-s', choices=['azure', 'local'], default='local',
                             help='''
-Velg datakilde: 'azure' for å hente dataen direkte fra Elhub datasjøen, eller 'local' for å bruke parquet filen
-    som følger med, (standard: local)
+Choose data source: 'azure' to load data directly from Elhub data lake, or 'local' to use the included parquet 
+file, (default: local)
                             ''')
     
     arg_parser.add_argument('--create-input', action='store_true',
@@ -106,11 +109,11 @@ Velg datakilde: 'azure' for å hente dataen direkte fra Elhub datasjøen, eller 
     
     arg_parser.add_argument('--start-end-years', action='store_true', help='''The output file only includes the start and end years. Default is to include all years.''')
 
-    arg_parser.add_argument('--energy-type', '-e',
-                            choices=['strom', 'fjernvarme', 'ved', 'fossil'],
-                             default='strom',
+    arg_parser.add_argument('--energy-product', '-e',
+                            choices=['electricity', 'dh', 'fuelwood', 'fossilfuel'],
+                             default=['electricity','dh', 'fuelwood', 'fossilfuel'],
                              help='''
-                             Velg energitype: 'strom' for elektrisitet, 'fjernvarme' for fjernvarme, eller 'ved' for ved. (standard: strom)
+                             Choose energy product: electricity, dh, fuelwood or fossilfuel. (default: electricity) 
                             ''')
 
     arguments = arg_parser.parse_args()

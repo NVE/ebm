@@ -1,5 +1,7 @@
 import os
+
 from typing import Optional
+import pathlib
 
 import polars as pl
 import pandas as pd
@@ -7,7 +9,9 @@ from loguru import logger
 
 from ebm.temp_calc import calculate_energy_use_wide
 from ebmgeodist.initialize import get_output_file
+from ebmgeodist.helpers import load_environment_from_dotenv
 
+load_environment_from_dotenv()
 
 # Function to load Elhub data from Azure Data Lake Storage using Polars
 def load_elhub_data(
@@ -18,8 +22,7 @@ def load_elhub_data(
 ):
     # Azure storage configuration
     storage_options = {'use_azure_cli': "True"}
-    storage_account = STORAGE_ACCOUNT
-    container = STORAGE_CONTAINE
+    azure_adls_path = os.environ.get('EBM_GEODIST_ELHUB_LOCATION')
 
     # Define default column selection if none is provided
     if columns is None:
@@ -52,8 +55,14 @@ def load_elhub_data(
     full_path = f"{dataset}/{year_path}/{month_path}/*.snappy.parquet"
 
     # Compose full Azure ABFSS path
+    if not azure_adls_path:
+        raise ValueError("Environment variable 'EBM_GEODIST_ELHUB_LOCATION' is not set.")
+    
+    # Split into container and storage_account
+    container, storage_account = azure_adls_path.split('/')
+    logger.warning(f"Elhub container: {container}, Elhub storage Account: {storage_account}")
+    
     abfss_path = f"abfss://{container}@{storage_account}.dfs.core.windows.net/{full_path}"
-
     logger.info(f"🔍 Loading Elhub data for year: {year_filter}")
     # print(f"📌 Selected columns: {columns}")
 

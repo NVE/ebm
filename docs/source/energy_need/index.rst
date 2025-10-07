@@ -6,7 +6,7 @@ The base line energy need per square metre is defined in the building code. Each
 to its building code, building condition and :ref:`energy purpose <energy purpose>`.
 The energy condition of the area in the model changes between the model years due to renovation and small measures. 
 An user defined S- curve determines how often and how much the area undergoes renovation and small measures. 
-The area in the model can have on of the following conditions: 
+The area in the model can have one of the following conditions: 
 
 * Original condition
 * Small measure
@@ -22,8 +22,6 @@ By default the energy need in the model is distributed on these energy purposes:
 * appliances
 * fans and pumps 
 * cooling
-
-
 
 
 .. toctree::

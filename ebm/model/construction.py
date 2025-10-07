@@ -200,7 +200,6 @@ class ConstructionCalculator:
         yearly_new_building_floor_area_house.loc[build_area_sum.index.values] = build_area_sum.loc[
             build_area_sum.index.values]
 
-        yearly_new_building_floor_area_house.iloc[0] = 0.0
         return pd.Series(yearly_new_building_floor_area_house, name='constructed_floor_area')
 
     @staticmethod

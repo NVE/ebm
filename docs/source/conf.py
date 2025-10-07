@@ -76,6 +76,14 @@ modindex_common_prefix = ["src."]
 # Load environment variables for substitution
 ebm_installation_host = os.environ.get("EBM_INSTALLATION_HOST", os.environ.get('COMPUTERNAME', '??'))
 # Make it available to templates
-rst_epilog = f"""
+
+substitutions_rst = Path(__file__).parent / '_substitutions.rst'
+
+substitutions = substitutions_rst.read_text(encoding='utf-8')
+
+
+host_ = f"""
 .. |ebm_installation_host| replace:: {ebm_installation_host}
 """
+
+rst_epilog = substitutions + host_

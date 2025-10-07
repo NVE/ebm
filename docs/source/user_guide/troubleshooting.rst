@@ -56,7 +56,7 @@ building_code periods do not overlap failure cases …
 
 **Problem**
 
-Some entries in :ref:`building_code_parameters.csv<building_code_parameters>` have overlapping start and end years,
+Some entries in |building_code_parameters_ref| have overlapping start and end years,
 which violates the schema validation.
 
 The full error message may look something like:
@@ -74,7 +74,7 @@ The full error message may look something like:
 
 **Solution**
 
-1. Open :ref:`building_code_parameters.csv<building_code_parameters>` and adjust the start and end year columns to ensure that no end year overlaps with the start year of the next entry.
+1. Open |building_code_parameters_ref| and adjust the start and end year columns to ensure that no end year overlaps with the start year of the next entry.
 
 
 .. code-block:: powershell

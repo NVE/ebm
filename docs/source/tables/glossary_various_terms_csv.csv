@@ -10,15 +10,15 @@ Electricity;Elektrisitet.;Energibærer. ;Energy product.
 Direct resistance heating;Direktevirkende elektrisitet.;Oppvarmingsteknologi, punktoppvarming. For eksempel panelovn eller vifteovn. ;Heating technology, space heating. For example electrical panel heater or convection oven. 
 Wood stove.;Vedovn.;Oppvarmingsteknologi som bruker ved. Punktoppvarming.;Heating technology using fuel wood. Space heating. 
 Heat pump air-air.;Varmepumpe luft-luft .;Punktoppvarming, kan ikke varme opp hele bygningen med én enhet.;Point source and cannot heat an entire building with one unit. 
-Varmtvannsbereder.;Electric water heater.;Varmtvannsbereder for varmt tappevann. ;Electric water heater for domestic hot water.
-Elkjel.;Electric boiler.;Vannbåren varme. ;Water-borne heating. 
-Biokjel.;Biomass boiler.;Vannbåren varme. ;Water-borne heating.
-Solfanger.;Solar collector.;Vannbåren varme. ;Water-borne heating.
-Fossilkjel.;Fossil boiler.;Vannbåren varme. ;Water-borne heating.
+Electric water heater. ;Varmtvannsbereder.;Varmtvannsbereder for varmt tappevann. ;Electric water heater for domestic hot water.
+Electric boiler.;Elkjel.;Vannbåren varme. ;Water-borne heating. 
+Biomass boiler.;Biokjel.;Vannbåren varme. ;Water-borne heating.
+Solar collector.;Solfanger.;Vannbåren varme. ;Water-borne heating.
+Fossil boiler.;Fossilkjel.;Vannbåren varme. ;Water-borne heating.
 Heat pump central heating.;Varmepumpe væske-vann eller luft-væske.;Samlebegrep for alle varmepumper som leverer vannbåren varme. ;Term for all heat pumps that delivers water-borne heating.
-Fjernvarme.;District heating.;Vannbåren varme. Hentet fra SSB sin fjernvarmestatistikk for kalibrering.  ;Water-borne heating. Uses Statistics Norways district heating statistics for calibration. 
-Elspesifikt forbruk.;Non substitutable electricity use.;Energiforbruk som krever elektrisitet, som belysning. Kan ikke erstattes med andre energivarer. ;Electricity usage which cannot be replaced by another technology or energy product. Like lighting and electrical appliances. 
-Kjølemaskin.;Chiller/cooler.;Kjøleteknologi. Bruker elektrisitet. ;Cooling technology. Uses electricity. 
+District heating. ;Fjernvarme.;Vannbåren varme. Hentet fra SSB sin fjernvarmestatistikk for kalibrering.  ;Water-borne heating. Uses Statistics Norways district heating statistics for calibration. 
+Non substitutable electricity use. ;Elspesifikt forbruk.;Energiforbruk som krever elektrisitet, som belysning. Kan ikke erstattes med andre energivarer. ;Electricity usage which cannot be replaced by another technology or energy product. Like lighting and electrical appliances. 
+Chiller/cooler. ;Kjølemaskin.;Kjøleteknologi. Bruker elektrisitet. ;Cooling technology. Uses electricity. 
 Condition.;Tilstand.;Arealets tilstand. ;The conditon of the heated floor area. 
 Storage.;Lager.;Omfatter kun lagerbygg i modellen. En underkategori av lettindustri og verksted. ;Consists only of storage and warehouses in the model. A subcategory of light industry and workshops. 
 Energy need.;Energibehov.;Arealets energibehov i kWh/m2 etter definisjon i TEK. Teoretisk størrelse.;The areas energy need in kWh/m\ :sup:`2` after definition in the building code. A theoretical size.

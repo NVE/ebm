@@ -1,3 +1,6 @@
+.. |user_case_tek30| replace:: ``📁user-case-tek30``
+
+
 User case
 =========
 
@@ -31,7 +34,7 @@ To create a new scenario in EBM, open your preferred terminal and run the follow
 
 
 The input directory will be created using the path defined by the ``--input`` option. In this case the new input files will be
-created as the subdirectory ``user-case-tek30`` in the current working directory.
+created as the subdirectory |user_case_tek30| in the current working directory.
 
 If the directory you name does not exist, the program will attempt to create it. All input files necessary to run ebm
 will be created, with their default values, in the supplied path.
@@ -51,7 +54,7 @@ Once the input directory is ready, you can run the model using:
 
    ebm --input=user-case-tek30
 
-The model result as defined in with user-case-tek30 will be written to the subdirectory ``output``.
+The model result as defined in |user_case_tek30| will be written to the subdirectory |output_directory|.
 
 .. seealso::
 
@@ -66,10 +69,10 @@ a hypothetical future building code introduced as part of a user case to demonst
 modeling.
 
 
-To add TEK30 to ebm you have to edit a number of files in the subdirectory ``user-case-tek30``
- - :ref:`Add the new building code to the model in building_code_parameters.csv<add the new building code>`
- - :ref:`Define energy need for TEK30 in energy_need_original_condition.csv<define energy need for TEK30>`
- - :ref:`Specify heating system shares in heating_system_initial_shares.csv<Specify heating system shares>`
+To add TEK30 to ebm you have to edit a number of files in the subdirectory |user_case_tek30|
+ - Add the new building code to the model in |building_code_parameters_ref|
+ - Define energy need for TEK30 in |energy_need_original_condition_ref|
+ - Specify heating system shares in |heating_system_initial_shares_ref|
 
 
 This process showcases how EBM can be extended to simulate future regulations or alternative planning assumptions.
@@ -78,10 +81,10 @@ This process showcases how EBM can be extended to simulate future regulations or
 Add the new building code
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The timeline and classification of building codes used by EBM are defined in the csv file :ref:`user-case-tek30/building_code_parameters.csv<building_code_parameters csv>`.
+The timeline and classification of building codes used by EBM are defined in the csv file |building_code_parameters_ref| in  |user_case_tek30|.
 To include TEK30 in your scenario, you must first define it in that file.
 
-You can edit building_code_parameters.csv using a
+You can edit |building_code_parameters_ref| using a
 plain text editor (e.g., Notepad) or spreadsheet software such as Microsoft Excel or LibreOffice Calc.
 
 
@@ -100,7 +103,7 @@ plain text editor (e.g., Notepad) or spreadsheet software such as Microsoft Exce
 
 
 
-Add the following line to :ref:`user-case-tek30/building_code_parameters.csv<building_code_parameters csv>` to define TEK30 as a new building code entry:
+Add the following line to |building_code_parameters_ref| in  |user_case_tek30| to define TEK30 as a new building code entry:
 
 .. code-block:: text
 
@@ -115,22 +118,22 @@ start year for the building code, and end year for the building code. Both the s
    Other -> building_code under :ref:`input constraints`
 
 
-EBM does not allow overlapping periods in building_code_parameters.csv. Since TEK17 currently ends in 2050, we must adjust the end year for TEK17 as well:
+EBM does not allow overlapping periods in |building_code_parameters_ref|. Since TEK17 currently ends in 2050, we must adjust the end year for TEK17 as well:
 
- To avoid overlapping periods, update the TEK17 entry in ``building_code_parameters.csv`` as follows:
+ To avoid overlapping periods, update the TEK17 entry in |building_code_parameters_ref| as follows:
 
 .. code-block:: text
 
    TEK17,2025,2020,2029
 
 
-When done correctly :ref:`user-case-tek30/building_code_parameters.csv<building_code_parameters csv>` should look like the example below.
+When done correctly |building_code_parameters_ref| in  |user_case_tek30| should look like the example below.
 
 .. tabs::
 
    .. tab:: Formatted table
 
-        Below is the updated content of building_code_parameters.csv. The new TEK30 entry and the adjusted end period for TEK17 are outlined in bold.
+        Below is the updated content of |building_code_parameters_ref|. The new TEK30 entry and the adjusted end period for TEK17 are outlined in bold.
 
         .. csv-table:: Complete building_code_parameters.csv
            :header: "building_code", "building_year", "period_start_year", "period_end_year"
@@ -148,7 +151,7 @@ When done correctly :ref:`user-case-tek30/building_code_parameters.csv<building_
 
    .. tab:: Raw CSV
 
-        You can add the raw excel content at the end of building_code_parameters.csv using notepad or a similar text editor.
+        You can add the raw excel content at the end of |building_code_parameters_ref| using notepad or a similar text editor.
 
         .. code-block:: text
 
@@ -170,7 +173,7 @@ When done correctly :ref:`user-case-tek30/building_code_parameters.csv<building_
 Define energy need for TEK30
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-All building codes must have it's energy need defined in :ref:`user-case-tek30/energy_need_original_condition.csv<energy_need_original_condition csv>`. For this scenario we assume a TEK30 have a 2/3 energy need reduction for heating_rv and 1/4 reduction for heating_dhw, cooling, fans_and_pumps and electrical_equipment.
+All building codes must have it's energy need defined by |energy_need_original_condition_ref| in |user_case_tek30|. For this scenario we assume a TEK30 have a 2/3 energy need reduction for heating_rv and 1/4 reduction for heating_dhw, cooling, fans_and_pumps and electrical_equipment.
 
 .. tabs::
 
@@ -196,7 +199,7 @@ All building codes must have it's energy need defined in :ref:`user-case-tek30/e
 
    .. tab:: Formatted table
 
-        You should be able to paste the content of this table into energy_need_original_condition.csv when using Excel
+        You should be able to paste the content of this table into |energy_need_original_condition_ref| when using Excel
 
         .. csv-table:: Excerpt energy_need_original_condition.csv
            :header: building_category,building_code,purpose,kwh_m2
@@ -270,7 +273,7 @@ All building codes must have it's energy need defined in :ref:`user-case-tek30/e
 
    .. tab:: Raw csv
 
-        You can add the raw excel content at the end of energy_need_original_condition.csv using notepad or a similar text editor.
+        You can add the raw excel content at the end of |energy_need_original_condition_ref| using notepad or a similar text editor.
 
         .. code-block:: text
 
@@ -351,7 +354,7 @@ For clarity, the table above have been sorted and kwh_m2 values rounded to two d
 Specify heating system shares
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The final input file that needs to be modified is :ref:`user-case-tek30/heating_system_initial_shares.csv<heating_system_initial_shares csv>`.
+The final input file that needs to be modified is |user_case_tek30| |heating_system_initial_shares_ref|.
 This file tells ``EBM`` what the share of each heating system is for a given building code. Since TEK30 is a new
 building code, it requires its own definition in this file.
 
@@ -670,20 +673,20 @@ building code, it requires its own definition in this file.
             sports,TEK30,Gas,2023,0.0016565044759408
 
 
-Similarly to TEK17, there is no need to add TEK30 to :ref:`user-case-tek30/area.csv<area csv>` as all the area in both
+Similarly to TEK17, there is no need to add TEK30 to |area_ref| in |user_case_tek30| as all the area in both
 TEKs will be built after the start year 2020.
 
 
 Re-run the model
 ^^^^^^^^^^^^^^^^
 
-Once you have adapted building_code_parameters.csv, energy_need_original_condition.csv and heating_system_initial_shares.csv to TEK30, you cat re-run the model.
+Once you have adapted |building_code_parameters_ref|, |energy_need_original_condition_ref| and |heating_system_initial_shares_ref| to TEK30, you cat re-run the model.
 
 .. code-block:: powershell
 
    ebm --input=user-case-tek30
 
-The model results can be found in the subdirectory named ``output``.
+The model results can be found in the subdirectory named |output_directory|.
 
 .. tip::
 
@@ -697,7 +700,7 @@ The model results can be found in the subdirectory named ``output``.
 Extra credit
 ^^^^^^^^^^^^
 
-The input files :ref:`energy_need_improvements.csv<energy_need_improvements csv>`, :ref:`heating_system_forecast.csv<heating_system_forecast csv>`, :ref:`improvement_building_upgrade.csv<improvement_building_upgrade csv>` and :ref:`energy_need_behaviour_factor.csv<energy_need_behaviour_factor csv>`
+The input files |energy_need_improvements_ref|, |heating_system_forecast_ref|, |improvement_building_upgrade_ref| and |energy_need_behaviour_factor_ref|
 have defined default values under the column building_code that will apply to TEK30. For extra credit you may override the defaults with your own values.
 
 
@@ -705,11 +708,11 @@ energy need improvements
 """"""""""""""""""""""""
 
 In ``EBM`` there is a 0.5% yearly reduction in energy need for defined the building category house defined in
-:ref:`user-case-tek30/energy_need_improvements.csv<energy_need_improvements csv>`. Since TEK30 is a new code from TEK30 one can
+|energy_need_improvements_ref| in |user_case_tek30|. Since TEK30 is a new code from TEK30 one can
 assume that no such reduction will happen due to the fact that the reduction will already be define in the building
 code.
 
-You can add a line to :ref:`user-case-tek30/energy_need_improvements.csv<energy_need_improvements csv>` if you think that there is no yearly reduction lighting with TEK30.
+You can add a line to |energy_need_improvements_ref| in |user_case_tek30| if you think that there is no yearly reduction lighting with TEK30.
 
 .. code-block:: text
 
@@ -741,9 +744,9 @@ This file sets baseline lighting energy need (kWh/m²) for different building ty
     storage_repairs,default,lighting,16.91
 
 By default, all building codes have the same energy need for lighting per square metre. As an illustration on how one
-can redefine energy need we will modify the file :ref:`user-case-tek30/energy_need_original_condition.csv<energy_need_original_condition csv>`.
+can redefine energy need we will modify the file |energy_need_original_condition_ref| in |user_case_tek30|.
 
-If you open the file :ref:`user-case-tek30/energy_need_original_condition.csv<energy_need_original_condition csv>` in a spreadsheet application or text editor,
+If you open the file |energy_need_original_condition_ref| in |user_case_tek30| with a spreadsheet application or text editor,
 you'll see that all building categories with lighting as their purpose use the building code "default."
 This default value acts as a catch-all, telling ``EBM`` to apply the specified kWh/m²
 value for lighting unless a more specific definition is provided.
@@ -769,7 +772,7 @@ value for lighting unless a more specific definition is provided.
 
 **Defining explicit lighting for TEK30**
 
-While the default values for lighting in :ref:`user-case-tek30/energy_need_original_condition.csv<energy_need_original_condition csv>` are
+While the default values for lighting defined by |energy_need_original_condition_ref| in  |user_case_tek30| are
 handy for editing, you might want to set explicit values for TEK30 so that you can define specific values. Let's imagine
 that the energy need for lighting with TEK30 is half of what earlier building code standards required.
 
@@ -823,7 +826,7 @@ energy need values.
 energy need behaviour factor
 """"""""""""""""""""""""""""
 
-In :ref:`user-case-tek30/energy_need_behaviour_factor.csv<energy_need_behaviour_factor csv>` there is a specific value set
+In |energy_need_behaviour_factor_ref| in |user_case_tek30| there is a specific value set
 for behaviour factor for TEK07, TEK10 and TEK17. It is sensible to add the new building code TEK30 to the file
 building_code column:
 

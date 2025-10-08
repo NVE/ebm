@@ -8,11 +8,11 @@ The model does not have functionality on:
 
 - Electrical vehicles
 - Buildings used in power intensive industries
-- Local energy production
-- Power price
+- Local energy production, e.g. solar panels
+- Energy prices
 - Load profiles
 - Cost optimization of heating systems
-- Cost of energy efficiency 
+- Cost of energy efficiency measures
 - Single buildings
 - Years prior to 2020
 
@@ -20,7 +20,7 @@ The model does not have functionality on:
 The NVE dataset
 ---------------
 
-**Note! The current data on demolition and building of new area does not align with available statistics. 
+**Note! The current data on demolition and construction of new area does not align with available statistics. 
 Changes in building stock area and energy consumption should therefore be used with caution. 
 An updated and improved dataset will be published along with the next version of the model.** 
 

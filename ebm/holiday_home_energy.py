@@ -115,7 +115,8 @@ def project_electricity_usage(electricity_usage_stats: pd.Series,
     nan_padded_usage_by_homes = usage_by_homes.reindex(population.index, fill_value=np.nan)
     projected_electricity_usage = projected_electricity_usage_holiday_homes(nan_padded_usage_by_homes)
 
-    projected_electricity_usage_gwh = projected_holiday_homes_by_year * projected_electricity_usage / 1_000_000
+    projected_electricity_usage_kwh = projected_holiday_homes_by_year * projected_electricity_usage
+    projected_electricity_usage_gwh = projected_electricity_usage_kwh / 1_000_000
     projected_electricity_usage_gwh.name = 'gwh'
 
     return projected_electricity_usage_gwh
@@ -134,7 +135,8 @@ def project_fuelwood_usage(fuelwood_usage_stats: pd.Series,
     nan_padded_usage_by_homes = usage_by_homes.reindex(population.index, fill_value=np.nan)
     projected_fuelwood_usage = projected_fuelwood_usage_holiday_homes(nan_padded_usage_by_homes)
 
-    projected_fuelwood_usage_gwh = projected_holiday_homes_by_year * projected_fuelwood_usage / 1_000_000
+    projected_fuelwood_usage_kwh = projected_holiday_homes_by_year * projected_fuelwood_usage
+    projected_fuelwood_usage_gwh = projected_fuelwood_usage_kwh / 1_000_000
     projected_fuelwood_usage_gwh.name = 'gwh'
 
     return projected_fuelwood_usage_gwh
@@ -143,13 +145,13 @@ def project_fuelwood_usage(fuelwood_usage_stats: pd.Series,
 def project_fossil_fuel_usage(fossil_fuel_usage_stats: pd.Series,
                               holiday_homes_by_category: pd.DataFrame,
                               population: pd.Series) -> pd.Series:
-    projection = fossil_fuel_usage_stats.reindex(population.index, fill_value=np.nan)
+    projected_fossil_fuel_usage_gwh = fossil_fuel_usage_stats.reindex(population.index, fill_value=np.nan)
 
-    not_na = projection.loc[~projection.isna()].index
-    projection_filter = projection.index > max(not_na)
-    projection.loc[projection_filter] = projection.loc[not_na].mean()
-    projection.name = 'gwh'
-    return projection
+    not_na = projected_fossil_fuel_usage_gwh.loc[~projected_fossil_fuel_usage_gwh.isna()].index
+    projection_filter = projected_fossil_fuel_usage_gwh.index > max(not_na)
+    projected_fossil_fuel_usage_gwh.loc[projection_filter] = projected_fossil_fuel_usage_gwh.loc[not_na].mean()
+    projected_fossil_fuel_usage_gwh.name = 'gwh'
+    return projected_fossil_fuel_usage_gwh
 
 
 def sum_holiday_homes(*holiday_homes: pd.Series) -> pd.Series:

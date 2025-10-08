@@ -79,7 +79,7 @@ ebm_installation_host = os.environ.get("EBM_INSTALLATION_HOST", os.environ.get('
 
 substitutions_rst = Path(__file__).parent / '_substitutions.rst'
 
-substitutions = substitutions_rst.read_text(encoding='utf-8')
+substitutions = substitutions_rst.read_text(encoding='utf-8').replace(':orphan:', '')
 
 
 host_ = f"""

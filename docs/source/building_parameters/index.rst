@@ -19,3 +19,10 @@ For already built area we assume that all area in a given building code is built
   :header-rows: 1
   :widths: 25 25 25 25
   :delim: ,
+
+
+.. |date| date::
+
+Last Updated on |date|
+
+Version: |version|.

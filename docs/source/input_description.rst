@@ -9,82 +9,82 @@ Description
 
 .. _area csv:
 
-**area.csv** |br|
+|area_ref| |br|
 Useful floor area in the start year 2020 distributed by building category and building code.
 
 .. _area_new_residential_buildings csv:
 
-**area_new_residential_buildings.csv** |br|
+|area_new_residential_buildings_ref| |br|
 New built useful floor area for residential buildings in 2020 and 2021 from statistics. Statistics source is Statistics Norway.
 
 .. _area_per_person csv:
 
-**area_per_person.csv** |br|
+|area_per_person_ref| |br|
 Useful floor area for new non-residential buildings based on population growth.
 
 .. _building_code_parameters csv:
 
-**building_code_parameters.csv** |br|
+|building_code_parameters_ref| |br|
 Year of operation for the different building codes in Norway. New area is built after a new building code a few years after it is implemented.
 
 .. _energy_need_behaviour_factor csv:
 
-**energy_need_behaviour_factor.csv** |br|
+|energy_need_behaviour_factor_ref| |br|
 Changes in energy need not related to the improvements in heating need from small measures and renovation. 
 
 .. _energy_need_improvements csv:
 
-**energy_need_improvements.csv** |br|
+|energy_need_improvements_ref| |br|
 Reduction in energy need for lighting and electrical equipment from implementation of eco design, energy labeling and other measures. 
 
 .. _energy_need_original_condition csv:
 
-**energy_need_original_condition.csv** |br|
+|energy_need_original_condition_ref| |br|
 Energy need per square meter for various energy purposes differentiated by building code and building category. The given energy need is only for a building's original condition.
 
 .. _heating_system_efficiencies csv:
 
-**heating_system_efficiencies.csv** |br|
+|heating_system_efficiencies_ref| |br|
 Parameters of the various heating technologies. Includes load shares, efficiencies and the related energy product.
 
 .. _heating_system_forecast csv:
 
-**heating_system_forecast.csv** |br|
+|heating_system_forecast_ref| |br|
 Defines the rate of change in heating systems towards 2050. The change is made on a percentage basis compared to the start year. Described in more detail here :any:`Forecasting of heating systems`.
 
 .. _heating_system_initial_shares csv:
 
-**heating_system_initial_shares.csv** |br|
+|heating_system_initial_shares_ref| |br|
 Distribution of heating systems per building category and building code in the start year.
 
 .. _holiday_home_energy_consumption csv:
 
-**holiday_home_energy_consumption.csv** |br|
+|holiday_home_energy_consumption_ref|  |br|
 Historical energy use of fuel wood, electricity and fossil fuel in holiday homes.
 
 .. _holiday_home_stock csv:
 
-**holiday_home_stock.csv** |br|
+|holiday_home_stock_ref| |br|
 Stock of holiday homes per year from 2001. Statistics from Statistics Norway.
 
 .. _improvement_building_upgrade csv:
 
-**improvement_building_upgrade.csv** |br|
+|improvement_building_upgrade_ref| |br|
 Reduction in heating energy need from completed small measures, renovation and small measures + renovation. Percentage reduction compared to the original condition.
 
 .. _new_buildings_residential csv:
 
-**new_buildings_residential.csv** |br|
+|new_buildings_residential_ref| |br|
 Average size of new apartments and houses. Proportion of new homes that are apartments and houses per year.
 
 .. _population_forecast csv:
 
-**population_forecast.csv** |br|
+|population_forecast_ref| |br|
 Population forecast from Statistics Norway and average household size.
 
 .. _s_curve csv:
 
-**s_curve.csv** |br|
+|s_curve_ref| |br|
 Parameters to create S-curves. Parameters are given for small measures, renovation and demolition for each building category.
 
 
@@ -267,7 +267,7 @@ The input constraints, datatypes and accepted values are listed per input file i
             - default 2050
             
             .. csv-table:: input/energy_need_improvements.csv
-               :file: ../../ebm/data/energy_need_improvements.csv
+               :file: tables/energy_need_improvements.csv
                :header-rows: 1
 
    .. tab:: Holiday home
@@ -325,6 +325,8 @@ The input constraints, datatypes and accepted values are listed per input file i
             - float using a decimal point ('.') as the separator
             - **0** ≤ value ≤ **1**
 
+            An explanation of the abbreviations can be found in :any:`Tables and glossary`.
+
          .. tab:: heating_system_initial_shares
             ``building_category``
             - required
@@ -345,9 +347,10 @@ The input constraints, datatypes and accepted values are listed per input file i
 
             ``heating_system_share``
             - required
-            - float
             - float using a decimal point ('.') as the separator
             - **0.0** ≤ value
+            
+            An explanation of the terms can be found in :any:`Tables and glossary`.
 
          .. tab:: heating_system_efficiencies
             ``heating_systems``
@@ -368,33 +371,32 @@ The input constraints, datatypes and accepted values are listed per input file i
 
             ``tertiary_load_coverage``
             - required
-            - float
             - float using a decimal point ('.') as the separator
             - **0.0** ≤ value ≤ **1.0**
 
             ``"base_load_coverage``
             - required
-            - float
+            - float using a decimal point ('.') as the separator
             - **0.0** ≤ value ≤ **1.0**
 
             ``peak_load_coverage``
             - required
-            - float
+            - float using a decimal point ('.') as the separator
             - **0.0** ≤ value ≤ **1.0**
 
             ``base_load_efficiency``
             - required
-            - float
+            - float using a decimal point ('.') as the separator
             - value > **0.0**
 
             ``peak_load_efficiency``
             - required
-            - float
+            - float using a decimal point ('.') as the separator
             - value > **0.0**
 
             ``tertiary_load_efficiency``
             - required
-            - float
+            - float using a decimal point ('.') as the separator
             - value > **0.0**
 
             ``domestic_hot_water_energy_product``
@@ -403,13 +405,15 @@ The input constraints, datatypes and accepted values are listed per input file i
 
             ``domestic_hot_water_efficiency``
             - required
-            - float
+            - float using a decimal point ('.') as the separator
             - value > **0.0**
 
             ``cooling_efficiency``
             - required
-            - float
+            - float using a decimal point ('.') as the separator
             - value > **0.0**
+
+            An explanation of the terms can be found in :any:`Tables and glossary`.
 
    .. tab:: Other
       .. tabs::
@@ -495,16 +499,16 @@ The input constraints, datatypes and accepted values are listed per input file i
             - float using a decimal point ('.') as the separator
             - **0.0** < value ≤ **1.0** (not including zero)
 
-Use of "default" and categorisation
+Use of "default" and grouping
 ===================================
 When making changes to an input file, for example **energy_need_improvements**, you can use aggregated 
 commands instead of specifying each individual *building category*, *building code* and *purpose*. The common aggregated
 command is **default**. When **default** is input the model chooses all valid options. For example **default** 
 building code means all building codes. 
 
-*Building category* has two additional categories: **residential** and
-**non-residental**. **residential** consists of houses and apartment blocks and **non-residential** are the other
-building categories. In the input constraint overview these aggregated categories are specified when available. 
+*Building category* has two additional groups: **residential** and
+**non-residental** where **residential** consists of houses and apartment blocks, and **non-residential** are the other
+building groups. In the input constraint overview these aggregated groups are specified when available. 
 
 
 .. |br| raw:: html

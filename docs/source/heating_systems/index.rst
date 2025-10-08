@@ -199,10 +199,18 @@ Tables and glossary
 
 Tables
 ------
+The table below shows the abbrevations used for the various heating systems. The full terms are also explained in more detail under :any:`Heating systems glossary`. 
+
+.. csv-table:: Heating systems abbreviations
+  :file: ..\tables\heating_systems_abbreviations.csv
+  :widths: 15 40
+  :header-rows: 1
+  :delim: ;
+
 The tables below show the various combinations of heating systems and heating technologies.
 
 .. csv-table:: Heating systems efficiency
-  :file: ..\tables\heating_system_efficiencies.csv
+  :file: ..\tables\heating_systems_efficiencies.csv
   :widths: 15 15 15 15 5 5 5
   :header-rows: 1
   :delim: ;

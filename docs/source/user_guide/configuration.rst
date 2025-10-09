@@ -2,11 +2,11 @@ Model configuration
 =============================
 
 This page describes the environment variables used to configure the model. 
-The configuration of the ebm and ebmgeodist modules is controlled through a set of environment variables.
+The configuration of the ``ebm`` and ``ebmgeodist`` modules is controlled through a set of environment variables.
 These variables define model execution settings, logging configuration, input and output paths, and other parameters.
 They can be provided either via the system environment or through a local ``.env`` file in the working directory.
 Unless specified otherwise, the variables are optional and have default values.
-However, the ``ebmgeodist`` requires additional variables to be set, as described below.
+However, the ``ebmgeodist`` module requires additional variables to be set, as described below.
 
 General environment variables
 -------------------------------
@@ -20,7 +20,7 @@ EBM geographical distribution specific environment variables
 ---------------------------------------------------------------
 
 The ``ebmgeodist`` extends the ``ebm`` module by adding functionality for distributing energy use forecasts at the municipality level.
-It requires one additional configuration variable to locate the underlying Elhub dataset.
+It requires one additional configuration variable related to the container and storage account parameters of the ELhub API.
 
 .. csv-table:: EBM geographical distribution specific environment variables
    :file: ..\tables\ebmgeodist_env_vars.csv
@@ -43,6 +43,15 @@ An example of a ``.env`` configuration file is shown below:
       # EBMGeoDist module
       EBM_GEODIST_ELHUB_LOCATION=/data/elhub/elhub_data.parquet      
 
+.. note::
+      
+      - The variables are case-sensitive and should be defined in uppercase letters as shown.
+      - If a variable is not set, the model will use the default value specified in the tables above.
+      - Ensure that the paths provided for input and output directories exist and are accessible by the model.
+      - The Elhub dataset path must point to a valid Parquet file containing the necessary data for calculating distribution keys.
+      - The logging format used by the EBM and EBMGeoDist modules is based on the Loguru logging framework.
+      - The ``LOG_FORMAT`` environment variable allows customization of how log messages are rendered in the console, including timestamps, 
+        elapsed time, log level, function name, line number, and message content.
 
 .. |date| date::
 

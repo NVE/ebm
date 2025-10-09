@@ -9,9 +9,6 @@ from loguru import logger
 
 from ebm.temp_calc import calculate_energy_use_wide
 from ebmgeodist.initialize import get_output_file
-from ebmgeodist.helpers import load_environment_from_dotenv
-
-load_environment_from_dotenv()
 
 # Function to load Elhub data from Azure Data Lake Storage using Polars
 def load_elhub_data(
@@ -22,7 +19,7 @@ def load_elhub_data(
 ):
     # Azure storage configuration
     storage_options = {'use_azure_cli': "True"}
-    azure_adls_path = os.environ.get('EBM_GEODIST_ELHUB_LOCATION')
+    azure_adls_path = os.environ.get('EBM_GEODIST_ELHUB_CREDENTIALS')
 
     # Define default column selection if none is provided
     if columns is None:

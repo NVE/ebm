@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from ebmgeodist.geographical_distribution import geographical_distribution
 from ebmgeodist.initialize import NameHandler, make_arguments, init, create_output_directory
+from ebmgeodist.helpers import load_environment_from_dotenv, configure_loglevel
 from ebmgeodist.file_handler import FileHandler
 from ebmgeodist.enums import ReturnCode
 from ebmgeodist.calculation_tools import NoElhubDataError
@@ -125,12 +126,18 @@ def run_ebmgeodist():
                                                 output_format = include_start_end_years)
 
         logger.info(f"✅ Municipal distribution for selected energy product has finished running and the results are saved in the output folder with filename: {file_to_open.name}")
-        os.startfile(file_to_open, 'open')
+        if os.environ.get('EBM_ALWAYS_OPEN', 'FALSE').upper() == 'TRUE':
+            logger.info(f'Open {file_to_open}')
+            os.startfile(file_to_open, 'open')
+        else:
+            logger.debug(f'Finished {file_to_open}')
 
         # Clean up memory
         gc.collect()
 
 def main():
+    load_environment_from_dotenv()
+    configure_loglevel(log_format=os.environ.get('LOG_FORMAT', '{level.icon} <level>{message}</level>'))
     try:
         run_ebmgeodist()
     except NoElhubDataError as e:

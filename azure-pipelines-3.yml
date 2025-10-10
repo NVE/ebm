@@ -35,7 +35,7 @@ steps:
       git config --global user.name "Azure DevOps Build Bot"
       git config --global user.email "$(GIT_USER_EMAIL)"
 
-      # Clone gh-pages branch from GitHub (replace with your repo URL)
+      # Clone main branch from GitHub (replace with your repo URL)
       git clone --branch main https://$(GITHUB_TOKEN)@$(GITHUB_REPOSITORY).git main
 
       # Wipe old contents
@@ -44,9 +44,9 @@ steps:
       # Copy new docs
       cp -r docs/_build/html/* main/
 
-      cd gh-pages
+      cd main
       git add --all
       git commit -m "Auto-publish docs from Azure DevOps build $(Build.BuildId)" || echo "No changes to commit"
-      git push origin gh-pages
+      git push origin main
     displayName: "Publish HTML to GitHub Pages"
 

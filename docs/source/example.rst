@@ -321,6 +321,17 @@ tegn for overskrift
    ^, for subsubsections 5
    ", for paragraphs 6
 
+Generere indekser
+=================
+
+Dette lå inne på hovedsiden tidligere, men er nå flyttet ut. 
+
+Indices and tables
+==================
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+
 .. |date| date::
 
 Last Updated on |date|.

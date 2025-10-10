@@ -2,7 +2,7 @@
 trigger:
   branches:
     include:
-      - task_3266-Legge-inn-github-push-for-dev
+      - dev
 
 jobs:
 - job: PushToGitHub

@@ -4,7 +4,7 @@ Architecture
 
 EBM Container diagram
 ---------------------
-Describes the models overall architecture and inner workings. 
+Describes the model's overall architecture and inner workings. 
 
 .. image:: ../_static/model_description/EBM-container-drawio.svg
    :alt: C4 EBM container diagram

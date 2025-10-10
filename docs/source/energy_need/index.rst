@@ -77,12 +77,20 @@ Heating Domestic Hot Water (heating_dhw)
 .. math::
 
    \text{energy need heating_dhw} = & \text{ energy need heating_dhw original condition}_\text{buidling code} \\
-                                    &-\text{upgrade heating_dhw}
+                                  & * \text{1-yearly reduction heating_dhw}^\text{year-start year} \\
+                                  & * \text{improvment heating_dhw end year}_\text{year}
 
 Where
 
-* :math:`\text{energy need heating_dhw original condition}_\text{buidling code}` refers to the energy need for heating domestic hot water as determined by the building code.
-* :math:`\text{upgrade domestic hot water}` refers to the reduction in energy need for heating domestic hot water as a result of energy measures. Currently, no reduction is defined for heating_dhw in EBM.
+* :math:`\text{energy need heating_dhw original condition}_\text{buidling code}` code refers to the energy need for heating_dhw as determined by the building code.
+* :math:`\text{yearly reduction heating_dhw}` refers to a yearly reduction in energy need for heating_dhw as a result of energy measures e.g. transition to LED bulbs.
+
+   * :math:`^\text{year}` refers to the year of the calculated energy need.
+   * :math:`^\text{start year}` refers to the start of the energy measure.
+
+* :math:`\text{improvment heating_dhw end year}_\text{year}` refers to an assumed reduction in energy need by a specific end year and how much of this is achieved in the year of the calculated energy need.
+
+   * :math:`_\text{year}` refers to the year of the calculated enery need.
 
 Fans and pumps
 --------------
@@ -90,13 +98,21 @@ Fans and pumps
 .. math::
 
    \text{energy need fans_and_pumps} = & \text{ energy need fans_and_pumps original condition}_\text{buidling code} \\
-                                       &-\text{upgrade fans_and_pumps}                                   
+                                  & * \text{1-yearly reduction fans_and_pumps}^\text{year-start year} \\
+                                  & * \text{improvment fans_and_pumps end year}_\text{year}
 
 Where
 
-* :math:`\text{energy need fans_and_pumps original condition}_\text{buidling code}` refers to the energy need for fans and pumps as determined by the building code.
-* :math:`\text{upgrade fans_and_pumps}` refers to the reduction in energy need for fans and pumps as a result of energy measures. Currently, no reduction is defined for fans and pumps in EBM.
+* :math:`\text{energy need fans_and_pumps original condition}_\text{buidling code}` code refers to the energy need for fans_and_pumps as determined by the building code.
+* :math:`\text{yearly reduction fans_and_pumps}` refers to a yearly reduction in energy need for fans_and_pumps as a result of energy measures e.g. transition to LED bulbs.
 
+   * :math:`^\text{year}` refers to the year of the calculated energy need.
+   * :math:`^\text{start year}` refers to the start of the energy measure e.g. improved ventilation.
+
+* :math:`\text{improvment fans_and_pumps end year}_\text{year}` refers to an assumed reduction in energy need by a specific end year and how much of this is achieved in the year of the calculated energy need.
+
+   * :math:`_\text{year}` refers to the year of the calculated enery need.
+   
 Lighting
 ---------
 
@@ -114,7 +130,7 @@ Where
    * :math:`^\text{year}` refers to the year of the calculated energy need.
    * :math:`^\text{start year}` refers to the start of the energy measure e.g. transition to LED bulbs.
 
-* :math:`\text{improvment lighting end year}_{\text_year}` refers to an assumed reduction in energy need by a specific year and how much of this is released year by year.
+* :math:`\text{improvment lighting end year}_\text{year}` refers to an assumed reduction in energy need by a specific end year and how much of this is achieved in the year of the calculated energy need.
 
    * :math:`_\text{year}` refers to the year of the calculated enery need.
 
@@ -124,12 +140,20 @@ Cooling
 .. math::
 
    \text{energy need cooling} = & \text{ energy need cooling original condition}_\text{buidling code} \\
-                                &-\text{upgrade cooling}            
+                                  & * \text{1-yearly reduction cooling}^\text{year-start year} \\
+                                  & * \text{improvment cooling end year}_\text{year}
 
 Where
 
-* :math:`\text{energy need cooling original condition}_\text{buidling code}` refers to the energy need for cooling as determined by the building code.
-* :math:`\text{upgrade fans_and_pumps}` refers to the reduction in energy need for cooling as a result of energy measures. Currently, no reduction is defined for cooling in EBM.
+* :math:`\text{energy need cooling original condition}_\text{buidling code}` code refers to the energy need for cooling as determined by the building code.
+* :math:`\text{yearly reduction cooling}` refers to a yearly reduction in energy need for cooling as a result of energy measures e.g. transition to LED bulbs.
+
+   * :math:`^\text{year}` refers to the year of the calculated energy need.
+   * :math:`^\text{start year}` refers to the start of the energy measure.
+
+* :math:`\text{improvment cooling end year}_\text{year}` refers to an assumed reduction in energy need by a specific end year and how much of this is achieved in the year of the calculated energy need.
+
+   * :math:`_\text{year}` refers to the year of the calculated enery need.
 
 Summarised
 ----------

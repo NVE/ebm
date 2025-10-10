@@ -12,12 +12,13 @@
 ;Purpose;Energiformål;Hva energien skal brukes til. Eks. belysning eller romoppvarming. ;What the energy is used for. Ex. lighting or space heating.
 ;Energy need[kWh/m\ :sup:`2`];Energibehov [kWh/m\ :sup:`2`];Beregnet energibehov per kvadratmeter per energiformål fra TEK.;Calculated energy requirement per square meter for a specific purpose from the building code.
 ;Behaviour factor;Adferdsfaktor;Faktor for å justere på energibehovet per formål, bygningskategori og TEK.;A factor to change the energy requirement for each energy purpose, building category and building code. 
-5;Building category;bygningskategori;Bygningskategoriene som brukes i TEK.;Building categories used in the building code.    
+5;Building category;Bygningskategori;Bygningskategoriene som brukes i TEK.;Building categories used in the building code.    
 ;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår.;Building code in construction year. 
-;Purpose;Energiformål;Affected energy purpose.;
+;Purpose;Energiformål;Valg av energiformål.;Affected energy purpose.
+;Function;Funksjon;Hvordan reduksjonen skal implementeres. ;How the reduction is applied.
 ;Start year;Startår;Startår endring energibehov.;Start year change in energy need.
+;Value;Verdi;Hvor stor reduksjonen skal være. Avhenging av funksjonen.;How large the reduction is. Based on the function. 
 ;End year;Sluttår;Sluttår endring energibehov;End year change in energy need. 
-;Improvement at end year;Endring ved sluttår;Prosentvis endring i sluttår sammenlignet med startår;Percentage change at end year compared to start year.
 6;Building category;bygningskategori;Bygningskategoriene som brukes i TEK.;Building categories used in TEK.   
 ;Building code;Byggteknisk forskrift;Gjeldene versjon av TEK i byggeår.;Building code in construction year. 
 ;Purpose;Energiformål;Hva energien skal brukes til. Eks. belysning eller romoppvarming.;What the energy is used for. Ex. lighting or space heating.

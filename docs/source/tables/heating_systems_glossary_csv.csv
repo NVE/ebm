@@ -1,11 +1,11 @@
 ﻿English;Norwegian;Norwegian explanation;Explanation
-Heating systems;Oppvarmingsløsninger;Kombinasjon av en eller flere oppvarmingsteknologier. Er en andel som summerer seg til 1 innenfor hver kombinasjon av TEK og bygningskategori.  ;Combination of one or more heating technologies. A fraction which adds up to 1 for each combination of TEK and building category. 
-Base load;Grunnlast;Oppvarmingsteknologien som dekker majoriteten av oppvarmingsbehovet.;The heating technology covering the majority of the heating need. 
-Peak load;Spisslast;Oppvarmingsteknologiensom dekker det resterende oppvarmingsbehovet.;The heating technology covering the remaining heating need. 
-Tertiary load;Ekstralast;Oppvarmingsteknologien som dekker det resterende oppvarmingsbehovet etter grunnlast og spisslast. ;The heating technology covering the remaining heating need after base and peak load. 
-Base load energy product;Grunnlast energivare;Energivaren som brukes avgrunnlasten. ;The energy carrier used by the base load. 
-Peak load energy product;Spisslast energivare;Energivaren som brukes av spisslasten. ;The energy carrier used by the peak load. 
-Tertiary load energy product;Ekstralast energivare;Energivaren som brukes av ekstralasten. ;The energy carrier used by the tertiary load. 
+Heating systems;Oppvarmingsløsninger;Kombinasjon av en eller flere oppvarmingsteknologier. Er en andel som summerer seg til 1 innenfor hver kombinasjon av TEK og bygningskategori.  ;Combination of one or more heating technologies. Fraction which adds up to 1 for each combination of building code and building category. 
+Base load;Grunnlast;Oppvarmingsteknologien som dekker majoriteten av oppvarmingsbehovet.;The heating technology that meets the majority of the heating need. 
+Peak load;Spisslast;Oppvarmingsteknologiensom dekker det resterende oppvarmingsbehovet.;The heating technology that meets the remaining heating need. 
+Tertiary load;Ekstralast;Oppvarmingsteknologien som dekker det resterende oppvarmingsbehovet etter grunnlast og spisslast. ;The heating technology that meets the remaining heating need after base and peak load. 
+Base load energy product;Grunnlast energivare;Energivaren som brukes avgrunnlasten. ;The energy product used by the base load. 
+Peak load energy product;Spisslast energivare;Energivaren som brukes av spisslasten. ;The energy product used by the peak load. 
+Tertiary load energy product;Ekstralast energivare;Energivaren som brukes av ekstralasten. ;The energy product used by the tertiary load. 
 Base load coverage;Grunnlast andel;Andelen av varmebehovet som dekkes av grunnlasten.;Share of the heating need covered by the base load.
 Peak load coverage;Spisslast andel;Andelen av varmebehovet som dekkes av spisslasten.;Share of the heating need covered by the peak load.
 Tertiary load coverage;Ekstralast andel;Andelen av varmebehovet som dekkes av ekstralasten.;Share of the heating need covered by the tertiary load. 

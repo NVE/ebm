@@ -33,7 +33,10 @@ steps:
     pip install pytest pytest-azurepipelines
     pytest
   displayName: 'pytest'
-
+- script: |
+    ruff check ebm
+  displayName: 'Ruff check'
+  condition: false
 - task: TwineAuthenticate@1
   inputs:
     artifactFeed: Energibruksmodell/NVE.ebm

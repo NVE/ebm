@@ -1,9 +1,13 @@
 EBM Documentation
 =============================
+
+EBM is a model used by the Norwegian Water Resources and Energy Directorates (NVE) to forecast energy use in the building stock. 
 EBM is a bottom-up model that estimates how area, energy need, heating systems and energy use in the building stock changes over time. 
-The model is developed in-house by the Norwegian Water Resources- and Energy Directorate (NVE). It is an open source model, with an accompanying dataset developed by NVE.   
-On this website you will find information on how to use the model and an overview of the model architecture and functionality. 
-In addition a description of the dataset and assumptions is provided. 
+The model is developed in-house by the Norwegian Water Resources- and Energy Directorate (NVE). 
+It is an open-source model, with an accompanying dataset developed by NVE. 
+
+This website provides documentation on how to use EBM, how the model works and a description of the dataset. To read more about how NVE work with models, visit https://www.nve.no/.
+
 
 .. toctree::
    :maxdepth: 1
@@ -41,7 +45,6 @@ In addition a description of the dataset and assumptions is provided.
    :titlesonly:
    :caption: Technical Documentation
 
-   sphinx_guide
    api_reference
    contributing
    changelog
@@ -49,8 +52,4 @@ In addition a description of the dataset and assumptions is provided.
    
    
 
-Indices and tables
-==================
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+

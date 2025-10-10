@@ -32,7 +32,7 @@ Residential area
 ----------------
 New construction in residential area is based on the population forecast and other key assumptions. 
 
-First, we calculate the required increase in dwellings. This is calculated from 📃population_forecast
+First, we calculate the required increase in dwellings. This is calculated from |population_forecast_ref|
 which contains both the population forecast and average household size.
 
 .. math::
@@ -41,7 +41,7 @@ which contains both the population forecast and average household size.
 
 
 The new dwellings can be either apartments or houses. The ratio between them, and the area per dwelling, 
-is given in 📃new_buildings_residential. The increase in dwellings is divided into houses and apartments:
+is given in |new_buildings_residential_ref|. The increase in dwellings is divided into houses and apartments:
 
 .. math::
 
@@ -59,7 +59,7 @@ The new construction area for houses is calculated as follows:
 
    \text{New construction house} (\text{year } x) = &\text{ Increase in num. houses} (\text{year } x) \\  
                                                      &*\text{Floor area new house} \\
-                                                     &+\text{demolished area house} (\text{year } x-1)
+                                                     &+\text{demolished area houses} (\text{year } x-1)
 
 The construction area for new apartments is calculated as follows:
 
@@ -69,13 +69,13 @@ The construction area for new apartments is calculated as follows:
                                                      &*\text{Floor area new apartments} \\
                                                      &+\text{demolished area apartments} (\text{year } x-1)
 
-Any residential floor area listed in 📃area_new_residential_buildings is considered a 
+Any residential floor area listed in |area_new_residential_buildings_ref| is considered a 
 statistical fact and will override the model's calculated values for new construction.
 
 Non-residential area
 ---------------------
 Population growth is the driver for increasing non-residential area. The population forecast is defined in 
-📃population_forecast. The area per person for each building category is defined in 📃area_per_person.
+|population_forecast_ref|. The area per person for each building category is defined in |area_per_person_ref|.
 
 The total area in a given year for each building category is the area per person times the population. 
 
@@ -101,14 +101,14 @@ Combining the two formulas and rearranging them gives us the method for calculat
                           &+ \text{ demolished}(\text{year }x-1)
 
 The area per person is different for each of the non-residential building categories. It can also change from year to year.
-In 📃area_per_person, we have assumed that the area per person for each building category is constant thorughout the forecast period. 
+In |area_per_person_ref|, we have assumed that the area per person for each building category is constant thorughout the forecast period. 
 
 Data assumptions NVE
 ====================
 
 Area in the starting year of the model
 ---------------------------------------
-📃area
+|area_ref|
 
 Data for the building area used in this model was prepared by Prognosesenteret in 2022. . This data describes the building stock in 2020 in Norway, 
 distributed by building categories and age. The area is grouped into age groups that correspond to the periods during which the 
@@ -117,7 +117,7 @@ age-specific rates for small measures, renovation, and demolition.
 
 Demolition of area
 -------------------
-📃s-curve
+|s_curve_ref|
 
 The assumed rates for demolition in the model are made to resemble S-curves. This means that the demolition of a 
 specific building category of a specific age varies over time in the model. The S-curves are specific to 
@@ -130,14 +130,14 @@ energy consumption should therefore be used with caution. An updated and improve
 
 Population forecast
 -------------------
-📃population_forecast
+|population_forecast_ref|
 
 The population forecast in the dataset is sourced from Statistics Norway. We use their main forecast, called 
 `MMM <https://www.ssb.no/befolkning/befolkningsframskrivinger/statistikk/nasjonale-befolkningsframskrivinger>`_.
 
 Dwellings
 ----------
-📃new_buildings_residential
+|new_buildings_residential_ref|
 
 The forecast for average household size in the dataset is made to be a continuation of historic household size
 in Norway going back to the 1960s. `The historic household size is published by Statistics Norway <https://www.ssb.no/statbank/table/06076/>`_. We have assumed

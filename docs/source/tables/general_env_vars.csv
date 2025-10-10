@@ -1,6 +1,6 @@
 Variable, Description, Type, Default
 ``DEBUG``, Enable debug mode which provides more detailed logging information, Boolean, False
-``LOG_FORMAT``, "Defines the format for log messages", String, 'simple'
+``LOG_FORMAT``, "Defines the format for log messages", String, {level.icon} <level>{message}</level>
 ``EBM_INPUT_DIRECTORY``, Specifies the default directory for input files., string, './input'
 ``EBM_OUTPUT_DIRECTORY``, Specifies the default directory for output files., string, './output'
 ``EBM_DEFAULT_INPUT``, Defines the default input file or dataset.,string, None

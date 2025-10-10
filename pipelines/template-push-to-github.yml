@@ -7,8 +7,16 @@ parameters:
     default: 'ebm@nve.no'
 
 steps:
+  -
   - script: |
-      echo "🌲 ${{ parameters.remote_branch }} $(GITHUB_REPO)" 
+      echo "📚 $(GITHUB_REPO)" 
+      echo "🔍 Checking if remote branch '${{ parameters.remote_branch }}' exists..."
+      git ls-remote --heads github | grep "refs/heads/${{ parameters.remote_branch }}" || {
+        echo "❌ Branch '${{ parameters.remote_branch }}' not found on remote."
+        exit 1}
+  - displayName: 'Verify remote branch exists 📚'
+
+  - script: |
       git remote add github https://$(GITHUB_TOKEN)@$(GITHUB_REPO)
       git fetch github +refs/heads/${{ parameters.remote_branch }}:refs/remotes/github/${{ parameters.remote_branch }}
     displayName: 'Fetch remote 📥'

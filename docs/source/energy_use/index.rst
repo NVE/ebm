@@ -1,7 +1,10 @@
 Energy use
 ###########
 
-The model calculates the energy use by combining energy need, area and heating systems.
+The model calculates the energy use by combining energy need, area and heating systems. 
+How much energy the building stock uses depends on it's energy need and which heating technologies are used to cover it. 
+For instance, both air-to-air heat pumps and electrical panel heaters use electricity to heat a room, but heat pumps use
+less electricity than electric panel heaters to achieve the same indoor temperature. 
 
 Each heating technology (e.g. wood stove or electrical panel heater) uses one energy product (e.g. wood or electricity).
 Knowing the composition of heating solutions, their efficiencies and which energy product they use,

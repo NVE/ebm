@@ -205,8 +205,8 @@ the overall heating system share of "HP - Electricity - Bio" for houses has been
   :widths: 10, 10, 15, 15, 5, 5 ,5, 5, 5
   :header-rows: 1
 
-An example on how the forecasted heating systems are shown in the figure below. Here the share of air-air heatpumps is increased over time by shrinking
-the share of "Electricity - Bio" and increasing the share of "HP - Electricity - Bio". 
+An example on how the forecasted share of heating systems can look are shown in the figure below. Here the share of air-air heatpumps is increased over time by shrinking
+the share of "Electricity - Bio" and increasing the share of "HP - Electricity - Bio". With the same rates as in the table above.
 
 .. raw:: html
   :file: ..\images\Hus.html

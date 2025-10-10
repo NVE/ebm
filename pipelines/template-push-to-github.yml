@@ -1,0 +1,43 @@
+parameters:
+  - name: remote_branch
+    type: string
+    default: '$(Build.SourceBranchName)'
+  - name: git_user_email
+    type: string
+    default: 'ebm@nve.no'
+
+steps:
+  - script: |
+      git remote add github https://$(GITHUB_TOKEN)@$(GITHUB_REPO)
+    displayName: 'Add remote 🔭'
+  - script: |
+      git fetch github +refs/heads/${{ parameters.remote_branch }}:refs/remotes/github/${{ parameters.remote_branch }}
+    displayName: 'Fetch remote 📥'
+
+  - script: git checkout -B ${{ parameters.remote_branch }}
+    displayName: "Switch to ${{ parameters.remote_branch }} 🌳"
+  - script: |
+      HEAD_COMMIT=$(git log -1 --oneline)
+      REMOTE_COMMIT=$(git log github/${{ parameters.remote_branch }} -1 --oneline)
+      echo "🔍 HEAD latest commit: $(HEAD_COMMIT)"
+      echo "🔍 Remote branch latest commit: $(REMOTE_COMMIT)"
+    displayName: 'Check commits 📖'
+
+  - script: |
+      # Check for divergence
+      if ! git merge-base --is-ancestor github/${{ parameters.remote_branch }} HEAD; then
+        echo "⚠️ Divergence detected: remote has commits not found locally."
+        echo "🕵️ Remote commits:"
+        git log HEAD..github/${{ parameters.remote_branch }} --oneline
+        echo "🏳️ Refusing to force push"
+        exit 1
+      fi
+      echo "🏁 Safe to force push."
+    displayName: 'Divergence check 🛂'
+  - script: git push --force github HEAD:${{ parameters.remote_branch }}
+    displayName: 'Force push 🤜'
+
+    env:
+      GITHUB_TOKEN: $(GITHUB_TOKEN)
+      GITHUB_REPO: $(GITHUB_REPO)
+      REMOTE_BRANCH: ${{parameters.remote_branch}}

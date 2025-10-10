@@ -1,0 +1,4 @@
+Building category,building code,Initial heating systems,"Shares of initial heating systems in start year
+",New heating systems,2024,2025,2030,2040,2050
+non_residential,default,Gas,0.10,HP Central heating - Electric boiler,0.10,0.25,1,1,1
+house,default,Electricity - Bio,0.20,HP - Bio - Electricity,0.05,0.10,0.25,0.5,1

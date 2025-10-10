@@ -56,12 +56,13 @@ def test_calculate_yearly_new_building_floor_area_sum():
     pd.testing.assert_series_equal(result, expected_accumulated_floor_area)
 
 
-def test_calculate_yearly_constructed_floor_area():
+def test_calculate_yearly_constructed_floor_area_build_area_sum_replace_calculated():
+    """Any value in build_area_sum should replace calculated values"""
     build_area_sum = pd.Series([100, 200, 300], index=[0, 1, 2])
     yearly_floor_area_change = pd.Series([10, 20, 30], index=[0, 1, 2])
     yearly_demolished_floor_area = pd.Series([5, 15, 25], index=[0, 1, 2])
 
-    expected_constructed_floor_area = pd.Series([0, 200, 300], name='constructed_floor_area', index=[0, 1, 2])
+    expected_constructed_floor_area = pd.Series([100, 200, 300], name='constructed_floor_area', index=[0, 1, 2])
 
     result = ConstructionCalculator.calculate_yearly_constructed_floor_area(
         build_area_sum, yearly_floor_area_change, yearly_demolished_floor_area)
@@ -106,7 +107,7 @@ def test_calculate_residential_construction():
     population = pd.Series([1000, 1100, 1210, 1331], index=period.range())
     household_size = pd.Series([2.5, 2.4, 2.3, 2.2], index=period.range())
     building_category_share = pd.Series([0.5, 0.5, 0.5, 0.5], index=period.range())
-    build_area_sum = pd.Series([100, 200, 300, 400], index=period.range())
+    build_area_sum = pd.Series([0, 200, 300, 400], index=period.range())
     yearly_demolished_floor_area = pd.Series([10, 20, 30, 40], index=period.range())
     average_floor_area = 175
 
@@ -141,7 +142,7 @@ def test_calculate_residential_construction_2011():
     population = pd.Series([1000, 1100, 1210, 1331], index=period.range())
     household_size = pd.Series([2.5, 2.4, 2.3, 2.2], index=period.range())
     building_category_share = pd.Series([0.5, 0.5, 0.5, 0.5], index=period.range())
-    build_area_sum = pd.Series([100, 200, 300, 400], index=period.range())
+    build_area_sum = pd.Series([0, 200, 300, 400], index=period.range())
     yearly_demolished_floor_area = pd.Series([10, 20, 30, 40], index=period.range())
     average_floor_area = 175
 
@@ -222,8 +223,8 @@ def test_calculate_residential_construction_from_2020(default_input):
 
     assert accumulated_constructed_floor_area.index.to_list() == expected.index.to_list()
 
-
-def test_calculate_residential_construction_for_ten_years(default_input):
+@pytest.mark.parametrize('build_sum_0', [0.0, 10_000.0])
+def test_calculate_residential_construction_for_ten_years(default_input, build_sum_0):
     """
     Test that accumulated_constructed_floor_area has a correct index from 2011 to 2020
     """
@@ -231,7 +232,7 @@ def test_calculate_residential_construction_for_ten_years(default_input):
     population = pd.Series(default_input.get('population'), name='period')
     household_size = pd.Series(default_input.get('household_size'), name='household_size')
     building_category_share = pd.Series({y: 0.5 for y in period})
-    build_area_sum = pd.Series([10_000, 20_000], index=[2011, 2012])
+    build_area_sum = pd.Series([build_sum_0, 20_000], index=[2011, 2012])
     yearly_demolished_floor_area = pd.Series([500 + y for y in period], index=period.range())
     average_floor_area = 175
 
@@ -242,10 +243,12 @@ def test_calculate_residential_construction_for_ten_years(default_input):
                                                                          period=period)
 
     accumulated_constructed_floor_area = result.accumulated_constructed_floor_area
-    expected = pd.Series(
-        data=[0, 20_000.0, 4410_349.59, 6_710_971.5, 8_970_429.70, 11_836_230.1,
-              13_610_002.80, 17_052_970.79715203, 19_510_260.74, 21_973_008.85], index=period.range(),
-        name='accumulated_constructed_floor_area')
+
+    expected_values = [build_sum_0, 20_000.0, 4410_349.59, 6_710_971.5, 8_970_429.70, 11_836_230.1,
+         13_610_002.80, 17_052_970.79715203, 19_510_260.74, 21_973_008.85]
+    expected = pd.Series(data=expected_values, index=period.range(), name='accumulated_constructed_floor_area')
+    expected.iloc[1:] = expected.iloc[1:] + build_sum_0
+
 
     pd.testing.assert_series_equal(accumulated_constructed_floor_area, expected)
 

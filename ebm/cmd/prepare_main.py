@@ -117,6 +117,9 @@ The calculation step you want to run. The steps are sequential. Any prerequisite
     arg_parser.add_argument('--create-input', action='store_true',
                             help='''
 Create input directory containing all required files in the current working directory''')
+
+    arg_parser.add_argument('--migrate', action='store_true', help=argparse.SUPPRESS)
+
     arg_parser.add_argument('--start-year', nargs='?', type=int,
                             default=os.environ.get('EBM_START_YEAR', 2020),
                             help=argparse.SUPPRESS)

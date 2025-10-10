@@ -163,9 +163,9 @@ class ConstructionCalculator:
         return pd.Series(yearly_new_building_floor_area_house.cumsum(), name='accumulated_constructed_floor_area')
 
     @staticmethod
-    def calculate_yearly_constructed_floor_area(build_area_sum,
-                                                yearly_floor_area_change,
-                                                yearly_demolished_floor_area) -> pd.Series:
+    def calculate_yearly_constructed_floor_area(build_area_sum: pd.Series,
+                                                yearly_floor_area_change: pd.Series,
+                                                yearly_demolished_floor_area: pd.Series) -> pd.Series:
         """
         Calculate the yearly constructed floor area based on changes and demolitions.
 
@@ -187,6 +187,7 @@ class ConstructionCalculator:
         -----
         The function calculates the yearly new building floor area by adding the yearly floor area change
         to the yearly demolished floor area. It then updates the values based on the build_area_sum index.
+
         """
         bas_missing_year = [str(y) for y in yearly_demolished_floor_area.iloc[0:2].index if
                             y not in build_area_sum.index or
@@ -197,10 +198,9 @@ class ConstructionCalculator:
             raise ValueError(msg)
 
         yearly_new_building_floor_area_house = yearly_floor_area_change + yearly_demolished_floor_area
-        yearly_new_building_floor_area_house.loc[build_area_sum.index.values] = build_area_sum.loc[
-            build_area_sum.index.values]
+        yearly_new_building_floor_area_house.loc[build_area_sum.index.to_numpy()] = build_area_sum.loc[
+            build_area_sum.index.to_numpy()]
 
-        yearly_new_building_floor_area_house.iloc[0] = 0.0
         return pd.Series(yearly_new_building_floor_area_house, name='constructed_floor_area')
 
     @staticmethod

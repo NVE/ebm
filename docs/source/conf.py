@@ -3,6 +3,7 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
+import os
 import sys
 from pathlib import Path
 
@@ -69,3 +70,20 @@ napoleon_numpy_docstring = False
 add_module_names = False
 modindex_common_prefix = ["src."]
 
+
+
+# Use switch `-t internal` when building to include internal
+# Load environment variables for substitution
+ebm_installation_host = os.environ.get("EBM_INSTALLATION_HOST", os.environ.get('COMPUTERNAME', '??'))
+# Make it available to templates
+
+substitutions_rst = Path(__file__).parent / '_substitutions.rst'
+
+substitutions = substitutions_rst.read_text(encoding='utf-8').replace(':orphan:', '')
+
+
+host_ = f"""
+.. |ebm_installation_host| replace:: {ebm_installation_host}
+"""
+
+rst_epilog = substitutions + host_

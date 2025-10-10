@@ -1,0 +1,7 @@
+Command, Energy product (option), Building category (option), Data source (option), Years (option), Output format (option)
+python -m ebmgeodist, all, all, local, 2022-2024, wide
+python -m ebmgeodist energy-product, "electricity, dh, fuelwood, fossilfuel", all, local, 2022-2024, wide
+python -m ebmgeodist building-category, all, "residential, holiday-home, non-residential, all", local, 2022-2024, wide
+python -m ebmgeodist source, all, all, "azure, local", 2022-2024, wide
+python -m ebmgeodist years, all, all, local, "2022, 2023, 2024, or a combination", wide
+python -m ebmgeodist start-end-years, all, all, local, 2022-2024, Including only the start and end years

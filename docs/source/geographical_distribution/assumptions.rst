@@ -6,9 +6,9 @@ Elhub data has been used to find representative distribution keys for each Norwe
 the hub provides among other things, electricity consumption data per each measurement point for different regions and municipalities in Norway. Knowing the 
 total electricity consumption per each municipality, we can find the corresponding share of electricity for that municipality. This share is then used as a 
 distribution key to distribute the annual EBM energy use projection results. The geographical distribution module considers four different energy
-types: electricity, district heating, bioenergy, and fossil fuels. Furthermore, three different building categories are included; households, holiday homes and 
+products: electricity, district heating, bioenergy, and fossil fuels. Furthermore, three different building categories are included; households, holiday homes and 
 commercial buildings. The distribution keys are either calculated directly from Elhub data
-inside the module or loaded from input files under the ``input`` folder, depending on the energy type that is into consideration. The following table
+inside the module or loaded from input files under the ``input`` folder, depending on the energy product that is into consideration. The following table
 gives an overview of the implemented functionality introduced in the module.
 
 .. csv-table:: Geographical distribution overview
@@ -20,7 +20,7 @@ gives an overview of the implemented functionality introduced in the module.
 Detailed description
 --------------------
 
-The following is a more detailed description of how the distribution keys for each energy type are obtained:
+The following is a more detailed description of how the distribution keys for each energy product are obtained:
 
 - Electricity: the distribution keys for electricity is calculated directly from Elhub data. The total electricity consumption per each municipality is divided
   by the total electricity consumption in Norway to get the share of electricity consumption for each municipality. This share is then used as a distribution key
@@ -56,7 +56,7 @@ The geographical distribution module makes the following assumptions:
   based on projected demographic changes in future versions of the module.
 
 - The distribution keys for district heating, bioenergy, and fossil fuels are assumed to be static and do not change over time. This means that the module assumes
-  that the consumption patterns for these energy types will remain relatively stable over the projection period.
+  that the consumption patterns for these energy products will remain relatively stable over the projection period.
 
 - For district heating, the holiday homes building category is not considered. This means that the module assumes that the 
   district heating consumption in holiday homes is negligible and does not significantly affect the overall distribution of district 

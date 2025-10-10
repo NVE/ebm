@@ -6,33 +6,33 @@ from ebm.model.filter_tek import FilterTek
 
 ADJUSTED_REQUIREMENT = 'eq_ts'
 # there are 3 time-of-use zones: peak, shoulder and offpeak.
-HEATING_RV_GRUNNLAST = 'RV_GL'
-HEATING_RV_SPISSLAST = 'RV_SL'
-HEATIG_RV_EKSTRALAST = 'RV_EL'
+HEATING_RV_BASE_TOTAL = 'RV_GL'
+HEATING_RV_PEAK_TOTAL = 'RV_SL'
+HEATING_RV_TERTIARY_TOTAL = 'RV_EL'
 HEAT_PUMP = 'RV_HP'
-COOLING_KV = 'CL_KV'
-DHW_TV = 'DHW_TV'
-OTHER_SV = 'O_SV'
+COOLING_TOTAL = 'CL_KV'
+DHW_TOTAL = 'DHW_TV'
+OTHER_TOTAL = 'O_SV'
 HEATING_RV = 'heating_rv'
 HEATING_DHW = 'heating_dhw'
 COOLING = 'cooling'
-DHW_EFFICIENCY = 'Tappevann virkningsgrad'
+DHW_EFFICIENCY = 'domestic_hot_water_efficiency'
 
 HEATING_SYSTEMS = 'heating_systems'
 HEATING_SYSTEM_SHARE = 'heating_system_share'
-GRUNNLAST_ANDEL = 'Grunnlast andel'
-GRUNNLAST_VIRKNINGSGRAD = 'Grunnlast virkningsgrad'
-KJOLING_VIRKNINGSGRAD = 'Kjoling virkningsgrad'
+GRUNNLAST_ANDEL = 'base_load_coverage'
+BASE_LOAD_EFFICIENCY = 'base_load_efficiency'
+COOLING_EFFICIENCY = 'cooling_efficiency'
 SPESIFIKT_ELFORBRUK = 'Spesifikt elforbruk'
-EKSTRALAST_ANDEL = 'Ekstralast andel'
-EKSTRALAST_VIRKNINGSGRAD = 'Ekstralast virkningsgrad'
-SPISSLAST_ANDEL = 'Spisslast andel'
-SPISSLAST_VIRKNINGSGRAD = 'Spisslast virkningsgrad'
+TERTIARY_LOAD_COVERAGE = 'tertiary_load_coverage'
+TERTIARY_LOAD_EFFICIENCY = 'tertiary_load_efficiency'
+PEAK_LOAD_COVERAGE = 'peak_load_coverage'
+PEAK_LOAD_EFFICIENCY = 'peak_load_efficiency'
 
-GRUNNLAST_ENERGIVARE = 'Grunnlast energivare'
-SPISSLAST_ENERGIVARE = 'Spisslast energivare'
-EKSTRALAST_ENERGIVARE = 'Ekstralast energivare'
-TAPPEVANN_ENERGIVARE = 'Tappevann energivare'
+BASE_LOAD_ENERGY_PRODUCT = 'base_load_energy_product'
+PEAK_LOAD_ENERGY_PRODUCT = 'peak_load_energy_product'
+TERTIARY_LOAD_ENERGY_PRODUCT = 'tertiary_load_energy_product'
+DOMESTIC_HOT_WATER_ENERGY_PRODUCT = 'domestic_hot_water_energy_product'
 HP_ENERGY_SOURCE = 'hp_source'
 
 
@@ -53,11 +53,11 @@ class EnergyConsumption:
         df = self.heating_systems_parameters
         df = df.rename(columns={'heating_system_share': HEATING_SYSTEM_SHARE})
 
-        aggregates = {'Grunnlast energivare': 'first', 'Spisslast energivare': 'first',
-                      'Ekstralast energivare': 'first', 'Tappevann energivare': 'first', HEATING_SYSTEM_SHARE: 'sum',
-                      EKSTRALAST_ANDEL: 'sum', GRUNNLAST_ANDEL: 'sum', SPISSLAST_ANDEL: 'sum',
-                      GRUNNLAST_VIRKNINGSGRAD: 'sum', SPISSLAST_VIRKNINGSGRAD: 'sum', EKSTRALAST_VIRKNINGSGRAD: 'sum',
-                      DHW_EFFICIENCY: 'sum', SPESIFIKT_ELFORBRUK: 'sum', KJOLING_VIRKNINGSGRAD: 'sum'}
+        aggregates = {'base_load_energy_product': 'first', 'peak_load_energy_product': 'first',
+                      'tertiary_load_energy_product': 'first', 'domestic_hot_water_energy_product': 'first', HEATING_SYSTEM_SHARE: 'sum',
+                      TERTIARY_LOAD_COVERAGE: 'sum', GRUNNLAST_ANDEL: 'sum', PEAK_LOAD_COVERAGE: 'sum',
+                      BASE_LOAD_EFFICIENCY: 'sum', PEAK_LOAD_EFFICIENCY: 'sum', TERTIARY_LOAD_EFFICIENCY: 'sum',
+                      DHW_EFFICIENCY: 'sum', SPESIFIKT_ELFORBRUK: 'sum', COOLING_EFFICIENCY: 'sum'}
         grouped = df.groupby(by=['building_category', 'building_code', 'year', HEATING_SYSTEMS]).agg(aggregates)
         return grouped.reset_index()
 
@@ -93,7 +93,7 @@ class EnergyConsumption:
         df[ADJUSTED_REQUIREMENT] = (df.energy_requirement * df[HEATING_SYSTEM_SHARE]).astype(float)
 
         # Zero fill columns before calculating to prevent NaN from messing up sums
-        df.loc[:, [HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HEATIG_RV_EKSTRALAST, DHW_TV, COOLING_KV, OTHER_SV,
+        df.loc[:, [HEATING_RV_BASE_TOTAL, HEATING_RV_PEAK_TOTAL, HEATING_RV_TERTIARY_TOTAL, DHW_TOTAL, COOLING_TOTAL, OTHER_TOTAL,
                    HEAT_PUMP]] = 0.0
 
         # Adjust energy requirements by efficiency
@@ -107,17 +107,17 @@ class EnergyConsumption:
 
         # sum energy use
         df.loc[:, 'kwh'] = df.loc[:,
-                           [HEATING_RV_GRUNNLAST, HEATING_RV_SPISSLAST, HEATIG_RV_EKSTRALAST, DHW_TV, COOLING_KV,
-                            OTHER_SV]].sum(axis=1)
+                           [HEATING_RV_BASE_TOTAL, HEATING_RV_PEAK_TOTAL, HEATING_RV_TERTIARY_TOTAL, DHW_TOTAL, COOLING_TOTAL,
+                            OTHER_TOTAL]].sum(axis=1)
 
         df.loc[:, 'gwh'] = df.loc[:, 'kwh'] / 10 ** 6
 
         df = df.sort_index(level=['building_category', 'building_code', 'year', 'building_condition', 'purpose', HEATING_SYSTEMS])
         return df[[HEATING_SYSTEM_SHARE, ADJUSTED_REQUIREMENT,
-                   HEATING_RV_GRUNNLAST, GRUNNLAST_ENERGIVARE, GRUNNLAST_VIRKNINGSGRAD,
-                   HEATING_RV_SPISSLAST, SPISSLAST_ENERGIVARE, SPISSLAST_VIRKNINGSGRAD,
-                   HEATIG_RV_EKSTRALAST, EKSTRALAST_ENERGIVARE, EKSTRALAST_VIRKNINGSGRAD,
-                   DHW_TV, TAPPEVANN_ENERGIVARE, COOLING_KV, OTHER_SV, HEAT_PUMP, HP_ENERGY_SOURCE, 'kwh', 'gwh']]
+                   HEATING_RV_BASE_TOTAL, BASE_LOAD_ENERGY_PRODUCT, BASE_LOAD_EFFICIENCY,
+                   HEATING_RV_PEAK_TOTAL, PEAK_LOAD_ENERGY_PRODUCT, PEAK_LOAD_EFFICIENCY,
+                   HEATING_RV_TERTIARY_TOTAL, TERTIARY_LOAD_ENERGY_PRODUCT, TERTIARY_LOAD_EFFICIENCY,
+                   DHW_TOTAL, DOMESTIC_HOT_WATER_ENERGY_PRODUCT, COOLING_TOTAL, OTHER_TOTAL, HEAT_PUMP, HP_ENERGY_SOURCE, 'kwh', 'gwh']]
 
     def adjust_heat_pump(self, df):
         df[HP_ENERGY_SOURCE] = None
@@ -143,44 +143,44 @@ class EnergyConsumption:
         # lighting, electrical equipment, fans and pumps energy use is calculated by dividing with spesific electricity
         # useage
         other_slice = (slice(None), slice(None), EnergyPurpose.other(), slice(None), slice(None))
-        df.loc[other_slice, OTHER_SV] = df.loc[other_slice, ADJUSTED_REQUIREMENT] / df.loc[
+        df.loc[other_slice, OTHER_TOTAL] = df.loc[other_slice, ADJUSTED_REQUIREMENT] / df.loc[
             other_slice, SPESIFIKT_ELFORBRUK]
         return df
 
     def adjust_cooling(self, df):
-        # cooling energy use is calculated by dividing cooling with 'Kjoling virkningsgrad'
+        # cooling energy use is calculated by dividing cooling with 'cooling_efficiency'
         cooling_slice = (slice(None), slice(None), COOLING, slice(None), slice(None))
-        df.loc[cooling_slice, COOLING_KV] = df.loc[cooling_slice, ADJUSTED_REQUIREMENT] / df.loc[
-            cooling_slice, KJOLING_VIRKNINGSGRAD]
+        df.loc[cooling_slice, COOLING_TOTAL] = df.loc[cooling_slice, ADJUSTED_REQUIREMENT] / df.loc[
+            cooling_slice, COOLING_EFFICIENCY]
         return df
 
     def adjust_heating_dhw(self, df):
-        # heating dhw energy use is calculated by dividing heating_dhw with 'Tappevann virkningsgrad'
+        # heating dhw energy use is calculated by dividing heating_dhw with 'domestic_hot_water_efficiency'
         heating_dhw_slice = (slice(None), slice(None), HEATING_DHW, slice(None), slice(None))
-        df.loc[heating_dhw_slice, DHW_TV] = df.loc[heating_dhw_slice, ADJUSTED_REQUIREMENT] / df.loc[
+        df.loc[heating_dhw_slice, DHW_TOTAL] = df.loc[heating_dhw_slice, ADJUSTED_REQUIREMENT] / df.loc[
             heating_dhw_slice, DHW_EFFICIENCY]
         return df
 
     def adjust_heating_rv(self, df):
         heating_rv_slice = (slice(None), slice(None), HEATING_RV, slice(None), slice(None))
-        df.loc[heating_rv_slice, HEATING_RV_GRUNNLAST] = (
+        df.loc[heating_rv_slice, HEATING_RV_BASE_TOTAL] = (
                 df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] * df.loc[heating_rv_slice, GRUNNLAST_ANDEL] / df.loc[
-            heating_rv_slice, GRUNNLAST_VIRKNINGSGRAD])
-        df.loc[heating_rv_slice, HEATING_RV_SPISSLAST] = (
-                df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] * df.loc[heating_rv_slice, SPISSLAST_ANDEL] / df.loc[
-            heating_rv_slice, SPISSLAST_VIRKNINGSGRAD])
-        df.loc[heating_rv_slice, HEATIG_RV_EKSTRALAST] = (
-                df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] * df.loc[heating_rv_slice, EKSTRALAST_ANDEL] / df.loc[
-            heating_rv_slice, EKSTRALAST_VIRKNINGSGRAD])
+            heating_rv_slice, BASE_LOAD_EFFICIENCY])
+        df.loc[heating_rv_slice, HEATING_RV_PEAK_TOTAL] = (
+                df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] * df.loc[heating_rv_slice, PEAK_LOAD_COVERAGE] / df.loc[
+            heating_rv_slice, PEAK_LOAD_EFFICIENCY])
+        df.loc[heating_rv_slice, HEATING_RV_TERTIARY_TOTAL] = (
+                df.loc[heating_rv_slice, ADJUSTED_REQUIREMENT] * df.loc[heating_rv_slice, TERTIARY_LOAD_COVERAGE] / df.loc[
+            heating_rv_slice, TERTIARY_LOAD_EFFICIENCY])
         return df
 
     def _merge_energy_requirement_and_heating_systems(self, energy_requirements):
         df = energy_requirements.reset_index().merge(self.heating_systems_parameters.reset_index(),
             left_on=['building_category', 'building_code', 'year'], right_on=['building_category', 'building_code', 'year'])[
             ['building_category', 'building_condition', 'purpose', 'building_code', 'year', 'kwh_m2', 'm2', 'energy_requirement',
-             HEATING_SYSTEMS, HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE,
-             SPISSLAST_ANDEL, SPISSLAST_VIRKNINGSGRAD, SPISSLAST_ENERGIVARE, EKSTRALAST_VIRKNINGSGRAD, EKSTRALAST_ANDEL,
-             EKSTRALAST_ENERGIVARE, TAPPEVANN_ENERGIVARE, DHW_EFFICIENCY, SPESIFIKT_ELFORBRUK, KJOLING_VIRKNINGSGRAD]]
+             HEATING_SYSTEMS, HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, BASE_LOAD_EFFICIENCY, BASE_LOAD_ENERGY_PRODUCT,
+             PEAK_LOAD_COVERAGE, PEAK_LOAD_EFFICIENCY, PEAK_LOAD_ENERGY_PRODUCT, TERTIARY_LOAD_EFFICIENCY, TERTIARY_LOAD_COVERAGE,
+             TERTIARY_LOAD_ENERGY_PRODUCT, DOMESTIC_HOT_WATER_ENERGY_PRODUCT, DHW_EFFICIENCY, SPESIFIKT_ELFORBRUK, COOLING_EFFICIENCY]]
         # Unused columns
         # ,'Innfyrt_energi_kWh','Innfyrt_energi_GWh','Energibehov_samlet_GWh']]
         df = df.set_index(

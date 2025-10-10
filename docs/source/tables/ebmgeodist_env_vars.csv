@@ -1,0 +1,2 @@
+Variable, Description, Type, Default
+``EBM_GEODIST_ELHUB_CREDENTIALS``, Specifies the location of the ELHUB API credentials for the ``ebmgeodist`` module., string, None

@@ -1,26 +1,26 @@
 ﻿English;Norwegian;Norwegian explanation;Explanation
-Small-scale energy measure.;Enøk-tiltak.;Reduserer energibehov til romoppvarming med 7 % for bygg opp til TEK10. 2 % for TEK17.;Reduces space heating demand by 7 % for buildings up to TEK10. 2 % for TEK17. In the column names is this shortened to “small measure”.
-Renovation.;Rehabilitering.;Reduserer energibehov til oppvarming med 20 % for bygg opp til TEK10. 5 % for TEK17.;Reduces space heating demand by 20 % for buildings up to TEK10. 5 % for TEK17. 
-Renovation and small measure.;Rehabilitering og enøk.;Reduserer energibehov til romoppvarming med 25 % for bygg opp til TEK10. 7 % for TEK17.;Reduces space heating demand by 25 % for buildings up to TEK10. 7 % for TEK17.
+Small-scale energy measure.;Enøk-tiltak.;Reduserer energibehov til romoppvarming.;Reduces space heating demand.
+Renovation.;Rehabilitering.;Reduserer energibehov til oppvarming.;Reduces space heating demand.
+Renovation and small measure.;Rehabilitering og enøk.;Reduserer energibehov til romoppvarming.;Reduces space heating demand.
 House.;Småhus.;Enebolig, rekkehus, tomannsbolig, firemannsbolig.;Residential buildings which are not multi-storey apartment blocks.  
 Original condition.;Uberørt.;Bygningsarealet har ikke utført enøk eller rehabilitering.;The floor area/building has not completed any measures. 
 Apartment block.;Leilighet i boligblokk.;En boligblokk inneholder flere leligheter.;Residential apartments. An apartment block contains multiple apartments.  
-Commercial.;Yrkesbygg.;De 11 bygningskategoriene I TEK som ikke er boliger. ;The 11 building categories in the building code that are not residential buildings.  
-Electricity;Elektrisitet.;Energibærer. ;Energy product. 
-Direct resistance heating;Direktevirkende elektrisitet.;Oppvarmingsteknologi, punktoppvarming. For eksempel panelovn eller vifteovn. ;Heating technology, space heating. For example electrical panel heater or convection oven. 
+Non-residential building.;Yrkesbygg.;De 11 bygningskategoriene I TEK som ikke er boliger. ;The 11 building categories in the building code that are not residential buildings.  
+Electricity.;Elektrisitet.;Energibærer. ;Energy product. 
+Direct resistance heating.;Direktevirkende elektrisitet.;Oppvarmingsteknologi, punktoppvarming. For eksempel panelovn eller vifteovn. ;Heating technology, space heating. For example electrical panel heater or convection oven. 
 Wood stove.;Vedovn.;Oppvarmingsteknologi som bruker ved. Punktoppvarming.;Heating technology using fuel wood. Space heating. 
 Heat pump air-air.;Varmepumpe luft-luft .;Punktoppvarming, kan ikke varme opp hele bygningen med én enhet.;Point source and cannot heat an entire building with one unit. 
-Varmtvannsbereder.;Electric water heater.;Varmtvannsbereder for varmt tappevann. ;Electric water heater for domestic hot water.
-Elkjel.;Electric boiler.;Vannbåren varme. ;Water-borne heating. 
-Biokjel.;Biomass boiler.;Vannbåren varme. ;Water-borne heating.
-Solfanger.;Solar collector.;Vannbåren varme. ;Water-borne heating.
-Fossilkjel.;Fossil boiler.;Vannbåren varme. ;Water-borne heating.
+Electric water heater. ;Varmtvannsbereder.;Varmtvannsbereder for varmt tappevann. ;Electric water heater for domestic hot water.
+Electric boiler.;Elkjel.;Vannbåren varme. ;Water-borne heating. 
+Biomass boiler.;Biokjel.;Vannbåren varme. ;Water-borne heating.
+Solar collector.;Solfanger.;Vannbåren varme. ;Water-borne heating.
+Fossil boiler.;Fossilkjel.;Vannbåren varme. ;Water-borne heating.
 Heat pump central heating.;Varmepumpe væske-vann eller luft-væske.;Samlebegrep for alle varmepumper som leverer vannbåren varme. ;Term for all heat pumps that delivers water-borne heating.
-Fjernvarme.;District heating.;Vannbåren varme. Hentet fra SSB sin fjernvarmestatistikk for kalibrering.  ;Water-borne heating. Uses Statistics Norways district heating statistics for calibration. 
-Elspesifikt forbruk.;Non substitutable electricity use.;Energiforbruk som krever elektrisitet, som belysning. Kan ikke erstattes med andre energivarer. ;Electricity usage which cannot be replaced by another technology or energy product. Like lighting and electrical appliances. 
-Kjølemaskin.;Chiller/cooler.;Kjøleteknologi. Bruker elektrisitet. ;Cooling technology. Uses electricity. 
-Condition.;Tilstand.;Arealet har en av fem tilstander: uberørt, gjennomført enøk, gjennomført rehabilitering, gjennomført enøk og rehabilitering eller revet.;The heated floor area will be in of five conditions: original, completed small measures, completed rehabilitation, completed small measures and rehabilitation or demolished. 
+District heating. ;Fjernvarme.;Vannbåren varme. Hentet fra SSB sin fjernvarmestatistikk for kalibrering.  ;Water-borne heating. Uses Statistics Norways district heating statistics for calibration. 
+Non substitutable electricity use. ;Elspesifikt forbruk.;Energiforbruk som krever elektrisitet, som belysning. Kan ikke erstattes med andre energivarer. ;Electricity usage which cannot be replaced by another technology or energy product. Like lighting and electrical appliances. 
+Chiller/cooler. ;Kjølemaskin.;Kjøleteknologi. Bruker elektrisitet. ;Cooling technology. Uses electricity. 
+Condition.;Tilstand.;Arealets tilstand. ;The conditon of the heated floor area. 
 Storage.;Lager.;Omfatter kun lagerbygg i modellen. En underkategori av lettindustri og verksted. ;Consists only of storage and warehouses in the model. A subcategory of light industry and workshops. 
-Energy need.;Energibehov.;Arealets energibehov i kWh/m2 etter definisjon i TEK. Teoretisk størrelse.;The areas energy need in kWh/m\ :sup:`2` after definition in the building code. A theoretical size.
-Energy use.;Energibruk ;Den energimengden arealet må få tilført for å dekke energibehovet. Målbar mengde. I kWh/m\ :sup:`2`. Dette er en målbar mengde. ;The amount of delivered energy the area requires in order to cover the energy need. In kWh/m\ :sup:`2` This is a measurable quantity.
+Energy need.;Energibehov.;Arealets energibehov i kWh/m2 etter definisjon i TEK. Energimengden arealet trenger for å fungere optimalt. Teoretisk størrelse.;The area's energy need in kWh/m\ :sup:`2` as defined in the building code. This is the amount of energy the area needs to function properly. A theoretical size.
+Energy use.;Energibruk.;Den energimengden arealet må få tilført for å dekke energibehovet. Målbar mengde. I kWh/m\ :sup:`2`.;The amount of delivered energy the area requires in order to cover the energy need. In kWh/m\ :sup:`2` This is a measurable quantity.
 Energy product.;Energivare.;Energivaren til oppvarmingsteknologien. ;Energy product used by the heating technology. 

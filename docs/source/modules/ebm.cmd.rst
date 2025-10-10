@@ -12,6 +12,7 @@ Submodules
    ebm.cmd.heating_systems_by_year
    ebm.cmd.helpers
    ebm.cmd.initialize
+   ebm.cmd.migrate
    ebm.cmd.pipeline
    ebm.cmd.prepare_main
    ebm.cmd.result_handler

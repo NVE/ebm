@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ebm.energy_consumption import GRUNNLAST_ENERGIVARE, GRUNNLAST_VIRKNINGSGRAD, GRUNNLAST_ANDEL, \
-    HEATING_SYSTEM_SHARE, KJOLING_VIRKNINGSGRAD, DHW_EFFICIENCY, TAPPEVANN_ENERGIVARE, SPISSLAST_VIRKNINGSGRAD, \
-    SPISSLAST_ENERGIVARE, EKSTRALAST_VIRKNINGSGRAD, EKSTRALAST_ENERGIVARE, SPISSLAST_ANDEL, EKSTRALAST_ANDEL
+from ebm.energy_consumption import BASE_LOAD_ENERGY_PRODUCT, BASE_LOAD_EFFICIENCY, GRUNNLAST_ANDEL, \
+    HEATING_SYSTEM_SHARE, COOLING_EFFICIENCY, DHW_EFFICIENCY, DOMESTIC_HOT_WATER_ENERGY_PRODUCT, PEAK_LOAD_EFFICIENCY, \
+    PEAK_LOAD_ENERGY_PRODUCT, TERTIARY_LOAD_EFFICIENCY, TERTIARY_LOAD_ENERGY_PRODUCT, PEAK_LOAD_COVERAGE, TERTIARY_LOAD_COVERAGE
 from ebm.model import energy_use
 
 
@@ -26,7 +26,7 @@ def heating_systems_parameters_house_building_code07():
             ['house', 'TEK49', np.int64(2020), 'HP - Bio - Electricity', np.float64(0.5197916085732984), 'HP', 'Bio', 'Electricity', 'Electricity', 'Bio', 'Electricity', np.float64(0.28), np.float64(0.62), np.float64(0.1), np.float64(2.5), np.float64(0.65), np.int64(1), 'Electricity', 'Electricity', np.float64(0.98), np.int64(1), np.int64(4)],
             ['house', 'TEK49', np.int64(2020), 'HP - Electricity', np.float64(0.12326471144131464), 'HP', 'Electricity', 'Ingen', 'Electricity', 'Electricity', 'Ingen', np.float64(0.0), np.float64(0.62), np.float64(0.38), np.float64(2.5), np.float64(1.0), np.int64(1), 'Electricity', 'Electricity', np.float64(0.98), np.int64(1), np.int64(4)],
             ['house', 'TEK49', np.int64(2020), 'HP Central heating - Electric boiler', np.float64(0.0038152903302471), 'HP Central heating', 'Electric boiler', 'Ingen', 'Electricity', 'Electricity', 'Ingen', np.float64(0.0), np.float64(0.85), np.float64(0.15), np.float64(3.0), np.float64(0.99), np.int64(1), 'HP Central heating', 'Electricity', np.float64(3.0), np.int64(1), np.int64(4)]],
-        columns=['building_category', 'building_code', 'year', 'heating_systems', 'heating_system_share', 'Grunnlast', 'Spisslast', 'Ekstralast', 'Grunnlast energivare', 'Spisslast energivare', 'Ekstralast energivare', 'Ekstralast andel', 'Grunnlast andel', 'Spisslast andel', 'Grunnlast virkningsgrad', 'Spisslast virkningsgrad', 'Ekstralast virkningsgrad', 'Tappevann', 'Tappevann energivare', 'Tappevann virkningsgrad', 'Spesifikt elforbruk', 'Kjoling virkningsgrad'])
+        columns=['building_category', 'building_code', 'year', 'heating_systems', 'heating_system_share', 'Grunnlast', 'Spisslast', 'Ekstralast', 'base_load_energy_product', 'peak_load_energy_product', 'tertiary_load_energy_product', 'tertiary_load_coverage', 'base_load_coverage', 'peak_load_coverage', 'base_load_efficiency', 'peak_load_efficiency', 'tertiary_load_efficiency', 'Tappevann', 'domestic_hot_water_energy_product', 'domestic_hot_water_efficiency', 'Spesifikt elforbruk', 'cooling_efficiency'])
     return heating_systems_parameters_house_building_code07
 
 
@@ -44,9 +44,9 @@ def test_heating_rv():
                 0.1,0.99, 'Electricity'],
         ],
         columns=['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE,
-                 GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE,
-                 SPISSLAST_ANDEL, SPISSLAST_VIRKNINGSGRAD, SPISSLAST_ENERGIVARE,
-                 EKSTRALAST_ANDEL, EKSTRALAST_VIRKNINGSGRAD, EKSTRALAST_ENERGIVARE]
+                 GRUNNLAST_ANDEL, BASE_LOAD_EFFICIENCY, BASE_LOAD_ENERGY_PRODUCT,
+                 PEAK_LOAD_COVERAGE, PEAK_LOAD_EFFICIENCY, PEAK_LOAD_ENERGY_PRODUCT,
+                 TERTIARY_LOAD_COVERAGE, TERTIARY_LOAD_EFFICIENCY, TERTIARY_LOAD_ENERGY_PRODUCT]
     )
 
     result = energy_use.heating_rv(heating_systems_projection)
@@ -82,7 +82,7 @@ def test_heating_dhw():
             ['house', 'TEK99', 1977, 'DH - Bio', 0.5, 99.0, 1.0, 'DH'],
             ['house', 'TEK99', 1977, 'Electric boiler', 1.0, 52.0, 0.98, 'Electricity'],
         ],
-        columns=['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, DHW_EFFICIENCY, TAPPEVANN_ENERGIVARE]
+        columns=['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, DHW_EFFICIENCY, DOMESTIC_HOT_WATER_ENERGY_PRODUCT]
     )
 
     result = energy_use.heating_dhw(heating_systems_projection)
@@ -105,7 +105,7 @@ def test_cooling():
             ['house', 'TEK99', 1971, 'HP - BIO', 0.5, 99.0, 0.99, 'Nuclear waste'],
             ['house', 'TEK99', 1972, 'HP - BIO', 1.0, 52.0, 3.0, 'Nuclear waste'],
         ],
-        columns=['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, KJOLING_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE]
+        columns=['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, COOLING_EFFICIENCY, BASE_LOAD_ENERGY_PRODUCT]
     )
 
     result = energy_use.cooling(heating_systems_projection)
@@ -127,7 +127,7 @@ def test_other():
         data=[
             ['house', 'TEK99', 1971, 'HP - BIO', 0.5, 0.2, 1.0, 'Electricity'],
         ],
-        columns=['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, GRUNNLAST_VIRKNINGSGRAD, GRUNNLAST_ENERGIVARE]
+        columns=['building_category', 'building_code', 'year', 'heating_systems', HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, BASE_LOAD_EFFICIENCY, BASE_LOAD_ENERGY_PRODUCT]
     )
 
     result = energy_use.other(heating_systems_projection)

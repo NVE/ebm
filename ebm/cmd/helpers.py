@@ -3,22 +3,27 @@ import pathlib
 import sys
 from datetime import datetime
 
-from dotenv import load_dotenv, find_dotenv
+from dotenv import find_dotenv, load_dotenv
 from loguru import logger
 
 
-def load_environment_from_dotenv():
+def load_environment_from_dotenv() -> None:
+    """
+    Load environment variables from a .env file located in the current working directory.
+
+    If a .env file is found, its contents are loaded into the environment.
+    """
     env_file = pathlib.Path(find_dotenv(usecwd=True))
     if env_file.is_file():
-        logger.debug(f'Loading environment from {env_file}')
+        logger.trace('Loading environment from {env_file}', env_file=env_file)
         load_dotenv(env_file)
     else:
-        logger.trace(f'.env not found in {env_file.absolute()}')
+        logger.trace(f'.env not found in {env_file}', env_file=env_file.absolute())
 
 
-def configure_json_log(log_directory: str|bool=False):
+def configure_json_log(log_directory: str|bool=False) -> None:
     """
-    Configures JSON logging using the `loguru` logger.
+    Configure JSON logging using the `loguru` logger.
 
     This function sets up structured JSON logging to a file, with the log file path
     determined by the `LOG_DIRECTORY` environment variable or the provided `log_directory` argument.
@@ -50,6 +55,7 @@ def configure_json_log(log_directory: str|bool=False):
     >>> os.environ["LOG_DIRECTORY"] = "TRUE"
 
     >>> configure_json_log(False)
+
     """
     if not log_directory:
         return
@@ -62,7 +68,7 @@ def configure_json_log(log_directory: str|bool=False):
 
     env_log_directory = os.environ.get('LOG_DIRECTORY', log_directory)
     if isinstance(env_log_directory, bool):
-        env_log_directory = pathlib.Path(os.getcwd()) / 'log'
+        env_log_directory = pathlib.Path.cwd() / 'log'
     log_to_json = str(env_log_directory).upper().strip()!='FALSE'
     env_log_directory = env_log_directory if log_to_json and str(env_log_directory).upper().strip() != 'TRUE' else 'log'
 
@@ -88,10 +94,27 @@ def configure_json_log(log_directory: str|bool=False):
         logger.debug('Skipping json log. LOG_DIRECTORY is undefined.')
 
 
-def configure_loglevel(log_format: str = None, level: str = 'INFO'):
+def configure_loglevel(log_format: str | None = None, level: str = 'INFO') -> None:
     """
-    Sets loguru loglevel to INFO unless ebm is called with parameter --debug and the environment variable DEBUG is not
-    equal to True
+    Configure the loguru logger with a specified log level and format.
+
+    By default, sets the log level to INFO unless either:
+    - The '--debug' flag is present in the command-line arguments (`sys.argv`), or
+    - The environment variable DEBUG is set to 'TRUE' (case-insensitive).
+
+    If debug mode is enabled, the log level is set to DEBUG and a filter is applied
+    to suppress DEBUG logs from the 'ebm.model.file_handler' logger.
+
+    Parameters
+    ----------
+    log_format : str, optional
+        Custom format string for log messages. If not provided, the default format is used.
+    level : str, optional
+        Default log level to use when debug mode is not active. Defaults to 'INFO'.
+
+    Returns
+    -------
+    None
 
     """
     logger.remove()
@@ -99,13 +122,13 @@ def configure_loglevel(log_format: str = None, level: str = 'INFO'):
     if log_format:
         options['format'] = log_format
 
+    # Accessing sys.argv directly since we want to figure out the log level before loading arguments with arg_parser.
+    # Debug level may also be conveyed through environment variables, so read that from environ as well.
     if '--debug' in sys.argv or os.environ.get('DEBUG', '').upper() == 'TRUE':
         options['level'] = 'DEBUG'
 
-    # Add a new handler with a custom format
-    if '--debug' not in sys.argv and os.environ.get('DEBUG', '').upper() != 'TRUE':
-        logger.add(sys.stderr, **options)
-    else:
-        logger.add(sys.stderr,
-                   filter=lambda f: not (f['name'] == 'ebm.model.file_handler' and f['level'].name == 'DEBUG'),
-                   **options)
+    logger.add(sys.stderr,
+               filter=lambda f: not (f['name'] == 'ebm.model.file_handler' and f['level'].name == 'DEBUG'),
+               **options)
+
+

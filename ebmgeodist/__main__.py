@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from ebmgeodist.geographical_distribution import geographical_distribution
 from ebmgeodist.initialize import NameHandler, make_arguments, init, create_output_directory
+from ebmgeodist.helpers import load_environment_from_dotenv, configure_loglevel
 from ebmgeodist.file_handler import FileHandler
 from ebmgeodist.enums import ReturnCode
 from ebmgeodist.calculation_tools import NoElhubDataError
@@ -39,80 +40,104 @@ def run_ebmgeodist():
         return ReturnCode.MISSING_INPUT_FILES, None
     
     energy_map = {
-        "strom": "⚡️",
-        "fjernvarme": "🔥",
-        "ved": "🌲",
-        "fossil": "💨"
+        "electricity": "⚡️",
+        "dh": "🔥",
+        "fuelwood": "🌲",
+        "fossilfuel": "💨"
     }
+    energy_products = arguments.energy_product
+    if isinstance(energy_products, str):
+        energy_products = [energy_products]
 
-    energitype = arguments.energy_type.lower()  
+    for category in energy_products:
+        energy_product = category.lower()  
+        
+        if energy_product in energy_map:
+            logger.info(f"{energy_map[energy_product]} Energy product is chosen to be {energy_product}.")
 
-    if energitype in energy_map:
-        logger.info(f"{energy_map[energitype]} Energitype satt til {energitype}.")
+        building_category_choice = arguments.building_category
+        elhub_years = arguments.years
 
-    building_category_choice = arguments.category
-    elhub_years = arguments.years
+        # Choose source
+        if arguments.source == "azure":
+            logger.info("☁️ Loading Elhub data directly from the Azure Data Lake. This assumes you have access via 'az login'.")
 
-    # Choose source
-    if arguments.source == "azure":
-        logger.info("☁️ Henter Elhub-data direkte fra Azure-datasjøen. Dette forutsetter at du har tilgang via «az login».")
-        step = 'azure'
-    else:
-        logger.info("📂 Leser data lokalt fra data-mappen...")
-        step = 'lokalt'
+            step = 'azure'
+        else:
+            logger.info("📂 Reading data locally from the data folder...")
+            step = 'local'
 
-    # Only include start and end years in the output if specified
-    include_start_end_years: bool = arguments.start_end_years
-    
+        # Only include start and end years in the output if specified
+        include_start_end_years: bool = arguments.start_end_years
+        
 
-    if energitype == "strom":
-        logger.info(
-            f"🔍 Kommunefordeler strøm for bygningskategori '{building_category_choice}' "
-            f"fra Elhub data i tidsperioden: {elhub_years} ..."
-        )
-
-    elif energitype == "fjernvarme":
-        filtered_categories = [cat for cat in building_category_choice if cat.lower() != NameHandler.COLUMN_NAME_FRITIDSBOLIG.lower()]
-        logger.info(
-            f"🔍 Kommunefordeler fjernvarme for bygningskategori {filtered_categories}."
-            )
-        if not filtered_categories:
-            raise ValueError(
-                "Fjernvarme krever minst én bygningskategori som ikke er fritidsboliger."
-            )
-    elif energitype == "ved":
-        filtered_categories = [cat for cat in building_category_choice if cat.lower() != NameHandler.COLUMN_NAME_YRKESBYGG.lower()]
-        logger.info(
-            f"🔍 Kommunefordeler ved for bygningskategori {filtered_categories}."
-            )
-        if not filtered_categories:
-            raise ValueError(
-                "Ved krever minst én bygningskategori som ikke er yrkesbygg."
-            )
-    elif energitype == "fossil":
-        filtered_categories = [cat for cat in building_category_choice if cat.lower() != NameHandler.COLUMN_NAME_BOLIG.lower()\
-                               and cat.lower() != NameHandler.COLUMN_NAME_YRKESBYGG.lower()]
-        logger.info(
-            f"🔍 Kommunefordeler fossil energi for bygningskategori {filtered_categories}."
-            )
-        if not filtered_categories:
-            raise ValueError(
-                "Fossil energi er kun tilgjengelig for bygningskategorier som ikke er boliger eller yrkesbygg."
+        if energy_product == "electricity":
+            logger.info(
+                f"🔍 Municipal electricity distribution for building category '{building_category_choice}' "
+                f"from Elhub data in the time period: {elhub_years} ..."
             )
 
-    file_to_open = geographical_distribution(elhub_years, 
-                                            energitype=energitype, 
-                                            building_category=(building_category_choice if energitype == "strom" else filtered_categories),
-                                            step=step, 
-                                            output_format = include_start_end_years)
+        elif energy_product == "dh":
+            filtered_categories = [cat for cat in building_category_choice if cat.lower() != NameHandler.COLUMN_NAME_HOLIDAY_HOME.lower()]
+            logger.info(
+                f"🔍 Municipal district heating distribution for building category {filtered_categories}."
+                )
+            try:
+                if not filtered_categories:
+                    raise ValueError(
+                        "District heating requires at least one building category that is not holiday homes."
+                    )
+            except ValueError as e:
+                logger.warning(f"⚠️ {e} Skipping district heating calculation.")
+                continue
+        
+        elif energy_product == "fuelwood":
+            filtered_categories = [cat for cat in building_category_choice if cat.lower() != NameHandler.COLUMN_NAME_NON_RESIDENTIAL.lower()]
+            logger.info(
+                f"🔍 Municipal fuelwood distribution for building category  {filtered_categories}."
+                )
+            try:
+                if not filtered_categories:
+                    raise ValueError(
+                        "Fuelwood requires at least one building category that is not non-residential buildings."
+                    )
+            except ValueError as e:
+                logger.warning(f"⚠️ {e} Skipping fuelwood calculation.")
+                continue    
+        elif energy_product == "fossilfuel":
+            filtered_categories = [cat for cat in building_category_choice if cat.lower() != NameHandler.COLUMN_NAME_RESIDENTIAL.lower()\
+                                and cat.lower() != NameHandler.COLUMN_NAME_NON_RESIDENTIAL.lower()]
+            logger.info(
+                f"🔍 Municipal fossilfuel distribution for building category {filtered_categories}."
+                )
+            try:
+                if not filtered_categories:
+                    raise ValueError(
+                        "Fossilfuel requires at least one building category that is not residential or non-residential buildings."
+                    )
+            except ValueError as e:
+                logger.warning(f"⚠️ {e} Skipping fossilfuel calculation.")
+                continue
 
-    logger.info(f"✅ Kommunefordeling for valgt energitype har kjørt ferdig og resultatene er lagret i output-mappen med filnavn: {file_to_open.name}")
-    os.startfile(file_to_open, 'open')
+        file_to_open = geographical_distribution(elhub_years, 
+                                                energy_product=energy_product, 
+                                                building_category=(building_category_choice if energy_product == "electricity" else filtered_categories),
+                                                step=step, 
+                                                output_format = include_start_end_years)
 
-    # Clean up memory
-    gc.collect()
+        logger.info(f"✅ Municipal distribution for selected energy product has finished running and the results are saved in the output folder with filename: {file_to_open.name}")
+        if os.environ.get('EBM_ALWAYS_OPEN', 'FALSE').upper() == 'TRUE':
+            logger.info(f'Open {file_to_open}')
+            os.startfile(file_to_open, 'open')
+        else:
+            logger.debug(f'Finished {file_to_open}')
+
+        # Clean up memory
+        gc.collect()
 
 def main():
+    load_environment_from_dotenv()
+    configure_loglevel(log_format=os.environ.get('LOG_FORMAT', '{level.icon} <level>{message}</level>'))
     try:
         run_ebmgeodist()
     except NoElhubDataError as e:

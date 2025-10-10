@@ -222,6 +222,7 @@ def test_energy_use(kalibrert_database_manager):
     result = result[expect_columns + ['kwh']].groupby(by=expect_columns).sum()
 
     expected = pd.DataFrame(expected_building_group_energy_use)
+    # expected = expected.drop(columns=['Grunnlast', 'Ekstralast', 'Spisslast'])
     expected.index.names = expect_columns
 
     df = pd.merge(left=result, right=expected, suffixes=('_result', '_expected'), on=expect_columns, how='outer')

@@ -7,12 +7,12 @@ in a given year from temperature corrected statistics or a constructed year base
 .. _Calibrating the model:
 
 How to calibrate
-^^^^^^^^^^^^^^^^^^^^
+----------------
 Calibrating the model is done by changing up to three files.
 
 - Kalibreringsark.xlsx
 - energy_need_behaviour_factor.csv
-- heating_systems_efficiencies.csv 
+- heating_system_efficiencies.csv
 
 "Kalibreringsark.xlsx" can modify the heating system share where the given factor changes a percentage of one heating system for another. 
 This excel file also makes it quick to see what the result of the calibration changes will be as the model directly modifies the cells
@@ -32,11 +32,11 @@ possibilites are affected.
    :delim: ,
 
 It is also possible to modify the
-factors given in "heating_systems_efficiencies.csv" to fine tune the coverage of various heating technologies and their
+factors given in "heating_system_efficiencies.csv" to fine tune the coverage of various heating technologies and their
 efficiencies. 
 
 Assumptions
-===========
+------------
 The calibration is based
 on the `Norwegian energy balance <https://www.ssb.no/statbank/table/11561/>`_ published by Statistics Norway. The energy 
 balance contains yearly consumption statistics per energy product on households and private and public services, 

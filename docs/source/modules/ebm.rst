@@ -19,8 +19,9 @@ Submodules
 
    ebm.energy_consumption
    ebm.extractors
-   ebm.heating_systems_projection
+   ebm.heating_system_forecast
    ebm.holiday_home_energy
+   ebm.migrations
    ebm.s_curve
    ebm.temp_calc
    ebm.validators

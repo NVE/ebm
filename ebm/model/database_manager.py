@@ -386,11 +386,11 @@ class DatabaseManager:
 
         return calibrated
 
-    def get_heating_systems_efficiencies(self):
-        return self.file_handler.get_heating_systems_efficiencies()
+    def get_heating_system_efficiencies(self):
+        return self.file_handler.get_heating_system_efficiencies()
 
-    def get_heating_systems_projection(self):
-        return self.file_handler.get_heating_systems_projection()
+    def get_heating_system_forecast(self):
+        return self.file_handler.get_heating_system_forecast()
 
     def explode_unique_columns(self, df, unique_columns):
         return explode_unique_columns(df, unique_columns, default_building_code=self.get_building_code_list())

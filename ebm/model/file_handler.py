@@ -32,7 +32,7 @@ class FileHandler:
     HOLIDAY_HOME_ENERGY_CONSUMPTION = 'holiday_home_energy_consumption.csv'
     AREA_PER_PERSON = 'area_per_person.csv'
     HEATING_SYSTEM_INITIAL_SHARES = 'heating_system_initial_shares.csv'
-    HEATING_SYSTEMS_EFFICIENCIES = 'heating_systems_efficiencies.csv'
+    HEATING_SYSTEM_EFFICIENCIES = 'heating_system_efficiencies.csv'
     HEATING_SYSTEM_FORECAST = 'heating_system_forecast.csv'
     CALIBRATE_ENERGY_REQUIREMENT = 'calibrate_heating_rv.xlsx'
     CALIBRATE_ENERGY_CONSUMPTION = 'calibrate_energy_consumption.xlsx'
@@ -59,7 +59,7 @@ class FileHandler:
                                self.AREA, self.BEHAVIOUR_FACTOR, self.ENERGY_NEED_ORIGINAL_CONDITION,
                                self.IMPROVEMENT_BUILDING_UPGRADE, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
                                self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_STOCK,
-                               self.AREA_PER_PERSON, self.HEATING_SYSTEM_INITIAL_SHARES, self.HEATING_SYSTEMS_EFFICIENCIES, self.HEATING_SYSTEM_FORECAST]
+                               self.AREA_PER_PERSON, self.HEATING_SYSTEM_INITIAL_SHARES, self.HEATING_SYSTEM_EFFICIENCIES, self.HEATING_SYSTEM_FORECAST]
 
     def __repr__(self):
         return f'FileHandler(input_directory="{self.input_directory}")'
@@ -264,12 +264,18 @@ class FileHandler:
         """
         return self.get_file(self.HEATING_SYSTEM_INITIAL_SHARES)
     
-    def get_heating_systems_efficiencies(self) -> pd.DataFrame:
+    def get_heating_system_efficiencies(self) -> pd.DataFrame:
+        """Load heating_system_efficiencies.csv from file into a dataframe
+        
+        Returns
+        -------
+        heating_system_efficiencies : pd.DataFrame
+            pandas DataFrame with heating system efficiencies
         """
-        """
-        return self.get_file(self.HEATING_SYSTEMS_EFFICIENCIES)
 
-    def get_heating_systems_projection(self) -> pd.DataFrame:
+        return self.get_file(self.HEATING_SYSTEM_EFFICIENCIES)
+
+    def get_heating_system_forecast(self) -> pd.DataFrame:
         """
         """
         return self.get_file(self.HEATING_SYSTEM_FORECAST)
@@ -304,7 +310,9 @@ class FileHandler:
             If FileHandler::input_directory is not a directory
         """
         if not self.input_directory.exists():
-            raise FileNotFoundError(f'No such directory {self.input_directory}')
+            msg=f'{self.input_directory.absolute()} not found'
+            logger.error(msg)
+            raise FileNotFoundError(f'Input Directory Not Found')
         if not self.input_directory.is_dir():
             raise NotADirectoryError(f'{self.input_directory} is not a directory')
 

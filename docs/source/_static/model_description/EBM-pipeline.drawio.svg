@@ -182,7 +182,7 @@
                                                 <font style="font-size: 16px">
                                                     <b>export energy model reports</b>
                                                 </font>
-                                                <div>[Component: e.g. Spring Service]</div>
+                                                <div>[pipeline]</div>
                                                 <br/>
                                                 <div>
                                                     <font style="font-size: 11px">Calculates and writes model results to
@@ -219,7 +219,7 @@
                                                 <font style="font-size: 16px">
                                                     <b>calculate_s_curves</b>
                                                 </font>
-                                                <div>[Component: e.g. Spring Service]</div>
+                                                <div>[scurve]</div>
                                                 <br/>
                                                 <div>
                                                     <font style="font-size: 11px">Calculates S-curves to model changes
@@ -256,7 +256,7 @@
                                                 <font style="font-size: 16px">
                                                     <b>extract area forecast</b>
                                                 </font>
-                                                <div>[Component: e.g. Spring Service]</div>
+                                                <div>[extractors]</div>
                                                 <br/>
                                                 <div>
                                                     <font style="font-size: 11px">Computes yearly area in m² across all
@@ -293,7 +293,7 @@
                                                 <font style="font-size: 16px">
                                                     <b>extract energy need</b>
                                                 </font>
-                                                <div>[Component: e.g. Spring Service]</div>
+                                                <div>[extractors]</div>
                                                 <br/>
                                                 <div>
                                                     <font style="font-size: 11px">Determines energy consumption per
@@ -328,12 +328,12 @@
                                         <div style="box-sizing: border-box; font-size: 0; text-align: center; color: #ffffff; ">
                                             <div style="display: inline-block; font-size: 12px; font-family: Helvetica; color: light-dark(#ffffff, #121212); line-height: 1.2; pointer-events: all; white-space: normal; word-wrap: normal; ">
                                                 <font style="font-size: 16px">
-                                                    <b>extract heating systems projection</b>
+                                                    <b>extract heating systems forecast</b>
                                                 </font>
-                                                <div>[Component: e.g. Spring Service]</div>
+                                                <div>[extractors]</div>
                                                 <br/>
                                                 <div>
-                                                    <font style="font-size: 11px">Calculates heating system projection
+                                                    <font style="font-size: 11px">Calculates heating system forecast
                                                         using model parameters
                                                     </font>
                                                 </div>
@@ -342,7 +342,7 @@
                                     </div>
                                 </foreignObject>
                                 <text x="630" y="539" fill="#ffffff" font-family="Helvetica" font-size="12px"
-                                      text-anchor="middle">extract heating systems projection...
+                                      text-anchor="middle">extract heating systems forecast...
                                 </text>
                             </switch>
                         </g>
@@ -367,7 +367,7 @@
                                                 <font style="font-size: 16px">
                                                     <b>extract energy use holiday homes</b>
                                                 </font>
-                                                <div>[Component: e.g. Spring Service]</div>
+                                                <div>[extractors]</div>
                                                 <br/>
                                                 <div>
                                                     <font style="font-size: 11px">Calculates energy use for all holiday
@@ -404,7 +404,7 @@
                                                 <font style="font-size: 16px">
                                                     <b>transform_all_energy_use</b>
                                                 </font>
-                                                <div>[Component: e.g. Spring Service]</div>
+                                                <div>[result_handler]</div>
                                                 <br/>
                                                 <div>
                                                     <font style="font-size: 11px">merge building category and holiday
@@ -441,7 +441,7 @@
                                                 <font style="font-size: 16px">
                                                     <b>spreadsheet</b>
                                                 </font>
-                                                <div>[Component: e.g. Spring Service]</div>
+                                                <div>[spreadsheet]</div>
                                                 <br/>
                                                 <div>
                                                     <font style="font-size: 11px">Description of component
@@ -627,7 +627,7 @@
                                                 <font style="font-size: 16px">
                                                     <b>energy use</b>
                                                 </font>
-                                                <div>[Component: e.g. Spring Service]</div>
+                                                <div>[Component: energy_use]</div>
                                                 <br/>
                                                 <div>
                                                     <font style="font-size: 11px">Description of component
@@ -664,7 +664,7 @@
                                                 <font style="font-size: 16px">
                                                     <b>total energy need</b>
                                                 </font>
-                                                <div>[Component: e.g. Spring Service]</div>
+                                                <div>[energy_need]</div>
                                                 <br/>
                                                 <div>
                                                     <font style="font-size: 11px">Calculates sum of energy need for all

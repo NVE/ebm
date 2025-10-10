@@ -3,6 +3,7 @@ trigger:
   branches:
     include:
       - dev
+      - main
 
 jobs:
 - job: PushToGitHub

@@ -45,7 +45,7 @@ and `Tilstanden i kraftsystemet 2025 <https://publikasjoner.nve.no/rapport/2025/
 Our dataset indicates that more new buildings are being constructed, and more old ones are being demolished than the statistics show, 
 resulting in lower energy consumption in the model.  
 Results from the model on building stock area and energy consumption should therefore be used with caution. 
-An updated and improved dataset will be published along with the next version of the model in 2026. * 
+An updated and improved dataset will be published along with the next version of the model in 2026.* 
 
 The dataset has been released by NVE under the `Creative Commons 4.0 license: Deed - Attribution 4.0 International - Creative Commons <https://creativecommons.org/licenses/by/4.0/>`_.
 

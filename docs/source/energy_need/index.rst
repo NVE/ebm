@@ -88,7 +88,7 @@ Where
    * :math:`^\text{year}` refers to the year of the calculated energy need.
    * :math:`^\text{start year}` refers to the start of the energy measure.
 
-* :math:`\text{improvment heating_dhw end year}_{\text_year}` refers to an assumed reduction in energy need by a specific end year and how much of this is achieved in the year of the calculated energy need.
+* :math:`\text{improvment heating_dhw end year}_\text{year}` refers to an assumed reduction in energy need by a specific end year and how much of this is achieved in the year of the calculated energy need.
 
    * :math:`_\text{year}` refers to the year of the calculated enery need.
 
@@ -109,7 +109,7 @@ Where
    * :math:`^\text{year}` refers to the year of the calculated energy need.
    * :math:`^\text{start year}` refers to the start of the energy measure e.g. improved ventilation.
 
-* :math:`\text{improvment fans_and_pumps end year}_{\text_year}` refers to an assumed reduction in energy need by a specific end year and how much of this is achieved in the year of the calculated energy need.
+* :math:`\text{improvment fans_and_pumps end year}_\text{year}` refers to an assumed reduction in energy need by a specific end year and how much of this is achieved in the year of the calculated energy need.
 
    * :math:`_\text{year}` refers to the year of the calculated enery need.
    
@@ -130,7 +130,7 @@ Where
    * :math:`^\text{year}` refers to the year of the calculated energy need.
    * :math:`^\text{start year}` refers to the start of the energy measure e.g. transition to LED bulbs.
 
-* :math:`\text{improvment lighting end year}_{\text_year}` refers to an assumed reduction in energy need by a specific end year and how much of this is achieved in the year of the calculated energy need.
+* :math:`\text{improvment lighting end year}_\text{year}` refers to an assumed reduction in energy need by a specific end year and how much of this is achieved in the year of the calculated energy need.
 
    * :math:`_\text{year}` refers to the year of the calculated enery need.
 
@@ -151,7 +151,7 @@ Where
    * :math:`^\text{year}` refers to the year of the calculated energy need.
    * :math:`^\text{start year}` refers to the start of the energy measure.
 
-* :math:`\text{improvment cooling end year}_{\text_year}` refers to an assumed reduction in energy need by a specific end year and how much of this is achieved in the year of the calculated energy need.
+* :math:`\text{improvment cooling end year}_\text{year}` refers to an assumed reduction in energy need by a specific end year and how much of this is achieved in the year of the calculated energy need.
 
    * :math:`_\text{year}` refers to the year of the calculated enery need.
 

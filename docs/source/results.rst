@@ -25,7 +25,7 @@ Shows the calculated heat production from "air-air" or "central heating" heat pu
 Building categories are aggreagted to residential and non-residental. 
 
 6. **📄 heating_system_share.xlsx**. 
-Gives the share of heating systems in percentage for the building categories house, apartment block or non-residental buildings for 2020 to 2050. 
+Share of heating systems as fractions for the building groups house, apartment block and non-residental buildings from 2020 to 2050.
 In wide and long format. 
 
 .. |date| date::

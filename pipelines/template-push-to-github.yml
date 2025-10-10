@@ -17,6 +17,8 @@ steps:
 
   - script: |
       git remote add github https://$(GITHUB_TOKEN)@$(GITHUB_REPO)
+    displayName: 'Add remote 🔭'
+  - script: |
       git fetch github +refs/heads/${{ parameters.remote_branch }}:refs/remotes/github/${{ parameters.remote_branch }}
     displayName: 'Fetch remote 📥'
 

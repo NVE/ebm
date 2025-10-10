@@ -44,7 +44,7 @@ All combinations of building code and building category are given their own heat
 building groups of house, apartment block and non-residential building. 
 
 Making changes to the efficiency, energy product or load share factor can be done for each of the 12 combinations of heating systems in the input 
-file *heating_system_efficiencies.csv*. An overview of the heating system combinations can be found in the :any:`Tables and glossary` subchapter.
+file |heating_system_efficiencies_ref|. An overview of the heating system combinations can be found in the :any:`Tables and glossary` subchapter.
 
 .. _data_assumptions_heating_systems:
 

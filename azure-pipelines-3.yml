@@ -36,13 +36,13 @@ steps:
       git config --global user.email "$(GIT_USER_EMAIL)"
 
       # Clone gh-pages branch from GitHub (replace with your repo URL)
-      git clone --branch gh-pages https://$(GITHUB_TOKEN)@$(GITHUB_REPOSITORY).git gh-pages
+      git clone --branch main https://$(GITHUB_TOKEN)@$(GITHUB_REPOSITORY).git main
 
       # Wipe old contents
-      rm -rf gh-pages/*
+      rm -rf main/*
 
       # Copy new docs
-      cp -r docs/_build/html/* gh-pages/
+      cp -r docs/_build/html/* main/
 
       cd gh-pages
       git add --all

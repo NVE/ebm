@@ -67,7 +67,7 @@ Heating Room Ventilation (heating_rv)
 
 Where
 
-* :math:`\text{energy need heating_rv original condition}_\text{buidling code}` refers to the energy needfor heating rooms and ventilation as determined by the building code.
+* :math:`\text{energy need heating_rv original condition}_\text{buidling code}` refers to the energy need for heating rooms and ventilation as determined by the building code.
 * :math:`\text{area upgrade}_\text{condition}` refers to the reduction in energy need for heating rooms and ventilation as a result of the area being upgraded (the condition of the area).
 * :math:`\text{behaviour factor}` factor refers to the inhabitant’s behavior. E.g. some people do not heat their whole house but keep some rooms cold and closed of during the winter. This would give a behavior factor smaller than 1, which coordinates with the portion of the house that is heated. 
 
@@ -102,7 +102,7 @@ Lighting
 
 .. math::
 
-   \text{energy need lightning} = & \text{ energy need lighting original condition}_\text{buidling code} \\
+   \text{energy need lighting} = & \text{ energy need lighting original condition}_\text{buidling code} \\
                                   & * \text{1-yearly reduction lighting}^\text{year-start year} \\
                                   & * \text{improvment lighting end year}_\text{year}
 

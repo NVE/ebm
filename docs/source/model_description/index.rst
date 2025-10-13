@@ -53,7 +53,7 @@ EBM Container diagram
 ---------------------
 Describes the model's overall architecture and inner workings. 
 
-.. image:: ../_static/model_description/EBM-container.svg
+.. image:: ../_static/model_description/ebm-container.svg
    :alt: C4 EBM container diagram
 
 

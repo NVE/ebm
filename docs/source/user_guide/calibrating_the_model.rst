@@ -26,7 +26,7 @@ The table below shows how the csv file is formatted. When "default" is input all
 possibilites are affected. 
 
 .. csv-table:: Energy need behaviour factor.
-   :file: ../tables\energy_need_behaviour_factor.csv
+   :file: ../tables/energy_need_behaviour_factor.csv
    :header-rows: 1
    :widths: 10 10 10 10 10 10
    :delim: ,

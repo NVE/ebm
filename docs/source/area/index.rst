@@ -142,10 +142,15 @@ Dwellings
 The forecast for average household size in the dataset is made to be a continuation of historic household size
 in Norway going back to the 1960s. `The historic household size is published by Statistics Norway <https://www.ssb.no/statbank/table/06076/>`_. We have assumed
 a continued decrease in average household size, and that the decline will continue to decrease over time. We also assume
-that the average houseohld size never dips below 2 persons per household. 
+that the average houseohld size never dips below 2 persons per household. Until now, we have seen a decrease in the number of people per household, 
+and this is assumed to continue. However, we know that more and more families are choosing to have three or more children, 
+and that divorce rates are flattening out. Together with increased immigration from non-Western countries, where 
+there is a stronger tradition of having more children, this can impact household sizes going forward and help dampen the decrease.
 
 The forecasted allocation of new dwellings distributed into houses and apartments is made to be a continuation of the historic development in number of newly built
 houses versus number of newly built apartments. This `statistic is published by Statistics Norway <https://www.ssb.no/statbank/table/05940/>`_. 
+Urbanization is included in the assumption that the proportion of households living in houses will decrease and the 
+proportion living in apartments will increase. 
 
 The assumed average area for newly built houses and apartments is based on the historic development in average area of newly built dwellings. This is calculated 
 based on information about `newly built dwellings published by Statistics Norway <https://www.ssb.no/statbank/table/05940/>`_.
@@ -172,13 +177,7 @@ when it will occur, and what the change will be, it is not considered in this mo
 might include urbanization and what it might entail in terms of increased use of cafes, restaurants, 
 theatres and so on. This is also not taken into account in the forecast. The assumptions can easily be changed in the input files.
 
-Regarding residences, urbanization is included in the assumption that the 
-proportion of households living in houses will decrease and the 
-proportion living in apartments will increase. The assumed development in the number of people per 
-household is crucial. Until now, we have seen a decrease in the number of people per household, 
-and this is assumed to continue. However, we know that more and more families are choosing to have three or more children, 
-and that divorce rates are flattening out. Together with increased immigration from non-Western countries, where 
-there is a stronger tradition of having more children, this can impact household sizes going forward and help dampen the development.
+
 
 
 .. |date| date::

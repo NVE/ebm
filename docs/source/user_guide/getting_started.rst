@@ -41,7 +41,7 @@ Install ebm using pip
 
 .. code-block:: bash
 
-  python -m pip install energibruksmodell
+  python -m pip install https://github.com/NVE/ebm/releases/download/v0.99.1/ebm-0.99.1-py3-none-any.whl
 
 
 

@@ -23,7 +23,7 @@ Various terms
 Heating systems
 ------------------------
 .. csv-table:: Glossary of terms used in heating systems
-  :file: tables\heating_systems_glossary_csv.csv
+  :file: tables/heating_systems_glossary_csv.csv
   :header-rows: 1
   :widths: 10 10 30 30
   :delim: ;

@@ -1,3 +1,5 @@
+.. _geographical_distribution_doc:
+
 Geographical distribution
 #############################
 

@@ -1,3 +1,5 @@
+.. _building_category_building_code_doc:
+
 Building categories and building codes
 ======================================
 

@@ -145,6 +145,7 @@ The resulting heating systems are then used as an input to EBM. An example of th
 A final tuning of the heating systems is done in the calibration step of the model. For more information on calibration see :any:`Calibrating the model`.
 
 
+.. _heating_systems_efficiencies:
 Heating systems efficiencies and load share
 -------------------------------------------
 |heating_system_efficiencies_ref|

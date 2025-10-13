@@ -195,7 +195,7 @@ CSV-tabell fra fil
 ------------------
 
 .. csv-table:: Area forecast output
-   :file: tables\example_four_output.csv
+   :file: tables/example_four_output.csv
    :header-rows: 1
 
 

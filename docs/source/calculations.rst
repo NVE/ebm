@@ -43,7 +43,7 @@ Combining the two:
 The area per person is different for each of the non-residental building categories. It can also change from year to year, but currently it is a constant. 
 
 .. csv-table:: Area per person per non-residential building category
-  :file: tables\area_per_person.csv
+  :file: tables/area_per_person.csv
   :widths: 40, 20
   :header-rows: 1
 

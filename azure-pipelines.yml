@@ -4,8 +4,12 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
 trigger:
-- main
-
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - ebm/__version__.py
 pool:
   vmImage: ubuntu-latest
 strategy:

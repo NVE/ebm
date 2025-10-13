@@ -1,7 +1,7 @@
 .. _heating_systems Heating systems:
 
 Heating systems
-#################
+###############
 
 The composition of heating systems used in the building stock is the link from the computed *energy need* to *energy use*. *Energy need* states what the building requires in 
 terms of space heating, non-substitutable electrical use and domestic hot water. The composition of heating systems 
@@ -146,6 +146,7 @@ A final tuning of the heating systems is done in the calibration step of the mod
 
 
 .. _heating_systems_efficiencies:
+
 Heating systems efficiencies and load share
 -------------------------------------------
 |heating_system_efficiencies_ref|
@@ -182,7 +183,7 @@ Forecasting of heating systems towards 2050 are based on the following expected 
 The current implementation of forecasting for energy systems is simplified, meaning it is not based on an economic optimization model such as `TIMES <https://iea-etsap.org/index.php/etsap-tools/model-generators/times>`_.
 
 Forecasting the use of heating systems
--------------------------------
+--------------------------------------
 Forecasting the use of heating systems are necessary to go from *energy need* to *energy use*. 
 The forecasting defines the change in one heating system to another heating system towards 2050. The change is done on a percentage basis compared with the start 
 year and can be specified on building category and building code. To increase the share of one heating system, another must be decreased by the same amount.
@@ -203,7 +204,7 @@ the overall heating system share of "HP - Electricity - Bio" for houses has been
 
 .. csv-table:: Heating systems forecasting illustration.
   :file: ../tables/heating_systems_forecasting_example.csv
-  :widths: 10, 10, 15, 15, 5, 5 ,5, 5, 5
+  :widths: 10, 10, 15, 5, 15, 5, 5 ,5, 5, 5
   :header-rows: 1
 
 An example on how the forecasted share of heating systems can look are shown in the figure below. Here the share of air-air heatpumps is increased over time by shrinking

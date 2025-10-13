@@ -9,7 +9,7 @@ main building category. The building categories are the same as defined in the b
 From this category the model only uses the area attributed to storage and warehouses, and the category is then named “storage”.
 
 .. csv-table:: Building categories and associated building types
-  :file: ../tables\building_category.csv
+  :file: ../tables/building_category.csv
   :header-rows: 1
   :widths: 25 25
   :delim: ;
@@ -17,7 +17,7 @@ From this category the model only uses the area attributed to storage and wareho
 For already built area we assume that all area in a given building code is built the same year. This year is "building year" in the table below. 
 
 .. csv-table:: Building codes and their active years
-  :file: ../tables\building_code_parameters.csv
+  :file: ../tables/building_code_parameters.csv
   :header-rows: 1
   :widths: 25 25 25 25
   :delim: ,

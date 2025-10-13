@@ -77,7 +77,7 @@ corresponding technology for the different loads and domestic hot water. The abb
 :ref:`heating systems abbreviations<heating_systems_abbreviations>` under the :any:`Tables and glossary` section. 
 
 .. csv-table:: Heating systems overview
-   :file: ../tables\heating_systems_table.csv
+   :file: ../tables/heating_systems_table.csv
    :widths: 15, 15, 15, 15, 15
    :header-rows: 1
 
@@ -138,7 +138,7 @@ This means that a TEK69 house has the same composition of heating systems as a T
 The resulting heating systems are then used as an input to EBM. An example of the aggregated composition of heating systems is given below for houses.
 
 .. csv-table:: Aggregated heating systems - house
-  :file: ../tables\shares_house_pretek49.csv
+  :file: ../tables/shares_house_pretek49.csv
   :widths: 15, 15, 15, 15, 15
   :header-rows: 1
 
@@ -202,7 +202,7 @@ so that means that 10 % in total (50 % of 20 %) changes over to the new heating 
 the overall heating system share of "HP - Electricity - Bio" for houses has been increased by 20 percentage points.  
 
 .. csv-table:: Heating systems forecasting illustration.
-  :file: ../tables\heating_systems_forecasting_example.csv
+  :file: ../tables/heating_systems_forecasting_example.csv
   :widths: 10, 10, 15, 15, 5, 5 ,5, 5, 5
   :header-rows: 1
 
@@ -210,7 +210,7 @@ An example on how the forecasted share of heating systems can look are shown in 
 the share of "Electricity - Bio" and increasing the share of "HP - Electricity - Bio". With the same rates as in the table above.
 
 .. raw:: html
-  :file: ../images\Hus.html
+  :file: ../images/hus.html
 
 Tables and glossary
 ===================
@@ -222,7 +222,7 @@ The table below shows the abbrevations used for the various heating systems. The
 .. _heating_systems_abbreviations: 
 
 .. csv-table:: Heating systems abbreviations
-  :file: ../tables\heating_systems_abbreviations.csv
+  :file: ../tables/heating_systems_abbreviations.csv
   :widths: 15 40
   :header-rows: 1
   :delim: ;
@@ -230,21 +230,21 @@ The table below shows the abbrevations used for the various heating systems. The
 The tables below show the various combinations of heating systems and heating technologies.
 
 .. csv-table:: Heating systems efficiency
-  :file: ../tables\heating_systems_efficiencies.csv
+  :file: ../tables/heating_systems_efficiencies.csv
   :widths: 15 15 15 15 5 5 5
   :header-rows: 1
   :delim: ;
 
 
 .. csv-table:: Heating systems coverage
-  :file: ../tables\heating_systems_coverage.csv
+  :file: ../tables/heating_systems_coverage.csv
   :widths: 15 15 15 15 5 5 5
   :header-rows: 1
   :delim: ;
 
 
 .. csv-table:: Heating systems domestic hot water
-  :file: ../tables\heating_systems_dhw.csv
+  :file: ../tables/heating_systems_dhw.csv
   :widths: 15 15 15
   :header-rows: 1
   :delim: ;
@@ -252,7 +252,7 @@ The tables below show the various combinations of heating systems and heating te
 Heating systems glossary
 ------------------------
 .. csv-table:: Glossary of terms used in heating systems
-  :file: ../tables\heating_systems_glossary_csv.csv
+  :file: ../tables/heating_systems_glossary_csv.csv
   :header-rows: 1
   :widths: 10 10 30 30
   :delim: ;

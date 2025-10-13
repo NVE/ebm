@@ -13,7 +13,7 @@ General environment variables
 The following environment variables are common for both the ``ebm`` and ``ebmgeodist`` modules:
 
 .. csv-table:: General environment variables
-   :file: ../tables\general_env_vars.csv
+   :file: ../tables/general_env_vars.csv
    :header-rows: 1
 
 EBM geographical distribution specific environment variables
@@ -23,7 +23,7 @@ The ``ebmgeodist`` extends the ``ebm`` module by adding functionality for distri
 It requires one additional configuration variable related to the container and storage account parameters of the ELhub API.
 
 .. csv-table:: EBM geographical distribution specific environment variables
-   :file: ../tables\ebmgeodist_env_vars.csv
+   :file: ../tables/ebmgeodist_env_vars.csv
    :header-rows: 1
 
 Example of a .env file

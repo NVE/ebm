@@ -3,7 +3,7 @@ requires = ["setuptools"] #>=42
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "energibruksmodell"
+name = "ebm"
 dynamic = ["version"]
 description = "A project for energy usage modeling"
 readme = "README.md"
@@ -26,13 +26,13 @@ dependencies = [
 [project.optional-dependencies]
 test = ["pytest"]
 build = ["build"]
-dev = ["energibruksmodell[test]", "energibruksmodell[build]", 'ruff', 'ruff-lsp']
+dev = ["ebm[test]", "ebm[build]", 'ruff', 'ruff-lsp']
 docs = ['sphinx', 'sphinx-rtd-theme', 'sphinx-autodoc-typehints', 'numpydoc', 'sphinx-tabs']
 tqdm = ['tqdm', 'XlsxWriter']
 [project.urls]
 Homepage = "https://www.nve.no/"
-Documentation = "https://dev.azure.com/NVE-devops/Energibruksmodell/_wiki/wikis"
-Repository = "https://NVE-devops@dev.azure.com/NVE-devops/Energibruksmodell/_git/Energibruksmodell"
+Documentation = "https://nve.github.io/ebm-docs"
+Repository = "https://github.com/NVE/ebm"
 
 [tool.setuptools]
 packages = ['ebm', 'ebm.model', 'ebm.services', 'ebm.cmd', 'ebm.data']

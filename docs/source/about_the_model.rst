@@ -28,7 +28,7 @@ NVE aims to be transparent about the data, assumptions, and methodologies we use
 We share detailed information about EBM to create a common knowledge base on energy use in the building sector. 
 In addition, we hope to receive useful feedback on how to improve both data and functionality in the model. 
 
-Any feedback can be given on email: ebm@nve.no 
+NVE is continuously working to improve the model and dataset, and welcomes feedback on email: ebm@nve.no. 
 
 Which data is used in EBM?
 --------------------------
@@ -51,7 +51,7 @@ The dataset has been released by NVE under the `Creative Commons 4.0 license: De
 
 Disclaimer of use
 -----------------
-NVE does not take responsibility for how the EBM model, or its data are used by others. 
+NVE does not take responsibility for how the EBM model or its data are used by others. 
 Users are responsible for their own analyses based on the EBM model and data. 
 NVE does not review or endorse third-party use and cannot guarantee the accuracy or relevance of external results.
 

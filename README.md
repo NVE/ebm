@@ -7,9 +7,6 @@ estimated by a bottom- up approach, based on the building stock floor area, ener
 systems. The mathematical model is implemented in Python, with input and output files in excel or csv.
 
 
-![ebm-in-windows-terminal.png](docs/source/_static/getting_started/ebm-in-windows-terminal.png)
-
-
 # Getting Started
 
 ## More information

@@ -27,7 +27,7 @@ and :ref:`data assumptions NVE<data_assumptions_heating_systems>` and an overvie
    :local:
    :backlinks: none
 
-.. image:: ../images/Heating_systems_flowchart.png
+.. image:: ../images/heating_systems_flowchart.png
   :width: 600
   :alt: Flowchart of heating systems
 

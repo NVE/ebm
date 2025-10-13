@@ -157,7 +157,7 @@ This project is licensed under the MIT License. You are free to use, modify, and
 We welcome contributions! Please refer to the Contributing Guide (CONTRIBUTING.md) for details on how to get started.
 
 ## Documentation
-Full documentation is available at the EBM User Guide: https://nve.github.io/ebm/
+Full documentation is available at the EBM User Guide: https://nve.github.io/ebm-docs/
 
 
 

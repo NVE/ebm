@@ -12,7 +12,7 @@ inside the module or loaded from input files under the ``input`` folder, dependi
 gives an overview of the implemented functionality introduced in the module.
 
 .. csv-table:: Geographical distribution overview
-   :file: ..\tables\geodist_implementation_combinations.csv
+   :file: ../tables/geodist_implementation_combinations.csv
    :widths: 10 15 20 55
    :header-rows: 1
 

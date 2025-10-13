@@ -26,13 +26,13 @@ The table below shows how the csv file is formatted. When "default" is input all
 possibilites are affected. 
 
 .. csv-table:: Energy need behaviour factor.
-   :file: ..\tables\energy_need_behaviour_factor.csv
+   :file: ../tables/energy_need_behaviour_factor.csv
    :header-rows: 1
    :widths: 10 10 10 10 10 10
    :delim: ,
 
 It is also possible to modify the
-factors given in "heating_system_efficiencies.csv" to fine tune the coverage of various heating technologies and their
+factors given in |heating_system_efficiencies_ref| to fine tune the coverage of various heating technologies and their
 efficiencies. 
 
 Assumptions

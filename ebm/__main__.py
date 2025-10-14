@@ -92,6 +92,9 @@ Use `<program name> --create-input --input={input_directory}` to create an input
             print(missing_input_error, file=sys.stderr)
             return ReturnCode.FILE_NOT_ACCESSIBLE, None
 
+    if database_manager.file_handler.is_calibrated():
+        logger.info(f'Input directory "{input_directory}" contains calibration files', directory=database_manager.file_handler.input_directory.name)
+
     database_manager.file_handler.validate_input_files()
 
     output_file = arguments.output_file

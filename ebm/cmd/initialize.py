@@ -63,7 +63,10 @@ def copy_available_calibration_files(file_handler: FileHandler, source_directory
 
     logger.debug(f'Copy calibration files from {source_directory}')
     for calibration_file in [source_directory / FileHandler.CALIBRATE_ENERGY_REQUIREMENT,
-                             source_directory / FileHandler.CALIBRATE_ENERGY_CONSUMPTION]:
+                             (source_directory / FileHandler.CALIBRATE_ENERGY_REQUIREMENT).with_suffix('.csv'),
+                             source_directory / FileHandler.CALIBRATE_ENERGY_CONSUMPTION,
+                            (source_directory / FileHandler.CALIBRATE_ENERGY_CONSUMPTION).with_suffix('.csv')
+                             ]:
         if calibration_file.is_file():
             logger.debug(f'Creating calibration file {file_handler.input_directory / calibration_file.name}')
             shutil.copy(calibration_file, file_handler.input_directory)

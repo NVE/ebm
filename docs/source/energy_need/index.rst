@@ -1,3 +1,4 @@
+.. _energy_need_doc:
 Energy need
 ###########
 

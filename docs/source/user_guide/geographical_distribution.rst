@@ -16,7 +16,7 @@ The first thing you need to do is to open your preferred terminal. Then, you nee
 
   python -m ebmgeodist --create-input
 
-The command creates the necessary input files in a new directory called `input` in the current working directory.
+The command creates the necessary input files in a new directory called |input_directory| in the current working directory.
 
 To run the actual geographical distribution module, it is sufficient to use the bare command with no options:
 
@@ -24,17 +24,16 @@ To run the actual geographical distribution module, it is sufficient to use the 
 
   python -m ebmgeodist
 
-By default, the distribution keys are loaded from `input`, and the results are written to the directory `output`.
+By default, the distribution keys are loaded from |input_directory|, and the results are written to the directory |output_directory|.
 If no options are specified, the module distributes energy consumption for all energy products across all building categories at the municipality level. If you want
 to distribute a specific energy product, this can be done using the option ``--energy-product``. For example, to distribute
 district heating consumption, run: ``--energy-product dh``.
 
-By default and without using any option, the distribution keys are loaded from the input file
-``yearly_aggregated_elhub_data.parquet`` under the ``input`` folder.
+By default and without using any option, the distribution keys for electricity are calculated inside the module using electricity consumption data from |elhub_aggregated_data_ref| under |input_directory|.
 If the file does not exist, the module will generate the distribution keys using Elhub API inside the module, assuming that you have
 access to Elhub data via Azure Blob Storage. 
 
-The results are saved in an Excel file named ``ebmgeodist_output.xlsx`` under the ``output`` folder.
+The results are saved in an Excel file named ``{energy-product}_use_geographically_distributed.xlsx`` under |output_directory|.
 
 Additional arguments
 ============================

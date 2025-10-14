@@ -1,5 +1,6 @@
 """EBM start from where when running as a script or module"""
 import os
+os.environ['DISABLE_PANDERA_IMPORT_WARNING'] = 'True'
 import pathlib
 import sys
 
@@ -35,6 +36,7 @@ def main() -> tuple[ReturnCode, pd.DataFrame | None]:
 
     """
     load_environment_from_dotenv()
+
     configure_loglevel(log_format=os.environ.get('LOG_FORMAT', '{level.icon} <level>{message}</level>'))
     configure_json_log()
 

@@ -19,6 +19,13 @@ systems. The mathematical model is implemented in Python, with input and output 
    - [Troubleshooting](https://nve.github.io/ebm-docs/user_guide/troubleshooting.html)
 
 
+## Setting up virtual environment
+It is recommended that you use ebm in a python virtual environment (venv).
+
+For detailed instructions, see
+[How to create and activate a virtual environment](docs/source/env_setup.md)
+
+
 ## 1. Installation process 
 
 <!-- Open a terminal application and navigate to wherever you want to do work. -->
@@ -45,19 +52,10 @@ If you plan to modify the code or contribute to the project, clone the repositor
 
 Make sure your current working directory is the EBM root. 
 
-`python -m pip install -e`
+`python -m pip install -e .`
 
 
 The command will install install all dependencies and ebm as an editable module.
-
-
-## Setting up virtual environment
-It is recommended that you use ebm in a python virtual environment (venv).
-
-For detailed instructions, see
-[How to create and activate a virtual environment](docs/source/env_setup.md)
-
-
     
     
 ## 2. Software dependencies

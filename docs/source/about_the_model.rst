@@ -48,6 +48,7 @@ Results from the model on building stock area and energy consumption should ther
 An updated and improved dataset will be published along with the next version of the model in 2026.* 
 
 The dataset has been released by NVE under the `Creative Commons 4.0 license: Deed - Attribution 4.0 International - Creative Commons <https://creativecommons.org/licenses/by/4.0/>`_.
+When using the dataset, you must credit NVE as described in the license. 
 
 Disclaimer of use
 -----------------

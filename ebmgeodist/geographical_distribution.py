@@ -210,7 +210,7 @@ def geographical_distribution(
     )
 
     output_file = get_output_file(
-        f"output/{energy_product}_energibruk_kommunefordelt.xlsx"
+        f"output/{energy_product}_use_geographically_distributed.xlsx"
     )
 
     export_distribution_to_excel(dfs_distributed, output_file)

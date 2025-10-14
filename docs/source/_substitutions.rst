@@ -35,3 +35,5 @@
 .. |population_forecast_ref| replace:: 🧾 :ref:`population_forecast.csv<population_forecast csv>`
 
 .. |s_curve_ref| replace:: 🧾 :ref:`s_curve.csv<s_curve csv>`
+
+.. |elhub_aggregated_data_ref| replace:: 🧾 :ref:`yearly_aggregated_elhub_data.parquet<yearly_aggregated_elhub_data parquet>`

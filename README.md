@@ -26,12 +26,6 @@ how ti install EBM as a user.
 
 Open a terminal application and navigate to wherever you want to do work. 
 
-### Clone the github repository
-
-`git clone https://github.com/NVE/ebm`
-
-`cd ebm`
-
 ### Make a python virtual environment (optional)
 
 While optional, it is always recommended to install and run python modules in a discrete virtual environment. To create a 
@@ -56,7 +50,24 @@ To use your venv you need to activate it
 More information on [Python virtual environments](https://realpython.com/python-virtual-environments-a-primer/)
 
 
-### Install EBM
+## Install EBM
+
+There are two options. **Install from PyPI** (Python package index) or install **clone the github repository**.
+
+### Install from PyPI
+
+`python -m pip install ebm`
+
+You can now run the model as a module `python -m ebm` or as a program `ebm`
+
+Please refer to [getting started](https://nve.github.io/ebm-docs/user_guide/getting_started.html) for more information on how the model works.
+
+
+### Clone the github repository
+
+`git clone https://github.com/NVE/ebm`
+
+`cd ebm`
 
 Make sure your current working directory is the EBM root. 
 

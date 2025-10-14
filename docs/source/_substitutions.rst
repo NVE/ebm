@@ -35,3 +35,11 @@
 .. |population_forecast_ref| replace:: 🧾 :ref:`population_forecast.csv<population_forecast csv>`
 
 .. |s_curve_ref| replace:: 🧾 :ref:`s_curve.csv<s_curve csv>`
+
+.. |elhub_aggregated_data_ref| replace:: 🧾 :ref:`yearly_aggregated_elhub_data.parquet<yearly_aggregated_elhub_data parquet>`
+
+.. |output_ebmgeodist_ref| replace:: 🧾 :ref:`{energy-product}_use_geographically_distributed.xlsx<{energy-product}_use_geographically_distributed xlsx>`
+
+.. |input_dh_ref| replace:: 🧾 :ref:`dh_distribution_keys.xlsx<dh_distribution_keys xlsx>`
+
+.. |input_fuelwood_ref| replace:: 🧾 :ref:`fuelwood_distribution_keys.xlsx<fuelwood_distribution_keys xlsx>`

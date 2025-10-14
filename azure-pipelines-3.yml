@@ -6,7 +6,7 @@
 trigger:
   branches:
     include:
-      - sprint27
+      - main
 
 pool:
   vmImage: 'ubuntu-latest'

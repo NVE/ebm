@@ -105,7 +105,7 @@ def test_create_input_with_optional_source_directory(tmp_cwd: pathlib.Path):
     mock_file_handler.create_missing_input_files.assert_called_with(source_directory=the_source)
 
 
-@pytest.mark.parametrize("filename", ['calibrate_heating_rv.xlsx', 'calibrate_energy_consumption.xlsx'])
+@pytest.mark.parametrize("filename", ['calibrate_heating_rv.xlsx', 'calibrate_heating_rv.csv', 'calibrate_energy_consumption.xlsx', 'calibrate_energy_consumption.csv'])
 def test_copy_available_calibration_files(tmp_cwd:pathlib.Path, filename: str):
     input_directory = tmp_cwd / 'input-test'
     input_directory.mkdir()
@@ -121,7 +121,7 @@ def test_copy_available_calibration_files(tmp_cwd:pathlib.Path, filename: str):
 
     initialize.copy_available_calibration_files(mock_file_handler, the_source)
 
-    assert (input_directory / filename).is_file()
+    assert (input_directory / filename).is_file(), f'{filename} not found in input directory'
 
 
 def test_create_input_with_optional_source_directory_raise_error_on_missing_files(tmp_cwd: pathlib.Path):

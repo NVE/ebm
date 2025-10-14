@@ -6,7 +6,6 @@ openpyxl
 loguru
 python-dotenv
 numpy
-rich
 pandera==0.20.4
 sphinx[docs]
 sphinx-rtd-theme[docs]

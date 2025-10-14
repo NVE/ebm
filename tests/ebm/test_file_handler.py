@@ -169,7 +169,19 @@ def test_filehandler_create_missing_input_files_from_source_directory(tmp_path):
         expected_text = file_to_check + ' from ' + str(source_directory)
         assert actual_text == expected_text, f'{file_to_check} does not contain {expected_text}'
 
+@pytest.mark.parametrize('extension', ['.xlsx', '.csv'])
+def test_filehandler_is_calibrated(tmp_file_handler: FileHandler, extension):
+    """Make sure is_calibrated return True when it finds two files with appropriate file extensions"""
+    assert not tmp_file_handler.is_calibrated(), 'Expected check_calibrated to return False when missing 2 calibrated files'
 
+    calibrate_energy_consumption = tmp_file_handler.input_directory / tmp_file_handler.CALIBRATE_ENERGY_CONSUMPTION
+    calibrate_energy_consumption.with_suffix(extension).write_text('calibrated')
+    assert not tmp_file_handler.is_calibrated(), 'Expected check_calibrated to return False when missing 1 calibrated file'
+
+    calibrate_energy_requirement = tmp_file_handler.input_directory / tmp_file_handler.CALIBRATE_ENERGY_REQUIREMENT
+    calibrate_energy_requirement.with_suffix(extension).write_text('calibrated')
+
+    assert tmp_file_handler.is_calibrated(), 'Expected check_calibrated to return True'
 
 
 def test_filehandler_validate_created_input_file(tmp_file_handler):

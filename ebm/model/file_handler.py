@@ -386,3 +386,28 @@ class FileHandler:
             except (SchemaErrors, SchemaError):
                 logger.error(f'Got error while validating {file_to_validate}')
                 raise
+
+    def is_calibrated(self) -> bool:
+        """
+        Check if calibration files exist in the input directory.
+
+        This method verifies the presence of both energy consumption and energy
+        requirement files in either `.xlsx` or `.csv` format within the specified
+        input directory.
+
+        Returns
+        -------
+        bool
+            `True` if both required files exist with the same extension (`.xlsx` or `.csv`),
+            otherwise `False`.
+        """
+
+        energy_consumption = (self.input_directory / self.CALIBRATE_ENERGY_CONSUMPTION)
+        energy_requirement = (self.input_directory / self.CALIBRATE_ENERGY_REQUIREMENT)
+
+        if energy_consumption.with_suffix('.xlsx').is_file() and energy_requirement.with_suffix('.xlsx').is_file():
+            return True
+        if energy_consumption.with_suffix('.csv').is_file() and energy_requirement.with_suffix('.csv').is_file():
+            return True
+        return False
+

@@ -1,14 +1,30 @@
 [build-system]
-requires = ["setuptools"] #>=42
+requires = ["setuptools>=42"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ebm"
 dynamic = ["version"]
 description = "A project for energy usage modeling"
+keywords = ["energy"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+]
+
 readme = "README.md"
+license = {text="MIT"}
 authors = [
+    { name = "Ny Forbruksmodell", email = "ebm@nve.no" },
     { name = "Lars Petrusson", email = "lfep@nve.no" },
+    { name = "Mohammed Ettyabi", email= "moe@nve.no"},
     { name = "Ketil Nordstad", email = "kenord@nve.no" }
 ]
 requires-python = ">= 3.11"
@@ -32,7 +48,7 @@ tqdm = ['tqdm', 'XlsxWriter']
 [project.urls]
 Homepage = "https://www.nve.no/"
 Documentation = "https://nve.github.io/ebm-docs"
-Repository = "https://github.com/NVE/ebm"
+Repository = "https://github.com/NVE/ebm.git"
 
 [tool.setuptools]
 packages = ['ebm', 'ebm.model', 'ebm.services', 'ebm.cmd', 'ebm.data']
@@ -44,7 +60,7 @@ ebm-calibrate = "ebm.cmd.calibrate_excel_com_io:main"
 version = {attr = "ebm.__version__.version"}
 
 [tool.setuptools.package-data]
-mypackage = ["*.csv"]
+ebm = ["*.csv"]
 [tool.pytest.ini_options]
 pythonpath = "."
 testpaths = ["tests"]

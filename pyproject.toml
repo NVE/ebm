@@ -54,7 +54,7 @@ Repository = "https://github.com/NVE/ebm.git"
 packages = ['ebm', 'ebm.model', 'ebm.services', 'ebm.cmd', 'ebm.data']
 include-package-data = true
 [project.scripts]
-ebm = "ebm.__main__:main"
+ebm = "ebm.cmd.ebmexe:main"
 ebm-calibrate = "ebm.cmd.calibrate_excel_com_io:main"
 [tool.setuptools.dynamic]
 version = {attr = "ebm.__version__.version"}

@@ -11,7 +11,7 @@ From this category the model only uses the area attributed to storage and wareho
 .. csv-table:: Building categories and associated building types
   :file: ../tables/building_category.csv
   :header-rows: 1
-  :widths: 25 25
+  :widths: 10 25
   :delim: ;
 
 For already built area we assume that all area in a given building code is built the same year. This year is "building year" in the table below. 

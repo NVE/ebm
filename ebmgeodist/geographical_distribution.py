@@ -100,7 +100,7 @@ def calculate_elhub_factors(df_stacked: pl.DataFrame, normalized: list[str], elh
 
 
 def load_dh_factors(normalized: list[str], year_cols) -> dict:
-    input_file = get_output_file("input/fjernvarme_kommune_fordelingsnøkler.xlsx")
+    input_file = get_output_file("input/dh_distribution_keys.xlsx")
     df = pl.from_pandas(pd.read_excel(input_file))
     years_column = [str(year) for year in year_cols]
 
@@ -116,7 +116,7 @@ def load_dh_factors(normalized: list[str], year_cols) -> dict:
     return factor_dict
 
 def load_wood_factors(year_cols) -> dict:
-    input_file = get_output_file("input/ved_kommune_fordelingsnøkler.xlsx")
+    input_file = get_output_file("input/fuelwood_distribution_keys.xlsx")
     df = pl.from_pandas(pd.read_excel(input_file))
     years_column = [str(year) for year in year_cols]
     factor_dict = {}

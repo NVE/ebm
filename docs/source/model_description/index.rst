@@ -1,10 +1,10 @@
 Model Description
-#############################
+#################
 
 EBM is a bottom-up model that estimates how area, energy need and energy use in the building stock changes over time. 
 The start year of the model consist of user input about the building stock area, 
-it's condition and how it is divided between different building categories and building codes. 
-Information about heating systems and efficiencies in the start year must also be provided. 
+its condition and how it is divided between different building categories and building codes. 
+Information about the use of heating systems and their efficiencies in the start year must also be provided. 
 When forecasting how the building stock changes over time, the model consider changes in 
 
 * population and demographics
@@ -27,8 +27,8 @@ The main steps of the model
 
 For each building category and year in the model the calculations consist of four main steps:
 
-#. Determine rates for implementation of:
-    a. Small energy efficiency measures (called small measures)
+#. Determine rates for
+    a. Implementation of small energy efficiency measures (called small measures)
     b. Renovation
     c. Demolition
     d. New construction
@@ -43,7 +43,7 @@ The detailed description of calculations in the model and NVE's data assumptions
 * :ref:`Energy need<energy_need_doc>`
 * :ref:`Heating systems<Heating systems>`
 * :ref:`Energy use<energy_use_doc>`
-* :ref:`Geographical distribution<geographical_distribution_doc>` 
+* :ref:`Geographical distribution<geo_distribution_comprehensive_doc>` 
 
 Architecture
 =============

@@ -16,8 +16,8 @@ class FileHandler:
 
     # Filenames
     ELHUB_DATA = 'yearly_aggregated_elhub_data.parquet'
-    DH_DATA = 'fjernvarme_kommune_fordelingsnøkler.xlsx'
-    BIO_DATA = 'ved_kommune_fordelingsnøkler.xlsx'
+    DH_DATA = 'dh_distribution_keys.xlsx'
+    BIO_DATA = 'fuelwood_distribution_keys.xlsx'
 
     input_directory: pathlib.Path
 

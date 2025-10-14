@@ -26,7 +26,12 @@ Building categories are aggreagted to residential and non-residental.
 
 6. **📄 heating_system_share.xlsx**. 
 Share of heating systems as fractions for the building groups house, apartment block and non-residental buildings from 2020 to 2050.
-In wide and long format. 
+In wide and long format.
+
+Running the ``ebmgeodist`` module will add four additional files:
+
+7. **📄 {energy-product}_use_geographically_distributed.xlsx**.
+The geographically distributed energy use for the specified energy product. The energy use is given per year from 2020 to 2050.
 
 .. |date| date::
 

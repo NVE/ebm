@@ -1,5 +1,6 @@
 import os
 import pathlib
+import shutil
 from unittest.mock import Mock
 
 import pandas as pd
@@ -182,6 +183,41 @@ def test_filehandler_is_calibrated(tmp_file_handler: FileHandler, extension):
     calibrate_energy_requirement.with_suffix(extension).write_text('calibrated')
 
     assert tmp_file_handler.is_calibrated(), 'Expected check_calibrated to return True'
+
+
+@pytest.mark.parametrize('extension', ['.xlsx', '.csv'])
+def test_get_calibrate_heating_rv(tmp_file_handler: FileHandler, extension: str):
+    file = tmp_file_handler.input_directory / tmp_file_handler.CALIBRATE_ENERGY_REQUIREMENT
+
+    directory = pathlib.Path(__file__).parent / pathlib.Path(r'../ebm/data/kalibrert')
+    source_file = directory / f'calibrate_heating_rv{extension}'
+
+    shutil.copy(source_file, file.with_suffix(extension))
+
+    df: pd.DataFrame = tmp_file_handler.get_calibrate_heating_rv()
+
+    assert 'building_category' in df.columns
+    assert 'purpose' in df.columns
+    assert 'heating_rv_factor' in df.columns
+    assert len(df) == 0, 'Expected empty calibration file'
+
+
+@pytest.mark.parametrize('extension', ['.xlsx', '.csv'])
+def test_get_calibrate_heating_systems(tmp_file_handler: FileHandler, extension: str):
+    file = tmp_file_handler.input_directory / tmp_file_handler.CALIBRATE_ENERGY_CONSUMPTION
+
+    directory = pathlib.Path(__file__).parent / pathlib.Path(r'../ebm/data/kalibrert')
+    source_file = directory / f'calibrate_energy_consumption{extension}'
+
+    shutil.copy(source_file, file.with_suffix(extension))
+
+    df: pd.DataFrame = tmp_file_handler.get_calibrate_heating_systems()
+
+    assert 'building_category' in df.columns
+    assert 'to' in df.columns
+    assert 'from' in df.columns
+    assert 'factor' in df.columns
+    assert len(df) == 39, 'Expected 39 rows in calibration file'
 
 
 def test_filehandler_validate_created_input_file(tmp_file_handler):

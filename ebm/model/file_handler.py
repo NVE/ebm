@@ -85,7 +85,7 @@ class FileHandler:
 
     def get_file(self, file_name: str) -> pd.DataFrame:
         """
-        Finds and returns a file by searching in the folder defined by self.input_folder.
+        Finds and returns a file by searching in the folder defined by self.input_folder
 
         Parameters:
         - file_name (str): Name of the file to retrieve.
@@ -248,15 +248,49 @@ class FileHandler:
         return self.get_file(self.AREA_PER_PERSON)
 
     def get_calibrate_heating_rv(self) -> pd.DataFrame:
+        """
+        Retrieve the calibrated heating requirement values
+
+        This method attempts to load the energy requirement calibration file from the
+        input directory. It first checks for a file without extension, then for a `.csv`
+        version. If neither is found, it returns a default DataFrame.
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame containing the calibrated heating requirement values. If no file
+            is found, a default DataFrame is returned.
+
+        """
+
         calibrate_heating_rv = self.input_directory / self.CALIBRATE_ENERGY_REQUIREMENT
         if calibrate_heating_rv.is_file():
             return self.get_file(calibrate_heating_rv.name)
+        if calibrate_heating_rv.with_suffix('.csv').is_file():
+            return self.get_file(calibrate_heating_rv.with_suffix('.csv').name)
         return default_calibrate_heating_rv()
 
     def get_calibrate_heating_systems(self) -> pd.DataFrame:
+        """
+        Retrieve the calibrated energy consumption values for heating systems
+
+        This method attempts to load the energy consumption calibration file from the
+        input directory. It first checks for a file without extension, then for a `.csv`
+        version. If neither is found, it returns a default DataFrame.
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame containing the calibrated energy consumption values. If no file
+            is found, a default DataFrame is returned.
+
+        """
+
         calibrate_energy_consumption = self.input_directory / self.CALIBRATE_ENERGY_CONSUMPTION
         if calibrate_energy_consumption.is_file():
             return self.get_file(calibrate_energy_consumption.name)
+        if calibrate_energy_consumption.with_suffix('.csv').is_file():
+            return self.get_file(calibrate_energy_consumption.with_suffix('.csv').name)
         return default_calibrate_energy_consumption()
 
     def get_heating_systems_shares_start_year(self) -> pd.DataFrame:

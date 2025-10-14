@@ -25,7 +25,7 @@ Useful floor area for new non-residential buildings based on population growth.
 .. _building_code_parameters csv:
 
 |building_code_parameters_ref| |br|
-Year of operation for the different building codes in Norway. New area is built after a new building code a few years after it is implemented.
+Year of operation for the different building codes in Norway. New area is built according to a new building code a few years after the building code is implemented.
 
 .. _energy_need_behaviour_factor csv:
 
@@ -35,12 +35,12 @@ Changes in energy need not related to the improvements in heating need from smal
 .. _energy_need_improvements csv:
 
 |energy_need_improvements_ref| |br|
-Reduction in energy need for lighting and electrical equipment from implementation of eco design, energy labeling and other measures. 
+Reduction in energy need for lighting and electrical equipment due to implementation of eco design, energy labeling and other measures. 
 
 .. _energy_need_original_condition csv:
 
 |energy_need_original_condition_ref| |br|
-Energy need per square meter for various energy purposes differentiated by building code and building category. The given energy need is only for a building's original condition.
+Energy need per square meter for various energy purposes differentiated by building code and building category. The given energy need is for a building's original condition.
 
 .. _heating_system_efficiencies csv:
 
@@ -60,7 +60,7 @@ Distribution of heating systems per building category and building code in the s
 .. _holiday_home_energy_consumption csv:
 
 |holiday_home_energy_consumption_ref|  |br|
-Historical energy use of fuel wood, electricity and fossil fuel in holiday homes.
+Historical use of fuel wood, electricity and fossil fuel in holiday homes.
 
 .. _holiday_home_stock csv:
 

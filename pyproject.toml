@@ -19,7 +19,7 @@ dependencies = [
     "pandas", 
     "python-dotenv", 
     "rich",
-    "pandera",
+    "pandera==0.20.4",
     "XlsxWriter",
     "pywin32 ; platform_system == 'Windows'",
 ]

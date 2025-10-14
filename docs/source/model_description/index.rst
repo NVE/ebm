@@ -38,12 +38,12 @@ For each building category and year in the model the calculations consist of fou
 
 The detailed description of calculations in the model and NVE's data assumptions is organized by the following themes: 
 
-* Building category and building code
-* Area
-* Energy need
-* Heating systems
-* Energy use
-* Geographical distribution 
+* :ref:`Building category and building code<building_category_building_code_doc>`
+* :ref:`Area<area_doc>`
+* :ref:`Energy need<energy_need_doc>`
+* :ref:`Heating systems<Heating systems>`
+* :ref:`Energy use<energy_use_doc>`
+* :ref:`Geographical distribution<geographical_distribution_doc>` 
 
 Architecture
 =============
@@ -53,7 +53,7 @@ EBM Container diagram
 ---------------------
 Describes the model's overall architecture and inner workings. 
 
-.. image:: ../_static/model_description/EBM-container-drawio.svg
+.. image:: ../_static/model_description/ebm-container.svg
    :alt: C4 EBM container diagram
 
 
@@ -62,7 +62,7 @@ EBM Pipeline Component diagram
 
 Describes how the pipeline container interacts with components
 
-.. image:: ../_static/model_description/EBM-pipeline.drawio.svg
+.. image:: ../_static/model_description/ebm-pipeline.svg
    :alt: C4 pipeline component diagram
 
 

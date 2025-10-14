@@ -36,7 +36,7 @@ The parameters listed above are optional. The default choice for the ``step`` pa
 
 
 .. csv-table:: Difference between switch and step
-  :file: ..\tables\diff_switch_step.csv
+  :file: ../tables/diff_switch_step.csv
   :widths: 3, 20
   :header-rows: 1
 
@@ -104,7 +104,7 @@ Typing `ebm --help` will give you a list of most parameters:
   ebm area-forecast output/area-forecast-vertical.xlsx
 
 .. csv-table:: Output from using the command above
-  :file: ..\tables\example_four_output.csv
+  :file: ../tables/example_four_output.csv
   :header-rows: 1
 
 
@@ -116,7 +116,7 @@ If the user wants the output file in horizontal format, the user can use the fol
   ebm --horizontal area-forecast output/area-forecast.xlsx
 
 .. csv-table:: Output from using the command above (horizontal format)
-  :file: ..\tables\example_four_output_horizontal.csv
+  :file: ../tables/example_four_output_horizontal.csv
   :header-rows: 1
 
 
@@ -132,7 +132,7 @@ The energy-requirements is calculated by multiplying the heating demand per squa
   ebm energy-requirements output/energy-requirements-vertical.xlsx
 
 .. csv-table:: Output from using the command above
-  :file: ..\tables\example_five_output.csv
+  :file: ../tables/example_five_output.csv
   :header-rows: 1
 
 If the user wants the output file in horizontal format, the user can use the following command:
@@ -143,7 +143,7 @@ If the user wants the output file in horizontal format, the user can use the fol
   ebm --horizontal energy-requirements output/energy-requirements.xlsx
 
 .. csv-table:: Output from using the command above (horizontal format)
-  :file: ..\tables\example_five_output_horizontal.csv
+  :file: ../tables/example_five_output_horizontal.csv
   :header-rows: 1
 
 
@@ -159,7 +159,7 @@ The energy consumption is calculated by multiplying the energy requirements from
   ebm heating-systems output/heating-systems-vertical.xlsx
 
 .. csv-table:: Output from using the command above
-  :file: ..\tables\example_six_output.csv
+  :file: ../tables/example_six_output.csv
   :header-rows: 1
 
 
@@ -173,7 +173,7 @@ The energy consumption is calculated by multiplying the energy requirements from
   ebm energy-use output/energy-use-vertical.xlsx
 
 .. csv-table:: Output from using the command above
-  :file: ..\tables\example_seven_output.csv
+  :file: ../tables/example_seven_output.csv
   :header-rows: 1
 
 

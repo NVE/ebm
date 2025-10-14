@@ -1,18 +1,36 @@
-# Introduction 
-TODO: Give a short introduction of your project. Let this section explain the objectives or the motivation behind this project. 
+#  Introduction 
+
+EBM is a model used by the Norwegian Water Resources and Energy Directorates (NVE) to forecast energy use in the 
+building stock. EBM is an open-source model developed and managed by NVE. The model allows the user to analyze how 
+demographic trends and policy instruments impact the yearly energy use on a national and regional level. Energy use is 
+estimated by a bottom- up approach, based on the building stock floor area, energy need and distribution of heating 
+systems. The mathematical model is implemented in Python, with input and output files in excel or csv.
+
+
+![ebm-in-windows-terminal.png](docs/source/_static/getting_started/ebm-in-windows-terminal.png)
+
 
 # Getting Started
-TODO: Guide users through getting your code up and running on their own system. In this section you can talk about:
 
 ## More information
- - [Detailed developer documentation found here (Norwegian)](docs/README.md)
- - [How to build the project](docs/BUILD.md)
+
+
+ - [Full documentation found here](https://nve.github.io/ebm-docs/index.html)
+   - [Model description](https://nve.github.io/ebm-docs/model_description/index.html)
+   - [Limitations](https://nve.github.io/ebm-docs/limitations.html)
+   - [Getting started](https://nve.github.io/ebm-docs/user_guide/getting_started.html)
+   - [Troubleshooting](https://nve.github.io/ebm-docs/user_guide/troubleshooting.html)
 
 
 ## 1. Installation process
+
+Please refer to [getting started](https://nve.github.io/ebm-docs/user_guide/getting_started.html) for information on 
+how ti install EBM as a user. 
+
 Open a terminal application and navigate to wherever you want to do work. 
 
 ### Make a python virtual environment (optional)
+
 While optional, it is always recommended to install and run python modules in a discrete virtual environment. To create a 
 new python virtual environment (venv) type the following in a terminal.
 
@@ -28,38 +46,59 @@ To use your venv you need to activate it
 (Your command prompt starts with C:\ where C is any letter from A-Z)
 `\venv\Scripts\active.bat`
 
-###
-`python -m pip install pandas openpyxl loguru python-dotenv rich`
+### GNU/Linux and macOS
 
-### Download energibruksmodell module from here
-  https://pkgs.dev.azure.com/NVE-devops/Energibruksmodell/_apis/packaging/feeds/a3118afb-b44a-4e53-83af-0d4657833457/pypi/packages/energibruksmodell/versions/0.7.6/energibruksmodell-0.7.6-py3-none-any.whl/content
+`source venv/bin/active`
 
-### Install Energibruksmodell
-`python -m pip install energibruksmodell-0.7.6-py3-none-any.whl`
+More information on [Python virtual environments](https://realpython.com/python-virtual-environments-a-primer/)
 
-### Run Energibruksmodell
- Refer to section [Running as a script](#running-as-a-script) below
+
+## Install EBM
+
+There are two options. **Install from PyPI** (Python package index) or install **clone the github repository**.
+
+### Install from PyPI
+
+`python -m pip install ebm`
+
+You can now run the model as a module `python -m ebm` or as a program `ebm`
+
+Please refer to [getting started](https://nve.github.io/ebm-docs/user_guide/getting_started.html) for more information on how the model works.
+
+
+### Clone the github repository
+
+`git clone https://github.com/NVE/ebm`
+
+`cd ebm`
+
+Make sure your current working directory is the EBM root. 
+
+```
+python -m pip install -e .
+
+```
+
+The command will install install all dependencies and ebm as an editable module.
 
     
     
 ## 2. Software dependencies
   - pandas
   - loguru
-  - rich
   - openpyxl
+  - pandera
    
+  Dependecies will be automatically installed when you install the package as described under Installation process.
   See also [requirements.txt](requirements.txt)
 
-## 3. Run
-
-### Running as a script
+## 3. Run the model
 
 There are multiple ways to run the program. Listed bellow is running as a standalone program and running as a module. If 
-running as a program fails due to security restriction, you might be able to use the module approach instead. See also [Running as code](#running-as-code)
+running as a program fails due to security restriction, you might be able to use the module approach instead. 
 
-```cmd
-calculate-area-forecast
-```
+See also [Running as code](#running-as-code)
+
 
 ### Running as a module
 
@@ -67,64 +106,72 @@ calculate-area-forecast
 python3 -m ebm
 ```
 
+By default, the results will be written to the subdirectory `output`
+
 For more information use `--help`
 
 `python -m ebm --help`
 
 ```shell
-python -m ebm --help
+usage: ebm [-h] [--version] [--debug] [--categories [CATEGORIES ...]] [--input [INPUT]] [--force] [--open]
+           [--csv-delimiter CSV_DELIMITER] [--create-input] [--horizontal-years]
+           [{area-forecast,energy-requirements,heating-systems,energy-use}] [output_file]
 
-usage: calculate-area-forecast [-h] [--version] [--debug] [--force] [--open] [--csv-delimiter CSV_DELIMITER] [--create-input] [--start_year [START_YEAR]] [--end_year [END_YEAR]] [--horizontal]
-                               [output_file] [building_categories ...]
-
-Calculate EBM area forecast v0.7.9
+Calculate EBM energy use 1.2.15
 
 positional arguments:
-  output_file           The location of the file you want to be written. default: output\ebm_area_forecast.xlsx
+  {area-forecast,energy-requirements,heating-systems,energy-use}
+
+                        The calculation step you want to run. The steps are sequential. Any prerequisite to the chosen step will run
+                            automatically.
+  output_file           The location of the file you want to be written. default: output\ebm_output.xlsx
                             If the file already exists the program will terminate without overwriting.
                             Use "-" to output to the console instead
-  building_categories
-                        One or more of the following building categories:
-                            house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs
 
 options:
   -h, --help            show this help message and exit
   --version, -v         show program's version number and exit
-  --debug, -d           Run in debug mode. (Extra information written to stdout)
+  --debug               Run in debug mode. (Extra information written to stdout)
+  --categories [CATEGORIES ...], --building-categories [CATEGORIES ...], -c [CATEGORIES ...]
+
+                        One or more of the following building categories:
+                            house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs.
+                            The default is to use all categories.
+  --input [INPUT], --input-directory [INPUT], -i [INPUT]
+                        path to the directory with input files
   --force, -f           Write to <filename> even if it already exists
-  --open, -o            Attempt opening <filename> after writing
+  --open, -o            Open output file(s) automatically when finished writing. (Usually Excel)
   --csv-delimiter CSV_DELIMITER, --delimiter CSV_DELIMITER, -e CSV_DELIMITER
                         A single character to be used for separating columns when writing csv. Default: "," Special characters like ; should be quoted ";"
-  --create-input        Create input directory with all required files in the current working directory
-  --start_year [START_YEAR]
-                        Forecast start year. default: 2010, all other values are invalid
-  --end_year [END_YEAR]
-                        Forecast end year (including). default: 2050, any other values are invalid
-  --horizontal          Show years horizontal (left to right)
+  --create-input
+                        Create input directory containing all required files in the current working directory
+  --horizontal-years, --horizontal, --horisontal
+                        Show years horizontal (left to right)
 ```
 
 
 ### Running as code
 ```python
 
-from ebm.model import BuildingCategory, Buildings, DatabaseManager
-from ebm.model.construction import ConstructionCalculator
+from ebm.temp_calc import calculate_energy_use_wide
+from ebm.model.file_handler import FileHandler
 
-database_manager = DatabaseManager()
+fh = FileHandler()
+fh.create_missing_input_files()
 
-buildings = Buildings.build_buildings(building_category=BuildingCategory.HOUSE)
-
-area_forecast = buildings.build_area_forecast(database_manager)
-
-demolished_floor_area = area_forecast.calc_total_demolition_area_per_year()
-
-yearly_constructed = ConstructionCalculator.calculate_construction_as_list(
-    building_category=BuildingCategory.HOUSE,
-    demolition_floor_area=demolished_floor_area)
-
-forecast = area_forecast.calc_area_with_construction(yearly_constructed)
-
-print(forecast)
-
+df = calculate_energy_use_wide(ebm_input=fh.input_directory)
+print(df)
 
 ```
+
+## License
+This project is licensed under the MIT License. You are free to use, modify, and distribute the software with proper attribution.
+
+## Contributing
+We welcome contributions! Please refer to the Contributing Guide (CONTRIBUTING.md) for details on how to get started.
+
+## Documentation
+Full documentation is available at the EBM User Guide: https://nve.github.io/ebm/
+
+
+

@@ -42,7 +42,7 @@ Additional arguments
 The module supports several options to customize the distribution process. The available options are summarized in the table below:
 
 .. csv-table:: Geographical distribution overview
-   :file: ..\tables\ebmgeodist_command_options.csv
+   :file: ../tables/ebmgeodist_command_options.csv
    :header-rows: 1
 
 .. note::

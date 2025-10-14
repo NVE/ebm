@@ -19,8 +19,6 @@ Quick Start Guide
 
 Please, open your preferred terminal application and follow the instructions below.
 
-.. image:: ../_static/getting_started/ebm-in-windows-terminal.png
-
 
 Installation
 ^^^^^^^^^^^^

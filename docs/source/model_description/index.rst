@@ -43,7 +43,7 @@ The detailed description of calculations in the model and NVE's data assumptions
 * :ref:`Energy need<energy_need_doc>`
 * :ref:`Heating systems<Heating systems>`
 * :ref:`Energy use<energy_use_doc>`
-* :ref:`Geographical distribution<geographical_distribution_doc>` 
+* :ref:`Geographical distribution<geo_distribution_comprehensive_doc>` 
 
 Architecture
 =============

@@ -24,7 +24,7 @@ To run the actual geographical distribution module, it is sufficient to use the 
 
   python -m ebmgeodist
 
-By default, the distribution keys are loaded from |input_directory|, and the results are written to the directory |output_directory|.
+By default, the distribution keys are loaded from |input_directory|, and the results are written to the |output_directory| directory.
 If no options are specified, the module distributes energy consumption for all energy products across all building categories at the municipality level. If you want
 to distribute a specific energy product, this can be done using the option ``--energy-product``. For example, to distribute
 district heating consumption, run: ``--energy-product dh``.
@@ -33,7 +33,7 @@ By default and without using any option, the distribution keys for electricity a
 If the file does not exist, the module will generate the distribution keys using Elhub API inside the module, assuming that you have
 access to Elhub data via Azure Blob Storage. 
 
-The results are saved in an Excel file named ``{energy-product}_use_geographically_distributed.xlsx`` under |output_directory|.
+The results are saved in four Excel files named |output_ebmgeodist_ref| under |output_directory|, where ``{energy-product}`` is replaced by the name of the energy product being distributed (e.g., ``electricity``, ``fuelwood``, ``dh``, etc.).
 
 Additional arguments
 ============================
@@ -53,10 +53,11 @@ The module supports several options to customize the distribution process. The a
     .. code-block:: bash
 
       python -m ebmgeodist --help
-  
-    The option ``local`` means that the distribution keys for electricity will be loaded from the input files under the ``input`` folder, as introduced above.
-    The option ``azure`` means that the distribution keys for electricity will be generated using Elhub API inside the module.
-    For all other energy products, the distribution keys are always loaded from the input files under the ``input`` folder.
+    The option ``local`` means that the module will be using electricity consumption data loaded from |elhub_aggregated_data_ref| under |input_directory| to generate the distribution keys for electricity.
+    
+    The option ``azure`` means that the module will be using Elhub API to fetch electricity consumption data from Azure Blob Storage to generate the distribution keys for electricity.
+    
+    For all other energy products, the distribution keys are always loaded from the input files under the |input_directory| folder.
 
 The general syntax for running the module with specific options is as follows:
 
@@ -77,6 +78,6 @@ The general syntax for running the module with specific options is as follows:
 
 .. seealso::
 
-   :ref:`Geographical distribution`
+   :ref:`Geographical distribution<geo_distribution_comprehensive_doc>`
         For a more detailed description of the geographical distribution module, including input file formats and examples.
 

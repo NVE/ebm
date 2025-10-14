@@ -1,5 +1,5 @@
 Energy-product, Building category, File name, Description
-Electricity, All, yearly_aggregated_elhub_data.parquet, Precalculated distribution keys for electricity consumption per municipality based on Elhub data.
-District heating, Households & commercial buildings, fjernvarme_kommune_fordelingsnøkler.xlsx, Distribution keys for district heating consumption per municipality
-Bioenergy, Households & holiday homes, ved_kommune_fordelingsnøkler.xlsx, Distribution keys for bioenergy (wood) consumption per municipality
-Fossil fuels, Holiday homes, ved_kommune_fordelingsnøkler.xlsx, Distribution keys for fossil fuel consumption per municipality
+Electricity, All, yearly_aggregated_elhub_data.parquet, Precalculated yearly aggregated Elhub data used to calculate distribution keys for electricity consumption per municipality
+District heating, Residential & non-residential, dh_distribution_keys.xlsx, Distribution keys for district heating consumption per municipality
+Bioenergy, Residential & holiday homes, fuelwood_distribution_keys.xlsx, Distribution keys for bioenergy (wood) consumption per municipality
+Fossil fuels, Holiday homes, fuelwood_distribution_keys.xlsx, Distribution keys for fossil fuel consumption per municipality

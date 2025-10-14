@@ -1,0 +1,36 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - ebm/__version__.py
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  - name: pythonversion
+    value: '3.11'
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(pythonversion)'
+  displayName: 'Use Python $(pythonversion)'
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+    pip install setuptools build twine sdist
+  displayName: 'Install dependencies'
+
+- script: |
+    python -m build
+  displayName: 'Build package'
+
+- script: |
+    pip install pytest pytest-azurepipelines
+    pytest
+  displayName: 'pytest'
+- script: |
+    python -m twine upload dist/* --username="$(PYPI_USERNAME)" --password="$(PYPI_PASSWORD)" --repository="$(PYPI_REPOSITORY)"
+  displayName: 'Publish to PyPI'

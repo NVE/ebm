@@ -41,7 +41,7 @@ Install ebm using pip
 
 .. code-block:: bash
 
-  python -m pip install https://github.com/NVE/ebm/releases/download/v0.99.1/ebm-0.99.1-py3-none-any.whl
+  python -m pip install ebm
 
 
 
@@ -64,7 +64,7 @@ The output should look something like this:
    .. code-block:: powershell
 
     PS C:\Users\user> ebm --version
-    ebm 1.2.9
+    ebm 0.99.2
     PS C:\Users\user>
 
 The output shows what version of ebm you are running. Don't worry if the version number you get is a bit off from the one

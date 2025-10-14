@@ -15,55 +15,29 @@ systems. The mathematical model is implemented in Python, with input and output 
  - [Full documentation found here](https://nve.github.io/ebm-docs/index.html)
    - [Model description](https://nve.github.io/ebm-docs/model_description/index.html)
    - [Limitations](https://nve.github.io/ebm-docs/limitations.html)
-   - [Getting started](https://nve.github.io/ebm-docs/user_guide/getting_started.html)
+   - [User guide](https://nve.github.io/ebm-docs/user_guide/index.html)
    - [Troubleshooting](https://nve.github.io/ebm-docs/user_guide/troubleshooting.html)
 
 
-## 1. Installation process
+## 1. Installation process 
 
-Please refer to [getting started](https://nve.github.io/ebm-docs/user_guide/getting_started.html) for information on 
-how ti install EBM as a user. 
+<!-- Open a terminal application and navigate to wherever you want to do work. -->
+ 
+<!-- Please refer to [getting started](https://nve.github.io/ebm-docs/user_guide/getting_started.html) for information on 
+how ti install EBM as a user. -->
 
-Open a terminal application and navigate to wherever you want to do work. 
+You can install the package in two main ways, depending on your needs:
 
-### Make a python virtual environment (optional)
+**Option 1: Install from PyPI (recommended for most users)**
 
-While optional, it is always recommended to install and run python modules in a discrete virtual environment. To create a 
-new python virtual environment (venv) type the following in a terminal.
-
- `python -m venv venv`
-
-## Activate virtual environment
-To use your venv you need to activate it
-### Using powershell
-(Your command prompt starts with PS) 
-`\venv\Scripts\active.ps1`
-
-### Using cmd
-(Your command prompt starts with C:\ where C is any letter from A-Z)
-`\venv\Scripts\active.bat`
-
-### GNU/Linux and macOS
-
-`source venv/bin/active`
-
-More information on [Python virtual environments](https://realpython.com/python-virtual-environments-a-primer/)
-
-
-## Install EBM
-
-There are two options. **Install from PyPI** (Python package index) or install **clone the github repository**.
-
-### Install from PyPI
+This is the simplest and most stable way to get the latest released version:
 
 `python -m pip install ebm`
 
-You can now run the model as a module `python -m ebm` or as a program `ebm`
 
-Please refer to [getting started](https://nve.github.io/ebm-docs/user_guide/getting_started.html) for more information on how the model works.
+**Option 2: Install from source (for development or contributions)**
 
-
-### Clone the github repository
+If you plan to modify the code or contribute to the project, clone the repository and install it in editable mode:
 
 `git clone https://github.com/NVE/ebm`
 
@@ -71,12 +45,18 @@ Please refer to [getting started](https://nve.github.io/ebm-docs/user_guide/gett
 
 Make sure your current working directory is the EBM root. 
 
-```
-python -m pip install -e .
+`python -m pip install -e`
 
-```
 
 The command will install install all dependencies and ebm as an editable module.
+
+
+## Setting up virtual environment
+It is recommended that you use ebm in a python virtual environment (venv).
+
+For detailed instructions, see
+[How to create and activate a virtual environment](docs/source/env_setup.md)
+
 
     
     
@@ -89,7 +69,15 @@ The command will install install all dependencies and ebm as an editable module.
   Dependecies will be automatically installed when you install the package as described under Installation process.
   See also [requirements.txt](requirements.txt)
 
-## 3. Run the model
+
+## 3. Create an input directory
+Before running the model you need to create a directory with the necessary input files:
+
+`python -m ebm create --input`
+
+
+
+## 4. Run the model
 
 There are multiple ways to run the program. Listed bellow is running as a standalone program and running as a module. If 
 running as a program fails due to security restriction, you might be able to use the module approach instead. 

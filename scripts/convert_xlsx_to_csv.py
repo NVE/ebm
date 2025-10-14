@@ -1,3 +1,4 @@
+import argparse
 import os
 import pathlib
 import sys
@@ -67,13 +68,14 @@ def any_to_other(file_path: typing.Union[pathlib.Path, str], allow_overwrite=Fal
 
 def main():
     load_dotenv(pathlib.Path('.env'))
+    argp = argparse.ArgumentParser()
+    argp.add_argument('filename', type=str, default=os.environ.get('CONVERT_ANY_TO_OTHER', ''))
 
-    if 'CONVERT_ANY_TO_OTHER' not in os.environ.keys():
-        logger.info(f'Using {DEFAULT_SOURCE}')
-        logger.info('Set CONVERT_ANY_TO_OTHER in .env or environment variable to convert a different file')
-    source_path = pathlib.Path(os.environ.get('CONVERT_ANY_TO_OTHER', DEFAULT_SOURCE))
+    arguments = argp.parse_args()
 
-    any_to_other(source_path, allow_overwrite=source_path.parent.name == 'data')
+    source_path = pathlib.Path(arguments.filename)
+
+    any_to_other(source_path, allow_overwrite=source_path.parent.name in ['data'])
     return 0
 
 

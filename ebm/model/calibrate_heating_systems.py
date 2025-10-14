@@ -17,8 +17,8 @@ FOSSIL = 'Fossil'
 
 DOMESTIC_HOT_WATER = 'Tappevann'
 
-HEATPUMP_AIR_SOURCE = 'Luft/luft'
-HEATPUMP_WATER_SOUCE = 'Vannbåren varme'
+HEATPUMP_AIR_SOURCE = 'Heat pump air-air'
+HEATPUMP_WATER_SOUCE = 'Heat pump central heating'
 
 CALIBRATION_YEAR = 2023
 

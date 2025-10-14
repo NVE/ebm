@@ -337,5 +337,5 @@ def transform_holiday_homes_to_horizontal(df: pd.DataFrame) -> pd.DataFrame:
     columns_to_keep = [y for y in YearRange(2020, 2050)] + ['building_category', 'energy_source']
     df = df.drop(columns=[c for c in df.columns if c not in columns_to_keep])
     df['energy_source'] = df['energy_source'].apply(lambda x: 'Elektrisitet' if x == 'electricity' else 'Bio' if x == 'fuelwood' else x)
-    df['building_category'] = 'Fritidsboliger'
+    df['building_category'] = 'Holiday homes'
     return df

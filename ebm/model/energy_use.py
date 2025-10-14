@@ -134,8 +134,8 @@ def energy_use_kwh(energy_need: pd.DataFrame, efficiency_factor: pd.DataFrame) -
 
 def building_group_energy_use_kwh(heating_systems_parameter: pd.DataFrame, energy_need: pd.DataFrame) -> pd.DataFrame:
     df = all_purposes(heating_systems_parameter)
-    df.loc[:, 'building_group'] = 'yrkesbygg'
-    df.loc[df.building_category.isin(['house', 'apartment_block']), 'building_group'] = 'bolig'
+    df.loc[:, 'building_group'] = 'Non-residential'
+    df.loc[df.building_category.isin(['house', 'apartment_block']), 'building_group'] = 'Residential'
 
     efficiency_factor_df = efficiency_factor(df)
     df = energy_use_kwh(energy_need=energy_need, efficiency_factor=efficiency_factor_df)

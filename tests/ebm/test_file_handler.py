@@ -19,6 +19,11 @@ def tmp_file_handler(tmp_path):
     file_handler.create_missing_input_files()
     return file_handler
 
+def test_default_data_directory():
+    """Return the default data directory: calibrated"""
+    expected_directory = pathlib.Path(__file__).parent.parent.parent / 'ebm' / 'data' / 'calibrated'
+    assert FileHandler.default_data_directory() == expected_directory
+
 
 def test_check_for_missing_files_return_list(tmp_path):
     """

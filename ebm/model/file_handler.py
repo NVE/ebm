@@ -70,7 +70,8 @@ class FileHandler:
     @staticmethod
     def default_data_directory() -> pathlib.Path:
         """
-        Returns the path for ebm default data. The function is used when content is needed for a new input directory.
+        Returns the path for ebm default data. The function is used when content is needed for a new input directory
+
         Not to be confused with FileHandler.input_directory.
 
         Returns
@@ -81,7 +82,15 @@ class FileHandler:
         --------
         create_missing_input_files
         """
-        return pathlib.Path(__file__).parent.parent / 'data' / 'original'
+        data_directory = pathlib.Path(__file__).parent.parent / 'data'
+        default_data_directory =  data_directory / 'calibrated'
+        if not default_data_directory.is_dir():
+            msg = f'Could not find default data directory {default_data_directory}'
+            raise FileNotFoundError(msg)
+        if not default_data_directory.is_dir():
+            msg = f'{default_data_directory} is not a directory'
+            raise NotADirectoryError(msg)
+        return default_data_directory
 
     def get_file(self, file_name: str) -> pd.DataFrame:
         """

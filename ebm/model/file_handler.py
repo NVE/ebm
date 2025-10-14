@@ -81,7 +81,7 @@ class FileHandler:
         --------
         create_missing_input_files
         """
-        return pathlib.Path(__file__).parent.parent / 'data'
+        return pathlib.Path(__file__).parent.parent / 'data' / 'original'
 
     def get_file(self, file_name: str) -> pd.DataFrame:
         """

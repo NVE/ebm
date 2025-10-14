@@ -6,7 +6,7 @@ import pandas as pd
 
 def test_area_new_residential_buildings():
     """Make sure area_new_residential_buildings is correct."""
-    ebm_data = Path(__file__).parent.parent.parent.parent / 'ebm' / 'data'
+    ebm_data = Path(__file__).parent.parent.parent.parent / 'ebm' / 'data' / 'original'
     df: pd.DataFrame = pd.read_csv(ebm_data / 'area_new_residential_buildings.csv')
 
     assert 'year' in df.columns

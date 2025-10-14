@@ -1,15 +1,12 @@
+
 Changelog
 =========
 
-Version 1.0.0 (2024-11-25)
+Version 1.0.0 (2025-10-14)
 --------------------------
 
-- Initial release of the model framework.
+- Initial release of ebm.
 
-Version 1.1.0 (2025-01-10)
---------------------------
-
-- Added support for parallel model execution.
 
 .. |date| date::
 

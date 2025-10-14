@@ -191,9 +191,18 @@ def distribute_energy_use_for_category(
     kommune_info = dist_df.select(kommune_cols)
     energibruk_df = kommune_info.hstack(multiplied)
 
+    category_map = {
+    NameHandler.COLUMN_NAME_RESIDENTIAL: "residential",
+    NameHandler.COLUMN_NAME_HOLIDAY_HOME: "holiday_home",
+    NameHandler.COLUMN_NAME_NON_RESIDENTIAL: "non_residential"
+}
+
+    category = category_map.get(category, category) 
+
+
     return (
         f"{category}_{energy_product}", energibruk_df,
-        f"{category}_fordelingsnøkler", dist_df
+        f"{category}_distrb._keys", dist_df
     )
 
 

@@ -133,10 +133,10 @@ class EnergyConsumption:
         el_slice = (slice(None), slice(None), ['heating_rv'], slice(None), slice(None), elektrisk)  # 'heating_dhw'
 
         df.loc[vann_slice, HEAT_PUMP] = df.loc[vann_slice, ADJUSTED_REQUIREMENT] * df.loc[vann_slice, GRUNNLAST_ANDEL]
-        df.loc[vann_slice, HP_ENERGY_SOURCE] = 'Vannbåren varme'
+        df.loc[vann_slice, HP_ENERGY_SOURCE] = 'Heat pump central heating'
 
         df.loc[el_slice, HEAT_PUMP] = df.loc[el_slice, ADJUSTED_REQUIREMENT] * df.loc[el_slice, GRUNNLAST_ANDEL]
-        df.loc[el_slice, HP_ENERGY_SOURCE] = 'Luft/luft'
+        df.loc[el_slice, HP_ENERGY_SOURCE] = 'Heat pump air-air'
         return df
 
     def adjust_other(self, df):

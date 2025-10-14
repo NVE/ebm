@@ -30,7 +30,14 @@ extensions = [
     "sphinx.ext.githubpages",
     "sphinx.ext.autosectionlabel",
     "sphinx_tabs.tabs",
+    'sphinx.ext.mathjax',
 ]
+
+mathjax3_config = {
+    'tex': {
+        'inlineMath': [['$', '$'], ['\\(', '\\)']],
+    }
+}
 
 templates_path = ["_templates"]
 exclude_patterns = []

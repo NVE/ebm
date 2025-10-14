@@ -37,20 +37,29 @@ def transform_to_sorted_heating_systems(df: pd.DataFrame, holiday_homes: pd.Data
                                         ) -> pd.DataFrame:
     category_order = {'bloig': 100,
                       'Bolig': 100,
+                      'Residential': 100,
                       'Fritidsboliger': 200,
                       'fritidsboliger': 200,
+                      'Holiday homes': 200,
+                      'Non-residential': 300,
                       'yrkesbygg': 300,
                       'Yrkesbygg': 300}
-    energy_source = {'Elektrisitet': 10, 'Fjernvarme': 11,  'Bio': 12, 'Fossil': 13, 'Solar': 13,
-                     'Luft/luft': 24,  'Vannbåren varme': 25}
+    energy_source = {'Elektrisitet': 10,
+                     'Electricity': 10,
+                     'Fjernvarme': 11,
+                     'DH': 11,
+                     'Bio': 12, 'Fossil': 13, 'Solar': 13,
+                     'Luft/luft': 24,
+                     'Heat pump air-air': 24,
+                     'Heat pump central heating': 25}
 
     rs = pd.concat([df, holiday_homes]).reindex()
     rs = rs.sort_values(by=[building_column, 'energy_source'],
                    key=lambda x: x.map(category_order) if x.name == building_column else x.map(
                        energy_source) if x.name == 'energy_source' else x)
 
-    hz = pd.concat([rs[~rs['energy_source'].isin(['Luft/luft', 'Vannbåren varme'])],
-                      rs[rs['energy_source'].isin(['Luft/luft', 'Vannbåren varme'])]])
+    hz = pd.concat([rs[~rs['energy_source'].isin(['Heat pump air-air', 'Heat pump central heating'])],
+                      rs[rs['energy_source'].isin(['Heat pump air-air', 'Heat pump central heating'])]])
     hz.insert(2, 'U', 'GWh')
     return hz
 

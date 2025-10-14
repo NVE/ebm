@@ -1,5 +1,6 @@
 """EBM start from where when running as a script or module"""
 import os
+os.environ['DISABLE_PANDERA_IMPORT_WARNING'] = 'True'
 import pathlib
 import sys
 
@@ -35,6 +36,7 @@ def main() -> tuple[ReturnCode, pd.DataFrame | None]:
 
     """
     load_environment_from_dotenv()
+
     configure_loglevel(log_format=os.environ.get('LOG_FORMAT', '{level.icon} <level>{message}</level>'))
     configure_json_log()
 
@@ -89,6 +91,9 @@ Use `<program name> --create-input --input={input_directory}` to create an input
             logger.error(f'Input Directory "{input_directory}" Not Found')
             print(missing_input_error, file=sys.stderr)
             return ReturnCode.FILE_NOT_ACCESSIBLE, None
+
+    if database_manager.file_handler.is_calibrated():
+        logger.info(f'Input directory "{input_directory}" contains calibration files', directory=database_manager.file_handler.input_directory.name)
 
     database_manager.file_handler.validate_input_files()
 

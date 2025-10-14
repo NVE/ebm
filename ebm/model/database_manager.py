@@ -256,7 +256,7 @@ class DatabaseManager:
         ff = self.file_handler.get_energy_req_original_condition()[['building_category', 'building_code', 'purpose', 'kwh_m2']]
         df = self.explode_unique_columns(ff, ['building_category', 'building_code', 'purpose'])
         if len(df[df.building_code=='TEK21']) > 0:
-            logger.warning(f'Detected TEK21 in {self.file_handler.ENERGY_NEED_ORIGINAL_CONDITION}')
+            logger.warning('Detected TEK21 in {filename}', filename=self.file_handler.ENERGY_NEED_ORIGINAL_CONDITION)
         df = df.set_index(['building_category', 'purpose', 'building_code']).sort_index()
 
         df = building_purpose.join(df, how='left')
@@ -289,7 +289,7 @@ class DatabaseManager:
         """
         reduction_per_condition = self.file_handler.get_energy_req_reduction_per_condition()
         if len(reduction_per_condition[reduction_per_condition.building_code=='TEK21']) > 0:
-            logger.warning(f'Detected TEK21 in energy_requirement_reduction_per_condition')
+            logger.warning('Detected TEK21 in {filename}', filename=self.file_handler.IMPROVEMENT_BUILDING_UPGRADE)
 
         return self.explode_unique_columns(reduction_per_condition,
                                            ['building_category', 'building_code', 'purpose', 'building_condition'])

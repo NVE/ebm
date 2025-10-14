@@ -3,7 +3,7 @@ Energy use
 ###########
 
 The model calculates the energy use by combining energy need, area and heating systems. 
-How much energy the building stock uses depends on it's energy need and which heating technologies are used to cover it. 
+How much energy the building stock uses depends on its energy need and the composition of heating technologies used. 
 For instance, both air-to-air heat pumps and electrical panel heaters use electricity to heat a room, but heat pumps use
 less electricity than electric panel heaters to achieve the same indoor temperature. 
 
@@ -29,12 +29,12 @@ The calculation takes into account the type of energy product and efficiency in 
 
    \text{energy use kWh}_{\text{year}} =
       \frac{
-        \text{energy need kWh/m}^{\text{2}}_{\text{year}}
+        \text{energy need kWh/m}^{\text{2}}_{\text{year, ep}}
         \times
         \text{area m}^{\text{2}}_{\text{year}}
         \times \text{heating systems share}_{\text{year}}
       }{
-        \text{heating systems efficiency kWh/kWh}
+        \text{heating systems efficiency}
       }
 
 
@@ -42,12 +42,14 @@ where
 
  * :math:`\text{energy need kWh/m}^{\text{2}}`
    - :ref:`Energy need` for the building category, building condition and purpose.
+ * :math:`ep` refers to energy purpose.  
  * :math:`\text{area m}^{\text{2}}`
    - :ref:`area` for building type and condition
  * :math:`\text{heating systems share}`
    - Distribution of :ref:`heating systems <Aggregating the heating systems>` across the building stock
- * :math:`\text{heating systems efficiency kWh/kWh}`
+ * :math:`\text{heating systems efficiency}`
    - :ref:`Thermal efficiency of heating systems<heating_systems_efficiencies>`
+
 
 Energy use per year can be broken down into energy use per purpose and energy product across building categories and building codes. 
 
@@ -57,7 +59,7 @@ Holiday homes
 Holiday homes are treated separately in EBM. 
 We assume that the building code and condition of the buildings is not as important for energy use in holiday 
 homes as it is for other building categories, as the use of holiday homes varies a lot. 
-Some holiday comes are only used a few days per year, while others are used several months per year.  
+Some holiday homes are only used a few days per year, while others are used several months per year. We assume that this will affect the energy use more that the age of the holiday home.  
 
 Model functionality
 -------------------
@@ -83,8 +85,8 @@ where
  * :math:`\text{average number of people per holiday home}`
    - refers to the ratio between population in Norway and the number of holiday homes, averaged over the years 2021 to 2024
 
-The next step is to calculate the energy use, based on the use of electricity, wood fuel and fossil fuels per holiday home.
-Assumptions in the model on the energy use of holiday homes is described under Data Assumptions NVE.
+The next step is to calculate the total energy use in Norwegian holiday homes, based on the use of electricity, wood fuel and fossil fuels per holiday home.
+The assumed energy use of holiday homes is described under :any:`Data Assumptions NVE`.
 
 Energy use in holiday homes is calculated as follows: 
 

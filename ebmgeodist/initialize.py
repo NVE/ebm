@@ -12,9 +12,9 @@ class NameHandler:
     """
     Handles column names
     """
-    COLUMN_NAME_RESIDENTIAL = "bolig"
-    COLUMN_NAME_HOLIDAY_HOME = "Fritidsboliger"
-    COLUMN_NAME_NON_RESIDENTIAL = "yrkesbygg"
+    COLUMN_NAME_RESIDENTIAL = "Residential"
+    COLUMN_NAME_HOLIDAY_HOME = "Holiday homes"
+    COLUMN_NAME_NON_RESIDENTIAL = "Non-residential"
     ENERGY_PRODUCT_ELECTRICITY = "electricity"
     ENERGY_PRODUCT_DISTRICT_HEATING = "dh"
     ENERGY_PRODUCT_FUELWOOD = "fuelwood"

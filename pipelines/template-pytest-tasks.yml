@@ -27,6 +27,15 @@ steps:
   - task: Bash@3
     inputs:
       targetType: 'inline'
+      script: |
+        python -m pip install ruff
+        echo "🔍 Running Ruff linting..."
+        ruff check ebm/ --statistics || true
+    displayName: 'Lint code with Ruff 🔍'
+
+  - task: Bash@3
+    inputs:
+      targetType: 'inline'
 
       script: |
         rm -rf dist/ build/

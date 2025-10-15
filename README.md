@@ -86,7 +86,7 @@ See also [Running as code](#running-as-code)
 ### Running as a module
 
 ```cmd
-python3 -m ebm
+python -m ebm
 ```
 
 By default, the results will be written to the subdirectory `output`

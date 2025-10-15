@@ -4,6 +4,10 @@
 
 This Azure DevOps template safely pushes commits to a GitHub repository with optional dry-run support.
 
+### Require Azure DevOps variables
+ - GITHUB_REPO
+ - GITHUB_TOKEN (secret)
+
 ### Parameters
 
 | Name             | Description                                      | Default                      |
@@ -31,3 +35,19 @@ This Azure DevOps template run pytest and ruff for the source.
  - Ruff check 
  - build the package for testing
  - publishes test reports
+
+## template-twine-upload.yml
+
+Template will build and upload package to `PYPI_REPOSITORY` using Twine.
+
+### Require Azure DevOps variables
+ - PYPI_REPOSITORY
+ - PYPI_USERNAME
+ - PYPI_PASSWORD (secret)
+
+### Features
+ - Build package
+ - Run twine upload
+
+Do not run this template without testing. The package must have a unique version number. Twine does not allow re-uploading
+duplicate versions. 

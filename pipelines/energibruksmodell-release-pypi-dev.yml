@@ -1,7 +1,7 @@
 trigger:
   branches:
     include:
-      - main
+      - dev
   paths:
     include:
       - ebm/__version__.py
@@ -23,16 +23,4 @@ steps:
 
   - template: template-pytest-tasks.yml
 
-  - task: Bash@3
-    inputs:
-      targetType: 'inline'
-      script: |
-        pip install twine
-    displayName: 'Install Twine 🔨'
-
-  - task: Bash@3
-    inputs:
-      targetType: 'inline'
-      script: |
-        python -m twine upload dist/* --username="$(PYPI_USERNAME)" --password="$(PYPI_PASSWORD)" --repository="$(PYPI_REPOSITORY)"
-    displayName: 'Publish to PyPI 📰'
+  - template: template-twine-upload.yml

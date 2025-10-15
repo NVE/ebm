@@ -1,13 +1,44 @@
 steps:
-  - script: |
-      python -m pip install --upgrade pip
-      pip install setuptools build
-      pip install .[dev]
+  - task: Bash@3
+    inputs:
+      targetType: 'inline'
+      script: |
+        set -e  # Exit immediately if a command exits with a non-zero status
+        python -m pip install --upgrade pip
+        python -m pip install setuptools build
+        python -m pip install .[dev]
     displayName: 'Install dependencies 🧳'
-  - script: |
-      pip install pytest pytest-azurepipelines
-      pytest
+
+  - task: Bash@3
+    inputs:
+      targetType: 'inline'
+      script: |
+        python -m pip install pytest pytest-azurepipelines
+        pytest --junitxml=TEST-results.xml
     displayName: 'Run pytest 🧪'
-  - script: python -m build
+
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFiles: '**/TEST-results.xml'
+      testRunTitle: 'Pytest Results'
+    condition: succeededOrFailed()
+    displayName: 'Publish test results 📊'
+
+  - task: Bash@3
+    inputs:
+      targetType: 'inline'
+
+      script: |
+        rm -rf dist/ build/
+        python -m build
     displayName: 'Build package 🏗️'
+
+  - task: Bash@3
+    inputs:
+      targetType: 'inline'
+      script: |
+        echo "📦 Build artifacts:"
+        ls -lh dist/
+    displayName: 'List build artifacts 📦'
+
 

@@ -71,7 +71,7 @@ The command will install install all dependencies and ebm as an editable module.
 ## 3. Create an input directory
 Before running the model you need to create a directory with the necessary input files:
 
-`python -m ebm create --input`
+`python -m ebm --create-input`
 
 
 

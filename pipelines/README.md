@@ -20,3 +20,14 @@ This Azure DevOps template safely pushes commits to a GitHub repository with opt
 - Configures Git identity
 - Checks for divergence
 - Supports dry-run mode
+
+
+## template-pytest-tasks.yml
+
+This Azure DevOps template run pytest and ruff for the source.
+
+### Features
+ - Run pytest
+ - Ruff check 
+ - build the package for testing
+ - publishes test reports

@@ -5,7 +5,7 @@ trigger:
       - dev
 
 jobs:
-- job: energibruksmodell-push-github-dev
+- job: EnergibruksmodellPushGithubDev
   # Push Azure DevOps repo to GitHub
   displayName: 'Push Azure DevOps repo to GitHub'
   pool:
@@ -32,5 +32,6 @@ jobs:
 
     - template: template-push-to-github.yml
       parameters:
+        remote_repo: '$(GITHUB_REPO)'
         remote_branch: '$(Build.SourceBranchName)'
-        GIT_USER_EMAIL: 'kenord@nve.no'
+        git_user_name: '$(GIT_USER_EMAIL)'

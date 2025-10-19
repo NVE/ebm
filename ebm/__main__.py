@@ -1,14 +1,17 @@
 """EBM start from where when running as a script or module"""
 import os
+import subprocess
+
 os.environ['DISABLE_PANDERA_IMPORT_WARNING'] = 'True'
 import pathlib
+import platform
 import sys
 
 import pandas as pd
 from loguru import logger
 
 from ebm.cmd import prepare_main
-from ebm.cmd.helpers import configure_json_log, configure_loglevel, load_environment_from_dotenv
+from ebm.cmd.helpers import configure_json_log, configure_loglevel, load_environment_from_dotenv, open_file
 from ebm.cmd.initialize import create_output_directory, init
 from ebm.cmd.migrate import migrate_directories
 from ebm.cmd.pipeline import export_energy_model_reports
@@ -60,6 +63,7 @@ def main() -> tuple[ReturnCode, pd.DataFrame | None]:
     model_years = validate_years(start_year=arguments.start_year, end_year=arguments.end_year)
 
     input_directory = arguments.input
+    logger.debug('Using platform {os}', os=platform.system())
     logger.info(f'Using data from "{input_directory}"')
     database_manager = DatabaseManager(file_handler=FileHandler(directory=input_directory))
 
@@ -144,12 +148,14 @@ Use `<program name> --create-input --input={input_directory}` to create an input
 
     for file_to_open in files_to_open:
         if arguments.open or os.environ.get('EBM_ALWAYS_OPEN', 'FALSE').upper() == 'TRUE':
-            logger.info(f'Open {file_to_open}')
-            os.startfile(file_to_open, 'open')
+            open_file(file_to_open)
+
         else:
             logger.debug(f'Finished {file_to_open}')
 
     return ReturnCode.OK, model
+
+
 
 
 if __name__ == '__main__':

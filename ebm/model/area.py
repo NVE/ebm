@@ -396,8 +396,33 @@ def sum_building_category_demolition_by_year(demolition_by_year):
 
 
 def calculate_demolition_floor_area_by_year(
-        area_parameters: pd.DataFrame, s_curve_cumulative_demolition: pd.Series) -> pd.Series:
-    demolition_by_year = area_parameters.loc[:, 'area'] * s_curve_cumulative_demolition.loc[:]
+        area_parameters: pd.DataFrame, s_curve_demolition: pd.Series,
+        years: YearRange = YearRange(2020, 2050)) -> pd.Series:
+
+    """
+    Calculate the demolition floor area by year multiplying area parameters and the S-curve.
+
+    Parameters
+    ----------
+    area_parameters : pandas.DataFrame
+        A multi-indexed DataFrame containing floor area data. Expected to include an 'area' column.
+        The index should include year information to filter between 2020 and 2050.
+
+    s_curve_demolition : pandas.Series
+        A Series representing the demolition S-curve values indexed by year.
+
+    years : YearRange
+        YearRange of all years that will to present in demolition_by_year
+
+    Returns
+    -------
+    pandas.Series
+        A Series named 'demolition' representing the calculated demolition floor area
+        for each year between 2020 and 2050.
+    """
+
+    demolition_by_year = area_parameters.loc[:, 'area'] * s_curve_demolition.loc[:]
     demolition_by_year.name = 'demolition'
-    demolition_by_year = demolition_by_year.to_frame().loc[(slice(None), slice(None), slice(2020, 2050))]
+
+    demolition_by_year = demolition_by_year.to_frame().loc[(slice(None), slice(None), slice(years.start, years.end))]
     return demolition_by_year.demolition

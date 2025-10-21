@@ -22,7 +22,7 @@ def extract_area_forecast(years: YearRange, s_curves_by_condition: pd.DataFrame,
 
     area_parameters = area_parameters.set_index(['building_category', 'building_code'])
 
-    demolition_floor_area_by_year = area.calculate_demolition_floor_area_by_year(area_parameters, s_curve_demolition)
+    demolition_floor_area_by_year = area.calculate_demolition_floor_area_by_year(area_parameters, s_curve_demolition, years)
 
     building_category_demolition_by_year = area.sum_building_category_demolition_by_year(demolition_floor_area_by_year)
     construction_floor_area_by_year = ConstructionCalculator.calculate_all_construction(
@@ -107,8 +107,6 @@ def main():
 
     heating_systems_projection = extract_heating_systems_forecast(years, dm)
     print(heating_systems_projection)
-
-
 
 
 if __name__ == '__main__':

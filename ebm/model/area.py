@@ -1,11 +1,10 @@
+import pandas
 from loguru import logger
 import pandas as pd
 
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
-from ebm.model.database_manager import DatabaseManager
 from ebm.model.scurve import SCurve
-from ebm.model.construction import ConstructionCalculator
 
 
 def transform_area_forecast_to_area_change(area_forecast: pd.DataFrame,
@@ -426,3 +425,43 @@ def calculate_demolition_floor_area_by_year(
 
     demolition_by_year = demolition_by_year.to_frame().loc[(slice(None), slice(None), slice(years.start, years.end))]
     return demolition_by_year.demolition
+
+
+def calculate_commercial_construction(population: pd.Series,
+                                      area_by_person: float | pd.Series,
+                                      demolition: pd.Series) -> pd.DataFrame:
+    """
+    Calculate a projection of contructed floor area by building_category. The calculation makes the assumption that
+    all demolished floor area will be replaced with construction.
+
+    Parameters
+    ----------
+    building_category : BuildingCategory
+        possibly redundant building_category for the construction projection
+    population : pd.Series
+        population by year
+    area_by_person : pd.Series
+        float or pd.Series containing the floor area per person for the building_category
+    demolition : pd.Series
+        yearly demolition to be added to the floor area.
+
+    Returns
+    -------
+    pd.Dataframe
+        floor area constructed by year
+        accumalated contructed floor area
+    """
+    if not demolition.index.isin(population.index).all():
+        raise ValueError('years in demolition series not present in popolutation series')
+
+    total_area = area_by_person * population.loc[demolition.index]
+    demolition_prev_year = demolition.shift(periods=1, fill_value=0)
+    yearly_constructed = total_area.diff().fillna(0) + demolition_prev_year
+
+    accumulated_constructed = yearly_constructed.cumsum()
+    commercial_construction = pd.DataFrame({
+        'demolished_floor_area': demolition,
+        "constructed_floor_area": yearly_constructed,
+        "accumulated_constructed_floor_area": accumulated_constructed
+    })
+    return commercial_construction

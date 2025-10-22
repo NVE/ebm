@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 
+from ebm.model.area import calculate_commercial_construction
 from ebm.model.building_category import BuildingCategory
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
@@ -677,47 +678,6 @@ class ConstructionCalculator:
         return accumulated_constructed_floor_area
 
     @staticmethod
-    def calculate_commercial_construction(building_category: BuildingCategory,
-                                          population: pd.Series,
-                                          area_by_person: typing.Union[float, pd.Series],
-                                          demolition: pd.Series) -> pd.DataFrame:
-        """
-        Calculate a projection of contructed floor area by building_category. The calculation makes the assumption that
-        all demolished floor area will be replaced with construction.
-
-        Parameters
-        ----------
-        building_category : BuildingCategory
-            possibly redundant building_category for the construction projection
-        population : pd.Series
-            population by year
-        area_by_person : pd.Series
-            float or pd.Series containing the floor area per person for the building_category
-        demolition : pd.Series
-            yearly demolition to be added to the floor area.
-
-        Returns
-        -------
-        pd.Dataframe
-            floor area constructed by year
-            accumalated contructed floor area 
-        """
-        if not demolition.index.isin(population.index).all(): 
-            raise ValueError('years in demolition series not present in popolutation series')
-        
-        total_area = area_by_person * population.loc[demolition.index]
-        demolition_prev_year = demolition.shift(periods=1, fill_value=0)
-        yearly_constructed = total_area.diff().fillna(0) + demolition_prev_year
-
-        accumulated_constructed = yearly_constructed.cumsum()
-        commercial_construction = pd.DataFrame({
-            'demolished_floor_area': demolition,
-            "constructed_floor_area": yearly_constructed,
-            "accumulated_constructed_floor_area": accumulated_constructed
-        })
-        return commercial_construction
-
-    @staticmethod
     def calculate_construction(building_category: BuildingCategory, demolition_floor_area: Union[pd.Series, list],
                                database_manager: DatabaseManager, period: YearRange) -> pd.DataFrame:
         """
@@ -754,8 +714,7 @@ class ConstructionCalculator:
 
         new_buildings_population = database_manager.get_construction_population()[['population', 'household_size']]
         if building_category.is_non_residential():
-            return ConstructionCalculator.calculate_commercial_construction(
-                building_category=building_category,
+            return calculate_commercial_construction(
                 population=new_buildings_population['population'],
                 area_by_person=database_manager.get_area_per_person(building_category),
                 demolition=demolition_floor_area

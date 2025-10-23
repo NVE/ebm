@@ -493,18 +493,18 @@ def construction_with_building_code(building_category_demolition_by_year: pd.Ser
     return s
 
 
-def sum_building_category_demolition_by_year(demolition_by_year: pd.DataFrame) -> pd.DataFrame:
+def sum_building_category_demolition_by_year(demolition_by_year: pd.Series) -> pd.Series:
     """
     Return sum of demolition by building_category and year.
 
     Parameters
     ----------
-    demolition_by_year : pd.DataFrame
+    demolition_by_year : pd.Series
         Yearly demolition with building_category, year and optional column building_code
 
     Returns
     -------
-    pd.DataFrame
+    pd.Series
         Demolished floor area by building_category and year
 
     """
@@ -572,10 +572,12 @@ def calculate_commercial_construction(population: pd.Series,
     total_area = area_by_person * population.loc[demolition.index]
     demolition_prev_year = demolition.shift(periods=1, fill_value=0)
     yearly_constructed = total_area.diff().fillna(0) + demolition_prev_year
+    yearly_constructed.loc[2020] = 0.0
 
     accumulated_constructed = yearly_constructed.cumsum()
     commercial_construction = pd.DataFrame({
         'demolished_floor_area': demolition,
+        'net_constructed_floor_area': total_area.diff().fillna(0),
         "constructed_floor_area": yearly_constructed,
         "accumulated_constructed_floor_area": accumulated_constructed,
     })

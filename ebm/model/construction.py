@@ -300,10 +300,12 @@ def _check_index(period: YearRange, values: pd.Series) -> bool:
     return True
 
 
-def calculate_residential_construction(households_by_year, building_category_share: pd.Series,
-                                       build_area_sum: pd.Series, yearly_demolished_floor_area: pd.Series,
+def calculate_residential_construction(households_by_year:pd.Series,
+                                       building_category_share: pd.Series,
+                                       build_area_sum: pd.Series,
+                                       yearly_demolished_floor_area: pd.Series,
                                        average_floor_area: typing.Union[pd.Series, int] = 175,
-                                       period=YearRange(2010, 2050)) -> pd.DataFrame:
+                                       period: YearRange=YearRange(2010, 2050)) -> pd.DataFrame:  # noqa: B008
     """
     Calculate various residential construction metrics based on population, household size, and building data.
 
@@ -360,10 +362,20 @@ def calculate_residential_construction(households_by_year, building_category_sha
     floor_area_change_accumulated = calculate_yearly_new_building_floor_area_sum(floor_area_change)
 
     df = pd.DataFrame(data={
+        'households': households_by_year,
+        'households_change': households_change,
         'net_constructed_floor_area': yearly_floor_area_constructed,
+        'demolished_floor_area': yearly_demolished_floor_area,
         'constructed_floor_area': floor_area_change,
         'accumulated_constructed_floor_area': floor_area_change_accumulated},
         index=floor_area_change_accumulated.index)
+
+    try:
+        average_floor_area = average_floor_area.max() if isinstance(average_floor_area, pd.Series) else average_floor_area
+        filename = f'output/residential-{average_floor_area}.xlsx'
+        df.to_excel(filename)
+    except OSError:
+        logger.debug('Ignoring OSError write to {filename}', filename=filename)
 
     return df
 
@@ -734,7 +746,7 @@ def calculate_households_by_year(household_size: pd.Series, population: pd.Serie
 def calculate_total_floor_area(floor_area_over_population_growth: pd.Series,
                                population_growth: pd.Series,
                                total_floor_area: pd.Series,
-                                period: YearRange) -> pd.Series:
+                               period: YearRange) -> pd.Series:
     """
     Calculate the total floor area over a given period based on population growth.
 

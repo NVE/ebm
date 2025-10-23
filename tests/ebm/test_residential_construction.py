@@ -108,7 +108,8 @@ def test_calculate_residential_construction() -> None:
     average_floor_area = 175
 
     result = calculate_residential_construction(households_by_year, building_category_share, build_area_sum,
-                                                yearly_demolished_floor_area, average_floor_area, period=period)
+                                                yearly_demolished_floor_area, average_floor_area, period=period)[[
+        'net_constructed_floor_area', 'constructed_floor_area', 'accumulated_constructed_floor_area']]
 
     expected_data = {
         'net_constructed_floor_area': pd.Series(
@@ -155,7 +156,7 @@ def test_calculate_residential_construction_2011() -> None:
 
     expected_df = pd.DataFrame(expected_data)
 
-    pd.testing.assert_frame_equal(result.round(2), expected_df, check_names=False)
+    pd.testing.assert_frame_equal(result[expected_df.columns].round(2), expected_df, check_names=False)
 
 
 def test_calculate_residential_construction_2052(default_input) -> None:

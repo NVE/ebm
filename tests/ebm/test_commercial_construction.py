@@ -36,7 +36,7 @@ def test_calculate_commercial_construction_with_area_per_person_as_series():
             "accumulated_constructed_floor_area": expected_accumulated_construction,
         })
 
-    result = calculate_commercial_construction(population, area_by_person, demolition)
+    result = calculate_commercial_construction(population, area_by_person, demolition)[expected.columns]
 
     pd.testing.assert_frame_equal(result, expected)
 
@@ -60,7 +60,7 @@ def test_calculate_commercial_construction_with_area_per_person_as_float():
     result = calculate_commercial_construction(
         population,
         area_by_person,
-        demolition)
+        demolition)[['demolished_floor_area', 'constructed_floor_area', 'accumulated_constructed_floor_area']]
 
     pd.testing.assert_frame_equal(result, expected)
 

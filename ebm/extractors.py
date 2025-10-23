@@ -4,6 +4,8 @@ from loguru import logger
 from ebm.model import area
 from ebm.holiday_home_energy import calculate_energy_use, transform_holiday_homes_to_horizontal
 from ebm.heating_system_forecast import HeatingSystemsForecast
+from ebm.model.area import calculate_commercial_construction
+from ebm.model.building_category import BuildingCategory
 from ebm.model.construction import ConstructionCalculator
 
 from ebm.model.data_classes import YearRange
@@ -25,10 +27,9 @@ def extract_area_forecast(years: YearRange, s_curves_by_condition: pd.DataFrame,
     demolition_floor_area_by_year = area.calculate_demolition_floor_area_by_year(area_parameters, s_curve_demolition, years)
 
     building_category_demolition_by_year = area.sum_building_category_demolition_by_year(demolition_floor_area_by_year)
-    construction_floor_area_by_year = ConstructionCalculator.calculate_all_construction(
-        demolition_by_year=building_category_demolition_by_year,
-        database_manager=database_manager,
-        period=years)
+
+    construction_floor_area_by_year = calculate_construction(building_category_demolition_by_year, database_manager,
+                                                             years)
 
     construction_by_building_category_and_year = area.construction_with_building_code(
         building_category_demolition_by_year=building_category_demolition_by_year,
@@ -43,6 +44,45 @@ def extract_area_forecast(years: YearRange, s_curves_by_condition: pd.DataFrame,
     floor_area_forecast = area.multiply_s_curves_with_floor_area(s_curves_by_condition, total_area_floor_by_year)
 
     return floor_area_forecast
+
+
+def calculate_construction(building_category_demolition_by_year: pd.DataFrame, database_manager: DatabaseManager, years: YearRange) -> pd.DataFrame:
+    """
+    Calculate construction for different building_categories.
+
+    Parameters
+    ----------
+    building_category_demolition_by_year : pd.DataFrame
+        yearly demolition for building categories
+    database_manager : DatabaseManager
+        the database manager
+    years : YearRange
+        period for construction
+
+    Returns
+    -------
+    pd.DataFrame
+        dataframe with columns constructed_floor_area, accumulated_constructed_floor_area, demolished_floor_area
+
+    """
+    construction = []
+    for building_category in building_category_demolition_by_year.index.get_level_values(level='building_category').unique():
+        if building_category not in ['house', 'apartment_block']: #TODO: temp fix. Refactor
+            new_buildings_population = database_manager.get_construction_population()[['population', 'household_size']]
+            area_per_person = database_manager.get_area_per_person(building_category)
+            demolition = building_category_demolition_by_year.loc[building_category].reset_index().set_index(['year']).demolition
+            c = calculate_commercial_construction(population=new_buildings_population['population'],
+                                                  area_by_person=area_per_person,
+                                                  demolition=demolition)
+            c['building_category'] = building_category
+        else:
+            df = building_category_demolition_by_year.to_frame().query(f'building_category=="{building_category}"').reset_index().set_index(['year'])
+            c = ConstructionCalculator.calculate_construction(BuildingCategory.from_string(building_category), df.demolition, database_manager, years)
+            c['building_category'] = building_category
+
+        construction.append(c.reset_index())
+
+    return pd.concat(construction)
 
 
 def write_scurve(s_curves_by_condition):

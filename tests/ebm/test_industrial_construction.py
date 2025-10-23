@@ -3,7 +3,8 @@ import pandas as pd
 import pytest
 
 from ebm.model.building_category import BuildingCategory
-from ebm.model.construction import ConstructionCalculator as ConCal
+from ebm.model.construction import ConstructionCalculator as ConCal, calculate_floor_area_over_building_growth, \
+    calculate_floor_area_growth, calculate_constructed_floor_area, calculate_total_floor_area
 from ebm.model.data_classes import YearRange
 
 
@@ -138,7 +139,7 @@ def test_calculate_floor_area_over_building_growth_kindergarten():
                           calculated_years,
                           fixed_rate_from_2030])
 
-    result = ConCal.calculate_floor_area_over_building_growth(
+    result = calculate_floor_area_over_building_growth(
         building_growth=building_growth,
         population_growth=population_growth,
         years=years)
@@ -161,7 +162,7 @@ def test_calculate_floor_area_over_building_growth():
     )
 
     # Calculate result
-    result = ConCal.calculate_floor_area_over_building_growth(building_growth, population_growth, years)
+    result = calculate_floor_area_over_building_growth(building_growth, population_growth, years)
 
     # Assert the result is as expected
     pd.testing.assert_series_equal(result, expected_result)
@@ -173,7 +174,7 @@ def test_calculate_floor_area_growth():
     period = YearRange(2010, 2014)
     expected_growth = pd.Series({2010: np.nan, 2011: 0.1, 2012: 0.1, 2013: 0.1, 2014: 0.1})
 
-    result = ConCal.calculate_floor_area_growth(total_floor_area, period)
+    result = calculate_floor_area_growth(total_floor_area, period)
 
     pd.testing.assert_series_equal(result, expected_growth)
 
@@ -194,7 +195,7 @@ def test_calculate_constructed_floor_area_kindergarten(kindergarten):
 
     expected_constructed = pd.Series(kindergarten.get('constructed_floor_area'), name='constructed_floor_area')
 
-    result = ConCal.calculate_constructed_floor_area(
+    result = calculate_constructed_floor_area(
         constructed_floor_area,
         demolition_floor_area,
         total_floor_area,
@@ -231,7 +232,7 @@ def test_calculate_total_floor_area_as_kindergarten(kindergarten):
 
     expected = pd.Series(kindergarten.get('total_floor_area'), name='total_floor_area')
 
-    result = ConCal.calculate_total_floor_area(
+    result = calculate_total_floor_area(
         floor_area_over_population_growth=floor_area_over_population_growth,
         population_growth=population_growth,
         total_floor_area=total_floor_area,

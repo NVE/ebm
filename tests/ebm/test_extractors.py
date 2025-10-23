@@ -2,7 +2,6 @@ import pathlib
 
 import pandas as pd
 import pytest
-
 from ebm.extractors import extract_area_forecast
 from ebm.model.bema import map_sort_order
 from ebm.model.data_classes import YearRange
@@ -25,9 +24,7 @@ def extract_area_forecast_csv():
 
 
 def test_extract_area_forecast(extract_area_forecast_csv: pd.DataFrame):
-    """
-    Integration test to keep area working while doing refactor.
-    """
+    """Integration test to keep area working while doing refactor."""
 
     input_directory = test_data / 'kalibrert'
 

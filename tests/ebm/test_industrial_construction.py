@@ -4,13 +4,14 @@ import pytest
 
 from ebm.model.building_category import BuildingCategory
 from ebm.model.construction import ConstructionCalculator as ConCal, calculate_floor_area_over_building_growth, \
-    calculate_floor_area_growth, calculate_constructed_floor_area, calculate_total_floor_area
+    calculate_floor_area_growth, calculate_constructed_floor_area, calculate_total_floor_area, \
+    calculate_households_by_year
 from ebm.model.data_classes import YearRange
 
 
 @pytest.fixture
 def default_input() -> dict:
-    return {
+    result={
         'population': {
             2010: 4858199, 2011: 4920305, 2012: 4985870, 2013: 5051275, 2014: 5109056, 2015: 5165802,
             2016: 5213985, 2017: 5258317, 2018: 5295619, 2019: 5331813, 2020: 5367580, 2021: 5392161, 2022: 5417877,
@@ -19,7 +20,7 @@ def default_input() -> dict:
             2037: 5795526, 2038: 5816913, 2039: 5837339, 2040: 5856848, 2041: 5875453, 2042: 5893145, 2043: 5909922,
             2044: 5925797, 2045: 5940757, 2046: 5954781, 2047: 5967882, 2048: 5980064, 2049: 5991350, 2050: 6001759,
             2051: 6012168, 2052: 6022577, 2053: 6032986, 2054: 6043395, 2055: 6053804, 2056: 6064213, 2057: 6074622,
-            2058: 6085031, 2059: 6095440, 2060: 6105849, 2061: 6105849
+            2058: 6085031, 2059: 6095440, 2060: 6105849, 2061: 6105849,
         },
         'household_size': {
             2010: 2.22, 2011: 2.22, 2012: 2.22, 2013: 2.2, 2014: 2.2, 2015: 2.2, 2016: 2.19, 2017: 2.19,
@@ -28,10 +29,12 @@ def default_input() -> dict:
             2032: 2.077, 2033: 2.073, 2034: 2.07, 2035: 2.067, 2036: 2.064, 2037: 2.062, 2038: 2.06,
             2039: 2.059, 2040: 2.058, 2041: 2.057, 2042: 2.056, 2043: 2.055, 2044: 2.054, 2045: 2.053,
             2046: 2.052, 2047: 2.051, 2048: 2.05, 2049: 2.05, 2050: 2.05, 2051: 2.05, 2052: 2.05, 2053: 2.05,
-            2054: 2.05, 2055: 2.05, 2056: 2.05, 2057: 2.05, 2058: 2.05, 2059: 2.05, 2060: 2.05, 2061: 2.05
-        }
-
+            2054: 2.05, 2055: 2.05, 2056: 2.05, 2057: 2.05, 2058: 2.05, 2059: 2.05, 2060: 2.05, 2061: 2.05,
+        },
     }
+    result['households_by_year'] = calculate_households_by_year(pd.Series(result.get('household_size'), name='household_size'),
+                                                                pd.Series(result.get('population'), name='population'))
+    return result
 
 
 @pytest.fixture

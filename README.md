@@ -4,7 +4,7 @@ EBM is a model used by the Norwegian Water Resources and Energy Directorates (NV
 building stock. EBM is an open-source model developed and managed by NVE. The model allows the user to analyze how 
 demographic trends and policy instruments impact the yearly energy use on a national and regional level. Energy use is 
 estimated by a bottom- up approach, based on the building stock floor area, energy need and distribution of heating 
-systems. The mathematical model is implemented in Python, with input and output files in excel or csv.
+systems. The mathematical model is implemented in Python, with input and output files in Excel or CSV.
 
 
 # Getting Started
@@ -151,7 +151,7 @@ print(df)
 This project is licensed under the MIT License. You are free to use, modify, and distribute the software with proper attribution.
 
 ## Contributing
-We welcome contributions! Please refer to the Contributing Guide (CONTRIBUTING.md) for details on how to get started.
+We welcome contributions! Please refer to the [Contributing Guide](CONTRIBUTING.md) for details on how to get started.
 
 ## Documentation
 Full documentation is available at the EBM User Guide: https://nve.github.io/ebm-docs/

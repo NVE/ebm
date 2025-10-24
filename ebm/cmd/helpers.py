@@ -1,5 +1,8 @@
 import os
 import pathlib
+import platform
+import shutil
+import subprocess
 import sys
 from datetime import datetime
 
@@ -131,4 +134,54 @@ def configure_loglevel(log_format: str | None = None, level: str = 'INFO') -> No
                filter=lambda f: not (f['name'] == 'ebm.model.file_handler' and f['level'].name == 'DEBUG'),
                **options)
 
+
+def open_file(file_to_open: pathlib.Path | str) -> None:
+    """
+    Open a file or directory using the default application based on the operating system.
+
+    This function attempts to open a file or directory by delegating to platform-specific utilities:
+    - On Windows, it uses `os.startfile`.
+    - On macOS, it uses the `open` command.
+    - On Linux or other Unix-like systems, it uses the `xdg-open` command.
+
+    Parameters
+    ----------
+    file_to_open : pathlib.Path or str
+        The path of the file or directory to be opened.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the specified file or directory does not exist.
+    OSError
+        If there is an issue invoking the platform-specific command to open the file.
+
+    Notes
+    -----
+    - The file path can be specified as either a `pathlib.Path` object or a string.
+    - This function logs the action using the `loguru` logger.
+
+    Examples
+    --------
+    Open a file specified as a string:
+
+    >>> open_file("/path/to/file.txt")
+
+    Open a file using a `pathlib.Path` object:
+
+    >>> from pathlib import Path
+    >>> open_file(Path("/path/to/file.txt"))
+
+    """
+    
+    logger.info(f'Open {file_to_open}')
+    if platform.system() == "Windows":
+        os.startfile(file_to_open)
+    elif platform.system() == "Darwin":  # macOS
+        subprocess.call(["open", file_to_open])
+    else:  # Linux and other Unix-like systems
+        if not shutil.which("xdg-open"):
+            logger.error("xdg-open is not available on this system. Unable to open file.")
+            return
+        subprocess.call(["xdg-open", file_to_open])
 

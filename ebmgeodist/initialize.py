@@ -242,3 +242,6 @@ def init(file_handler: FileHandler, source_directory: Path|None = None) -> Path:
     create_input(file_handler, source_directory=source_directory)
     create_output_directory(Path('output'))
     return file_handler.input_directory
+
+if __name__ == "__main__":
+    pass

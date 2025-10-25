@@ -216,4 +216,5 @@ def geographical_distribution(
     export_distribution_to_excel(dfs_distributed, output_file)
     return output_file
 
-
+if __name__ == "__main__":
+    pass

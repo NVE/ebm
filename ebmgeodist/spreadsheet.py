@@ -92,3 +92,6 @@ def make_pretty(workbook_name: Path|str):
 
 
     wb.save(workbook_name)
+
+if __name__ == "__main__":
+    pass

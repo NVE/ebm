@@ -256,3 +256,6 @@ def ebm_energy_use_geographical_distribution(
         )
 
     return result
+
+if __name__ == "__main__":
+    pass

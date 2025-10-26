@@ -247,13 +247,14 @@ def ebm_energy_use_geographical_distribution(
         energibruk_key, energibruk_df, fordelingsnokkler_key, fordelingsnokkler_df = distribute_energy_use_for_category(
             df_cat, dist_df, years_column, category, energy_product
         )
-
+        
         result[energibruk_key] = energibruk_df.with_columns(pl.lit("GWh").alias("Units"))
-        result[fordelingsnokkler_key] = (
-            fordelingsnokkler_df.drop(category) if energy_product == "dh" or (energy_product == "fuelwood" \
-            and category == NameHandler.COLUMN_NAME_RESIDENTIAL) 
-            else fordelingsnokkler_df
-        )
+        result[fordelingsnokkler_key] = fordelingsnokkler_df
+        # result[fordelingsnokkler_key] = (
+        #     fordelingsnokkler_df.drop(category) if energy_product == "dh" or (energy_product == "fuelwood" \
+        #     and category == NameHandler.COLUMN_NAME_RESIDENTIAL) 
+        #     else fordelingsnokkler_df
+        # )
 
     return result
 

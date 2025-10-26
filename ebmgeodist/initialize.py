@@ -31,6 +31,7 @@ class NameHandler:
             "residential": cls.COLUMN_NAME_RESIDENTIAL,
             "residential-building": cls.COLUMN_NAME_RESIDENTIAL,
             "bolig": cls.COLUMN_NAME_RESIDENTIAL,
+            "holiday homes": cls.COLUMN_NAME_HOLIDAY_HOME,
             "holiday": cls.COLUMN_NAME_HOLIDAY_HOME,
             "holiday-home": cls.COLUMN_NAME_HOLIDAY_HOME,
             "holiday-homes": cls.COLUMN_NAME_HOLIDAY_HOME,
@@ -45,7 +46,7 @@ class NameHandler:
             return mapping[value]
         else:
             raise argparse.ArgumentTypeError(
-                f"Invalid building category: '{value}'. Valid values are: residential, holiday home, non-residential, all."
+                f"Invalid building category: '{value}'. Valid values are: residential, holiday homes, non-residential, all."
             )
     
     @classmethod
@@ -242,3 +243,6 @@ def init(file_handler: FileHandler, source_directory: Path|None = None) -> Path:
     create_input(file_handler, source_directory=source_directory)
     create_output_directory(Path('output'))
     return file_handler.input_directory
+
+if __name__ == "__main__":
+    pass

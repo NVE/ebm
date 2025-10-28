@@ -49,3 +49,6 @@ def configure_loglevel(log_format: str | None = None, level: str = 'INFO') -> No
     logger.add(sys.stderr,
                filter=lambda f: not (f['name'] == 'ebm.model.file_handler' and f['level'].name == 'DEBUG'),
                **options)
+    
+if __name__ == "__main__":
+    pass

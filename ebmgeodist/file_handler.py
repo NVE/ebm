@@ -171,4 +171,6 @@ class FileHandler:
             shutil.copy(source_file, target_file)
             logger.info( f'Creating missing file  {target_file}')
 
+if __name__ == "__main__":
+    pass
     

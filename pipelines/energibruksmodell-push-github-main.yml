@@ -5,7 +5,7 @@ trigger:
       - main
 
 jobs:
-- job: PushToGitHub
+- job: EnergibruksmodellPushGithubMain
   displayName: 'Push Azure DevOps repo to GitHub'
   pool:
     vmImage: 'ubuntu-latest'
@@ -19,15 +19,18 @@ jobs:
       inputs:
         versionSpec: '$(pythonversion)'
       displayName: 'Use Python $(pythonversion) 🐍'
+
     - checkout: self
-      persistCredentials: true
       fetchTags: true
       fetchDepth: 0
-      displayName:  'Checkout ebm ⚡'
+      displayName: 'Checkout ebm ⚡'
+      # Set fetchDepth to 0 to ensure the full Git history is available.
+      # Required for operations that rely on commit history, such as changelogs, versioning, or pushing to remote.
 
     - template: template-pytest-tasks.yml
 
     - template: template-push-to-github.yml
       parameters:
+        remote_repo: '$(GITHUB_REPO)'
         remote_branch: '$(Build.SourceBranchName)'
-        GIT_USER_EMAIL: 'kenord@nve.no'
+        GIT_USER_EMAIL: '$(GITHUB_USER_EMAIL)'

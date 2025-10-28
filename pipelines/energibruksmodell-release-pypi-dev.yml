@@ -1,7 +1,7 @@
 trigger:
   branches:
     include:
-      - main
+      - dev
   paths:
     include:
       - ebm/__version__.py

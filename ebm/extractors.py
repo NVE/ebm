@@ -29,8 +29,7 @@ def extract_area_forecast(years: YearRange,
 
     building_category_demolition_by_year = area.sum_building_category_demolition_by_year(demolition_floor_area_by_year)
 
-    construction_floor_area_by_year = calculate_construction(building_category_demolition_by_year, database_manager,
-                                                             years)
+    construction_floor_area_by_year = calculate_construction(building_category_demolition_by_year, database_manager, years)
 
     construction_by_building_category_and_year = area.construction_with_building_code(
         building_category_demolition_by_year=building_category_demolition_by_year,
@@ -68,7 +67,7 @@ def calculate_construction_with_demolition(construction_by_building_category_and
     return construction['area']
 
 
-def calculate_construction(building_category_demolition_by_year: pd.DataFrame, database_manager: DatabaseManager, years: YearRange) -> pd.DataFrame:
+def calculate_construction(building_category_demolition_by_year: pd.Series, database_manager: DatabaseManager, years: YearRange) -> pd.DataFrame:
     """
     Calculate construction for different building_categories.
 
@@ -112,7 +111,8 @@ def calculate_construction(building_category_demolition_by_year: pd.DataFrame, d
             building_category_share = new_buildings_category_shares[share_name]
             average_floor_area = new_buildings_category_shares[floor_area_name]
 
-            c = collapsed_residential_construction(building_category_share, average_floor_area, df.demolition, new_buildings_population, years, yearly_construction_floor_area)
+            c = collapsed_residential_construction(building_category_share, average_floor_area, df.demolition, new_buildings_population, years,
+                                                   yearly_construction_floor_area)
 
             c['building_category'] = building_category
 
@@ -120,17 +120,6 @@ def calculate_construction(building_category_demolition_by_year: pd.DataFrame, d
 
     all_construction = pd.concat(construction)
     return all_construction
-
-
-def write_scurve(s_curves_by_condition: pd.DataFrame) -> None:
-    try:
-        output_file = 'output/s_curves.xlsx'
-        with pd.ExcelWriter(output_file, engine='xlsxwriter') as writer:
-            s_curves_by_condition.to_excel(writer, sheet_name='s_curves_by_condition', merge_cells=False)  # 💾
-            # s_curve_demolition.to_excel(writer, sheet_name='s_curve_demolition', merge_cells=False) # 💾
-    except IOError as ex:  # noqa: UP024
-        logger.exception(ex)
-        logger.info(f'There was an IOError while writing to {output_file}. Moving on!')
 
 
 def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
@@ -161,7 +150,7 @@ def extract_energy_use_holiday_homes(database_manager: DatabaseManager) -> pd.Da
     return df
 
 
-def main() -> None:
+def main() -> None:  # noqa: D103
     from ebm.model.file_handler import FileHandler   # noqa: I001, PLC0415
     fh = FileHandler(directory='input')
     dm = DatabaseManager(fh)

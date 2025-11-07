@@ -390,13 +390,13 @@ def multiply_s_curves_with_floor_area(s_curves_by_condition: pd.DataFrame, with_
     return floor_area_forecast
 
 
-def merge_total_area_by_year(construction_by_building_category_yearly: pd.DataFrame, existing_area: pd.DataFrame) -> pd.DataFrame:
+def merge_total_area_by_year(construction_by_building_category_yearly: pd.Series, existing_area: pd.DataFrame) -> pd.DataFrame:
     """
     Merge Constructed area with existing area.
 
     Parameters
     ----------
-    construction_by_building_category_yearly : pd.DataFrame
+    construction_by_building_category_yearly : pd.Series
         Floor area constructed by year with columns building_category, year.
     existing_area : pd.DataFrame
         Existing area by year with columns building_category, year.
@@ -447,7 +447,7 @@ def calculate_existing_area(area_parameters: pd.DataFrame,
 
 def construction_with_building_code(building_category_demolition_by_year: pd.Series,
                                     building_code: pd.DataFrame,
-                                    construction_floor_area_by_year: pd.Series,
+                                    construction_floor_area_by_year: pd.DataFrame,
                                     years:YearRange) -> pd.Series:
     """
     Merge building_category demolition floor area by year with building_code.
@@ -458,7 +458,7 @@ def construction_with_building_code(building_category_demolition_by_year: pd.Ser
         floor area demolished by year
     building_code : pd.DataFrame
         building_code_parameters dataframe
-    construction_floor_area_by_year : pd.Series
+    construction_floor_area_by_year : pd.DataFrame
         floor area constructed by building_category and year
     years : YearRange
         period years

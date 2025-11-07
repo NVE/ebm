@@ -6,9 +6,9 @@ from ebm.model.construction import (
     calculate_constructed_floor_area,
     calculate_floor_area_growth,
     calculate_floor_area_over_building_growth,
-    calculate_households_by_year,
     calculate_total_floor_area,
 )
+from ebm.model.area import calculate_households_by_year
 from ebm.model.data_classes import YearRange
 
 

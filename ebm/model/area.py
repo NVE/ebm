@@ -1,3 +1,6 @@
+import typing
+
+import numpy as np
 import pandas as pd
 from loguru import logger
 
@@ -582,3 +585,241 @@ def calculate_commercial_construction(population: pd.Series,
         "accumulated_constructed_floor_area": accumulated_constructed,
     })
     return commercial_construction
+
+
+def _check_index(period: YearRange, values: pd.Series) -> bool:
+    name = values.name
+    if not all([y in values.index for y in period]):
+        logger.debug(
+            f'{name}.index({values.index[0]}, {values.index[-1]}) is not equal to period(start={period.start}, {period.end})')
+        return False
+    return True
+
+
+def calculate_residential_construction(households_by_year: pd.Series, building_category_share: pd.Series,
+                                       build_area_sum: pd.Series,
+                                       average_floor_area: typing.Union[pd.Series, int] = 175,
+                                       period: YearRange = YearRange(2010, 2050)) -> pd.DataFrame:  # noqa: B008
+    """
+    Calculate various residential construction metrics based on population, household size, and building data.
+
+    Parameters
+    ----------
+    households_by_year : pd.Series
+        A pandas Series representing the total number of households by year.
+    building_category_share : pd.Series
+        A pandas Series representing the share of each building category.
+    build_area_sum : pd.Series
+        A pandas Series representing the accumulated building area sum.
+    average_floor_area : pd.Series|int
+        Average floor area of each building of this type
+    period : YearRange
+        contains start and end year for the model
+
+    Returns
+    -------
+    pd.DataFrame
+        A pandas DataFrame containing various residential construction metrics.
+
+    Notes
+    -----
+    The function calculates several metrics including yearly constructed floor area, accumulated constructed floor area.
+
+    """
+    # building_category_share or a subset should be equal to population
+    _check_index(period, building_category_share)
+    # households_by_year or a subset should be equal to population
+    _check_index(period, households_by_year)
+
+    # It might be sensible to calculate total floor area and work from there (like commercial) rather than going
+    # through average_floor_area <-> building_growth <-> households_change <-> population_growth
+    building_category_share = building_category_share[period.to_index()]
+    if isinstance(average_floor_area, pd.Series):
+        average_floor_area = average_floor_area[period.to_index()]
+
+    # Årlig endring i antall boliger (brukt Årlig endring i antall småhus)
+    households_change = calculate_household_change(households_by_year.loc[period])
+    building_growth = calculate_building_growth(building_category_share, households_change)
+
+    # Årlig endring areal småhus (brukt Årlig nybygget areal småhus)
+    yearly_floor_area_constructed = calculate_yearly_floor_area_change(building_growth, average_floor_area)
+
+    # Årlig revet areal småhus
+    floor_area_change = calculate_yearly_constructed_floor_area(build_area_sum, yearly_floor_area_constructed)
+
+    # Nybygget småhus akkumulert
+    floor_area_change_accumulated = calculate_yearly_new_building_floor_area_sum(floor_area_change)
+
+    df = pd.DataFrame(data={
+        'households': households_by_year,
+        'households_change': households_change,
+        'net_constructed_floor_area': yearly_floor_area_constructed,
+        'constructed_floor_area': floor_area_change,
+        'accumulated_constructed_floor_area': floor_area_change_accumulated},
+        index=floor_area_change_accumulated.index)
+
+    average_floor_area = average_floor_area.max() if isinstance(average_floor_area, pd.Series) else average_floor_area
+    filename = f'output/residential-{average_floor_area}.xlsx'
+    try:
+        df.to_excel(filename)
+    except OSError:
+        logger.debug('Ignoring OSError write to {filename}', filename=filename)
+
+    return df
+
+
+def calculate_yearly_new_building_floor_area_sum(yearly_new_building_floor_area_house: pd.Series) -> pd.Series:
+    """
+    Calculate the accumulated constructed floor area over the years.
+
+    Parameters
+    ----------
+    yearly_new_building_floor_area_house : pd.Series
+        A pandas Series representing the yearly new building floor area.
+
+    Returns
+    -------
+    pd.Series
+        A pandas Series representing the accumulated constructed floor area, named
+            'accumulated_constructed_floor_area'.
+
+    Notes
+    -----
+    The function calculates the cumulative sum of the yearly new building floor area.
+
+    """
+    return pd.Series(yearly_new_building_floor_area_house.cumsum(), name='accumulated_constructed_floor_area')
+
+
+def calculate_yearly_constructed_floor_area(build_area_sum: pd.Series, yearly_floor_area_change: pd.Series) -> pd.Series:
+    """
+    Calculate the yearly constructed floor area based on changes and demolitions.
+
+    Parameters
+    ----------
+    build_area_sum : pd.Series
+        A pandas Series representing the accumulated building area sum.
+    yearly_floor_area_change : pd.Series
+        A pandas Series representing the yearly change in floor area.
+
+    Returns
+    -------
+    pd.Series
+        A pandas Series representing the yearly constructed floor area, named 'constructed_floor_area'.
+
+    Notes
+    -----
+    The function calculates the yearly new building floor area by adding the yearly floor area change
+    to the yearly demolished floor area. It then updates the values based on the build_area_sum index.
+
+    """
+    bas_missing_year = [str(y) for y in yearly_floor_area_change.iloc[0:2].index if
+                        y not in build_area_sum.index or
+                        np.isnan(build_area_sum.loc[y])]
+
+    if bas_missing_year:
+        msg = f'missing constructed floor area for {", ".join(bas_missing_year)}'
+        raise ValueError(msg)
+
+    yearly_new_building_floor_area_house = yearly_floor_area_change
+    yearly_new_building_floor_area_house.loc[build_area_sum.index.to_numpy()] = build_area_sum.loc[
+        build_area_sum.index.to_numpy()]
+
+    return pd.Series(yearly_new_building_floor_area_house, name='constructed_floor_area')
+
+
+def calculate_yearly_floor_area_change(building_change: pd.Series,
+                                       average_floor_area: typing.Union[pd.Series, int] = 175) -> pd.Series:
+    """
+    Calculate the yearly floor area change based on building changes and average floor area.
+
+    Parameters
+    ----------
+    building_change : pd.Series
+        A pandas Series representing the change in the number of buildings.
+    average_floor_area : typing.Union[pd.Series, int], optional
+        The average floor area per building. Can be a pandas Series or an integer. Default is 175.
+
+    Returns
+    -------
+    pd.Series
+        A pandas Series representing the yearly floor area change, named 'house_floor_area_change'.
+
+    Notes
+    -----
+    The function calculates the yearly floor area change by multiplying the building change by the average floor
+        area.
+    The floor area change for the first two years set to 0.
+
+    """
+    average_floor_area = average_floor_area.loc[building_change.index] if isinstance(average_floor_area, pd.Series) else average_floor_area
+    yearly_floor_area_change = average_floor_area * building_change
+    yearly_floor_area_change.iloc[0:2] = 0.0
+    return pd.Series(yearly_floor_area_change, name='house_floor_area_change')
+
+
+def calculate_building_growth(building_category_share: pd.Series, households_change: pd.Series) -> pd.Series:
+    """
+    Calculate the annual growth in building categories based on household changes.
+
+    Parameters
+    ----------
+    building_category_share : pd.Series
+       A pandas Series representing the share (0 to 1 ) of each building category.
+    households_change : pd.Series
+       A pandas Series representing the annual change in the number of households.
+
+    Returns
+    -------
+    pd.Series
+        A pandas Series representing the annual growth in building categories, named 'building_growth'.
+
+    """
+    house_share = building_category_share
+    # Årlig endring i antall småhus (brukt  Årlig endring areal småhus)
+    house_change = households_change * house_share
+    return pd.Series(house_change, name='building_growth')
+
+
+def calculate_household_change(households: pd.Series) -> pd.Series:
+    """
+    Calculate the annual change in the number of households.
+
+    Parameters
+    ----------
+    households : pd.Series
+        A pandas Series representing the number of households over time.
+
+    Returns
+    -------
+    pd.Series
+        A pandas Series representing the annual change in the number of households, named 'household_change'.
+
+    """
+    return pd.Series(households - households.shift(1), name='household_change')
+
+
+def calculate_households_by_year(household_size: pd.Series, population: pd.Series) -> pd.Series:
+    """
+    Calculate the number of households by year based on household size and population.
+
+    Parameters
+    ----------
+    household_size : pd.Series
+        A pandas Series representing the average household size over time.
+    population : pd.Series
+        A pandas Series representing the population over time.
+
+    Returns
+    -------
+    pd.Series
+        A pandas Series representing the number of households by year, named 'households'.
+
+    Notes
+    -----
+    The function calculates the number of households by dividing the population by the average household size.
+
+    """
+    households = population / household_size
+    households.name = 'households'
+    return households

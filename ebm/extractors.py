@@ -4,9 +4,8 @@ from loguru import logger
 from ebm.heating_system_forecast import HeatingSystemsForecast
 from ebm.holiday_home_energy import calculate_energy_use, transform_holiday_homes_to_horizontal
 from ebm.model import area
-from ebm.model.area import calculate_commercial_construction
+from ebm.model.area import calculate_commercial_construction, calculate_households_by_year, calculate_residential_construction
 from ebm.model.building_category import BuildingCategory
-from ebm.model.construction import collapsed_residential_construction
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement
@@ -99,8 +98,6 @@ def calculate_construction(building_category_demolition_by_year: pd.Series, data
                                                   demolition=demolition)
             c['building_category'] = building_category
         else:
-            df = building_category_demolition_by_year.to_frame().query(f'building_category=="{building_category}"').reset_index().set_index(['year'])
-
             yearly_construction_floor_area = database_manager.get_building_category_floor_area(building_category)
             new_buildings_population = database_manager.get_construction_population()[['population', 'household_size']]
             new_buildings_category_shares = database_manager.get_new_buildings_category_share()
@@ -110,9 +107,18 @@ def calculate_construction(building_category_demolition_by_year: pd.Series, data
                 floor_area_name = 'flood_area_new_apartment_block'
             building_category_share = new_buildings_category_shares[share_name]
             average_floor_area = new_buildings_category_shares[floor_area_name]
+            household_size = new_buildings_population['household_size']
+            population = new_buildings_population['population']
+            households_by_year = calculate_households_by_year(household_size, population)
+            build_area_sum = pd.Series(
+                data=yearly_construction_floor_area,
+                index=range(years.start, years.start + len(yearly_construction_floor_area)))
 
-            c = collapsed_residential_construction(building_category_share, average_floor_area, df.demolition, new_buildings_population, years,
-                                                   yearly_construction_floor_area)
+            c = calculate_residential_construction(households_by_year=households_by_year,
+                                              building_category_share=building_category_share,
+                                              build_area_sum=build_area_sum,
+                                              average_floor_area=average_floor_area,
+                                              period=years)
 
             c['building_category'] = building_category
 

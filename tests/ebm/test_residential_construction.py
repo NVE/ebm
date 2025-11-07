@@ -3,14 +3,11 @@ import pandas as pd
 import pytest
 
 from ebm.model.construction import (
-    calculate_building_growth,
-    calculate_households_by_year,
     calculate_population_growth,
-    calculate_residential_construction,
-    calculate_yearly_constructed_floor_area,
-    calculate_yearly_floor_area_change,
-    calculate_yearly_new_building_floor_area_sum,
 )
+from ebm.model.area import calculate_residential_construction, calculate_yearly_new_building_floor_area_sum, \
+    calculate_yearly_constructed_floor_area, calculate_yearly_floor_area_change, calculate_building_growth, \
+    calculate_households_by_year
 from ebm.model.data_classes import YearRange
 
 from .test_industrial_construction import default_input

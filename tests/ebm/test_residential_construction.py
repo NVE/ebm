@@ -58,12 +58,10 @@ def test_calculate_yearly_constructed_floor_area_build_area_sum_replace_calculat
     """Any value in build_area_sum should replace calculated values."""
     build_area_sum = pd.Series([100, 200, 300], index=[0, 1, 2])
     yearly_floor_area_change = pd.Series([10, 20, 30], index=[0, 1, 2])
-    yearly_demolished_floor_area = pd.Series([5, 15, 25], index=[0, 1, 2])
 
     expected_constructed_floor_area = pd.Series([100, 200, 300], name='constructed_floor_area', index=[0, 1, 2])
 
-    result = calculate_yearly_constructed_floor_area(
-        build_area_sum, yearly_floor_area_change, yearly_demolished_floor_area)
+    result = calculate_yearly_constructed_floor_area(build_area_sum, yearly_floor_area_change)
 
     pd.testing.assert_series_equal(result, expected_constructed_floor_area)
 
@@ -105,16 +103,15 @@ def test_calculate_residential_construction() -> None:
     households_by_year = pd.Series([400.0, 458.33333333333337, 526.0869565217391, 605.0], index=period.range())
     building_category_share = pd.Series([0.5, 0.5, 0.5, 0.5], index=period.range())
     build_area_sum = pd.Series([0, 200, 300, 400], index=period.range())
-    yearly_demolished_floor_area = pd.Series([10, 20, 30, 40], index=period.range())
     average_floor_area = 175
 
     result = calculate_residential_construction(households_by_year, building_category_share, build_area_sum,
-                                                yearly_demolished_floor_area, average_floor_area, period=period)[[
+                                                average_floor_area, period=period)[[
         'net_constructed_floor_area', 'constructed_floor_area', 'accumulated_constructed_floor_area']]
 
     expected_data = {
         'net_constructed_floor_area': pd.Series(
-            data=[0, 0, 5928.44, 6904.89], index=[2010, 2011, 2012, 2013], name='house_floor_area_change'),
+            data=[0, 200.0, 300, 400], index=[2010, 2011, 2012, 2013], name='house_floor_area_change'),
         'constructed_floor_area': pd.Series(
             data=[0, 200.0, 300.0, 400.0],
             index=[2010, 2011, 2012, 2013],
@@ -133,16 +130,15 @@ def test_calculate_residential_construction_2011() -> None:
     period = YearRange(2011, 2014)
     building_category_share = pd.Series([0.5, 0.5, 0.5, 0.5], index=period.range())
     build_area_sum = pd.Series([0, 200, 300, 400], index=period.range())
-    yearly_demolished_floor_area = pd.Series([10, 20, 30, 40], index=period.range())
     average_floor_area = 175
 
     households_by_year = pd.Series([400.0, 458.33333333333337, 526.0869565217391, 605.0], index=period.range(), name='households')
     result = calculate_residential_construction(households_by_year, building_category_share, build_area_sum,
-                                                yearly_demolished_floor_area, average_floor_area, period=period)
+                                                average_floor_area, period=period)
 
     expected_data = {
         'net_constructed_floor_area': pd.Series(
-            data=[0, 0, 5928.44, 6904.89],
+            data=[0, 200.0, 300.0, 400.0],
             index=period.to_index(),
             name='house_floor_area_change'),
         'constructed_floor_area': pd.Series(
@@ -165,12 +161,11 @@ def test_calculate_residential_construction_2052(default_input) -> None:
     period = YearRange(2010, 2052)
     building_category_share = pd.Series({y: 0.5 for y in period})
     build_area_sum = pd.Series([10_000, 20_000, 30_000, 31_000], index=[2010, 2011, 2012, 2013])
-    yearly_demolished_floor_area = pd.Series([500 + y for y in period], index=period.range())
     average_floor_area = 175
 
     households_by_year = default_input.get('households_by_year').loc[period]
     result = calculate_residential_construction(households_by_year, building_category_share, build_area_sum,
-                                                yearly_demolished_floor_area, average_floor_area, period=period)
+                                                average_floor_area, period=period)
     accumulated_constructed_floor_area = result.accumulated_constructed_floor_area
     expected = pd.Series(data=[1_000_000.0 + y for y in period],
                          index=period.range(),
@@ -184,12 +179,11 @@ def test_calculate_residential_construction_from_2020(default_input) -> None:
     period = YearRange(2011, 2051)
     building_category_share = pd.Series({y: 0.5 for y in period})
     build_area_sum = pd.Series([10_000, 20_000], index=[2011, 2012])
-    yearly_demolished_floor_area = pd.Series([500 + y for y in period], index=period.range())
     average_floor_area = 175
 
     households_by_year = default_input.get('households_by_year').loc[period]
     result = calculate_residential_construction(households_by_year, building_category_share, build_area_sum,
-                                                yearly_demolished_floor_area, average_floor_area, period=period)
+                                                average_floor_area, period=period)
     accumulated_constructed_floor_area = result.accumulated_constructed_floor_area
     expected = pd.Series(data=[1_000_000.0 + y for y in period],
                          index=period.range(),
@@ -203,17 +197,17 @@ def test_calculate_residential_construction_for_ten_years(default_input, build_s
     period = YearRange(2011, 2020)
     building_category_share = pd.Series({y: 0.5 for y in period})
     build_area_sum = pd.Series([build_sum_0, 20_000], index=[2011, 2012])
-    yearly_demolished_floor_area = pd.Series([500 + y for y in period], index=period.range())
     average_floor_area = 175
 
     households_by_year = default_input.get('households_by_year').loc[period]
     result = calculate_residential_construction(households_by_year, building_category_share, build_area_sum,
-                                                yearly_demolished_floor_area, average_floor_area, period=period)
+                                                average_floor_area, period=period)
 
     accumulated_constructed_floor_area = result.accumulated_constructed_floor_area
 
-    expected_values = [build_sum_0, 20_000.0, 4410_349.59, 6_710_971.5, 8_970_429.70, 11_836_230.1,
-         13_610_002.80, 17_052_970.79715203, 19_510_260.74, 21_973_008.85]
+    expected_values = [build_sum_0, 20000.0, 4407836.558149085, 6705944.512694532, 8962887.694512703,
+                       11826172.096754318, 13597427.80451687, 17037877.79715203, 19492648.74249253,
+                       21952876.859417602]
     expected = pd.Series(data=expected_values, index=period.range(), name='accumulated_constructed_floor_area')
     expected.iloc[1:] = expected.iloc[1:] + build_sum_0
 
@@ -225,19 +219,18 @@ def test_calculate_residential_construction_raise_value_error_on_missing_build_a
     """Test that accumulated_constructed_floor_area has a correct index from 2011 to 2052."""
     period = YearRange(2011, 2051)
     building_category_share = pd.Series({y: 0.5 for y in period})
-    yearly_demolished_floor_area = pd.Series([500 + y for y in period], index=period.range())
     average_floor_area = 175
 
     households_by_year = default_input.get('households_by_year')
     with pytest.raises(ValueError, match='missing constructed floor area for 2012'):
         calculate_residential_construction(households_by_year, building_category_share,
                                            pd.Series([10_000, np.nan], index=YearRange(2011, 2012).to_index()),
-                                           yearly_demolished_floor_area, average_floor_area, period=period)
+                                           average_floor_area, period=period)
 
     with pytest.raises(ValueError, match='missing constructed floor area for 2012'):
         calculate_residential_construction(households_by_year, building_category_share,
                                            pd.Series([10_000, 11_000], index=YearRange(2010, 2011).to_index()),
-                                           yearly_demolished_floor_area, average_floor_area, period=period)
+                                           average_floor_area, period=period)
 
 
 @pytest.mark.skip('Test not working properly')
@@ -245,19 +238,8 @@ def test_yearly_constructed_floor_area_when_share_is_0():
     """Test that floor_area_change is non-zero even if construction is zero."""
     build_area_sum = pd.Series(data=[0.0, 0.0], index=[2010, 2011])
     yearly_floor_area_constructed = pd.Series({y: 0.0 for y in range(2010, 2051)})
-    yearly_demolished_floor_area = pd.Series(
-        data=[0., 143053.0625, 143053.0625, 143053.0625, 143053.0625,
-              143053.0625, 143053.0625, 143053.0625, 143053.0625, 143053.0625,
-              200274.2875, 200274.2875, 200274.2875, 289437.9875, 289437.9875,
-              289437.9875, 289437.9875, 289437.9875, 289437.9875, 289437.9875,
-              289437.9875, 289437.9875, 289437.9875, 325103.4675, 325103.4675,
-              325103.4675, 409340.98, 409340.98, 409340.98, 409340.98,
-              409340.98, 409340.98, 409340.98, 409340.98, 409340.98,
-              409340.98, 496913.2975, 496913.2975, 496913.2975, 496913.2975,
-              496913.2975],
-        index=[y for y in range(2010, 2051)])
 
-    floor_area_change = calculate_yearly_constructed_floor_area(build_area_sum, yearly_floor_area_constructed, yearly_demolished_floor_area)
+    floor_area_change = calculate_yearly_constructed_floor_area(build_area_sum, yearly_floor_area_constructed)
 
     expected = pd.Series(data=[0.0 for i in range(0, 41)],
                          index=[y for y in range(2010, 2051)],

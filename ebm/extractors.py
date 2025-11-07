@@ -6,7 +6,7 @@ from ebm.holiday_home_energy import calculate_energy_use, transform_holiday_home
 from ebm.model import area
 from ebm.model.area import calculate_commercial_construction
 from ebm.model.building_category import BuildingCategory
-from ebm.model.construction import ConstructionCalculator, collapsed_residential_construction
+from ebm.model.construction import collapsed_residential_construction
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement

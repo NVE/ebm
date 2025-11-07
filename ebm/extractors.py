@@ -6,7 +6,7 @@ from ebm.holiday_home_energy import calculate_energy_use, transform_holiday_home
 from ebm.model import area
 from ebm.model.area import calculate_commercial_construction
 from ebm.model.building_category import BuildingCategory
-from ebm.model.construction import ConstructionCalculator
+from ebm.model.construction import ConstructionCalculator, collapsed_residential_construction
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement
@@ -101,7 +101,18 @@ def calculate_construction(building_category_demolition_by_year: pd.DataFrame, d
             c['building_category'] = building_category
         else:
             df = building_category_demolition_by_year.to_frame().query(f'building_category=="{building_category}"').reset_index().set_index(['year'])
-            c = ConstructionCalculator.calculate_construction(BuildingCategory.from_string(building_category), df.demolition, database_manager, years)
+
+            yearly_construction_floor_area = database_manager.get_building_category_floor_area(building_category)
+            new_buildings_population = database_manager.get_construction_population()[['population', 'household_size']]
+            new_buildings_category_shares = database_manager.get_new_buildings_category_share()
+            share_name, floor_area_name = 'new_house_share', 'floor_area_new_house'
+            if building_category == BuildingCategory.APARTMENT_BLOCK:
+                share_name = 'new_apartment_block_share'
+                floor_area_name = 'flood_area_new_apartment_block'
+            building_category_share = new_buildings_category_shares[share_name]
+            average_floor_area = new_buildings_category_shares[floor_area_name]
+
+            c = collapsed_residential_construction(building_category_share, average_floor_area, df.demolition, new_buildings_population, years, yearly_construction_floor_area)
 
             c['building_category'] = building_category
 

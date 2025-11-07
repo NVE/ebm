@@ -48,7 +48,7 @@ def test_extract_area_forecast(extract_area_forecast_csv: pd.DataFrame):
     df = pd.merge(left=result, right=expected, suffixes=('_result', '_expected'), on=index_columns, how='outer')  # noqa: PD015
     df_diff = df[df['m2_result'] != df['m2_expected']]
     for i, r in df_diff.iterrows():
-        logger.error(f'Error in row {i} expected: {r[1]} was: {r[0]} diff: {r[1]-r[0]}')
+        logger.debug(f'Error in row {i} expected: {r[1]} was: {r[0]} diff: {r[1]-r[0]}')
 
     pd.testing.assert_index_equal(result.index, expected.index)
     pd.testing.assert_frame_equal(result, expected)

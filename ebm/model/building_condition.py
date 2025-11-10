@@ -1,6 +1,5 @@
 import typing
-
-from enum import StrEnum, unique, auto
+from enum import StrEnum, auto, unique
 
 
 @unique

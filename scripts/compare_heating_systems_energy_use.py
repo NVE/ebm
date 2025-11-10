@@ -2,7 +2,7 @@ import os
 
 from loguru import logger
 
-from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel
+from ebm.cmd.helpers import configure_loglevel, load_environment_from_dotenv
 from ebm.cmd.result_handler import EbmDefaultHandler
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager

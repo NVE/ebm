@@ -1,11 +1,11 @@
-from typing import cast, Optional
+from typing import Optional, cast
 
 import pandas as pd
 import pandera as pa
-from pandera.typing import DataFrame, Series
+from pandera.typing import Series
 from pandera.typing.common import DataFrameBase
 
-from ebm.model.column_operations import explode_unique_columns, explode_column_alias
+from ebm.model.column_operations import explode_column_alias, explode_unique_columns
 from ebm.model.energy_purpose import EnergyPurpose
 
 

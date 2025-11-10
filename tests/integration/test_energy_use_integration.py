@@ -4,13 +4,14 @@ import sys
 
 import pandas as pd
 import pytest
+from loguru import logger
+
 from ebm import extractors
 from ebm.cmd.pipeline import load_config
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_use import calculate_energy_use
 from ebm.model.file_handler import FileHandler
-from loguru import logger
 
 expected_building_group_energy_use = {
     'kwh': {('Residential', 'Bio', 2020): 4788825216.425719, ('Residential', 'Bio', 2021): 4781280230.150457,

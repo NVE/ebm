@@ -5,12 +5,11 @@ import pandas as pd
 
 from ebm import extractors
 from ebm.cmd.result_handler import transform_to_sorted_heating_systems
-from ebm.model.data_classes import YearRange
-from ebm.model.database_manager import DatabaseManager
-from ebm.model import heating_systems_parameter as h_s_param
 from ebm.model import energy_need as e_n
 from ebm.model import energy_use as e_u
-
+from ebm.model import heating_systems_parameter as h_s_param
+from ebm.model.data_classes import YearRange
+from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
 from ebm.s_curve import calculate_s_curves
 

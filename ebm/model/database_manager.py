@@ -6,13 +6,12 @@ from loguru import logger
 
 from ebm import validators
 from ebm.energy_consumption import calibrate_heating_systems
+from ebm.model.building_category import BuildingCategory, expand_building_categories
 from ebm.model.column_operations import explode_building_category_column, explode_building_code_column, explode_unique_columns
-from ebm.model.dataframemodels import EnergyNeedYearlyImprovements, YearlyReduction, PolicyImprovement
+from ebm.model.data_classes import TEKParameters, YearRange
+from ebm.model.dataframemodels import EnergyNeedYearlyImprovements, PolicyImprovement, YearlyReduction
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.file_handler import FileHandler
-from ebm.model.building_category import BuildingCategory, expand_building_categories
-from ebm.model.data_classes import TEKParameters, YearRange
-
 
 # TODO:
 # - add method to change all strings to lower case and underscore instead of space

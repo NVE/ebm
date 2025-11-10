@@ -8,11 +8,10 @@ from loguru import logger
 
 from ebm.cmd.calibrate import run_calibration, write_dataframe
 from ebm.cmd.helpers import configure_loglevel
-from ebm.model.file_handler import FileHandler
-from ebm.model.database_manager import DatabaseManager
-from ebm.model.calibrate_energy_requirements import EnergyRequirementCalibrationWriter, \
-    EnergyConsumptionCalibrationWriter
+from ebm.model.calibrate_energy_requirements import EnergyConsumptionCalibrationWriter, EnergyRequirementCalibrationWriter
 from ebm.model.calibrate_heating_systems import DistributionOfHeatingSystems, group_heating_systems_by_energy_carrier
+from ebm.model.database_manager import DatabaseManager
+from ebm.model.file_handler import FileHandler
 from ebm.services.calibration_writer import ComCalibrationReader, ExcelComCalibrationResultWriter
 
 LOG_FORMAT = """

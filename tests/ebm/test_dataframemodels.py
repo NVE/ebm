@@ -5,7 +5,7 @@ import pandas as pd
 import pandera as pa
 import pytest
 
-from ebm.model.dataframemodels import YearlyReduction, EnergyNeedYearlyImprovements, PolicyImprovement
+from ebm.model.dataframemodels import EnergyNeedYearlyImprovements, PolicyImprovement, YearlyReduction
 
 
 def test_from_energy_need_yearly_improvements_handle_duplicate_keys():

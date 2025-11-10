@@ -1,8 +1,8 @@
 import pathlib
 import typing
 
-from loguru import logger
 import pandas as pd
+from loguru import logger
 
 from ebm.model.file_handler import FileHandler
 

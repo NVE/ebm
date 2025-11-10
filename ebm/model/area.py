@@ -658,13 +658,6 @@ def calculate_residential_construction(households_by_year: pd.Series, building_c
         'accumulated_constructed_floor_area': floor_area_change_accumulated},
         index=floor_area_change_accumulated.index)
 
-    average_floor_area = average_floor_area.max() if isinstance(average_floor_area, pd.Series) else average_floor_area
-    filename = f'output/residential-{average_floor_area}.xlsx'
-    try:
-        df.to_excel(filename)
-    except OSError:
-        logger.debug('Ignoring OSError write to {filename}', filename=filename)
-
     return df
 
 

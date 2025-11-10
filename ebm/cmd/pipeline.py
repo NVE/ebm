@@ -2,24 +2,24 @@ import os
 import pathlib
 
 import pandas as pd
-
 from loguru import logger
 
 from ebm import extractors
-from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel, configure_json_log
+from ebm.cmd.helpers import configure_json_log, configure_loglevel, load_environment_from_dotenv
 from ebm.cmd.result_handler import transform_model_to_horizontal, transform_to_sorted_heating_systems
-from ebm.model import area as a_f, bema
-from ebm.model.data_classes import YearRange
-from ebm.model.database_manager import DatabaseManager
+from ebm.model import area as a_f
+from ebm.model import bema
 from ebm.model import energy_need as e_n
 from ebm.model import energy_purpose as e_p
 from ebm.model import energy_use as e_u
-from ebm.model.file_handler import FileHandler
-from ebm.model import heating_systems_parameter as h_s_param
 from ebm.model import heat_pump as h_p
+from ebm.model import heating_systems_parameter as h_s_param
+from ebm.model.data_classes import YearRange
+from ebm.model.database_manager import DatabaseManager
+from ebm.model.file_handler import FileHandler
 from ebm.model.heating_systems_share import transform_heating_systems_share_long, transform_heating_systems_share_wide
 from ebm.s_curve import calculate_s_curves
-from ebm.services.spreadsheet import make_pretty, add_top_row_filter
+from ebm.services.spreadsheet import add_top_row_filter, make_pretty
 
 
 def main():

@@ -1,12 +1,13 @@
-import pandas as pd
-import pytest
 from unittest.mock import Mock
 
-from ebm.model.building_condition import BuildingCondition
+import pandas as pd
+import pytest
+
 from ebm.model.building_category import BuildingCategory
-from ebm.model.energy_purpose import EnergyPurpose
+from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
+from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.energy_requirement import EnergyRequirement
 
 

@@ -9,15 +9,15 @@ Requires watchdog:
 
 import os
 import pathlib
-
 import webbrowser
 from functools import partial
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 from loguru import logger
 from sphinx.cmd.build import build_main
-from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+
 
 class NoCacheHTTPRequestHandler(SimpleHTTPRequestHandler):
     def end_headers(self):

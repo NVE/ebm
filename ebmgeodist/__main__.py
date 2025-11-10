@@ -1,15 +1,18 @@
 "Geographical distribution (GD) starts from where when running as a script or module"
+import gc
 import os
 import sys
 from pathlib import Path
-from ebmgeodist.geographical_distribution import geographical_distribution
-from ebmgeodist.initialize import NameHandler, make_arguments, init, create_output_directory
-from ebmgeodist.helpers import load_environment_from_dotenv, configure_loglevel
-from ebmgeodist.file_handler import FileHandler
-from ebmgeodist.enums import ReturnCode
-from ebmgeodist.calculation_tools import NoElhubDataError
-import gc
+
 from loguru import logger
+
+from ebmgeodist.calculation_tools import NoElhubDataError
+from ebmgeodist.enums import ReturnCode
+from ebmgeodist.file_handler import FileHandler
+from ebmgeodist.geographical_distribution import geographical_distribution
+from ebmgeodist.helpers import configure_loglevel, load_environment_from_dotenv
+from ebmgeodist.initialize import NameHandler, init, make_arguments
+
 
 def run_ebmgeodist():
     program_name = 'ebmgeodist'

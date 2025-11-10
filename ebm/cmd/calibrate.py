@@ -1,14 +1,11 @@
 import pathlib
 
-from loguru import logger
 import pandas as pd
-
 from dotenv import load_dotenv
+from loguru import logger
 
 from ebm.model.bema import map_sort_order
-
-from ebm.model.calibrate_heating_systems import extract_area_forecast, extract_energy_requirements, \
-    extract_heating_systems
+from ebm.model.calibrate_heating_systems import extract_area_forecast, extract_energy_requirements, extract_heating_systems
 from ebm.model.data_classes import YearRange
 from ebm.services.files import make_unique_path
 

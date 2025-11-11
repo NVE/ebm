@@ -6,6 +6,16 @@ EBM is a bottom-up model that estimates how area, energy need, heating systems a
 The model is developed in-house by the Norwegian Water Resources- and Energy Directorate (NVE). 
 It is an open-source model, with an accompanying dataset developed by NVE. 
 
+.. image:: /_static/model_illustration.png
+   :alt: EBM illustration
+   :width: 582px
+   :align: center
+
+
+.. raw:: html
+
+   <div style="margin-bottom: 36px;"></div>
+
 This website provides documentation on how to use EBM, how the model works and a description of the dataset. To read more about how NVE work with models, visit `NVEs program for energi- og kraftmarkedsmodellering <https://www.nve.no/energi/analyser-og-statistikk/nves-program-for-energi-og-kraftmarkedsmodellering/>`_.
 
 

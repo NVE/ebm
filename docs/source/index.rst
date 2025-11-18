@@ -37,8 +37,7 @@ This website provides documentation on how to use EBM, how the model works and a
    heating_systems/index
    energy_use/index
    geographical_distribution/index
-   
-   
+
 
 .. toctree::
    :maxdepth: 1

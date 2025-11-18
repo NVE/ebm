@@ -43,7 +43,7 @@ def run_calibration(database_manager,
         write_dataframe(area_forecast[area_forecast.year == calibration_year], 'area_forecast')
 
     logger.info('Extract energy requirements')
-    energy_requirements = extract_energy_requirements(area_forecast, database_manager)
+    energy_requirements = load_energy_need(area_forecast, database_manager)
     if write_to_output:
         en_req = energy_requirements.xs(2023, level='year').reset_index().sort_values(
             by='building_category', key=lambda x: x.map(map_sort_order))
@@ -54,7 +54,7 @@ def run_calibration(database_manager,
         write_dataframe(grouped, 'energy_requirements_sum', sheet_name='sum')
 
     logger.info('Extract heating systems')
-    heating_systems = extract_heating_systems(energy_requirements, database_manager)
+    heating_systems = load_heating_systems(energy_requirements, database_manager)
     if write_to_output:
         write_dataframe(heating_systems.xs(2023, level='year'), 'heating_systems')
 

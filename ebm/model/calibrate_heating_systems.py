@@ -1,8 +1,11 @@
+from ebm.model.database_manager import DatabaseManager
+
+from ebm.s_curve import calculate_s_curves
 from loguru import logger
 import pandas as pd
 
-from ebm.cmd.run_calculation import calculate_building_category_area_forecast
 from ebm.cmd.run_calculation import calculate_building_category_energy_requirements, calculate_heating_systems
+import ebm.extractors as ex
 from ebm.model.data_classes import YearRange
 from ebm.model.building_category import BuildingCategory
 
@@ -41,7 +44,7 @@ def load_area_forecast(database_manager: DatabaseManager) -> pd.DataFrame:
     return area_forecast
 
 
-def extract_energy_requirements(area_forecast: pd.DataFrame, database_manager) -> pd.DataFrame:
+def load_energy_need(area_forecast: pd.DataFrame, database_manager: DatabaseManager) -> pd.DataFrame:
     en_req = calculate_building_category_energy_requirements(
         building_category=list(BuildingCategory),
         area_forecast=area_forecast,
@@ -52,11 +55,10 @@ def extract_energy_requirements(area_forecast: pd.DataFrame, database_manager) -
     return en_req
 
 
-def extract_heating_systems(energy_requirements, database_manager) -> pd.DataFrame:
+def load_heating_systems(energy_requirements: pd.DataFrame, database_manager: DatabaseManager) -> pd.DataFrame:
     heating_systems = calculate_heating_systems(energy_requirements=energy_requirements,
                                                 database_manager=database_manager)
 
-    # heating_systems[heating_systems['purpose']=='heating_rv']
     return heating_systems
 
 

@@ -27,17 +27,17 @@ start_year = model_period.start
 end_year = model_period.end
 
 
-def extract_area_forecast(database_manager) -> pd.DataFrame:
-    area_forecasts = []
-    for building_category in BuildingCategory:
-        area_forecast_result = calculate_building_category_area_forecast(
-            building_category=building_category,
-            database_manager=database_manager,
-            start_year=start_year,
-            end_year=end_year)
-        area_forecasts.append(area_forecast_result)
+def load_area_forecast(database_manager: DatabaseManager) -> pd.DataFrame:
+    building_code_parameters = database_manager.file_handler.get_building_code()
+    years = YearRange(start_year, end_year)
+    scurve_params = database_manager.get_scurve_params()
+    s_curves_by_condition = calculate_s_curves(scurve_params, building_code_parameters, years)
 
-    area_forecast = pd.concat(area_forecasts)
+    area_forecast = ex.extract_area_forecast(years,
+                                          building_code_parameters=building_code_parameters,
+                                          area_parameters=database_manager.get_area_parameters(),
+                                          s_curves_by_condition=s_curves_by_condition,
+                                          database_manager=database_manager)
     return area_forecast
 
 

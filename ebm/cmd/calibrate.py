@@ -7,8 +7,7 @@ from dotenv import load_dotenv
 
 from ebm.model.bema import map_sort_order
 
-from ebm.model.calibrate_heating_systems import extract_area_forecast, extract_energy_requirements, \
-    extract_heating_systems
+from ebm.model.calibrate_heating_systems import load_energy_need, load_heating_systems, load_area_forecast
 from ebm.model.data_classes import YearRange
 from ebm.services.files import make_unique_path
 
@@ -39,7 +38,7 @@ def run_calibration(database_manager,
 
     logger.info(f'Using input directory "{input_directory}"')
     logger.info('Extract area forecast')
-    area_forecast = extract_area_forecast(database_manager) if area_forecast is None else area_forecast
+    area_forecast = load_area_forecast(database_manager) if area_forecast is None else area_forecast
     if write_to_output:
         write_dataframe(area_forecast[area_forecast.year == calibration_year], 'area_forecast')
 

@@ -55,7 +55,7 @@ def load_area_forecast(database_manager: DatabaseManager) -> pd.DataFrame:
 
 def load_energy_need(area_forecast: pd.DataFrame, database_manager: DatabaseManager) -> pd.DataFrame:
     en_req = calculate_building_category_energy_requirements(
-        building_category=list(BuildingCategory),
+        building_category=None,
         area_forecast=area_forecast,
         database_manager=database_manager,
         start_year=start_year,

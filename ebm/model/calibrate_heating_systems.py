@@ -1,17 +1,26 @@
-from ebm.model.database_manager import DatabaseManager
-
-from ebm.s_curve import calculate_s_curves
-from loguru import logger
 import pandas as pd
+from loguru import logger
 
-from ebm.cmd.run_calculation import calculate_building_category_energy_requirements, calculate_heating_systems
 import ebm.extractors as ex
-from ebm.model.data_classes import YearRange
+from ebm.cmd.run_calculation import calculate_building_category_energy_requirements, calculate_heating_systems
+from ebm.energy_consumption import (
+    BASE_LOAD_ENERGY_PRODUCT,
+    COOLING_TOTAL,
+    DHW_TOTAL,
+    DOMESTIC_HOT_WATER_ENERGY_PRODUCT,
+    HEAT_PUMP,
+    HEATING_RV_BASE_TOTAL,
+    HEATING_RV_PEAK_TOTAL,
+    HEATING_RV_TERTIARY_TOTAL,
+    HP_ENERGY_SOURCE,
+    OTHER_TOTAL,
+    PEAK_LOAD_ENERGY_PRODUCT,
+    TERTIARY_LOAD_ENERGY_PRODUCT,
+)
 from ebm.model.building_category import BuildingCategory
-
-from ebm.energy_consumption import (HEATING_RV_BASE_TOTAL, HEATING_RV_PEAK_TOTAL, BASE_LOAD_ENERGY_PRODUCT, PEAK_LOAD_ENERGY_PRODUCT,
-                                    TERTIARY_LOAD_ENERGY_PRODUCT, HEATING_RV_TERTIARY_TOTAL, COOLING_TOTAL, OTHER_TOTAL, DHW_TOTAL,
-                                    DOMESTIC_HOT_WATER_ENERGY_PRODUCT, HEAT_PUMP, HP_ENERGY_SOURCE)
+from ebm.model.data_classes import YearRange
+from ebm.model.database_manager import DatabaseManager
+from ebm.s_curve import calculate_s_curves
 
 ELECTRICITY = 'Elektrisitet'
 DISTRICT_HEATING = 'Fjernvarme'

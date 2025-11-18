@@ -1,14 +1,11 @@
 import pathlib
 
-from loguru import logger
 import pandas as pd
-
 from dotenv import load_dotenv
+from loguru import logger
 
 from ebm.model.bema import map_sort_order
-
-from ebm.model.calibrate_heating_systems import extract_area_forecast, extract_energy_requirements, \
-    extract_heating_systems
+from ebm.model.calibrate_heating_systems import load_area_forecast, load_energy_need, load_heating_systems
 from ebm.model.data_classes import YearRange
 from ebm.services.files import make_unique_path
 
@@ -39,12 +36,12 @@ def run_calibration(database_manager,
 
     logger.info(f'Using input directory "{input_directory}"')
     logger.info('Extract area forecast')
-    area_forecast = extract_area_forecast(database_manager) if area_forecast is None else area_forecast
+    area_forecast = load_area_forecast(database_manager) if area_forecast is None else area_forecast
     if write_to_output:
         write_dataframe(area_forecast[area_forecast.year == calibration_year], 'area_forecast')
 
     logger.info('Extract energy requirements')
-    energy_requirements = extract_energy_requirements(area_forecast, database_manager)
+    energy_requirements = load_energy_need(area_forecast, database_manager)
     if write_to_output:
         en_req = energy_requirements.xs(2023, level='year').reset_index().sort_values(
             by='building_category', key=lambda x: x.map(map_sort_order))
@@ -55,7 +52,7 @@ def run_calibration(database_manager,
         write_dataframe(grouped, 'energy_requirements_sum', sheet_name='sum')
 
     logger.info('Extract heating systems')
-    heating_systems = extract_heating_systems(energy_requirements, database_manager)
+    heating_systems = load_heating_systems(energy_requirements, database_manager)
     if write_to_output:
         write_dataframe(heating_systems.xs(2023, level='year'), 'heating_systems')
 

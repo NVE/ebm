@@ -8,11 +8,10 @@ from loguru import logger
 
 from ebm.cmd.calibrate import run_calibration, write_dataframe
 from ebm.cmd.helpers import configure_loglevel
-from ebm.model.file_handler import FileHandler
-from ebm.model.database_manager import DatabaseManager
-from ebm.model.calibrate_energy_requirements import EnergyRequirementCalibrationWriter, \
-    EnergyConsumptionCalibrationWriter
+from ebm.model.calibrate_energy_requirements import EnergyConsumptionCalibrationWriter, EnergyRequirementCalibrationWriter
 from ebm.model.calibrate_heating_systems import DistributionOfHeatingSystems, group_heating_systems_by_energy_carrier
+from ebm.model.database_manager import DatabaseManager
+from ebm.model.file_handler import FileHandler
 from ebm.services.calibration_writer import ComCalibrationReader, ExcelComCalibrationResultWriter
 
 LOG_FORMAT = """
@@ -33,7 +32,7 @@ def heatpump_filter(df):
 def main():
     start_time = time.time()
     load_dotenv(pathlib.Path('.env'))
-    configure_loglevel(log_format=LOG_FORMAT)
+    configure_loglevel(log_format=os.environ.get('LOG_FORMAT', LOG_FORMAT))
 
     write_to_disk = os.environ.get('EBM_WRITE_TO_DISK', 'False').upper() == 'TRUE'
     calibration_year = int(os.environ.get('EBM_CALIBRATION_YEAR', 2023))
@@ -74,7 +73,7 @@ def main():
         logger.info(f'  Using {area_forecast_file}')
         area_forecast = pd.read_csv(area_forecast_file)
 
-    database_manager = DatabaseManager(FileHandler(directory='kalibrert'))
+    database_manager = DatabaseManager(FileHandler(directory='kalibrering'))
 
     df = run_calibration(database_manager, calibration_year=2023,
                          area_forecast=area_forecast, write_to_output=write_to_disk)

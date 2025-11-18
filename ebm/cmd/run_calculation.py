@@ -95,8 +95,8 @@ def validate_years(start_year: int, end_year: int) -> YearRange:
     return YearRange(start_year, end_year)
 
 
-def calculate_building_category_energy_requirements(building_category: BuildingCategory,
-                                                    area_forecast,
+def calculate_building_category_energy_requirements(building_category: None,
+                                                    area_forecast: pd.DataFrame,
                                                     database_manager: DatabaseManager,
                                                     start_year: int,
                                                     end_year: int,
@@ -108,7 +108,7 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
 
     Parameters
     ----------
-    building_category : BuildingCategory, unused
+    building_category : None, unused
     area_forecast : pd.DataFrame
     database_manager : DatabaseManager
     start_year : int
@@ -118,6 +118,7 @@ def calculate_building_category_energy_requirements(building_category: BuildingC
     Returns
     -------
     pd.DataFrame
+
     """
     energy_requirement = EnergyRequirement.new_instance(
         period=YearRange(start_year, end_year),

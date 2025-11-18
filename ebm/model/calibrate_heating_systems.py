@@ -1,14 +1,26 @@
-from loguru import logger
 import pandas as pd
+from loguru import logger
 
-from ebm.cmd.run_calculation import calculate_building_category_area_forecast
+import ebm.extractors as ex
 from ebm.cmd.run_calculation import calculate_building_category_energy_requirements, calculate_heating_systems
-from ebm.model.data_classes import YearRange
+from ebm.energy_consumption import (
+    BASE_LOAD_ENERGY_PRODUCT,
+    COOLING_TOTAL,
+    DHW_TOTAL,
+    DOMESTIC_HOT_WATER_ENERGY_PRODUCT,
+    HEAT_PUMP,
+    HEATING_RV_BASE_TOTAL,
+    HEATING_RV_PEAK_TOTAL,
+    HEATING_RV_TERTIARY_TOTAL,
+    HP_ENERGY_SOURCE,
+    OTHER_TOTAL,
+    PEAK_LOAD_ENERGY_PRODUCT,
+    TERTIARY_LOAD_ENERGY_PRODUCT,
+)
 from ebm.model.building_category import BuildingCategory
-
-from ebm.energy_consumption import (HEATING_RV_BASE_TOTAL, HEATING_RV_PEAK_TOTAL, BASE_LOAD_ENERGY_PRODUCT, PEAK_LOAD_ENERGY_PRODUCT,
-                                    TERTIARY_LOAD_ENERGY_PRODUCT, HEATING_RV_TERTIARY_TOTAL, COOLING_TOTAL, OTHER_TOTAL, DHW_TOTAL,
-                                    DOMESTIC_HOT_WATER_ENERGY_PRODUCT, HEAT_PUMP, HP_ENERGY_SOURCE)
+from ebm.model.data_classes import YearRange
+from ebm.model.database_manager import DatabaseManager
+from ebm.s_curve import calculate_s_curves
 
 ELECTRICITY = 'Elektrisitet'
 DISTRICT_HEATING = 'Fjernvarme'
@@ -27,23 +39,23 @@ start_year = model_period.start
 end_year = model_period.end
 
 
-def extract_area_forecast(database_manager) -> pd.DataFrame:
-    area_forecasts = []
-    for building_category in BuildingCategory:
-        area_forecast_result = calculate_building_category_area_forecast(
-            building_category=building_category,
-            database_manager=database_manager,
-            start_year=start_year,
-            end_year=end_year)
-        area_forecasts.append(area_forecast_result)
+def load_area_forecast(database_manager: DatabaseManager) -> pd.DataFrame:
+    building_code_parameters = database_manager.file_handler.get_building_code()
+    years = YearRange(start_year, end_year)
+    scurve_params = database_manager.get_scurve_params()
+    s_curves_by_condition = calculate_s_curves(scurve_params, building_code_parameters, years)
 
-    area_forecast = pd.concat(area_forecasts)
+    area_forecast = ex.extract_area_forecast(years,
+                                          building_code_parameters=building_code_parameters,
+                                          area_parameters=database_manager.get_area_parameters(),
+                                          s_curves_by_condition=s_curves_by_condition,
+                                          database_manager=database_manager)
     return area_forecast
 
 
-def extract_energy_requirements(area_forecast: pd.DataFrame, database_manager) -> pd.DataFrame:
+def load_energy_need(area_forecast: pd.DataFrame, database_manager: DatabaseManager) -> pd.DataFrame:
     en_req = calculate_building_category_energy_requirements(
-        building_category=list(BuildingCategory),
+        building_category=None,
         area_forecast=area_forecast,
         database_manager=database_manager,
         start_year=start_year,
@@ -52,11 +64,10 @@ def extract_energy_requirements(area_forecast: pd.DataFrame, database_manager) -
     return en_req
 
 
-def extract_heating_systems(energy_requirements, database_manager) -> pd.DataFrame:
+def load_heating_systems(energy_requirements: pd.DataFrame, database_manager: DatabaseManager) -> pd.DataFrame:
     heating_systems = calculate_heating_systems(energy_requirements=energy_requirements,
                                                 database_manager=database_manager)
 
-    # heating_systems[heating_systems['purpose']=='heating_rv']
     return heating_systems
 
 

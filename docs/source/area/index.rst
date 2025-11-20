@@ -22,9 +22,67 @@ The total area in the model changes over time because some of the area is demoli
 
 When new area replaces demolished area the total amount of area does not change. 
 However, the new area is constructed according to the newest building code, which has an impact on the energy need. 
-Demolition is determined by a user defined S-curve, which decides how much area is demolished each year. 
-The demolition rates are set in relation to the area’s age, and a development comparable to an S-curve is expected. The 
+Demolition is determined by a user defined :ref:`S-curve`, which decides how much area is demolished each year.
+The demolition rates are set in relation to the area’s age, and a development comparable to an :ref:`S-curve` is expected. The
 rates can be defined individually for each building category.
+
+S-curve: Retail renovation
+---------------------------------
+
+.. image:: /_static/area/scurve-diagram5.png
+   :alt: Retail renovation s curve diagram
+   :align: center
+
+
+.. raw:: html
+
+   <div style="margin-bottom: 36px;"></div>
+
+
+.. list-table:: S-curve for retail renovation
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - name
+     - example
+     - explanation
+     - expected
+
+   * - never_share
+     - 0.1
+     - The share of which never apply the measure.
+     - 0 < X ≤ 1
+
+   * - rush_share
+     - 0.6
+     - Total share increase inside the rush period
+     - 0 < X ≤ 1
+
+   * - rush_period_years
+     - 34
+     - Number of years in the rush period
+     - X ≥ 1
+
+   * - earliest_age_for_measure
+     - 5
+     - The age which the s-curve starts
+     - X > 0
+
+   * - average_age_for_measure
+     - 48
+     - The mid age for the rush period
+     - X ≥ 1
+
+   * - last_age_for_measure
+     - 80
+     - The age when never_share is applied
+     - X ≥ 1
+
+
+.. note::
+
+    Avoid making the sum of never_share and rush_share greater than 1, as it may result in decreasing and negative values.
+
 
 When new area is added due to population growth, the total amount of area increases. The model has two
 different methods for forecasting newly built area due to population growth. One method for residential area
@@ -158,7 +216,7 @@ The assumed average area for newly built houses and apartments is based on the h
 based on information about `newly built dwellings published by Statistics Norway <https://www.ssb.no/statbank/table/05940/>`_.
 
 Area per person in non-residential buidlings
--------------------------------------------
+--------------------------------------------
 For non-residential buildings, NVE has assumed that the area of a building category (e.g. office buildings) distributed 
 by the number of inhabitants in Norway (m²/person) will remain constant going forward. This assumption, 
 along with the calculated demolition, leads to new construction that will vary from year to year and between building categories.

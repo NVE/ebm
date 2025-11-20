@@ -1,11 +1,14 @@
 """Module for setting up input, output and managing default data"""
-import os
 import argparse
+import os
 from pathlib import Path
+from typing import Optional, Union
+
 from loguru import logger
-from typing import Union, Optional
-from ebmgeodist.file_handler import FileHandler
+
 from ebm.__version__ import version
+from ebmgeodist.file_handler import FileHandler
+
 DEFAULT_INPUT = Path(f'X:\\NAS\\Data\\ebm\\default-input-{".".join(version.split(".")[:2])}\\')
 
 class NameHandler:

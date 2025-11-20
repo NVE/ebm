@@ -1,5 +1,5 @@
 import typing
-from enum import unique, StrEnum, EnumType
+from enum import EnumType, StrEnum, unique
 
 import pandas as pd
 from loguru import logger

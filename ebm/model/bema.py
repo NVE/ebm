@@ -1,6 +1,6 @@
 from types import MappingProxyType
 
-from ebm.model.building_category import BuildingCategory, RESIDENTIAL, NON_RESIDENTIAL
+from ebm.model.building_category import NON_RESIDENTIAL, RESIDENTIAL, BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 
 _building_category_order = {

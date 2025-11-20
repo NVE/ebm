@@ -1,6 +1,6 @@
 import pandas as pd
 
-from ebm.energy_consumption import HP_ENERGY_SOURCE, HEAT_PUMP
+from ebm.energy_consumption import HEAT_PUMP, HP_ENERGY_SOURCE
 
 
 def air_source_heat_pump(heating_systems_parameters: pd.DataFrame):

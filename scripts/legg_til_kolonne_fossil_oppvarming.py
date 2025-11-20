@@ -1,14 +1,9 @@
 import os
-
 import pathlib
 
-import pandas as pd
-
 from dotenv import load_dotenv
+
 from ebm.model.database_manager import DatabaseManager
-
-
-
 
 load_dotenv(pathlib.Path('.env'))
 dm = DatabaseManager()

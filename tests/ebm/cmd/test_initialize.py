@@ -1,12 +1,12 @@
 import pathlib
 import sys
-
-import pytest
 from unittest.mock import MagicMock, patch
 
+import pytest
+
+from ebm.__version__ import version
 from ebm.cmd import initialize
 from ebm.model.file_handler import FileHandler
-from ebm.__version__ import version
 
 
 @pytest.fixture

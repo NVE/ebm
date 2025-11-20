@@ -1,15 +1,18 @@
 # noinspection PyTypeChecker
 import io
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock
 
 import numpy as np
 import pandas as pd
 import pytest
 
-from ebm.model.area import (transform_area_forecast_to_area_change,
-                            transform_construction_by_year,
-                            transform_cumulative_demolition_to_yearly_demolition, building_condition_scurves,
-                            construction_with_building_code)
+from ebm.model.area import (
+    building_condition_scurves,
+    construction_with_building_code,
+    transform_area_forecast_to_area_change,
+    transform_construction_by_year,
+    transform_cumulative_demolition_to_yearly_demolition,
+)
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 

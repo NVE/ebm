@@ -1,11 +1,9 @@
 import typing
-
-from enum import StrEnum, unique, auto
+from enum import StrEnum, auto, unique
 
 import pandas as pd
 
-from ebm.model.bema import BUILDING_CATEGORY_ORDER
-from ebm.model.bema import TEK_ORDER
+from ebm.model.bema import BUILDING_CATEGORY_ORDER, TEK_ORDER
 
 
 @unique

@@ -1,14 +1,13 @@
 import os
-
 from typing import Optional
-import pathlib
 
-import polars as pl
 import pandas as pd
+import polars as pl
 from loguru import logger
 
 from ebm.temp_calc import calculate_energy_use_wide
 from ebmgeodist.initialize import get_output_file
+
 
 # Function to load Elhub data from Azure Data Lake Storage using Polars
 def load_elhub_data(

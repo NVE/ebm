@@ -2,6 +2,7 @@ import pathlib
 
 import pandas as pd
 import pytest
+from loguru import logger
 
 from ebm.extractors import extract_area_forecast
 from ebm.model.bema import map_sort_order
@@ -13,9 +14,7 @@ test_data = pathlib.Path(__file__).parent / 'data'
 
 @pytest.fixture
 def extract_area_forecast_csv():
-    """
-    Load and decompress (revert column merge) extract_area_forecast.csv
-    """
+    """Load and decompress (revert column merge) extract_area_forecast from csv."""
     df = pd.read_csv(test_data / 'extract_area_forecast.csv', sep=';')
     df = df.ffill()
     df['building_code'] = df['building_code'].str.replace('T', 'TEK').str.replace('P', 'PRE_')
@@ -25,10 +24,7 @@ def extract_area_forecast_csv():
 
 
 def test_extract_area_forecast(extract_area_forecast_csv: pd.DataFrame):
-    """
-    Integration test to keep area working while doing refactor.
-    """
-
+    """Integration test to keep area working while doing refactor."""
     input_directory = test_data / 'kalibrert'
 
     dm: DatabaseManager = DatabaseManager(FileHandler(directory=input_directory))
@@ -40,13 +36,19 @@ def test_extract_area_forecast(extract_area_forecast_csv: pd.DataFrame):
 
     index_columns = ['year', 'building_category', 'building_condition', 'building_code']
     result = extract_area_forecast(years, s_curves_by_condition, building_code_parameters, area_parameters, dm)
+    # noinspection PyTypeChecker
     result = result.set_index(index_columns, drop=True).sort_index(key=map_sort_order)
+    result = result.fillna(0.0)
 
     expected = extract_area_forecast_csv.set_index(index_columns, drop=True).sort_index(key=map_sort_order) # type: ignore
 
     assert isinstance(result, pd.DataFrame)
     # assert result.m2.sum() == expected.m2.sum()
     # assert len(result) == len(expected)
+    df = pd.merge(left=result, right=expected, suffixes=('_result', '_expected'), on=index_columns, how='outer')  # noqa: PD015
+    df_diff = df[df['m2_result'] != df['m2_expected']]
+    for i, r in df_diff.iterrows():
+        logger.debug(f'Error in row {i} expected: {r[1]} was: {r[0]} diff: {r[1]-r[0]}')
 
     pd.testing.assert_index_equal(result.index, expected.index)
     pd.testing.assert_frame_equal(result, expected)

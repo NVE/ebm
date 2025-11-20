@@ -8,7 +8,8 @@ dynamic = ["version"]
 description = "EBM is a bottom-up model that forecast estimates how area, energy need, heating systems and yearly energy use in the Norwegian building stock towards 2050"
 keywords = ["building energy", "building model", "energy use buildings", "energy need buildings", "building area",
     "area", "building stock", "energy forecast", "area forecast", "norwegian buildings"]
-classifiers = ["Development Status :: 3 - Alpha",
+classifiers = [
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Financial and Insurance Industry",
     "Topic :: Scientific/Engineering :: Information Analysis",

@@ -2,6 +2,14 @@
 Changelog
 =========
 
+Version 1.0.2 - 2025-11-18
+--------------------
+
+Fixed
+^^^^^
+
+* Corrected issue preventing loading of area forecast when running ebm-calibrate
+
 
 Version 1.0.1 - 2025-10-28
 --------------------

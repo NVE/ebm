@@ -25,6 +25,7 @@ The annual energy use can be distributed geographically as defined by the user.
 The main steps of the model
 ===========================
 
+
 For each building category and year in the model the calculations consist of four main steps:
 
 #. Determine rates for
@@ -35,6 +36,15 @@ For each building category and year in the model the calculations consist of fou
 #. Forecast area development, with area distributed by condition, i.e., whether the area is in original condition or has undergone small measures or renovation or both.
 #. Link area to relevant energy need allocated by energy purpose.
 #. Assign heating system to the area to determine the use of electricity, district heating, wood and natural gas.
+
+.. image:: /_static/model_illustration.png
+   :alt: EBM illustration
+   :width: 582px
+   :align: center
+
+.. raw:: html
+
+   <div style="margin-bottom: 36px;"></div>
 
 The detailed description of calculations in the model and NVE's data assumptions is organized by the following themes: 
 

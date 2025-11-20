@@ -1,36 +1,52 @@
 EBM Documentation
-=============================
+=================
 
 EBM is a model used by the Norwegian Water Resources and Energy Directorates (NVE) to forecast energy use in the building stock. 
 EBM is a bottom-up model that estimates how area, energy need, heating systems and energy use in the building stock changes over time. 
 The model is developed in-house by the Norwegian Water Resources- and Energy Directorate (NVE). 
 It is an open-source model, with an accompanying dataset developed by NVE. 
 
-This website provides documentation on how to use EBM, how the model works and a description of the dataset. To read more about how NVE work with models, visit https://www.nve.no/energi/analyser-og-statistikk/nves-program-for-energi-og-kraftmarkedsmodellering/.
+.. image:: /_static/model_illustration.png
+   :alt: EBM illustration
+   :width: 582px
+   :align: center
+
+
+.. raw:: html
+
+   <div style="margin-bottom: 36px;"></div>
+
+This website provides documentation on how to use EBM, how the model works and a description of the dataset. To read more about how NVE work with models, visit `NVEs program for energi- og kraftmarkedsmodellering <https://www.nve.no/energi/analyser-og-statistikk/nves-program-for-energi-og-kraftmarkedsmodellering/>`_.
 
 
 .. toctree::
    :maxdepth: 1
 
-   about_the_model 
-
+   about_the_model
 
 .. toctree::
    :maxdepth: 1
-   :caption: Using the Model
+   :caption: User guide
 
-   
-   user_guide/index
-   input_description
+   user_guide/getting_started
    results
-   limitations
-   glossary
+   user_guide/user_case
+   input_description
+   user_guide/geographical_distribution
+   user_guide/configuration
+   user_guide/troubleshooting
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Model setup
+
 
 .. toctree::
    :maxdepth: 1
    :caption: Model Functionality
 
    model_description/index
+   limitations
    building_parameters/index
    area/index
    energy_need/index
@@ -42,13 +58,15 @@ This website provides documentation on how to use EBM, how the model works and a
 .. toctree::
    :maxdepth: 1
    :titlesonly:
-   :caption: Technical Documentation
+   :caption: Reference
 
+   user_guide/calibrating_the_model
    api_reference
    contributing
    changelog
-  
-   
-   
+   glossary
+
+
+
 
 

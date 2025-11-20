@@ -1,12 +1,13 @@
 About EBM
 =========
 
-
-EBM is a model used by the Norwegian Water Resources and Energy Directorates (NVE) to forecast energy use in the building stock. 
+EBM is a model used by the Norwegian Water Resources and Energy Directorates (NVE) to forecast energy use in the building stock.
 EBM is an open-source model developed and managed by NVE. 
 The model allows the user to analyze how demographic trends and policy instruments impact the yearly energy use on a national and regional level. 
 Energy use is estimated by a bottom- up approach, based on the building stock floor area, energy need and distribution of heating systems. 
 The mathematical model is implemented in Python, with input and output files in excel or csv.
+
+
 
 What is the purpose of EBM?
 ---------------------------

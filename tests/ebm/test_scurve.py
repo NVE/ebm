@@ -2,7 +2,6 @@ import io
 
 import pandas as pd
 import pytest
-
 from ebm import s_curve
 from ebm.model.data_classes import YearRange
 from ebm.model.scurve import SCurve
@@ -14,7 +13,6 @@ def test_scurve():
     building_category,condition,earliest_age_for_measure,average_age_for_measure,rush_period_years,last_age_for_measure,rush_share,never_share
     apartment_block, small_measure, 5, 20, 20, 50, 0.8, 0.1
     """
-
     s_curve = SCurve(earliest_age=5,
                      average_age=20,
                      rush_years=20,
@@ -27,6 +25,15 @@ def test_scurve():
                                index=pd.Index([i for i in range(1, 131)], name='age'), name='scurve')
 
     pd.testing.assert_series_equal(result, expected_curve)
+
+
+def test_scurve_long_rush_period_raise_value_error():
+    SCurve(earliest_age=60,
+           average_age=90,
+           rush_years=66,
+           rush_share=0.7,
+           last_age=150,
+           never_share=0.05)
 
 
 def test_calc_rates_apartment_block_small_measure():
@@ -98,7 +105,7 @@ def test_calc_rates_office_demolition():
 
 
 def test_calc_rates_culture_small_measure():
-    """ Test that rate for culture small measure is correct"""
+    """Test that rate for culture small measure is correct"""
     s_curve = SCurve(earliest_age=3,
                      average_age=20,
                      rush_years=20,
@@ -113,7 +120,7 @@ def test_calc_rates_culture_small_measure():
 
 
 def test_calc_rates_culture_rehabilitation():
-    """ Test that rate for culture rehabilitation is correct"""
+    """Test that rate for culture rehabilitation is correct"""
     s_curve = SCurve(earliest_age=5,
                      average_age=65,
                      rush_years=40,
@@ -213,7 +220,7 @@ def test_calculate_s_curves_return_correct_original_condition(scurves_parameters
              0.05], # TEK10
 
         name='original_condition',
-        index=pd.MultiIndex.from_product([['house'], ['TEK1969', 'TEK2010'], years], names=['building_category', 'building_code', 'year'])
+        index=pd.MultiIndex.from_product([['house'], ['TEK1969', 'TEK2010'], years], names=['building_category', 'building_code', 'year']),
     )
 
     pd.testing.assert_series_equal(result.original_condition, expected_original_condition)
@@ -240,7 +247,7 @@ def test_calculate_s_curves_return_correct_small_measure(scurves_parameters_hous
          0.6283333333, 0.655, 0.6645833333, 0.6375, 0.6104166667,
          0.5833333333], # TEK10
         name='small_measure',
-        index=pd.MultiIndex.from_product([['house'], ['TEK1969', 'TEK2010'], years], names=['building_category', 'building_code', 'year'])
+        index=pd.MultiIndex.from_product([['house'], ['TEK1969', 'TEK2010'], years], names=['building_category', 'building_code', 'year']),
     )
 
     pd.testing.assert_series_equal(result.small_measure, expected_small_measure)
@@ -262,12 +269,12 @@ def test_calculate_s_curves_return_correct_renovation(scurves_parameters_house, 
          0.11, 0.12, 0.13, 0.14, 0.15, 0.17708333, 0.20416667, 0.23125, 0.25833333, 0.26833333, 0.24166667, 0.215,
          0.18833333], # TEK10
         name='renovation',
-        index=pd.MultiIndex.from_product([['house'], ['TEK1969', 'TEK2010'], years], names=['building_category', 'building_code', 'year'])
+        index=pd.MultiIndex.from_product([['house'], ['TEK1969', 'TEK2010'], years], names=['building_category', 'building_code', 'year']),
     )
 
     pd.testing.assert_series_equal(result.renovation, expected_renovation)
-    
-    
+
+
 def test_calculate_s_curves_return_correct_renovation_and_small_measure(
         scurves_parameters_house, building_code_parameters, years):
     result = s_curve.calculate_s_curves(scurve_parameters=scurves_parameters_house,
@@ -282,7 +289,7 @@ def test_calculate_s_curves_return_correct_renovation_and_small_measure(
          0.755] + # TEK69
         [0.0] * 27 + [0.0170833, 0.0708333, 0.1245833, 0.1783333], # TEK10
         name='renovation_and_small_measure',
-        index=pd.MultiIndex.from_product([['house'], ['TEK1969', 'TEK2010'], years], names=['building_category', 'building_code', 'year'])
+        index=pd.MultiIndex.from_product([['house'], ['TEK1969', 'TEK2010'], years], names=['building_category', 'building_code', 'year']),
     )
 
     pd.testing.assert_series_equal(result.renovation_and_small_measure, expected_renovation_and_small_measure)
@@ -299,7 +306,7 @@ def test_calculate_s_curves_return_correct_demolition(scurves_parameters_house, 
          [0.0] * 31,  # TEK10
         name='demolition',
         index=pd.MultiIndex.from_product([['house'], ['TEK1969', 'TEK2010'], years],
-                                         names=['building_category', 'building_code', 'year'])
+                                         names=['building_category', 'building_code', 'year']),
     )
 
     pd.testing.assert_series_equal(result.demolition, expected_demolition)
@@ -342,7 +349,7 @@ house,demolition,60,90,40,150,0.7,0.05""".strip()
         [0.0] * 31,  # TEK10
         name='demolition',
         index=pd.MultiIndex.from_product([['house'], ['TEK1969', 'TEK2010'], years],
-                                         names=['building_category', 'building_code', 'year'])
+                                         names=['building_category', 'building_code', 'year']),
     )
 
     pd.testing.assert_series_equal(result.demolition, expected_demolition)
@@ -355,7 +362,7 @@ house,demolition,60,90,40,150,0.7,0.05""".strip()
 
         name='original_condition',
         index=pd.MultiIndex.from_product([['house'], ['TEK1969', 'TEK2010'], years],
-                                         names=['building_category', 'building_code', 'year'])
+                                         names=['building_category', 'building_code', 'year']),
     )
     pd.testing.assert_series_equal(result.original_condition, expected_original_condition)
 

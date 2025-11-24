@@ -27,13 +27,49 @@ def test_scurve():
     pd.testing.assert_series_equal(result, expected_curve)
 
 
-def test_scurve_long_rush_period_raise_value_error():
-    SCurve(earliest_age=60,
-           average_age=90,
-           rush_years=66,
-           rush_share=0.7,
-           last_age=150,
-           never_share=0.05)
+def test_scurve_long_rush_period_raise_value_error_when_rush_years_is_too_long():
+    s_curve = SCurve(earliest_age=60, average_age=90, rush_years=66, rush_share=0.7, last_age=150, never_share=0.05)
+
+
+def test_scurve_long_rush_period_expand_index_as_necessary():
+    s_curve = SCurve(
+        earliest_age=60,
+        average_age=90,
+        rush_years=66,
+        rush_share=0.7,
+        last_age=150,
+        never_share=0.05)
+
+    assert len(s_curve.calc_scurve()) == 133
+
+@pytest.mark.parametrize('rush_years,average_age,earliest_age', [
+    (36, 77, 58), (37, 77, 58), (39, 77, 58), (38, 77, 58),
+    (30, 23, 7), (30, 23, 9), (30, 23, 8),
+])
+def test_scurve_long_rush_period_does_not_cause_division_by_zero_error_in_pre_rush(rush_years, average_age, earliest_age):
+    s_curve = SCurve(
+        earliest_age=earliest_age,
+        rush_years=rush_years,
+        average_age=average_age,
+        last_age=129,
+        rush_share=0.7,
+        never_share=0.05)
+
+    result = s_curve.calc_scurve()
+    #assert len(result) == 130
+    #assert round(result.max(), 3) == 1.0 - 0.05
+
+
+@pytest.mark.parametrize('last_age', [81, 82, 80])
+def test_scurve_long_rush_period_does_not_cause_division_by_zero_error_in_post_rush(last_age):
+        s_curve = SCurve(
+            earliest_age=58,
+            average_age=77,
+            rush_years=6,
+            rush_share=0.7,
+            last_age=last_age,
+            never_share=0.01)
+        s_curve.calc_scurve().max() == 1.0 - 0.05
 
 
 def test_calc_rates_apartment_block_small_measure():
@@ -49,6 +85,20 @@ def test_calc_rates_apartment_block_small_measure():
     assert s_curve._calc_rush_rate() == 0.04
     # was 0.0024999999999999988
     assert s_curve._calc_post_rush_rate() == 0.0025
+
+
+@pytest.mark.parametrize('last_age', [80])
+def test_scurve_raise_zero_division_error_with_sensible_error_message(last_age):
+    expected_msg = f'last_age={last_age}, leaves no room for a post rush period'
+    with pytest.raises(ZeroDivisionError, match=expected_msg):
+        SCurve(earliest_age=58, average_age=77, rush_years=6, rush_share=0.7, last_age=last_age, never_share=0.01)
+
+
+@pytest.mark.parametrize('average_age', [76])
+def test_scurve_raise_zero_division_error_with_sensible_pre_rush_error_message(average_age):
+    expected_msg = f'average_age={average_age}, leaves no room for a pre rush period'
+    with pytest.raises(ZeroDivisionError, match=expected_msg):
+        SCurve(earliest_age=56, average_age=average_age, rush_years=40, rush_share=0.7, last_age=150, never_share=0.01)
 
 
 def test_calc_rates_apartment_block_renovation():
@@ -143,7 +193,7 @@ def test_calc_pre_rush_rate_kindergarten():
                      never_share=0.01)
     # was  0,791666666666666 %
     expected = 0.0079166666667
-
+    r = s_curve.get_rates_per_year_over_building_lifetime()
     assert s_curve._calc_pre_rush_rate() == expected
 
 

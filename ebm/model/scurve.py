@@ -92,7 +92,11 @@ class SCurve:
         still return percent as a value between 0 and 1.
         """
         remaining_share = (100 - self._rush_share - self._never_share)
-        age_range = (50 / (self._average_age - self._earliest_age - (self._rush_years / 2)))
+        pre_rush_years = (self._average_age - self._earliest_age - (self._rush_years / 2))
+        if pre_rush_years == 0:
+            msg = f'average_age={self._average_age}, leaves no room for a pre rush period'
+            raise ZeroDivisionError(msg)
+        age_range = (50 / pre_rush_years)
         pre_rush_rate = remaining_share * age_range / 100
         return round(pre_rush_rate / 100, 13)
     
@@ -136,7 +140,11 @@ class SCurve:
         still return percent as a value between 0 and 1.
         """
         remaining_share = (100 - self._rush_share - self._never_share)
-        age_range = (50 / (self._last_age - self._average_age - (self._rush_years / 2)))
+        post_rush_years = (self._last_age - self._average_age - (self._rush_years / 2))
+        if post_rush_years == 0:
+            msg = f'last_age={self._last_age}, leaves no room for a post rush period'
+            raise ZeroDivisionError(msg)
+        age_range = (50 / post_rush_years)
         post_rush_rate = remaining_share * age_range / 100
         return round(post_rush_rate / 100, 13)
 
@@ -180,7 +188,9 @@ class SCurve:
         )  
         
         # Create a pd.Series with an index from 1 to building_lifetime 
-        index = range(1, self._building_lifetime + 1)
+        index_length = max(self._building_lifetime + 1, len(rates_per_year) + 1)
+        index = range(1, index_length)
+
         rates_per_year = pd.Series(rates_per_year, index=index, name='scurve')
         rates_per_year.index.name = 'age'
 

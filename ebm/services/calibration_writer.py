@@ -9,6 +9,7 @@ from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.heating_systems import HeatingSystems
 from ebm.services.excel_loader import access_excel_sheet
 from ebm.services.spreadsheet import SpreadsheetCell
+from openpyxl.utils.cell import coordinate_to_tuple
 
 KEY_ERROR_COLOR = 0xC0C0C0
 COLOR_AUTO = -4105
@@ -259,3 +260,94 @@ class ExcelComCalibrationResultWriter:
             else:
                 sheet.Cells(cell_to_update.row, cell_to_update.column).Value = cell_to_update.value
                 cell.Font.ColorIndex = COLOR_AUTO
+
+class ExcelComCalibrationStatusWriter:
+    """
+    A class to update a single cell in an open spreadsheet.
+
+    Attributes
+    ----------
+    workbook : str
+        The name of the workbook.
+    sheet : str
+        The name of the sheet.
+    df : pd.DataFrame
+        The DataFrame containing the data.
+    cells_to_update : typing.List[SpreadsheetCell]
+        List of cells to update.
+    rows : typing.List[SpreadsheetCell]
+        List of row header cells.
+    columns : typing.List[SpreadsheetCell]
+        List of column header cells.
+
+    Methods
+    -------
+    extract() -> typing.Tuple[typing.List[SpreadsheetCell], typing.List[SpreadsheetCell]]
+        Extracts the target cells and initializes row and column headers.
+    transform(df) -> typing.Iterable[SpreadsheetCell]
+        Transforms the DataFrame into a list of SpreadsheetCell objects to update.
+    load()
+        Loads the updated values into the Excel sheet.
+    """
+    workbook: str
+    sheet: str
+    target_cells: str
+    df: pd.DataFrame
+    cells_to_update: typing.List[SpreadsheetCell]
+    rows: typing.List[SpreadsheetCell]
+    columns: typing.List[SpreadsheetCell]
+
+    def __init__(self,
+                 excel_filename=None,
+                 workbook='Kalibreringsark.xlsx',
+                 sheet='Ut',
+                 target_cells=None,
+                 value: str=''):
+        """
+        Initialize ExcelComCalibrationStatusWriter
+
+        Parameters
+        ----------
+        excel_filename : str, optional
+            Name of the target spreadsheet. If there is no ! and sheet name in excel_filename, the parameter sheet is
+                used instead
+        workbook : str, optinal
+            Optional name of the spreadsheet to used for reading and writing. (default is 'Kalibreringsark.xlsx')
+        sheet : str, optional
+            Optional name of the sheet used for reading and writing. (default is 'Ut')
+        target_cells : str, optional
+            A range of cells that contain the data to update from the dataframe, (default is read from env EBM_CALIBRATION_YEAR_CELL)
+        value : str, optional
+            Value to set on target_cells
+
+
+        """
+
+        self.workbook, self.sheet = os.environ.get('EBM_CALIBRATION_OUT', f'{workbook}!{sheet}').split('!')
+
+        self.workbook = workbook
+        self.sheet = sheet
+        self.target_cells = target_cells
+        if not target_cells:
+            self.target_cells = target_cells = os.environ.get('EBM_CALIBRATION_YEAR_CELL', 'C63')
+
+        if excel_filename:
+            if '!' in excel_filename:
+                self.workbook, self.sheet = excel_filename.split('!')
+            else:
+                self.workbook = excel_filename
+        self.value = value
+
+
+    def load(self):
+        """
+        Loads the updated values into the Excel sheet defined in obj.workbook and obj.sheet.
+        """
+        row, column = coordinate_to_tuple(self.target_cells)
+        cell_to_update = SpreadsheetCell(column, row, self.value)
+        sheet = access_excel_sheet(self.workbook, self.sheet)
+
+        # Update cells
+        cell = sheet.Cells(cell_to_update.row, cell_to_update.column)
+
+        cell.Value = self.value

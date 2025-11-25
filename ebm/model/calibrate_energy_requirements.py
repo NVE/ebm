@@ -2,9 +2,8 @@ import pathlib
 import typing
 
 import pandas as pd
-from loguru import logger
-
 from ebm.model.file_handler import FileHandler
+from loguru import logger
 
 
 class EnergyRequirementCalibrationWriter:
@@ -24,7 +23,7 @@ class EnergyRequirementCalibrationWriter:
             df.to_csv(file_path, index=False)
         elif file_path.suffix == '.xlsx':
             df.to_excel(file_path, index=False)
-        logger.info(f'Wrote {to_file}')
+        logger.success(f'Wrote {to_file}')
 
 
 class EnergyConsumptionCalibrationWriter:
@@ -43,7 +42,7 @@ class EnergyConsumptionCalibrationWriter:
         self.df = df
         return df
 
-    def load(self, df: pd.DataFrame, to_file: typing.Union[str, pathlib.Path] = None):
+    def load(self, df: pd.DataFrame, to_file: typing.Optional[str | pathlib.Path] = None):
         logger.debug(f'Save {to_file}')
         if to_file is None:
             to_file = pathlib.Path('input/calibrate_energy_consumption.xlsx')
@@ -53,7 +52,7 @@ class EnergyConsumptionCalibrationWriter:
             df.to_csv(file_path, index=False)
         elif file_path.suffix == '.xlsx':
             df.to_excel(file_path, index=False)
-        logger.info(f'Wrote {to_file}')
+        logger.success(f'Wrote {to_file}')
 
 
 def transform(heating_rv: pd.Series, heating_rv_factor=None) -> pd.Series:

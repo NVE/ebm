@@ -1,13 +1,13 @@
 import typing
 
-from loguru import logger
 import numpy as np
 import pandas as pd
+from loguru import logger
 
-from ebm.model.database_manager import DatabaseManager
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
+from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.file_handler import FileHandler
 from ebm.services.files import make_unique_path
@@ -327,8 +327,8 @@ class EnergyRequirement:
 
 def main():
     import os
-    import sys
     import pathlib
+    import sys
     log_format = """
     <blue>{elapsed}</blue> | <level>{level: <8}</level> | <cyan>{function: <20}</cyan>:<cyan>{line: <3}</cyan> - <level>{message}</level>
     """.strip()

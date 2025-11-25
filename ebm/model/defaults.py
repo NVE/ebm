@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def default_calibrate_heating_rv() -> pd.DataFrame:
     """Creates a default dataframe for heating_rv calibration. The factor is set to 1.0 (no change)
 

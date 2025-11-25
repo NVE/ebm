@@ -1,19 +1,22 @@
-import os
-from pathlib import Path
-from azure.identity import DefaultAzureCredential
-from ebmgeodist.initialize import NameHandler
-from ebmgeodist.data_loader import load_elhub_data, load_energy_use_from_file, load_energy_use
-from ebmgeodist.calculation_tools import df_commune_mean, df_total_consumption_buildingcategory,\
-      df_factor_calculation, yearly_aggregated_elhub_data, ebm_energy_use_geographical_distribution
-from ebmgeodist.initialize import create_output_directory, get_output_file
-from ebmgeodist.spreadsheet import make_pretty
 import gc
-import polars as pl
-import pandas as pd
-from loguru import logger
 from datetime import datetime
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import pandas as pd
+import polars as pl
+from loguru import logger
+
+from ebmgeodist.calculation_tools import (
+    df_commune_mean,
+    df_factor_calculation,
+    df_total_consumption_buildingcategory,
+    ebm_energy_use_geographical_distribution,
+    yearly_aggregated_elhub_data,
+)
+from ebmgeodist.data_loader import load_elhub_data, load_energy_use
+from ebmgeodist.initialize import NameHandler, create_output_directory, get_output_file
+from ebmgeodist.spreadsheet import make_pretty
 
 
 def prepare_elhub_data(elhub_years: list[int], step: str) -> pl.DataFrame:

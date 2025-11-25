@@ -1,15 +1,13 @@
 import pathlib
 import time
 
-from loguru import logger
 import pandas as pd
+from loguru import logger
 
-from ebm.cmd.run_calculation import (calculate_building_category_area_forecast,
-                                     calculate_building_category_energy_requirements,
-                                     calculate_heating_systems)
+from ebm.cmd.run_calculation import calculate_building_category_area_forecast, calculate_building_category_energy_requirements, calculate_heating_systems
 from ebm.model import bema
-from ebm.model.calibrate_heating_systems import group_heating_systems_by_energy_carrier
 from ebm.model.building_category import BuildingCategory
+from ebm.model.calibrate_heating_systems import group_heating_systems_by_energy_carrier
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.services.spreadsheet import detect_format_from_values, find_max_column_width

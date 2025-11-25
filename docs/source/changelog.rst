@@ -2,6 +2,27 @@
 Changelog
 =========
 
+Version 1.0.3 - 2025-11-25
+--------------------
+
+Fixed
+^^^^^
+
+* Corrected issue where ebm-calibrate failed to load calibration year
+
+Added
+^^^^^
+
+* Added command line arguments for ebm-calibrate
+* Added ``--calibration-year``
+* Added ``--version``
+* Added ``--help``
+* Updated documentation with sections on how to run the calibration, command line arguments and environment variables
+* Calibration year will now be written to the calibration spreadsheet
+
+
+
+
 Version 1.0.2 - 2025-11-18
 --------------------
 

@@ -154,7 +154,7 @@ def main() -> tuple[pd.DataFrame | None, pd.DataFrame]:
     df = generate_scurve_dataframe(filter_s_curve_parameters(query, s_curve_parameters))
 
     if args.output and args.output.endswith('.csv'):
-        df.to_csv(args.output)
+        df.reset_index().to_csv(args.output, index=False)
     if sys.flags.interactive:
         print("The results are available in `df`")
         return df, s_curve_parameters

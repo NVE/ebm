@@ -398,6 +398,25 @@ def merge_s_curves_and_building_code(s_curves: pd.DataFrame, df_never_share: pd.
     return s_curves_long
 
 
+def rates_grouped_by_period(rates: pd.Series) -> pd.DataFrame:
+    return (
+    rates[rates != rates.shift(1)]
+    .to_frame(name='share')
+    .reset_index()
+    .join(
+        rates[rates != rates.shift(-1)]
+        .to_frame(name='share')
+        .reset_index()
+        .rename(columns={'age': 'end_age'})['end_age']
+    )
+    [['age', 'end_age', 'share']]
+    .rename(columns={'age': 'start_age'})
+    .assign(years=lambda x: x.end_age - x.start_age + 1)
+    #.assign(period=lambda x: ['early_years', 'pre_rush', 'rush', 'post_rush', 'last_years'][:len(x)])
+    #.assign(period=lambda x: ['early_years', 'pre_rush', 'rush', 'post_rush', 'last_years'][:len(x)])
+)
+
+
 def transform_to_dataframe(s_curve_cumulative_demolition: Series, s_curve_original_condition: Series, s_curve_renovation: Series,
                            s_curve_renovation_and_small_measure: Series, s_curve_small_measure: Series, s_curve_demolition: Series) -> pd.DataFrame:
     """

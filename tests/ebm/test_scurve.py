@@ -72,6 +72,19 @@ def test_scurve_long_rush_period_does_not_cause_division_by_zero_error_in_post_r
         s_curve.calc_scurve().max() == 1.0 - 0.05
 
 
+@pytest.mark.parametrize('last_age', [81, 82])
+def test_scurve_repr(last_age):
+        expected = f"""SCurve(earliest_age=58, average_age=77, rush_years=6, rush_share=0.7, last_age={last_age}, never_share=0.01, building_lifetime=130)"""
+
+        assert repr(SCurve(
+            earliest_age=58,
+            average_age=77,
+            rush_years=6,
+            rush_share=0.7,
+            last_age=last_age,
+            never_share=0.01)) == expected
+
+
 def test_calc_rates_apartment_block_small_measure():
     s_curve = SCurve(earliest_age=5,
                      average_age=20,

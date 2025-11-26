@@ -73,6 +73,17 @@ class SCurve:
         # Calculate S-curves
         self.scurve = self.calc_scurve() 
 
+    def __repr__(self):
+        return (
+        f"SCurve(earliest_age={self._earliest_age}, "
+        f"average_age={self._average_age}, "
+        f"rush_years={self._rush_years}, "
+        f"rush_share={self._rush_share/100}, "
+        f"last_age={self._last_age}, "
+        f"never_share={self._never_share/100}, "
+        f"building_lifetime={self._building_lifetime})"
+        )
+
     def _calc_pre_rush_rate(self) -> float:
         """
         Calculate the yearly measure rate for the pre-rush period.

@@ -1,3 +1,5 @@
+from math import floor
+
 import pandas as pd
 from loguru import logger
 
@@ -57,13 +59,13 @@ class SCurve:
             msg = f'Illegal value for {" ".join(errors)}'
             raise ValueError(msg)
 
-        self._building_lifetime = building_lifetime
         self._earliest_age = earliest_age
         self._average_age = average_age
         self._last_age = last_age
         self._rush_years = rush_years
         self._rush_share = rush_share * 100
         self._never_share = never_share * 100
+        self._building_lifetime = max(building_lifetime, last_age)
 
         # Calculate yearly rates
         self._pre_rush_rate = self._calc_pre_rush_rate() 
@@ -71,7 +73,7 @@ class SCurve:
         self._post_rush_rate = self._calc_post_rush_rate()
         
         # Calculate S-curves
-        self.scurve = self.calc_scurve() 
+        self.scurve = self.calc_scurve()
 
     def __repr__(self):
         return (
@@ -106,7 +108,8 @@ class SCurve:
         pre_rush_years = (self._average_age - self._earliest_age - (self._rush_years / 2))
         if pre_rush_years == 0:
             msg = f'average_age={self._average_age}, leaves no room for a pre rush period'
-            raise ZeroDivisionError(msg)
+            logger.warning(msg)
+            return 0.0
         age_range = (50 / pre_rush_years)
         pre_rush_rate = remaining_share * age_range / 100
         return round(pre_rush_rate / 100, 13)
@@ -154,7 +157,8 @@ class SCurve:
         post_rush_years = (self._last_age - self._average_age - (self._rush_years / 2))
         if post_rush_years == 0:
             msg = f'last_age={self._last_age}, leaves no room for a post rush period'
-            raise ZeroDivisionError(msg)
+            logger.warning(msg)
+            return 0.0
         age_range = (50 / post_rush_years)
         post_rush_rate = remaining_share * age_range / 100
         return round(post_rush_rate / 100, 13)
@@ -176,15 +180,24 @@ class SCurve:
 
         # Define the length of the different periods in the S-curve
         earliest_years = self._earliest_age - 1
-        pre_rush_years = int(self._average_age - self._earliest_age - (self._rush_years/2))
+        pre_rush_years = max(int(self._average_age - (self._rush_years/2)) - self._earliest_age, 0)
         rush_years = self._rush_years
-        post_rush_years = int(self._last_age - self._average_age - (self._rush_years/2))
-        last_years = self._building_lifetime - earliest_years - pre_rush_years - rush_years - post_rush_years
-        
+        post_rush_start = floor(self._average_age + (self._rush_years/2))
+        post_rush_years = self._last_age - post_rush_start
+        last_years = self._building_lifetime - (earliest_years + pre_rush_years + rush_years + post_rush_years)
+
+        if int(self._average_age - (self._rush_years/2)) - earliest_years <0:
+            logger.warning('Not enough room for pre_rush period')
+            logger.warning('{scurve}', scurve=self)
+
+        years = earliest_years + pre_rush_years + rush_years + post_rush_years
+        if years > 130:
+            logger.debug('Last years {share_years} greater than 130', share_years=years, scurve=self)
         # Redefine periods for Demolition, as the post_rush_year calculation isn't the same as for Small measures and
         # rehabilitation
         if last_years < 0:
-            last_years = 0 
+            logger.warning('Last years less than 0 %s', last_years)
+            last_years = 0
             post_rush_years = self._building_lifetime - earliest_years - pre_rush_years - rush_years
 
         # Create list where the yearly rates are placed according to their corresponding period in the buildings
@@ -199,8 +212,8 @@ class SCurve:
         )  
         
         # Create a pd.Series with an index from 1 to building_lifetime 
-        index_length = max(self._building_lifetime + 1, len(rates_per_year) + 1)
-        index = range(1, index_length)
+        index_length = len(rates_per_year)
+        index = range(1, index_length+1)
 
         rates_per_year = pd.Series(rates_per_year, index=index, name='scurve')
         rates_per_year.index.name = 'age'

@@ -18,7 +18,7 @@ class SCurve:
     To make calculations return better rounded more and accurate results, _rush_share and _never_share area
     multiplied by 100 internally.  _calc_pre_rush_rate() _calc_rush_rate() _calc_post_rush_rate() will
     still return percent as a value between 0 and 1.
-    """ 
+    """
 
     # TODO:
     # - add check to control that defined periods match building lifetime index in get_rates_per_year
@@ -31,7 +31,7 @@ class SCurve:
     never_share: float
     building_lifetime: int = 130
 
-    def __init__(self, 
+    def __init__(self,
                  earliest_age: int,
                  average_age: int,
                  last_age: int,
@@ -68,7 +68,7 @@ class SCurve:
         self._building_lifetime = max(building_lifetime, last_age)
 
         # Calculate yearly rates
-        self._pre_rush_rate = self._calc_pre_rush_rate() 
+        self._pre_rush_rate = self._calc_pre_rush_rate()
         self._rush_rate = self._calc_rush_rate()
         self._post_rush_rate = self._calc_post_rush_rate()
         
@@ -90,7 +90,7 @@ class SCurve:
         """
         Calculate the yearly measure rate for the pre-rush period.
 
-        The pre-rush rate represents the percentage share of building area that has 
+        The pre-rush rate represents the percentage share of building area that has
         undergone a measure per year during the period before the rush period begins.
 
         Returns
@@ -118,7 +118,7 @@ class SCurve:
         """
         Calculate the yearly measure rate for the rush period.
 
-        The rush rate represents the percentage share of building area that has 
+        The rush rate represents the percentage share of building area that has
         undergone a measure per year during the rush period.
 
         Returns
@@ -139,7 +139,7 @@ class SCurve:
         """
         Calculate the yearly measure rate for the post-rush period.
 
-        The post-rush rate represents the percentage share of building area that has 
+        The post-rush rate represents the percentage share of building area that has
         undergone a measure per year during the period after the rush period ends.
 
         Returns
@@ -191,7 +191,7 @@ class SCurve:
             logger.warning('{scurve}', scurve=self)
 
         years = earliest_years + pre_rush_years + rush_years + post_rush_years
-        if years > 130:
+        if years > 130:  # noqa: PLR2004
             logger.debug('Last years {share_years} greater than 130', share_years=years, scurve=self)
         # Redefine periods for Demolition, as the post_rush_year calculation isn't the same as for Small measures and
         # rehabilitation
@@ -204,14 +204,14 @@ class SCurve:
         # lifetime
 
         rates_per_year = (
-            [0] * earliest_years + 
+            [0] * earliest_years +
             [self._pre_rush_rate] * pre_rush_years +
             [self._rush_rate] * rush_years +
             [self._post_rush_rate] * post_rush_years +
             [0] * last_years
-        )  
+        )
         
-        # Create a pd.Series with an index from 1 to building_lifetime 
+        # Create a pd.Series with an index from 1 to building_lifetime
         index_length = len(rates_per_year)
         index = range(1, index_length+1)
 
@@ -224,7 +224,7 @@ class SCurve:
         """
         Calculates the S-curve by accumulating the yearly measure rates over the building's lifetime.
 
-        This method returns a pandas Series representing the S-curve, where each value corresponds 
+        This method returns a pandas Series representing the S-curve, where each value corresponds
         to the accumulated rate up to that age.
 
         Returns
@@ -234,13 +234,13 @@ class SCurve:
                 building lifetime.
         """
         # Get rates_per_year and accumulate them over the building lifetime
-        rates_per_year = self.get_rates_per_year_over_building_lifetime() 
+        rates_per_year = self.get_rates_per_year_over_building_lifetime()
         scurve = rates_per_year.cumsum()
         return scurve
 
 
-def main():
-    import pathlib
+def main() -> None:
+    import pathlib  # noqa: PLC0415
     logger.info('Calculate all scurves from data/s_curve.csv')
     area_parameters_path = pathlib.Path(__file__).parent.parent / 'data/s_curve.csv'
     df = pd.read_csv(area_parameters_path)

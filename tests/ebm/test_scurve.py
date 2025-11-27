@@ -2,12 +2,13 @@ import io
 
 import pandas as pd
 import pytest
+
 from ebm import s_curve
 from ebm.model.data_classes import YearRange
 from ebm.model.scurve import SCurve
 
 
-def test_scurve():
+def test_scurve_apartment_block_small_measure():
     """
     Test using numbers for apartment_block small_measure
     building_category,condition,earliest_age_for_measure,average_age_for_measure,rush_period_years,last_age_for_measure,rush_share,never_share
@@ -27,8 +28,19 @@ def test_scurve():
     pd.testing.assert_series_equal(result, expected_curve)
 
 
-def test_scurve_long_rush_period_raise_value_error_when_rush_years_is_too_long():
-    s_curve = SCurve(earliest_age=60, average_age=90, rush_years=66, rush_share=0.7, last_age=150, never_share=0.05)
+def test_scurve_house_demolition():
+    """
+    Test using numbers for house demolition
+    building_category,condition,earliest_age_for_measure,average_age_for_measure,rush_period_years,last_age_for_measure,rush_share,never_share
+    house,demolition,60,90,40,150,0.7,0.05
+    """
+    scurve=SCurve(earliest_age=60, average_age=90, rush_years=40, rush_share=0.7, last_age=150, never_share=0.05, building_lifetime=150)
+    result = scurve.get_rates_per_year_over_building_lifetime()
+    expected = [0.0] * 59 + [0.0125] * 10 + [0.0175] * 40 + [0.003125] * 40 + [0.0] * 1
+    expected_curve = pd.Series(data=expected,
+                               index=pd.Index([i for i in range(1, len(expected)+1)], name='age'), name='scurve')
+
+    pd.testing.assert_series_equal(result, expected_curve)
 
 
 def test_scurve_raises_value_error_when_there_is_no_room_for_pre_rush():
@@ -44,7 +56,6 @@ def test_scurve_raises_value_error_when_there_is_no_room_for_pre_rush():
     result = s_curve.calc_scurve()
     assert s_curve._building_lifetime == 150
     assert len(result) == 150
-
 
 
 def test_scurve_long_rush_period_expand_index_as_necessary2():
@@ -431,25 +442,29 @@ house,demolition,60,90,40,150,0.7,0.05""".strip()
     assert (result.original_condition + result.demolition == 1.0).all()
 
 
-def test_calculate_s_curves_cuts_off_non_demolition_after_2030(scurves_parameters_house, building_code_parameters, years):
+def test_calculate_s_curves_cuts_off_non_demolition_after_2030(scurves_parameters_house, building_code_parameters,
+                                                               years):
     use_building_code = ['TEK1969']
     building_code_parameters = building_code_parameters[building_code_parameters.building_code.isin(use_building_code)]
     s_curves = s_curve.scurve_parameters_to_scurve(scurves_parameters_house)
     df_never_share = s_curve.scurve_parameters_to_never_share(s_curves, scurves_parameters_house)
 
-    s_curves_with_building_code = s_curve.merge_s_curves_and_building_code(s_curves, df_never_share, building_code_parameters)
+    s_curves_with_building_code = s_curve.merge_s_curves_and_building_code(s_curves, df_never_share,
+                                                                           building_code_parameters)
     from_2030 = list(years.subset(10))
 
     s_curves_with_building_code.loc[(slice(None), 'TEK1969', from_2030), ['small_measure_acc', 'renovation_acc']] = (
-    0.931190, 0.828846)
+        0.931190, 0.828846)
     # s_curves_with_building_code.loc[(slice(None), 'TEK2010', from_2030), ['small_measure_acc', 'renovation_acc']] = (0.228333, 0.030000)
 
     result = s_curve.calculate_s_curves(scurve_parameters=scurves_parameters_house,
-                                        building_code_parameters=building_code_parameters[building_code_parameters.building_code.isin(use_building_code)],
+                                        building_code_parameters=building_code_parameters[
+                                            building_code_parameters.building_code.isin(use_building_code)],
                                         years=years)
 
     building_category_building_condition_year = pd.MultiIndex.from_product([['house'], use_building_code, years],
-                                                                           names=['building_category', 'building_code', 'year'])
+                                                                           names=['building_category', 'building_code',
+                                                                                  'year'])
     expected_original_condition = pd.Series(
         data=[0.050000000000000044, 0.050000000000000044, 0.050000000000000044, 0.050000000000000044,
               0.050000000000000044, 0.050000000000000044, 0.050000000000000044, 0.050000000000000044,
@@ -461,7 +476,7 @@ def test_calculate_s_curves_cuts_off_non_demolition_after_2030(scurves_parameter
               0.010000000000000009, 0.010000000000000009, 0.010000000000000009],  # TEK69
         name='original_condition', index=building_category_building_condition_year)
     assert (
-                result.original_condition + result.small_measure + result.renovation + result.renovation_and_small_measure + result.demolition == 1.0).all()
+            result.original_condition + result.small_measure + result.renovation + result.renovation_and_small_measure + result.demolition == 1.0).all()
 
     pd.testing.assert_series_equal(result.original_condition, expected_original_condition)
 
@@ -483,19 +498,19 @@ def test_calculate_s_curves_cuts_off_non_demolition_after_2030(scurves_parameter
 
     expected_renovation = pd.Series(
         data=[0.04142857, 0.03916667, 0.03690476, 0.03464286, 0.03238095, 0.03011905, 0.02785714, 0.02559524,
-                 0.02333333, 0.02107143, 0.01880952] + [0.016547619046699213, 0.01428571428479919, 0.012023809522899165,
-                                                        0.00976190476099914, 0.007499999999099116,
-                                                        0.005238095237199092] + [0.0] * 14, name='renovation',
+              0.02333333, 0.02107143, 0.01880952] + [0.016547619046699213, 0.01428571428479919, 0.012023809522899165,
+                                                     0.00976190476099914, 0.007499999999099116,
+                                                     0.005238095237199092] + [0.0] * 14, name='renovation',
         index=building_category_building_condition_year)
     pd.testing.assert_series_equal(result.renovation, expected_renovation)
 
     expected_renovation_and_small_measure = pd.Series(
         data=[0.6231548, 0.6525, 0.6818452, 0.7111905, 0.7405357, 0.769881, 0.7779121, 0.7859432, 0.7939744, 0.8020055,
-              0.8100366] + [0.8180677655677011, 0.8260989010988011, 0.8341300366299012, 0.8421611721610012,
-                            0.8501923076921012, 0.8582234432232012, 0.8692307692296003, 0.8749999999988003,
-                            0.8807692307680003, 0.8865384615372003, 0.8875, 0.875, 0.8624999999999999, 0.85,
-                            0.8374999999999999, 0.825, 0.8074999999999999, 0.7899999999999999, 0.7725,
-                            0.7549999999999999], name='renovation_and_small_measure',
+              0.8100366, 0.8180677655677011, 0.8260989010988011, 0.8341300366299012, 0.8421611721610012,
+              0.8501923076921012, 0.8582234432232012, 0.8692307692296003, 0.8749999999988003,
+              0.8807692307680003, 0.8865384615372003, 0.8875, 0.875, 0.8624999999999999, 0.85,
+              0.8374999999999999, 0.825, 0.8074999999999999, 0.7899999999999999, 0.7725,
+              0.7549999999999999], name='renovation_and_small_measure',
         index=building_category_building_condition_year)
     pd.testing.assert_series_equal(result.renovation_and_small_measure, expected_renovation_and_small_measure)
 

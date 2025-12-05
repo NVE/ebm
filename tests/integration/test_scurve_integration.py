@@ -16,3 +16,4 @@ def test_scurves():
     actual = altcurve.scurve_rates_with_age(scurve_rates)[['rate', 'rate_acc']].query('age<=130')
 
     pd.testing.assert_series_equal(actual.rate, expected.share, check_names=False)
+

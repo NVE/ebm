@@ -20,7 +20,7 @@ def test_scurve_apartment_block_small_measure():
                      never_share=0.1,
                      building_category='apartment_block',
                      condition='small_measure')
-    result = a_curve.get_rates_per_year_over_building_lifetime().xs(key=('apartment_block', 'small_measure'), level=('building_category', 'condition'))
+    result = a_curve.get_rates_per_year_over_building_lifetime().xs(key=('apartment_block', 'small_measure'), level=('building_category', 'building_condition'))
     expected = [0.0] * 4 + [0.01] * 5 + [0.04] * 20 + [0.0025] * 20 + [0.0] * 81
     expected_curve = pd.Series(data=expected,
                                index=pd.Index([i for i in range(1, 131)], name='age'), name='rate')
@@ -36,7 +36,7 @@ def test_scurve_house_demolition():
     """
     a_curve=AltCurve(earliest_age=60, average_age=90, rush_years=40, rush_share=0.7, last_age=150, never_share=0.05, building_lifetime=150,
                     building_category='house', condition='demolition')
-    result = a_curve.get_rates_per_year_over_building_lifetime().xs(key=('house', 'demolition'), level=('building_category', 'condition'))
+    result = a_curve.get_rates_per_year_over_building_lifetime().xs(key=('house', 'demolition'), level=('building_category', 'building_condition'))
     expected = [0.0] * 59 + [0.0125] * 10 + [0.0175] * 40 + [0.003125] * 40 + [0.0] * 1
     expected_curve = pd.Series(data=expected,
                                index=pd.Index([i for i in range(1, len(expected)+1)], name='age'), name='rate')
@@ -61,7 +61,7 @@ def test_scurve_long_rush_period_does_not_cause_division_by_zero_error_in_pre_ru
     assert isinstance(result, pd.DataFrame)
 
     assert result.index.get_level_values(level='building_category').unique() == 'unknown'
-    assert result.index.get_level_values(level='condition').unique() == 'unknown'
+    assert result.index.get_level_values(level='building_condition').unique() == 'unknown'
 
 
 

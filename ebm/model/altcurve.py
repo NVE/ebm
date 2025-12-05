@@ -47,7 +47,7 @@ class AltCurve:
             logger.warning(msg)
 
         self.df = pd.DataFrame([{
-            'building_category': building_category, 'condition': condition,
+            'building_category': building_category, 'building_condition': condition,
             'earliest_age_for_measure': earliest_age, 'average_age_for_measure': average_age,
             'rush_period_years':rush_years, 'last_age_for_measure':last_age, 'rush_share':rush_share,
             'never_share':never_share}],
@@ -84,6 +84,7 @@ class AltCurve:
 
 def translate_scurve_parameter_to_shortform(df: pd.DataFrame) -> pd.DataFrame:
     df = df.rename(columns={
+        'condition': 'building_condition',
         'earliest_age_for_measure': 'earliest_age',
         'average_age_for_measure': 'average_age',
         'rush_period_years': 'rush_period',
@@ -132,10 +133,10 @@ def scurve_rates_with_age(df: pd.DataFrame) -> pd.DataFrame:
     df['rate'] = np.select(conditions, choices, default=0.0)
 
     # Compute cumulative sum of rates by category and condition
-    df['rate_acc'] = df.groupby(by=['building_category', 'condition'])[['rate']].cumsum()
+    df['rate_acc'] = df.groupby(by=['building_category', 'building_condition'])[['rate']].cumsum()
 
     # Reset index and set multi-index
-    df = df.reset_index().set_index(['building_category', 'condition', 'age'])
+    df = df.reset_index().set_index(['building_category', 'building_condition', 'age'])
 
     return df
 

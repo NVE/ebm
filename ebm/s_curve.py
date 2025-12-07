@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
+from loguru import logger
 from pandas import Series
 
-from ebm.model.area import building_condition_accumulated_scurves, building_condition_scurves
 from ebm.model.data_classes import YearRange
 
 
@@ -298,7 +298,7 @@ def transform_to_cumulative_demolition(cumulative_demolition: pd.DataFrame, year
     return s_curve_cumulative_demolition
 
 
-def scurve_parameters_to_never_share(s_curves: pd.DataFrame, scurve_parameters: pd.DataFrame) -> pd.DataFrame:
+def pad_s_curve_age(s_curves: pd.DataFrame, scurve_parameters: pd.DataFrame) -> pd.DataFrame:
     """
     Transform scurve_parameters with s_curve to never_share.
     Parameters
@@ -327,7 +327,7 @@ def scurve_parameters_to_never_share(s_curves: pd.DataFrame, scurve_parameters: 
     return df_never_share
 
 
-def scurve_parameters_to_scurve(scurve_parameters: pd.DataFrame) -> Series:
+def scurve_from_s_curve_parameters(scurve_parameters: pd.DataFrame) -> pd.DataFrame:
     """
     Create scurve new dataframe from scurve_parameters using ebm.model.area.building_condition_scurves and
         ebm.model.area.building_condition_accumulated_scurves
@@ -338,15 +338,19 @@ def scurve_parameters_to_scurve(scurve_parameters: pd.DataFrame) -> Series:
     ----------
     scurve_parameters : pandas.DataFrame
 
+    Notes
+    -----
+    Filters out age greater than 130 when last_age is not 150 for backwards compatability. Subject to change.
+
     Returns
     -------
-    pandas.Series
+    pandas.DataFrame
     """
-    scurve_by_year = building_condition_scurves(scurve_parameters)
-    scurve_accumulated = building_condition_accumulated_scurves(scurve_parameters)
-    s_curves = pd.concat([scurve_by_year, scurve_accumulated])
+    df = scurve_rates(translate_scurve_parameter_to_shortform(scurve_parameters))
+    df_age = scurve_rates_with_age(df)
 
-    return s_curves
+    df = scurve_rates_to_long(df_age.query('age<=130 or last_age==150'))
+    return df
 
 
 def accumulate_demolition(s_curves_long: pd.DataFrame, years: YearRange) -> pd.DataFrame:
@@ -388,7 +392,7 @@ def merge_s_curves_and_building_code(s_curves: pd.DataFrame, df_never_share: pd.
 
     s_curves_by_building_code = s_curves.reset_index().join(building_code_parameters, how='cross')
     s_curves_by_building_code['year'] = s_curves_by_building_code['building_year'] + s_curves_by_building_code['age']
-    s_curves_long = s_curves_by_building_code.pivot(index=['building_category', 'building_code', 'year'],
+    s_curves_long = s_curves_by_building_code.pivot(index=['building_category', 'building_code', 'year', 'age'],
                                           columns=['building_condition'],
                                           values='scurve').reset_index()
     s_curves_long = (s_curves_long
@@ -464,10 +468,11 @@ def transform_to_long(s_curves_by_condition: pd.DataFrame) -> pd.DataFrame:
     return df_long
 
 
-def calculate_s_curves(scurve_parameters, building_code_parameters, years, **kwargs):
+def calculate_s_curves(scurve_parameters: pd.DataFrame, building_code_parameters: pd.DataFrame, years: YearRange,
+                       **kwargs: pd.DataFrame|pd.Series) -> pd.DataFrame:
     # Transform s_curve_parameters into long form with each row representing a building_condition at a certain age
-    s_curves = scurve_parameters_to_scurve(scurve_parameters)
-    df_never_share = scurve_parameters_to_never_share(s_curves, scurve_parameters)
+    s_curves = scurve_from_s_curve_parameters(scurve_parameters)
+    df_never_share = pad_s_curve_age(s_curves, scurve_parameters)
 
     s_curves_with_building_code = merge_s_curves_and_building_code(s_curves, df_never_share, building_code_parameters)
     s_curves_with_building_code = s_curves_with_building_code.loc[(slice(None), slice(None), [y for y in years])]
@@ -529,6 +534,174 @@ def calculate_s_curves(scurve_parameters, building_code_parameters, years, **kwa
     s_curves_by_condition['s_curve_cumulative_renovation'] = s_curve_cumulative_renovation
     s_curves_by_condition['s_curve_renovation_total'] =  s_curve_renovation_total
     s_curves_by_condition['renovation_never_share'] = s_curve_renovation_never_share
+    s_curves_by_condition['age'] = s_curves_with_building_code['age']
 
-
+    # s_curves_by_condition.to_excel('output\s_curves_by_condition.xlsx', merge_cells=False)
     return s_curves_by_condition
+
+
+def make_s_curve_parameters(earliest_age: int|None=None, average_age: int|None=None, last_age: int|None=None, rush_years: int|None=None, rush_share: float|None=None, never_share: float|None=None, building_lifetime: int=130,  building_category: str | None = 'unknown', condition: str | None = 'unknown') -> pd.DataFrame:
+    errors = []
+    if earliest_age < 0:
+        logger.warning(f'Expected value above zero for {earliest_age=}')
+        errors.append('earliest_age')
+    if average_age < 0:
+        logger.warning(f'Expected value above zero for {average_age=}')
+        errors.append('average_age')
+    if last_age < 0:
+        logger.warning(f'Expected value above zero for {last_age=}')
+        errors.append('last_age')
+    if rush_share < 0:
+        logger.warning(f'Expected value above zero for {rush_share=}')
+        errors.append('rush_share')
+    if never_share < 0:
+        logger.warning(f'Expected value above zero for {never_share=}')
+        errors.append('never_share')
+    if errors:
+        msg = f'Illegal value for {" ".join(errors)}'
+        raise ValueError(msg)
+
+    pre_rush_years = (average_age - earliest_age - (rush_years / 2))
+    if pre_rush_years == 0:
+        msg = f'average_age={average_age}, leaves no room for a pre rush period'
+        logger.warning(msg)
+    post_rush_years = (last_age - average_age - (rush_years / 2))
+    if post_rush_years == 0:
+        msg = f'last_age={last_age}, leaves no room for a post rush period'
+        logger.warning(msg)
+
+    df = pd.DataFrame([{
+        'building_category': building_category, 'building_condition': condition,
+        'earliest_age_for_measure': earliest_age, 'average_age_for_measure': average_age,
+        'rush_period_years': rush_years, 'last_age_for_measure': last_age, 'rush_share': rush_share,
+        'never_share': never_share}],
+    )
+    return df
+
+
+def translate_scurve_parameter_to_shortform(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.rename(columns={
+        'condition': 'building_condition',
+        'earliest_age_for_measure': 'earliest_age',
+        'average_age_for_measure': 'average_age',
+        'rush_period_years': 'rush_period',
+        'last_age_for_measure': 'last_age',
+        'rush_share': 'rush_share',
+        'never_share': 'never_share',
+    })
+    return df
+
+
+def scurve_rates_to_long(scurve_rates: pd.DataFrame) -> pd.DataFrame:
+    share = scurve_rates.rate.to_frame().reset_index()
+    share = share.rename(columns={'rate': 'scurve'})
+
+    share_acc = scurve_rates.rate_acc.to_frame().reset_index()
+    share_acc.building_condition = share_acc.building_condition + '_acc'
+    share_acc = share_acc.rename(columns={'rate_acc': 'scurve'})
+
+    df = pd.concat([share, share_acc]).set_index(['building_category', 'age', 'building_condition'])
+    return df
+
+
+def scurve_rates_with_age(df: pd.DataFrame) -> pd.DataFrame:
+    # Define age range
+    max_age = max(int(df.total_span.max()), 130)+1
+    ages = np.arange(1, max_age)  # 1 to 129
+
+    # Expand DataFrame for each age
+    df_expanded = df.loc[df.index.repeat(len(ages))].copy()
+    df_expanded['age'] = np.tile(ages, len(df))
+
+    df = df_expanded
+
+    # Compute rates using new column names
+    df['pre_rush_rate'] = (1 - df['rush_share'] - df['never_share']) * (
+            0.5 / (df['average_age'] - df['earliest_age'] - (df['rush_period'] / 2))
+    )
+    df['rush_rate'] = df['rush_share'] / df['rush_period']
+    df['post_rush_rate'] = (1 - df['rush_share'] - df['never_share']) * (
+            0.5 / (df['last_age'] - df['average_age'] - (df['rush_period'] / 2))
+    )
+
+    # Determine rate for each age
+    conditions = [
+        df['age'] < df['earliest_age'],
+        df['age'] < (df['average_age'] - df['rush_period'] / 2),
+        df['age'] < (df['average_age'] + df['rush_period'] / 2),
+        df['age'] < df['last_age'],
+    ]
+
+    choices = [
+        0.0,
+        df['pre_rush_rate'],
+        df['rush_rate'],
+        df['post_rush_rate'],
+    ]
+
+    df['rate'] = np.select(conditions, choices, default=0.0)
+
+    # Compute cumulative sum of rates by category and condition
+    df['rate_acc'] = df.groupby(by=['building_category', 'building_condition'])[['rate']].cumsum()
+
+    # Reset index and set multi-index
+    df = df.reset_index().set_index(['building_category', 'building_condition', 'age'])
+
+    return df
+
+
+def scurve_rates(s_curve_parameters: pd.DataFrame) -> pd.DataFrame:
+    """
+    Calculate s-curve rate from dataframe.
+
+    Parameters
+    ----------
+    s_curve_parameters : pd.DataFrame
+        A pandas dataframe with average_age, earliest_age, rush_period, last_age, rush_share and never_share
+
+    Returns
+    -------
+    pd.DataFrame
+        With columns rate, total_share indexed by building_category, building_condition and age
+
+    """
+    df = s_curve_parameters.assign(
+        post_start_age=s_curve_parameters.average_age + (s_curve_parameters.rush_period / 2),
+        pre_end_age=s_curve_parameters.average_age - (s_curve_parameters.rush_period / 2),
+        pre_start_age=s_curve_parameters.earliest_age,
+        pre_period=lambda x: x.pre_end_age - x.pre_start_age,
+        post_end_age=s_curve_parameters.last_age,
+        post_period=lambda x: x.post_end_age - x.post_start_age,
+        total_span=lambda x: x.earliest_age + x.pre_period + x.rush_period + x.post_period,
+        rush_rate=lambda x: x.rush_share / x.rush_period,
+        measure_share=lambda x: 1.0 - x.never_share,
+        remaining_share=lambda x: 1.0 - (x.never_share + x.rush_share),
+        pre_share=lambda x: x.remaining_share / 2,
+        pre_rate=lambda x: x.pre_share / x.pre_period,
+        post_share=lambda x: x.remaining_share / 2,
+        post_rate=lambda x: x.post_share / x.post_period,
+        total_share=lambda x: x.pre_share + x.rush_share + x.post_share + x.never_share,
+    )
+
+    return df
+
+
+def main() -> None:
+    import pathlib  # noqa: PLC0415
+    logger.info('Calculate all scurves from data/s_curve.csv')
+    scurve_parameters_csv_path = pathlib.Path(__file__).parent.parent / 'data/original/s_curve.csv'
+    scurve_parameters_csv = pd.read_csv(scurve_parameters_csv_path)
+
+    df_scurve_rates = scurve_rates(translate_scurve_parameter_to_shortform(scurve_parameters_csv))
+    print(df_scurve_rates)
+
+    rates_with_age = scurve_rates_with_age(df_scurve_rates)
+    print(rates_with_age)
+
+    df = scurve_rates_to_long(rates_with_age)
+    print(df)
+
+    logger.info('done')
+
+if __name__ == '__main__':
+    main()

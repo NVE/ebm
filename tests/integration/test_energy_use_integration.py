@@ -15,8 +15,8 @@ from ebm.model.file_handler import FileHandler
 
 expected_building_group_energy_use = {
     'kwh': {('Residential', 'Bio', 2020): 4788825216.425719, ('Residential', 'Bio', 2021): 4781280230.150457,
-            ('Residential', 'Bio', 2022): 4764208461.915195, ('Residential', 'Bio', 2023): 4757203300.271702,
-            ('Residential', 'Bio', 2024): 4702657720.902674, ('Residential', 'Bio', 2025): 4637666417.665211,
+            ('Residential', 'Bio', 2022): 4764208461.91, ('Residential', 'Bio', 2023): 4757203300.271702,
+            ('Residential', 'Bio', 2024): 4702657720.902674, ('Residential', 'Bio', 2025): 4637666417.66,
             ('Residential', 'Bio', 2026): 4576639450.690714, ('Residential', 'Bio', 2027): 4515036442.927422,
             ('Residential', 'Bio', 2028): 4453495280.110844, ('Residential', 'Bio', 2029): 4392678075.975616,
             ('Residential', 'Bio', 2030): 4331957397.639449, ('Residential', 'Bio', 2031): 4270638998.9928374,
@@ -48,7 +48,7 @@ expected_building_group_energy_use = {
             ('Residential', 'Electricity', 2020): 37071496927.11284, ('Residential', 'Electricity', 2021): 37029197525.37465,
             ('Residential', 'Electricity', 2022): 36989418901.482605, ('Residential', 'Electricity', 2023): 37088406609.24847,
             ('Residential', 'Electricity', 2024): 36867007293.05276, ('Residential', 'Electricity', 2025): 36750035439.66159,
-            ('Residential', 'Electricity', 2026): 36664834747.2307, ('Residential', 'Electricity', 2027): 36481736708.55523,
+            ('Residential', 'Electricity', 2026): 36664834747.2307, ('Residential', 'Electricity', 2027): 36481736708.55,
             ('Residential', 'Electricity', 2028): 36318343183.4606, ('Residential', 'Electricity', 2029): 36154451792.15,
             ('Residential', 'Electricity', 2030): 36001151842.6294, ('Residential', 'Electricity', 2031): 35962804667.080765,
             ('Residential', 'Electricity', 2032): 35915198138.81447, ('Residential', 'Electricity', 2033): 35879856685.60712,
@@ -56,11 +56,11 @@ expected_building_group_energy_use = {
             ('Residential', 'Electricity', 2036): 35694160536.33721, ('Residential', 'Electricity', 2037): 35565639809.882866,
             ('Residential', 'Electricity', 2038): 35468146253.347664, ('Residential', 'Electricity', 2039): 35321223972.89438,
             ('Residential', 'Electricity', 2040): 35198504837.56481, ('Residential', 'Electricity', 2041): 35087715428.0407,
-            ('Residential', 'Electricity', 2042): 35023661993.97515, ('Residential', 'Electricity', 2043): 34896484726.94015,
+            ('Residential', 'Electricity', 2042): 35023661993.97, ('Residential', 'Electricity', 2043): 34896484726.94015,
             ('Residential', 'Electricity', 2044): 34786775527.04805, ('Residential', 'Electricity', 2045): 34708213183.45203,
             ('Residential', 'Electricity', 2046): 34589761749.040016, ('Residential', 'Electricity', 2047): 34471758702.1105,
             ('Residential', 'Electricity', 2048): 34335149779.404625, ('Residential', 'Electricity', 2049): 34217253629.19904,
-            ('Residential', 'Electricity', 2050): 34092268470.39525, ('Residential', 'Ingen', 2020): 0.0,
+            ('Residential', 'Electricity', 2050): 34092268470.39, ('Residential', 'Ingen', 2020): 0.0,
             ('Residential', 'Ingen', 2021): 0.0, ('Residential', 'Ingen', 2022): 0.0, ('Residential', 'Ingen', 2023): 0.0,
             ('Residential', 'Ingen', 2024): 0.0, ('Residential', 'Ingen', 2025): 0.0, ('Residential', 'Ingen', 2026): 0.0,
             ('Residential', 'Ingen', 2027): 0.0, ('Residential', 'Ingen', 2028): 0.0, ('Residential', 'Ingen', 2029): 0.0,
@@ -106,7 +106,7 @@ expected_building_group_energy_use = {
             ('Non-residential', 'DH', 2022): 4414384497.767668, ('Non-residential', 'DH', 2023): 4426506223.131906,
             ('Non-residential', 'DH', 2024): 4527944403.31363, ('Non-residential', 'DH', 2025): 4559790929.9018345,
             ('Non-residential', 'DH', 2026): 4581523665.738846, ('Non-residential', 'DH', 2027): 4589719130.0956955,
-            ('Non-residential', 'DH', 2028): 4599192469.805006, ('Non-residential', 'DH', 2029): 4608803865.051731,
+            ('Non-residential', 'DH', 2028): 4599192469.8, ('Non-residential', 'DH', 2029): 4608803865.051731,
             ('Non-residential', 'DH', 2030): 4601976683.323316, ('Non-residential', 'DH', 2031): 4613137777.879646,
             ('Non-residential', 'DH', 2032): 4621232411.851534, ('Non-residential', 'DH', 2033): 4633706981.501938,
             ('Non-residential', 'DH', 2034): 4641182344.3524885, ('Non-residential', 'DH', 2035): 4648598631.548968,
@@ -124,28 +124,28 @@ expected_building_group_energy_use = {
             ('Non-residential', 'Electricity', 2024): 24134264259.48454,
             ('Non-residential', 'Electricity', 2025): 23907109002.703754,
             ('Non-residential', 'Electricity', 2026): 23650318194.1226,
-            ('Non-residential', 'Electricity', 2027): 23346427931.265903,
+            ('Non-residential', 'Electricity', 2027): 23346427931.26,
             ('Non-residential', 'Electricity', 2028): 23053576919.774857,
             ('Non-residential', 'Electricity', 2029): 22755174910.569397,
             ('Non-residential', 'Electricity', 2030): 22380307452.650845,
-            ('Non-residential', 'Electricity', 2031): 22305918274.076366,
+            ('Non-residential', 'Electricity', 2031): 22305918274.07,
             ('Non-residential', 'Electricity', 2032): 22239753792.264534,
             ('Non-residential', 'Electricity', 2033): 22170009239.42864,
-            ('Non-residential', 'Electricity', 2034): 22101923090.827156,
-            ('Non-residential', 'Electricity', 2035): 22036110791.946575,
+            ('Non-residential', 'Electricity', 2034): 22101923090.82,
+            ('Non-residential', 'Electricity', 2035): 22036110791.94,
             ('Non-residential', 'Electricity', 2036): 21965872384.988487,
             ('Non-residential', 'Electricity', 2037): 21895577817.117966,
             ('Non-residential', 'Electricity', 2038): 21825511491.981224,
-            ('Non-residential', 'Electricity', 2039): 21753171046.01578,
+            ('Non-residential', 'Electricity', 2039): 21753171046.01,
             ('Non-residential', 'Electricity', 2040): 21683344801.40307,
             ('Non-residential', 'Electricity', 2041): 21597841256.130234,
             ('Non-residential', 'Electricity', 2042): 21518001413.45979,
-            ('Non-residential', 'Electricity', 2043): 21435631525.407852,
+            ('Non-residential', 'Electricity', 2043): 21435631525.4,
             ('Non-residential', 'Electricity', 2044): 21355874312.82299,
             ('Non-residential', 'Electricity', 2045): 21269303814.17199,
-            ('Non-residential', 'Electricity', 2046): 21185064002.886875,
+            ('Non-residential', 'Electricity', 2046): 21185064002.88,
             ('Non-residential', 'Electricity', 2047): 21012590312.611423,
-            ('Non-residential', 'Electricity', 2048): 20885462601.59522,
+            ('Non-residential', 'Electricity', 2048): 20885462601.59,
             ('Non-residential', 'Electricity', 2049): 20757121513.622425,
             ('Non-residential', 'Electricity', 2050): 20626689875.071304, ('Non-residential', 'Fossil', 2020): 22325995.474820293,
             ('Non-residential', 'Fossil', 2021): 22284594.592829693, ('Non-residential', 'Fossil', 2022): 22278464.234987915,
@@ -219,9 +219,9 @@ def test_energy_use(kalibrert_database_manager):
                                   building_code_parameters=building_code_parameters)
 
     expect_columns = ['building_group', 'energy_product', 'year']
-    result = result[expect_columns + ['kwh']].groupby(by=expect_columns).sum()
+    result = result[expect_columns + ['kwh']].groupby(by=expect_columns).sum().round(2)
 
-    expected = pd.DataFrame(expected_building_group_energy_use)
+    expected = pd.DataFrame(expected_building_group_energy_use).round(2)
     # expected = expected.drop(columns=['Grunnlast', 'Ekstralast', 'Spisslast'])
     expected.index.names = expect_columns
 

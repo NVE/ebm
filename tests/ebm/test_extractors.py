@@ -37,7 +37,7 @@ def test_extract_area_forecast(extract_area_forecast_csv: pd.DataFrame):
     index_columns = ['year', 'building_category', 'building_condition', 'building_code']
     result = extract_area_forecast(years, s_curves_by_condition, building_code_parameters, area_parameters, dm)
     # noinspection PyTypeChecker
-    result = result.set_index(index_columns, drop=True).sort_index(key=map_sort_order)
+    result = result.set_index(index_columns, drop=True).sort_index(key=map_sort_order)[['m2']]
     result = result.fillna(0.0)
 
     expected = extract_area_forecast_csv.set_index(index_columns, drop=True).sort_index(key=map_sort_order) # type: ignore

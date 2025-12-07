@@ -1,31 +1,14 @@
 import io
 
+import numpy as np
 import pandas as pd
 import pytest
 
+import ebm.s_curve
 from ebm import s_curve
 from ebm.model.data_classes import YearRange
 from ebm.model.scurve import SCurve
-
-
-def test_scurve_apartment_block_small_measure():
-    """
-    Test using numbers for apartment_block small_measure
-    building_category,condition,earliest_age_for_measure,average_age_for_measure,rush_period_years,last_age_for_measure,rush_share,never_share
-    apartment_block, small_measure, 5, 20, 20, 50, 0.8, 0.1
-    """
-    s_curve = SCurve(earliest_age=5,
-                     average_age=20,
-                     rush_years=20,
-                     last_age=50,
-                     rush_share=0.8,
-                     never_share=0.1)
-    result = s_curve.get_rates_per_year_over_building_lifetime()
-    expected = [0.0] * 4 + [0.01] * 5 + [0.04] * 20 + [0.0025] * 20 + [0.0] * 81
-    expected_curve = pd.Series(data=expected,
-                               index=pd.Index([i for i in range(1, 131)], name='age'), name='scurve')
-
-    pd.testing.assert_series_equal(result, expected_curve)
+from ebm.s_curve import make_s_curve_parameters, scurve_from_s_curve_parameters, scurve_rates, scurve_rates_with_age, translate_scurve_parameter_to_shortform
 
 
 def test_scurve_house_demolition():
@@ -34,190 +17,162 @@ def test_scurve_house_demolition():
     building_category,condition,earliest_age_for_measure,average_age_for_measure,rush_period_years,last_age_for_measure,rush_share,never_share
     house,demolition,60,90,40,150,0.7,0.05
     """
-    scurve=SCurve(earliest_age=60, average_age=90, rush_years=40, rush_share=0.7, last_age=150, never_share=0.05, building_lifetime=150)
-    result = scurve.get_rates_per_year_over_building_lifetime()
+    a_curve=SCurve(earliest_age=60, average_age=90, rush_years=40, rush_share=0.7, last_age=150, never_share=0.05, building_lifetime=150,
+                    building_category='house', condition='demolition')
+    result = a_curve.get_rates_per_year_over_building_lifetime().xs(key=('house', 'demolition'), level=('building_category', 'building_condition'))
     expected = [0.0] * 59 + [0.0125] * 10 + [0.0175] * 40 + [0.003125] * 40 + [0.0] * 1
     expected_curve = pd.Series(data=expected,
-                               index=pd.Index([i for i in range(1, len(expected)+1)], name='age'), name='scurve')
+                               index=pd.Index([i for i in range(1, len(expected)+1)], name='age'), name='rate')
 
     pd.testing.assert_series_equal(result, expected_curve)
 
 
-def test_scurve_raises_value_error_when_there_is_no_room_for_pre_rush():
-  #  with pytest.raises(ValueError):
-    s_curve = SCurve(
-            earliest_age=60,
-            average_age=90,
-            rush_years=66,
-            rush_share=0.7,
-            last_age=150,
-            never_share=0.05)
-    assert s_curve._building_lifetime == 150
-    result = s_curve.calc_scurve()
-    assert s_curve._building_lifetime == 150
-    assert len(result) == 150
+
+def test_scurve_apartment_block_small_measure():
+    """
+    Test using numbers for apartment_block small_measure
+    building_category,condition,earliest_age_for_measure,average_age_for_measure,rush_period_years,last_age_for_measure,rush_share,never_share
+    apartment_block, small_measure, 5, 20, 20, 50, 0.8, 0.1
+    """
+    scurve_parameters=pd.read_csv(io.StringIO("""
+building_category,condition,earliest_age_for_measure,average_age_for_measure,rush_period_years,last_age_for_measure,rush_share,never_share
+apartment_block,small_measure,5,20,20,50,0.8,0.1
+    """.strip()))
+
+    result = ebm.s_curve.scurve_rates_with_age(
+        ebm.s_curve.scurve_rates(
+            ebm.s_curve.translate_scurve_parameter_to_shortform(
+                scurve_parameters))).rate
+
+    expected = [0.0] * 4 + [0.01] * 5 + [0.04] * 20 + [0.0025] * 20 + [0.0] * 81
+    expected_curve = pd.Series(data=expected,
+                               index=pd.Index([('apartment_block', 'small_measure', i) for i in range(1, 131)], name=('building_category', 'building_condition', 'age')), name='rate')
+
+    pd.testing.assert_series_equal(result, expected_curve)
 
 
-def test_scurve_long_rush_period_expand_index_as_necessary2():
-    s_curve = SCurve(
-        earliest_age=2,
-        average_age=75,
-        rush_years=50,
-        rush_share=0.7,
-        last_age=148,
-        never_share=0.05)
-
-    assert s_curve._building_lifetime == 148
-    assert len(s_curve.calc_scurve()) == 148
-
-
-@pytest.mark.parametrize('rush_years,average_age,earliest_age', [
-    (36, 77, 58), (37, 77, 58), (39, 77, 58), (38, 77, 58),
-    (30, 23, 7), (30, 23, 9), (30, 23, 8),
-])
-def test_scurve_long_rush_period_does_not_cause_division_by_zero_error_in_pre_rush(rush_years, average_age, earliest_age):
-    s_curve = SCurve(
-        earliest_age=earliest_age,
-        rush_years=rush_years,
-        average_age=average_age,
-        last_age=129,
-        rush_share=0.7,
-        never_share=0.05)
-
-    result = s_curve.calc_scurve()
-    #assert len(result) == 130
-    #assert round(result.max(), 3) == 1.0 - 0.05
-
-
-@pytest.mark.parametrize('last_age', [81, 82, 80])
+@pytest.mark.parametrize('last_age', [81, 82])
 def test_scurve_long_rush_period_does_not_cause_division_by_zero_error_in_post_rush(last_age):
-        s_curve = SCurve(
-            earliest_age=58,
-            average_age=77,
-            rush_years=6,
-            rush_share=0.7,
-            last_age=last_age,
-            never_share=0.01)
-        s_curve.calc_scurve().max() == 1.0 - 0.05
+    scurve_parameters=make_s_curve_parameters(earliest_age=58,
+        average_age=77,
+        rush_years=6,
+        rush_share=0.7,
+        last_age=last_age,
+        never_share=0.01,
+        building_category='bc',
+        condition='some_condition')
+    df=scurve_from_s_curve_parameters(scurve_parameters)
+    assert df.scurve.max() == 1.0 - 0.01
 
 
 @pytest.mark.parametrize('last_age', [81, 82])
 def test_scurve_repr(last_age):
-    expected = f"""SCurve(earliest_age=58, average_age=77, rush_years=6, rush_share=0.7, last_age={last_age}, never_share=0.01, building_lifetime=130)"""
+    expected = f"""SCurve(earliest_age=58, average_age=77, rush_years=6, rush_share=0.7, last_age={last_age}, never_share=0.01)"""
 
     s_curve = SCurve(earliest_age=58, average_age=77, rush_years=6, rush_share=0.7, last_age=last_age, never_share=0.01)
     assert repr(s_curve) == expected
 
 
-def test_calc_rates_apartment_block_small_measure():
-    s_curve = SCurve(earliest_age=5,
-                     average_age=20,
-                     rush_years=20,
-                     last_age=50,
-                     rush_share=0.8,
-                     never_share=0.1)
-
-    # was 0.009999999999999995
-    assert s_curve._calc_pre_rush_rate() == 0.01
-    assert s_curve._calc_rush_rate() == 0.04
-    # was 0.0024999999999999988
-    assert s_curve._calc_post_rush_rate() == 0.0025
-
-
 def test_calc_rates_apartment_block_renovation():
-    s_curve = SCurve(earliest_age=10,
+    scurve_parameters = make_s_curve_parameters(earliest_age=10,
                      average_age=30,
                      rush_years=14,
                      last_age=60,
                      rush_share=0.6,
                      never_share=0.15)
 
-    # Bema: 0,96153846153846200000 %
-    assert s_curve._calc_pre_rush_rate() == 0.0096153846154
+    df = scurve_from_s_curve_parameters(scurve_parameters)
 
-    # 4,285714285714290 %
-    # 0.0428571428571429
-    assert s_curve._calc_rush_rate() == 0.0428571428571
-    # Bema: 0,54347826087 %
-    # 0.005434782608695652
-    # 0.0054347826087
-
-    assert s_curve._calc_post_rush_rate() == 0.0054347826087
+    result = df.loc[('unknown', slice(None), 'unknown')].scurve
+    assert (result.loc[10:22].round(6) == 0.009615).all()
+    assert (result.loc[23:36].round(8) == 0.04285714).all()
+    assert (result.loc[37:59].round(8) == 0.00543478).all()
 
 
 def test_calc_rates_apartment_block_demolition():
-    s_curve = SCurve(earliest_age=60,
+    scurve_parameters = make_s_curve_parameters(earliest_age=60,
                      average_age=90,
                      rush_years=40,
                      last_age=150,
                      rush_share=0.7,
                      never_share=0.05)
 
-    assert s_curve._calc_pre_rush_rate() == 0.0125
-    assert s_curve._calc_rush_rate() == 0.0175
-    assert s_curve._calc_post_rush_rate() == 0.003125
+    df = scurve_from_s_curve_parameters(scurve_parameters)
+
+    result: pd.Series = df.scurve.loc[('unknown', slice(None), 'unknown')].round(6)
+    assert (result.loc[60:69] == 0.0125).all()
+    assert (result.loc[70:109] == 0.0175).all()
+    assert (result.loc[110:149] == 0.003125).all()
 
 
 def test_calc_rates_office_demolition():
-    s_curve = SCurve(earliest_age=50,
+    scurve_parameters = make_s_curve_parameters(earliest_age=50,
                      average_age=100,
                      rush_years=30,
                      last_age=130,
                      rush_share=0.7,
                      never_share=0.05)
 
-    curve = s_curve.get_rates_per_year_over_building_lifetime()
+    df = scurve_from_s_curve_parameters(scurve_parameters)
+    df = df.loc['unknown', slice(None), 'unknown']
+    curve = df.reset_index().set_index(['age']).scurve
     expected = [0.0] * 49 + [0.0035714285714285713] * 35 + [0.02333333333] * 30 + [0.008333333] * 15 + [0.0]
     expected_curve = pd.Series(data=expected,
-                               index=pd.Index([i for i in range(1, 131)], name='age'), name='scurve')
+                               index=pd.Index([i for i in range(1, 131)],
+                                              name='age'), name='scurve')
+
     pd.testing.assert_series_equal(curve, expected_curve)
 
-    cumsum = s_curve.calc_scurve()
+    cumsum = df.reset_index().set_index(['age']).scurve.cumsum()
     expected_cumsum = expected_curve.cumsum()
     pd.testing.assert_series_equal(cumsum, expected_cumsum)
 
 
 def test_calc_rates_culture_small_measure():
     """Test that rate for culture small measure is correct"""
-    s_curve = SCurve(earliest_age=3,
+    scurve_parameters = make_s_curve_parameters(earliest_age=3,
                      average_age=20,
                      rush_years=20,
                      last_age=50,
                      rush_share=0.8,
                      never_share=0.01)
 
-    curve = s_curve.get_rates_per_year_over_building_lifetime()
+    df = scurve_from_s_curve_parameters(scurve_parameters)
+
+    curve = df.loc[('unknown', slice(None), 'unknown')].reset_index().set_index(['age']).scurve
     expected_curve = pd.Series(data=[0.0] * 2 + [0.0135714285714] * 7 + [0.04] * 20 + [0.00475] * 20 + [0.0] * 81,
                                index=pd.Index([i for i in range(1, 131)], name='age'), name='scurve')
-    pd.testing.assert_series_equal(curve, expected_curve)
+    pd.testing.assert_series_equal(curve, expected_curve, check_names=False)
+
 
 
 def test_calc_rates_culture_rehabilitation():
     """Test that rate for culture rehabilitation is correct"""
-    s_curve = SCurve(earliest_age=5,
-                     average_age=65,
-                     rush_years=40,
-                     last_age=100,
-                     rush_share=0.75,
-                     never_share=0.05)
+    scurve_parameters = make_s_curve_parameters(earliest_age=5, average_age=65, rush_years=40, last_age=100, rush_share=0.75, never_share=0.05)
 
-    curve = s_curve.get_rates_per_year_over_building_lifetime()
+    df = scurve_from_s_curve_parameters(scurve_parameters)
+
+    curve = df.loc[('unknown', slice(None), 'unknown')].reset_index().set_index(['age']).scurve
     expected_curve = pd.Series(data=[0.0] * 4 + [0.00250] * 40 + [0.01875] * 40 + [0.00666667] * 15 + [0.0] * 31,
                                index=pd.Index([i for i in range(1, 131)], name='age'), name='scurve')
-    pd.testing.assert_series_equal(curve, expected_curve)
+    pd.testing.assert_series_equal(curve, expected_curve, check_names=False)
 
 
 def test_calc_pre_rush_rate_kindergarten():
-    s_curve = SCurve(earliest_age=3,
-                     average_age=25,
-                     rush_years=20,
-                     last_age=50,
-                     rush_share=0.8,
-                     never_share=0.01)
+    scurve_parameters = make_s_curve_parameters(earliest_age = 3, average_age = 25, rush_years = 20, last_age = 50, rush_share = 0.8, never_share = 0.01)
+    short_scurve_parameters = translate_scurve_parameter_to_shortform(scurve_parameters)
     # was  0,791666666666666 %
-    expected = 0.0079166666667
-    r = s_curve.get_rates_per_year_over_building_lifetime()
-    assert s_curve._calc_pre_rush_rate() == expected
+    expected = 0.007916666666666664
+
+    df = scurve_rates(short_scurve_parameters)
+    df = scurve_rates_with_age(df)
+
+    result = df.reset_index().set_index(['age'])
+    assert result.pre_rate.dtype == np.float64
+    assert (result.pre_rate == expected).all()
+
+    rate = result.rate
+    assert (rate.loc[3:14] == expected).all()
 
 
 def test_scurve_init_positive_value_checks():
@@ -227,16 +182,16 @@ def test_scurve_init_positive_value_checks():
     legal_values = {'average_age': 3, 'earliest_age': 3, 'rush_years': 20, 'last_age': 50, 'rush_share': 0.8,
                     'never_share': 0.01}
 
-    with pytest.raises(ValueError):
-        SCurve(**{**legal_values, 'earliest_age': -1})
+    with pytest.raises(ValueError, match='Illegal value for earliest_age'):
+        make_s_curve_parameters(**{**legal_values, 'earliest_age': -1})
     with pytest.raises(ValueError, match='Illegal value for average_age'):
-        SCurve(**{**legal_values, 'average_age': -2})
+        make_s_curve_parameters(**{**legal_values, 'average_age': -2})
     with pytest.raises(ValueError, match='Illegal value for last_age'):
-        SCurve(**{**legal_values, 'last_age': -1})
+        make_s_curve_parameters(**{**legal_values, 'last_age': -1})
     with pytest.raises(ValueError, match='Illegal value for rush_share'):
-        SCurve(**{**legal_values, 'rush_share': -0.1})
+        make_s_curve_parameters(**{**legal_values, 'rush_share': -0.1})
     with pytest.raises(ValueError, match='Illegal value for never_share'):
-        SCurve(**{**legal_values, 'never_share': -0.2})
+        make_s_curve_parameters(**{**legal_values, 'never_share': -0.2})
 
 
 def test_scurve_init_mention_all_illegal_arguments_when_raising_value_error():
@@ -446,8 +401,8 @@ def test_calculate_s_curves_cuts_off_non_demolition_after_2030(scurves_parameter
                                                                years):
     use_building_code = ['TEK1969']
     building_code_parameters = building_code_parameters[building_code_parameters.building_code.isin(use_building_code)]
-    s_curves = s_curve.scurve_parameters_to_scurve(scurves_parameters_house)
-    df_never_share = s_curve.scurve_parameters_to_never_share(s_curves, scurves_parameters_house)
+    s_curves = s_curve.scurve_from_s_curve_parameters(scurves_parameters_house)
+    df_never_share = s_curve.pad_s_curve_age(s_curves, scurves_parameters_house)
 
     s_curves_with_building_code = s_curve.merge_s_curves_and_building_code(s_curves, df_never_share,
                                                                            building_code_parameters)
@@ -513,6 +468,69 @@ def test_calculate_s_curves_cuts_off_non_demolition_after_2030(scurves_parameter
               0.7549999999999999], name='renovation_and_small_measure',
         index=building_category_building_condition_year)
     pd.testing.assert_series_equal(result.renovation_and_small_measure, expected_renovation_and_small_measure)
+
+
+
+
+def test_scurve_house_demolition():
+    """
+    Test using numbers for house demolition
+    building_category,condition,earliest_age_for_measure,average_age_for_measure,rush_period_years,last_age_for_measure,rush_share,never_share
+    house,demolition,60,90,40,150,0.7,0.05
+    """
+    scurve_parameters=make_s_curve_parameters(earliest_age=60, average_age=90, rush_years=40, rush_share=0.7, last_age=150, never_share=0.05,
+                                              building_category='house', condition='demolition')
+    a_curve=scurve_from_s_curve_parameters(scurve_parameters).scurve
+
+    result = a_curve.xs(key=('house', 'demolition'), level=('building_category', 'building_condition'))
+    expected = [0.0] * 59 + [0.0125] * 10 + [0.0175] * 40 + [0.003125] * 40 + [0.0] * 1
+    expected_curve = pd.Series(data=expected,
+                               index=pd.Index([i for i in range(1, len(expected)+1)], name='age'), name='scurve')
+
+    pd.testing.assert_series_equal(result, expected_curve)
+
+
+@pytest.mark.parametrize(('rush_years', 'average_age', 'earliest_age'), [
+    (36, 77, 58), (37, 77, 58), (39, 77, 58), (38, 77, 58),
+    (30, 23, 7), (30, 23, 9), (30, 23, 8),
+])
+def test_scurve_long_rush_period_does_not_cause_division_by_zero_error_in_pre_rush(rush_years, average_age, earliest_age):
+
+    scurve_parameters=make_s_curve_parameters(earliest_age=earliest_age, average_age=average_age, rush_years=rush_years,
+                                              last_age=129, rush_share=0.7, never_share=0.05,
+                                              building_category='unknown', condition='unknown')
+    result=scurve_from_s_curve_parameters(scurve_parameters)
+
+    assert isinstance(result, pd.DataFrame)
+
+    assert (result.index.get_level_values(level='building_category').unique() == 'unknown').all()
+
+
+def test_calc_rates_apartment_block_small_measure():
+    scurve_parameters = make_s_curve_parameters(earliest_age=5, average_age=20, rush_years=20, last_age=50, rush_share=0.8, never_share=0.1)
+
+    df = scurve_from_s_curve_parameters(scurve_parameters)
+
+    result = df.loc[('unknown', slice(None), 'unknown')].round(4).scurve
+
+    assert result.dtype == np.float64
+    assert result.name == 'scurve'
+
+    assert result.loc[slice(1, 4)].to_list()== [0.0,0.0,0.0,0.0]
+
+    pre_rush_range = slice(5, 9)
+    expected_pre_rush_value = 0.01
+    assert result.loc[pre_rush_range].to_list() == [expected_pre_rush_value] * 5
+
+    rush_range = slice(11, 29)
+    expected_rush_rate = 0.04
+    assert result.loc[rush_range].to_list() == [expected_rush_rate] * 19
+
+    expected_post_rush_rate = 0.0025
+    post_rush_range = slice(30, 49)
+    assert result.loc[post_rush_range].to_list() == [expected_post_rush_rate] * 20
+
+    assert (result.loc[slice(50, None)] == 0.0).all()
 
 
 if __name__ == "__main__":

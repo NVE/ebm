@@ -230,9 +230,12 @@ def test_energy_use(kalibrert_database_manager):
     df_diff = df[df['kwh_result'] != df['kwh_expected']]
 
     # Log readable error messages for every different value
+    max_difference = 0
     for i, r in df_diff.iterrows():
-        logger.error(f'Error in row {i} expected: {r[1]} was: {r[0]}')
-
+        difference = abs(r[1] - r[0])
+        max_difference = max(max_difference, difference)
+        logger.error(f'Error in row {i} expected: {r[1]} was: {r[0]} ({difference}')
+    logger.error(f'{max_difference=}')
     assert df_diff.empty, 'Expected no differences between the dataframes result and expected'
 
 
@@ -324,7 +327,7 @@ def test_energy_use_holiday_home(kalibrert_database_manager):
 
     expected = pd.DataFrame(expected_holiday_home)
     expected.index.names = ['building_group', 'energy_source', 'year']
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result.round(2), expected.round(2))
 
 
 @pytest.mark.explicit

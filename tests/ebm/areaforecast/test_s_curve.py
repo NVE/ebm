@@ -4,11 +4,17 @@ import numpy as np
 import pandas as pd
 import pytest
 
-import ebm.s_curve
-from ebm import s_curve
+import ebm.areaforecast.s_curve
+from ebm.areaforecast import s_curve
+from ebm.areaforecast.s_curve import (
+    make_s_curve_parameters,
+    scurve_from_s_curve_parameters,
+    scurve_rates,
+    scurve_rates_with_age,
+    translate_scurve_parameter_to_shortform,
+)
 from ebm.model.data_classes import YearRange
 from ebm.model.scurve import SCurve
-from ebm.s_curve import make_s_curve_parameters, scurve_from_s_curve_parameters, scurve_rates, scurve_rates_with_age, translate_scurve_parameter_to_shortform
 
 
 def test_scurve_house_demolition():
@@ -39,9 +45,9 @@ building_category,condition,earliest_age_for_measure,average_age_for_measure,rus
 apartment_block,small_measure,5,20,20,50,0.8,0.1
     """.strip()))
 
-    result = ebm.s_curve.scurve_rates_with_age(
-        ebm.s_curve.scurve_rates(
-            ebm.s_curve.translate_scurve_parameter_to_shortform(
+    result = ebm.areaforecast.s_curve.scurve_rates_with_age(
+        ebm.areaforecast.s_curve.scurve_rates(
+            ebm.areaforecast.s_curve.translate_scurve_parameter_to_shortform(
                 scurve_parameters))).rate
 
     expected = [0.0] * 4 + [0.01] * 5 + [0.04] * 20 + [0.0025] * 20 + [0.0] * 81

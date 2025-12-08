@@ -5,6 +5,7 @@ import pandas as pd
 from loguru import logger
 
 from ebm import extractors
+from ebm.areaforecast.s_curve import calculate_s_curves
 from ebm.cmd.helpers import configure_json_log, configure_loglevel, load_environment_from_dotenv
 from ebm.cmd.result_handler import transform_model_to_horizontal, transform_to_sorted_heating_systems
 from ebm.model import area as a_f
@@ -18,7 +19,6 @@ from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
 from ebm.model.heating_systems_share import transform_heating_systems_share_long, transform_heating_systems_share_wide
-from ebm.s_curve import calculate_s_curves
 from ebm.services.spreadsheet import add_top_row_filter, make_pretty
 
 

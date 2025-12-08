@@ -64,7 +64,7 @@ class SCurve:
         )
 
     def calc_scurve(self) -> pd.DataFrame:
-        from ebm.s_curve import translate_scurve_parameter_to_shortform, scurve_rates, scurve_rates_with_age  # noqa: PLC0415, I001
+        from ebm.areaforecast.s_curve import translate_scurve_parameter_to_shortform, scurve_rates, scurve_rates_with_age  # noqa: PLC0415, I001
         df = translate_scurve_parameter_to_shortform(self.df)
 
         df = scurve_rates(df)

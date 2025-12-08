@@ -1,6 +1,7 @@
 import pandas as pd
 from loguru import logger
 
+from ebm.areaforecast.s_curve import calculate_s_curves
 from ebm.heating_system_forecast import HeatingSystemsForecast
 from ebm.holiday_home_energy import calculate_energy_use, transform_holiday_homes_to_horizontal
 from ebm.model import area
@@ -8,7 +9,6 @@ from ebm.model.area import calculate_construction, calculate_construction_with_d
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement
-from ebm.s_curve import calculate_s_curves
 
 
 def extract_area_forecast(years: YearRange,

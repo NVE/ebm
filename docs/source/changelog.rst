@@ -2,6 +2,16 @@
 Changelog
 =========
 
+Version 1.0.4 - 2025-12-09
+--------------------
+
+Fixed
+^^^^^
+
+* Fixed building groups (non_residential, residential) not accepted by validator in energy_need_improvements.csv
+* Fix by where the wrong value is selected from energy_need_improvements.csv when using building groups
+
+
 Version 1.0.3 - 2025-11-25
 --------------------
 

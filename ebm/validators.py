@@ -454,7 +454,7 @@ improvement_building_upgrade = pa.DataFrameSchema(
 
 energy_need_improvements = pa.DataFrameSchema(
     columns={
-        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
+        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category_with_group)),
         'building_code': pa.Column(str, checks=pa.Check(check_default_building_code, element_wise=True)),
         'purpose':pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
         'value': pa.Column(float, coerce=True,

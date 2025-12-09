@@ -528,6 +528,17 @@ def test_energy_need_yearly_improvements(yearly_improvements_df):
     energy_need_improvements.validate(yearly_improvements_df)
 
 
+@pytest.mark.parametrize(('building_group', 'expected_category'), [
+    ('residential', 'residential'),('non_residential', 'non_residential'), ('default', 'default')])
+def test_energy_need_yearly_improvements_allow_building_groups(building_group, expected_category):
+    df = pd.DataFrame(columns=['building_category', 'building_code', 'purpose', 'function', 'value'],
+                 data=[
+                     [building_group, 'default', 'cooling', 'yearly_improvements', 0.0],])
+
+    result = energy_need_improvements.validate(df)
+    assert (result.building_category == expected_category).all()
+
+
 def test_energy_need_yearly_improvements_require_valid_building_cat(yearly_improvements_df):
     yearly_improvements_df.loc[0, 'building_category'] = 'not_a_category'
     with pytest.raises(pa.errors.SchemaError):

@@ -143,14 +143,6 @@ def test_from_energy_need_policy_prefer_specific_over_default(building_category:
     assert culture_tek69.iloc[0].value == expected
 
 
-@pytest.mark.parametrize(('building_category', 'building_code', 'expected'), [
-    ('house', 'TEK69', 0.2),
-    ('culture', 'TEK69', 0.4),
-    ('culture', 'TEK97', 0.5),
-    ('apartment_block', 'TEK17', 1.0),
-])
-
-
 def test_from_energy_need_policy_improvement():
     csv_file="""building_category,building_code,purpose,value,start_year,function,end_year
 default,default,lighting,0.005,2031,yearly_reduction,2050

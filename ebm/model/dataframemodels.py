@@ -1,12 +1,11 @@
-from typing import cast, Optional
+from typing import cast
 
 import pandas as pd
 import pandera as pa
-from pandera.typing import DataFrame, Series
-from pandera.typing.common import DataFrameBase
-
-from ebm.model.column_operations import explode_unique_columns, explode_column_alias
+from ebm.model.column_operations import explode_column_alias, explode_unique_columns
 from ebm.model.energy_purpose import EnergyPurpose
+from pandera.typing import Series
+from pandera.typing.common import DataFrameBase
 
 
 class EnergyNeedYearlyImprovements(pa.DataFrameModel):
@@ -14,9 +13,9 @@ class EnergyNeedYearlyImprovements(pa.DataFrameModel):
     building_code: Series[str]
     purpose: Series[str]
     value: Series[float] = pa.Field(ge=0.0, coerce=True)
-    start_year: Optional[Series[int]] = pa.Field(coerce=True, default=2020)
+    start_year: Series[int] | None = pa.Field(coerce=True, default=2020)
     function: Series[str]
-    end_year: Optional[Series[int]] = pa.Field(coerce=True, default=2050)
+    end_year: Series[int] | None = pa.Field(coerce=True, default=2050)
     _filename = 'energy_need_improvements'
 
     class Config:
@@ -57,7 +56,7 @@ class YearlyReduction(pa.DataFrameModel):
             When the resulting dataframe fails to validate
 
         """
-        unique_columns = ['building_category', 'building_code', 'purpose', 'start_year', 'end_year']
+        unique_columns = ['building_category', 'building_code', 'purpose', 'function'] #, 'start_year', 'end_year']
 
         # Casting en_yearly_improvement to DataFrame so that type checkers complaining about datatype
         df = cast(pd.DataFrame, en_yearly_improvement)
@@ -66,16 +65,12 @@ class YearlyReduction(pa.DataFrameModel):
         if 'end_year' not in df.columns:
             df['end_year'] = 2050
         df = df.query('function=="yearly_reduction"')
-        df = explode_unique_columns(df,
-                                                       unique_columns=unique_columns)
 
-        df = explode_column_alias(df,
-                                                     column='purpose',
-                                                     values=[p for p in EnergyPurpose],
-                                                     alias='default',
-                                                     de_dup_by=unique_columns)
+        df = explode_unique_columns(df, unique_columns=unique_columns)
+        df = explode_column_alias(df, column='purpose', values=[p for p in EnergyPurpose], alias='default', de_dup_by=unique_columns)
+
         df['yearly_efficiency_improvement'] = df['value']
-        df = df[['building_category', 'building_code', 'purpose', 'start_year', 'end_year', 'yearly_efficiency_improvement']]
+        df = df[['building_category', 'building_code', 'purpose', 'function', 'start_year', 'end_year', 'yearly_efficiency_improvement']]
         df = df.reset_index()
         return YearlyReduction.validate(df, lazy=True)
 
@@ -105,7 +100,7 @@ class PolicyImprovement(pa.DataFrameModel):
             df['start_year'] = 2020
         if 'end_year' not in df.columns:
             df['end_year'] = 2050
-        unique_columns = ('building_category', 'building_code', 'purpose', 'start_year', 'function', 'end_year',)
+        unique_columns = ('building_category', 'building_code', 'purpose', 'function')
         df = explode_unique_columns(df, unique_columns=unique_columns)
         df = explode_column_alias(df, column='purpose', values=[p for p in EnergyPurpose], alias='default',
                                   de_dup_by=unique_columns)

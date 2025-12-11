@@ -40,11 +40,19 @@ def extract_area_forecast(years: YearRange,
 
     existing_area = area.calculate_existing_area(area_parameters, building_code_parameters, years)
 
-    total_area_floor_by_year = area.merge_total_area_by_year(construction_with_demolition, existing_area)
+    total_area_floor_by_year = area.merge_total_area_by_year(construction_with_demolition.area, existing_area)
 
     floor_area_forecast = area.multiply_s_curves_with_floor_area(cconditions, total_area_floor_by_year)
 
-    return floor_area_forecast.join(s_curves_by_condition, on=['building_category', 'building_code', 'year'])
+    floor_area_forecast_with_s_curves = floor_area_forecast.join(s_curves_by_condition, on=['building_category', 'building_code', 'year'])
+
+    net_construction = construction_with_demolition[['net_construction', 'net_construction_acc']].copy()
+    net_construction.loc[:, 'building_condition'] = 'original_condition'
+
+    df = floor_area_forecast_with_s_curves.merge(
+        net_construction.reset_index(), on=['building_category', 'building_code', 'year', 'building_condition'], how='left')
+
+    return df
 
 
 def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:

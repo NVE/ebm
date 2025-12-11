@@ -453,7 +453,7 @@ def calculate_existing_area(area_parameters: pd.DataFrame,
 def construction_with_building_code(building_category_demolition_by_year: pd.Series,
                                     building_code: pd.DataFrame,
                                     construction_floor_area_by_year: pd.DataFrame,
-                                    years:YearRange) -> pd.Series:
+                                    years:YearRange) -> pd.DataFrame:
     """
     Merge building_category demolition floor area by year with building_code.
 
@@ -470,7 +470,7 @@ def construction_with_building_code(building_category_demolition_by_year: pd.Ser
 
     Returns
     -------
-    pd.Series
+    pd.DataFrame
         Merged building_category demolition floor area by year with building_code
 
     """
@@ -492,10 +492,10 @@ def construction_with_building_code(building_category_demolition_by_year: pd.Ser
 
     df = construction_with_building_code.set_index(['building_category', 'building_code', 'year'])[['constructed_floor_area']]
 
-    s = df.groupby(by=['building_category', 'building_code'])['constructed_floor_area'].cumsum()
-    s.name = 'area'
+    df['net_construction_acc'] = df.groupby(by=['building_category', 'building_code'])['constructed_floor_area'].cumsum()
+    #s.name = 'construction'
 
-    return s
+    return df.rename(columns={'constructed_floor_area': 'net_construction'})
 
 
 def sum_building_category_demolition_by_year(demolition_by_year: pd.Series) -> pd.Series:
@@ -820,7 +820,7 @@ def calculate_households_by_year(household_size: pd.Series, population: pd.Serie
     return households
 
 
-def calculate_construction_with_demolition(construction_by_building_category_and_year: pd.Series, demolition_floor_area_by_year: pd.Series) -> pd.Series:
+def calculate_construction_with_demolition(construction_by_building_category_and_year: pd.DataFrame, demolition_floor_area_by_year: pd.Series) -> pd.DataFrame:
     demolition_by_building_category = demolition_floor_area_by_year.groupby(['building_category', 'year']).sum()
     demolition_by_building_category.loc[(['apartment_block', 'house'], [2020, 2021])] = 0.0
 
@@ -831,11 +831,10 @@ def calculate_construction_with_demolition(construction_by_building_category_and
     demolition_previous_year.loc[not_residential_index] = demolition_previous_year.loc[
         not_residential_index].groupby(by=['building_category']).shift(periods=1, fill_value=0)
 
-    construction: pd.DataFrame = construction_by_building_category_and_year.to_frame().join(demolition_previous_year, on=['building_category', 'year'])
-    construction: pd.DataFrame = construction.rename(columns={'area': 'net_construction'})
-    construction['area'] = construction['net_construction'] + construction['demolition']
+    construction: pd.DataFrame = construction_by_building_category_and_year.join(demolition_previous_year, on=['building_category', 'year'])
+    construction['area'] = construction['net_construction_acc'] + construction['demolition']
 
-    return construction['area']
+    return construction
 
 
 def calculate_construction(building_category_demolition_by_year: pd.Series, database_manager: DatabaseManager, years: YearRange) -> pd.DataFrame:

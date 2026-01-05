@@ -167,7 +167,7 @@ class EbmDefaultHandler:
             logger.debug('Extracting area energy requirements')
             energy_requirements_result = self.extract_energy_requirements(b_c,
                                                                           database_manager,
-                                                                          area_forecast,
+                                                                          area_forecast[['m2']],
                                                                           period=year_range)
             df = energy_requirements_result
 

@@ -266,7 +266,8 @@ def make_pretty(workbook_name: pathlib.Path|str):
                 max_min = max(values), min(values)
                 number_format = ''
                 if max_min[0] > 1000:
-                    number_format = r'_-* #,##0_-;\-* #,##0_-;_-* "-"??_-;_-@_-'
+                    #cell.number_format = '#,##0.00;[Red]-#,##0.00;0'
+                    number_format = r'_-* #,##0_-;[Red]\-* #,##0_-;_-* "-"??_-;_-@_-'
                 elif max_min[0] <=1.0 and max_min[1] >= 0:
                     # number_format = '0%'
                     number_format = '0.000'

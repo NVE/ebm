@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from loguru import logger
 
 from ebm import extractors
 from ebm.areaforecast.s_curve import calculate_s_curves
@@ -130,19 +131,135 @@ def efficiency_factor(heating_systems: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def energy_use_kwh(energy_need: pd.DataFrame, efficiency_factor: pd.DataFrame) -> pd.DataFrame:
+def energy_use_kwh(energy_need: pd.DataFrame, efficiency_factor: pd.DataFrame, energy_column: str='energy_requirement') -> pd.DataFrame:
+    """
+    Merge energy needs with efficiency parameters and compute delivered energy (kWh).
+
+    The function:
+      1) Copies the `energy_need` frame,
+      2) Resets its index,
+      3) Performs an **inner** merge with `efficiency_factor` on
+         ('building_category', 'building_code', 'purpose', 'year'),
+      4) Computes delivered energy ``kwh`` using
+         ``efficiency_kwh(energy_need_col, heating_system_share, load_share, load_efficiency)``,
+      5) Scales ``kwh_m2`` by ``efficiency_factor`` if ``kwh_m2`` exists, otherwise sets it to NaN.
+
+    Parameters
+    ----------
+    energy_need : pandas.DataFrame
+        Input dataframe containing energy needs. Must include the join keys:
+        - 'building_category'
+        - 'building_code'
+        - 'purpose'
+        - 'year'
+        and the column specified by `energy_column` (default: 'energy_requirement').
+
+    efficiency_factor : pandas.DataFrame
+        Dataframe with efficiency parameters. Must include the same join keys as above and:
+        - 'heating_system_share'
+        - 'load_share'
+        - 'load_efficiency'
+        - 'efficiency_factor'
+
+    energy_column : str, default 'energy_requirement'
+        Column name in `energy_need` representing the energy need passed to `efficiency_kwh`.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The merged dataframe with two additional columns:
+        - 'kwh' : Delivered energy computed via `efficiency_kwh(...)`.
+        - 'kwh_m2' : If present before the merge, it is scaled by 'efficiency_factor';
+          otherwise it is created and filled with NaN.
+
+        Note that the result reflects an **inner** join of the inputs after
+        `energy_need.reset_index()`, which may drop unmatched rows from either side
+        and include the old index as a normal column named 'index' (unless the
+        original index had a different name).
+
+    Raises
+    ------
+    KeyError
+        If any of the required join keys or columns are missing in either input.
+
+    Notes
+    -----
+    - The function relies on an external callable `efficiency_kwh` that must accept
+      vectorized pandas Series for:
+      `(energy_need_col, heating_system_share, load_share, load_efficiency)`,
+      and return a Series of delivered energy in kWh.
+    - The merge uses default pandas behavior: `how='inner'` and default suffixes.
+      If both dataframes share other non-key column names (e.g., 'kwh_m2'),
+      pandas may add suffixes (e.g., '_x', '_y').
+    - Existing NaNs in any efficiency inputs will propagate through to 'kwh'
+      depending on `efficiency_kwh`'s implementation.
+
+    Examples
+    --------
+    >>> # energy_need columns (example):
+    >>> # ['building_category', 'building_code', 'purpose', 'year',
+    >>> #  'energy_requirement', 'kwh_m2']
+    >>> # efficiency_factor columns (example):
+    >>> # ['building_category', 'building_code', 'purpose', 'year',
+    >>> #  'heating_system_share', 'load_share', 'load_efficiency', 'efficiency_factor']
+    >>> out = energy_use_kwh(energy_need, efficiency_factor, energy_column='energy_requirement')
+    >>> out[['kwh', 'kwh_m2']].head()
+    """
     nrj = energy_need.copy()
 
     df = nrj.reset_index().merge(efficiency_factor,
                                  left_on=['building_category', 'building_code', 'purpose', 'year'],
                                  right_on=['building_category', 'building_code', 'purpose', 'year'])
 
-    df['kwh'] = df['energy_requirement'] * df['heating_system_share'] * df['load_share'] / df['load_efficiency']
+    df['kwh'] = efficiency_kwh(df[energy_column], df['heating_system_share'], df['load_share'], df['load_efficiency'])
     if 'kwh_m2' in df.columns:
         df['kwh_m2'] = df['kwh_m2'] * df['efficiency_factor']
     else:
         df['kwh_m2'] = np.nan
     return df
+
+
+def efficiency_kwh(energy_need: pd.Series,
+                   heating_system_share: pd.Series, load_share: pd.Series, load_efficiency: pd.Series) -> pd.Series:
+    """
+    Compute delivered electricity (kWh) from energy need, system share, load share, and efficiency.
+
+    Result = energy_need * heating_system_share * load_share / load_efficiency
+
+    Parameters
+    ----------
+    energy_need : pd.Series
+    heating_system_share : pd.Series
+    load_share : pd.Series
+    load_efficiency : pd.Series
+
+    Raises
+    ------
+    ValueError
+        If the input series are not of equal length.
+        If the input indexes are different.
+
+
+    Returns
+    -------
+    pd.Series
+    Energy used in unit (kWh)
+    """
+    if len(energy_need)!=len(heating_system_share) or len(heating_system_share)!=len(load_share) or len(load_share)!=len(load_efficiency):
+        msg = f'{len(energy_need)=}, {len(heating_system_share)=}, {len(load_share)=},  {len(load_efficiency)=}'
+        logger.debug(msg)
+        raise ValueError('All input Series must have equal length.')
+    if not (
+            energy_need.index.equals(heating_system_share.index) and
+            energy_need.index.equals(load_share.index) and
+            energy_need.index.equals(load_efficiency.index)):
+        raise ValueError('All input Series must share an identical index.')
+
+    kwh: pd.Series = energy_need * heating_system_share * load_share / load_efficiency
+    if any(kwh.isna()):
+        logger.warning('Resulting kwh contain np.nan values')
+    return kwh
+
 
 
 def building_group_energy_use_kwh(heating_systems_parameter: pd.DataFrame, energy_need: pd.DataFrame) -> pd.DataFrame:

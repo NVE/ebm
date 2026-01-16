@@ -29,7 +29,7 @@ authors = [
     { name = "Ketil Nordstad", email = "kenord@nve.no" }]
 requires-python = ">= 3.11"
 dependencies = ["loguru",
-    "numpy",
+    "numpy==2.2.6",
     "openpyxl",
     "pandas==2.2.3",
     "python-dotenv",

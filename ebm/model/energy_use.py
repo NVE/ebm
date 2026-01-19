@@ -2,13 +2,26 @@ import numpy as np
 import pandas as pd
 
 from ebm import extractors
-from ebm.energy_consumption import HEATING_SYSTEM_SHARE, GRUNNLAST_ANDEL, BASE_LOAD_EFFICIENCY, BASE_LOAD_ENERGY_PRODUCT, \
-    PEAK_LOAD_ENERGY_PRODUCT, PEAK_LOAD_COVERAGE, PEAK_LOAD_EFFICIENCY, TERTIARY_LOAD_COVERAGE, TERTIARY_LOAD_EFFICIENCY, \
-    TERTIARY_LOAD_ENERGY_PRODUCT, COOLING_EFFICIENCY, DHW_EFFICIENCY, DOMESTIC_HOT_WATER_ENERGY_PRODUCT
-from ebm.model import energy_need as e_n, heating_systems_parameter as h_s_param
+from ebm.areaforecast.s_curve import calculate_s_curves
+from ebm.energy_consumption import (
+    BASE_LOAD_EFFICIENCY,
+    BASE_LOAD_ENERGY_PRODUCT,
+    COOLING_EFFICIENCY,
+    DHW_EFFICIENCY,
+    DOMESTIC_HOT_WATER_ENERGY_PRODUCT,
+    GRUNNLAST_ANDEL,
+    HEATING_SYSTEM_SHARE,
+    PEAK_LOAD_COVERAGE,
+    PEAK_LOAD_EFFICIENCY,
+    PEAK_LOAD_ENERGY_PRODUCT,
+    TERTIARY_LOAD_COVERAGE,
+    TERTIARY_LOAD_EFFICIENCY,
+    TERTIARY_LOAD_ENERGY_PRODUCT,
+)
+from ebm.model import energy_need as e_n
+from ebm.model import heating_systems_parameter as h_s_param
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
-from ebm.s_curve import calculate_s_curves
 
 
 def base_load(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:

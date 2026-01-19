@@ -2,8 +2,8 @@ import dataclasses
 import itertools
 import math
 import pathlib
-import typing
 import string
+import typing
 from dataclasses import dataclass
 
 import numpy as np

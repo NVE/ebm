@@ -1,6 +1,6 @@
 import pandas as pd
 
-from ebm.model.building_category import expand_building_category, BuildingCategory, expand_building_categories
+from ebm.model.building_category import BuildingCategory, expand_building_categories, expand_building_category
 
 
 def test_expand_building_category_expands_residential():

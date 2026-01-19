@@ -1,34 +1,33 @@
 import pandas as pd
 from loguru import logger
 
-from ebm.model import area
-from ebm.holiday_home_energy import calculate_energy_use, transform_holiday_homes_to_horizontal
+from ebm.areaforecast.s_curve import calculate_s_curves
 from ebm.heating_system_forecast import HeatingSystemsForecast
-from ebm.model.construction import ConstructionCalculator
-
+from ebm.holiday_home_energy import calculate_energy_use, transform_holiday_homes_to_horizontal
+from ebm.model import area
+from ebm.model.area import calculate_construction, calculate_construction_with_demolition
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement
-from ebm.s_curve import calculate_s_curves
 
 
-def extract_area_forecast(years: YearRange, s_curves_by_condition: pd.DataFrame, building_code_parameters: pd.DataFrame, area_parameters: pd.DataFrame, database_manager:DatabaseManager):
+def extract_area_forecast(years: YearRange,
+                          s_curves_by_condition: pd.DataFrame,
+                          building_code_parameters: pd.DataFrame, area_parameters: pd.DataFrame, database_manager:DatabaseManager) -> pd.DataFrame:
     logger.debug('Calculating area by condition')
 
     s_curve_demolition = s_curves_by_condition['s_curve_demolition']
-    s_curves_by_condition = s_curves_by_condition[[
-        'original_condition',  'small_measure', 'renovation', 'renovation_and_small_measure', 'demolition'
-    ]]
+    cconditions = s_curves_by_condition[[
+        'original_condition',  'small_measure', 'renovation', 'renovation_and_small_measure', 'demolition',
+    ]].copy()
 
     area_parameters = area_parameters.set_index(['building_category', 'building_code'])
 
-    demolition_floor_area_by_year = area.calculate_demolition_floor_area_by_year(area_parameters, s_curve_demolition)
+    demolition_floor_area_by_year = area.calculate_demolition_floor_area_by_year(area_parameters, s_curve_demolition, years)
 
     building_category_demolition_by_year = area.sum_building_category_demolition_by_year(demolition_floor_area_by_year)
-    construction_floor_area_by_year = ConstructionCalculator.calculate_all_construction(
-        demolition_by_year=building_category_demolition_by_year,
-        database_manager=database_manager,
-        period=years)
+
+    construction_floor_area_by_year = calculate_construction(building_category_demolition_by_year, database_manager, years)
 
     construction_by_building_category_and_year = area.construction_with_building_code(
         building_category_demolition_by_year=building_category_demolition_by_year,
@@ -36,24 +35,24 @@ def extract_area_forecast(years: YearRange, s_curves_by_condition: pd.DataFrame,
         building_code=building_code_parameters,
         years=years)
 
+    construction_with_demolition = calculate_construction_with_demolition(construction_by_building_category_and_year,
+                                                                          demolition_floor_area_by_year)
+
     existing_area = area.calculate_existing_area(area_parameters, building_code_parameters, years)
 
-    total_area_floor_by_year = area.merge_total_area_by_year(construction_by_building_category_and_year, existing_area)
+    total_area_floor_by_year = area.merge_total_area_by_year(construction_with_demolition.area, existing_area)
 
-    floor_area_forecast = area.multiply_s_curves_with_floor_area(s_curves_by_condition, total_area_floor_by_year)
+    floor_area_forecast = area.multiply_s_curves_with_floor_area(cconditions, total_area_floor_by_year)
 
-    return floor_area_forecast
+    floor_area_forecast_with_s_curves = floor_area_forecast.join(s_curves_by_condition, on=['building_category', 'building_code', 'year'])
 
+    net_construction = construction_with_demolition[['net_construction', 'net_construction_acc']].copy()
+    net_construction.loc[:, 'building_condition'] = 'original_condition'
 
-def write_scurve(s_curves_by_condition):
-    try:
-        output_file = 'output/s_curves.xlsx'
-        with pd.ExcelWriter(output_file, engine='xlsxwriter') as writer:
-            s_curves_by_condition.to_excel(writer, sheet_name='s_curves_by_condition', merge_cells=False)  # 💾
-            # s_curve_demolition.to_excel(writer, sheet_name='s_curve_demolition', merge_cells=False) # 💾
-    except IOError as ex:
-        logger.exception(ex)
-        logger.info(f'There was an IOError while writing to {output_file}. Moving on!')
+    df = floor_area_forecast_with_s_curves.merge(
+        net_construction.reset_index(), on=['building_category', 'building_code', 'year', 'building_condition'], how='left')
+
+    return df
 
 
 def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
@@ -76,7 +75,7 @@ def extract_heating_systems_forecast(years: YearRange, database_manager: Databas
     return heating_system_forecast
 
 
-def extract_energy_use_holiday_homes(database_manager):
+def extract_energy_use_holiday_homes(database_manager: DatabaseManager) -> pd.DataFrame:
     df = transform_holiday_homes_to_horizontal(calculate_energy_use(database_manager)).copy()
     df = df.rename(columns={'building_category': 'building_group'})
     df.loc[df.energy_source=='Elektrisitet', 'energy_source'] = 'Electricity'
@@ -84,8 +83,8 @@ def extract_energy_use_holiday_homes(database_manager):
     return df
 
 
-def main():
-    from ebm.model.file_handler import FileHandler
+def main() -> None:  # noqa: D103
+    from ebm.model.file_handler import FileHandler   # noqa: I001, PLC0415
     fh = FileHandler(directory='input')
     dm = DatabaseManager(fh)
     years = YearRange(2020, 2050)
@@ -107,8 +106,6 @@ def main():
 
     heating_systems_projection = extract_heating_systems_forecast(years, dm)
     print(heating_systems_projection)
-
-
 
 
 if __name__ == '__main__':

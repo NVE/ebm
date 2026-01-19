@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 # coding: utf-8
-import itertools
 import os
 import pathlib
 
+import pandas as pd
 from loguru import logger
 
-from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel
+from ebm.cmd.helpers import configure_loglevel, load_environment_from_dotenv
 from ebm.extractors import extract_area_forecast
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager, FileHandler
-import pandas as pd
 
 
 def dataframe_to_csv(area_unstacked, target_file):

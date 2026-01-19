@@ -1,19 +1,17 @@
 import os
 import pathlib
-from typing import Dict
 
 import pandas as pd
 from loguru import logger
 
+from ebm.areaforecast.s_curve import calculate_s_curves
+from ebm.energy_consumption import EnergyConsumption
 from ebm.extractors import extract_area_forecast
+from ebm.heating_system_forecast import HeatingSystemsForecast
 from ebm.model.building_category import BuildingCategory
-
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import EnergyRequirement
-from ebm.energy_consumption import EnergyConsumption
-from ebm.heating_system_forecast import HeatingSystemsForecast
-from ebm.s_curve import calculate_s_curves
 
 
 def area_forecast_result_to_dataframe(forecast: pd.DataFrame) -> pd.DataFrame:

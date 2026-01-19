@@ -142,15 +142,18 @@ class EnergyRequirement:
                             on=['building_category', 'building_code', 'purpose', 'year'],
                             how='left')
         merged = m_nrg_yi.copy()
+        merged = merged.rename(columns={'kwh_m2': 'original_kwh_m2'})
         merged.loc[:, 'reduction_yearly'] = merged.loc[:, 'reduction_yearly'].fillna(1.0)
 
         merged.loc[:, 'reduction_policy'] = merged.loc[:, 'reduction_policy'].fillna(1.0)
         merged['reduction_condition'] = merged['reduction_condition'].fillna(1.0)
-        merged['reduced_kwh_m2'] = (merged['kwh_m2'] * merged['reduction_condition'].fillna(1.0) *
+        merged['behavior_kwh_m2'] = merged['original_kwh_m2'] * merged['behaviour_factor'].fillna(1.0)
+        merged['reduced_kwh_m2'] = (merged['behavior_kwh_m2'] * merged['reduction_condition'].fillna(1.0) *
                                     merged['reduction_yearly'].fillna(1.0) * merged['reduction_policy'].fillna(1.0))
-        merged['behavior_kwh_m2'] = merged['reduced_kwh_m2'] * merged['behaviour_factor'].fillna(1.0)
-        merged = merged.rename(columns={'kwh_m2': 'original_kwh_m2'})
-        merged['kwh_m2'] = merged['behavior_kwh_m2']
+
+
+
+        merged['kwh_m2'] = merged['reduced_kwh_m2']
 
         # Removed  column name filter
         # [['building_category', 'building_code', 'building_condition','year', 'purpose',

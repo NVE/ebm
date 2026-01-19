@@ -455,9 +455,10 @@ def test_calculate_reduction_by_condition():
 
     buildings = [BuildingCategory.HOUSE]
 
-    erq_oc = pd.DataFrame(data=[['house', 'TEK01', EnergyPurpose.HEATING_RV, y, 100.0, 100.0, 100.0, 1.0] for y in period],
-                          columns=['building_category', 'building_code', 'purpose', 'year',
-                 'uncalibrated_kwh_m2', 'calibrated_kwh_m2', 'kwh_m2', 'behaviour_factor'])
+    erq_oc = pd.DataFrame(
+        columns=['building_category', 'building_code', 'purpose', 'year', 'uncalibrated_kwh_m2', 'calibrated_kwh_m2', 'kwh_m2', 'behaviour_factor'],
+        data=[['house', 'TEK01', EnergyPurpose.HEATING_RV, y, 100.0, 100.0, 100.0, 1.0] for y in period],
+    )
 
     purpose = pd.DataFrame(data=[[EnergyPurpose.HEATING_RV]], columns=['purpose'])
 
@@ -628,7 +629,8 @@ def test_calculate_energy_requirements():
     lighting = df[df.purpose == 'lighting'].set_index(['building_condition', 'year'])
     assert lighting.reduction_policy.to_list() == [1.0, 1.0, 0.75, 0.5, 0.5, 0.5] * 4
     assert lighting.reduction_yearly.to_list() == [1.0, 1.0, 1.0, 1.0, 0.9, 0.81] * 4
-    assert lighting.reduced_kwh_m2.to_list() == [100.0, 100.0, 75.0, 50.0, 45.0, 40.5] * 4
+
+    assert lighting.reduced_kwh_m2.to_list() == [50.0, 50.0, 37.5, 25.0, 22.5, 20.25] * 4
     assert lighting.kwh_m2.to_list() == [50.0, 50.0, 37.5, 25.0, 22.5, 20.25] * 4
 
 

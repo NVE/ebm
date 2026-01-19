@@ -234,7 +234,7 @@ def test_energy_use(kalibrert_database_manager):
     for i, r in df_diff.iterrows():
         difference = abs(r[1] - r[0])
         max_difference = max(max_difference, difference)
-        logger.error(f'Error in row {i} expected: {r[1]} was: {r[0]} ({difference}')
+        logger.error(f'Error in row {i} expected: {r[1]} was: {r[0]} diff:({difference})')
     logger.error(f'{max_difference=}')
     assert df_diff.empty, 'Expected no differences between the dataframes result and expected'
 

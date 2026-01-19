@@ -1,2 +1,5 @@
 recursive-include ebm/data *.csv
+recursive-include ebmgeodist/data *.xlsx
+recursive-include ebmgeodist/data *.parquet
 recursive-include ebm *.py
+recursive-include ebmgeodist *.py

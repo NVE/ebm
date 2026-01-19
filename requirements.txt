@@ -5,7 +5,7 @@ pandas==2.2.3
 openpyxl
 loguru
 python-dotenv
-numpy
+numpy==2.2.6
 pandera==0.20.4
 sphinx[docs]
 sphinx-rtd-theme[docs]
@@ -14,3 +14,6 @@ sphinx-tabs[docs]
 numpydoc[docs]
 pytest[test]
 build[build]
+azure-identity[azure-identity]==1.23.0
+polars==1.31.0
+pyarrow==20.0.0

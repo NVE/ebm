@@ -158,7 +158,7 @@ def create_input(file_handler: FileHandler,
     -------
     bool
     """
-
+    logger.debug('Create input from {source_directory}', source_directory=source_directory)
     source = file_handler.default_data_directory()
     
     if source_directory:

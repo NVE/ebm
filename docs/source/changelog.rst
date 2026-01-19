@@ -2,6 +2,21 @@
 Changelog
 =========
 
+Version 1.0.6 - 2025-01-19
+--------------------
+
+Fixed
+^^^^^
+
+* Install numpy 2.2.6. New versions appear to be incompatible with pandera 0.20.40
+* Add missing packages polars, azure-identity used by ebmgeodist
+
+Added
+^^^^^
+
+* Add ebm-geodist launch script
+
+
 Version 1.0.4 - 2025-12-09
 --------------------
 

@@ -315,10 +315,10 @@ class EnergyRequirement:
         return instance
 
 def make_df_building_category_code_purpose_yearly(period: YearRange | None,
-                                                  building_category: pd.DataFrame | list[str] | None = None,
-                                                  building_code: pd.DataFrame | list[str] | None = None,
-                                                  purpose: pd.DataFrame | list[str] | None = None,
-                                                  building_condition: pd.DataFrame | list[str] | None = None) -> pd.DataFrame:
+                                                  building_category: list[str] | pd.DataFrame | None = None,
+                                                  building_code: list[str] | pd.DataFrame | None = None,
+                                                  purpose: list[str] | pd.DataFrame | None = None,
+                                                  building_condition: list[str] | pd.DataFrame | None = None) -> pd.DataFrame:
     """
     Generate a cross-joined dataframe of building category, building code, purpose, building condition, and year.
 
@@ -382,24 +382,24 @@ def make_df_building_category_code_purpose_yearly(period: YearRange | None,
     ... )
     """
 
-    def ensure_df(value, default: list[str], column_name) -> pd.DataFrame:
-        """Normalize lists/enums/defaults to a single-column DataFrame."""
+    def ensure_iterable(value, default: list[str], column_name) -> list[str]:
+        """Normalize lists/enums/defaults to a list."""
         if isinstance(value, pd.DataFrame):
-            return value
+            return value[column_name]
         if value is None:
-            return pd.DataFrame(default, columns=[column_name])
-        return pd.DataFrame(value, columns=[column_name])
+            return default
+        return value
 
     period = period if period is not None else YearRange(2020, 2050)
-    building_category = ensure_df(building_category, list(BuildingCategory), 'building_category')
-    building_code = ensure_df(building_code, ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17'], 'building_code')
-    purpose = ensure_df(purpose, list(EnergyPurpose), 'purpose')
-    building_condition = ensure_df(building_condition, list(BuildingCondition.existing_conditions()), 'building_condition')
+    building_category = ensure_iterable(building_category, list(BuildingCategory), 'building_category')
+    building_code = ensure_iterable(building_code, ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17'], 'building_code')
+    purpose = ensure_iterable(purpose, list(EnergyPurpose), 'purpose')
+    building_condition = ensure_iterable(building_condition, list(BuildingCondition.existing_conditions()), 'building_condition')
 
-    df = building_category.merge(building_code, how="cross")
-    df = df.merge(purpose, how="cross")
-    df = df.merge(building_condition, how="cross")
-    df = df.merge(pd.DataFrame({'year': period}), how="cross")
+    df = pd.MultiIndex.from_product(
+        [building_category, building_code, purpose, building_condition, period.year_range],
+        names=['building_category', 'building_code', 'purpose', 'building_condition', 'year']
+    ).to_frame(index=False)
 
     return df
 

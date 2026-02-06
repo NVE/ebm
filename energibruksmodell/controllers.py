@@ -10,6 +10,8 @@ from ebm.heating_system_forecast import HeatingSystemsForecast
 from ebm.holiday_home_energy import HolidayHomeEnergy
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
+from ebm.model.dataframemodels import PolicyImprovement, YearlyReduction
+from ebm.model.energy_requirement import energy_need_improvements
 from ebm.model.file_handler import FileHandler
 
 
@@ -127,18 +129,34 @@ def calculate_energy_use(
 
 def calculate_energy_need(
     years: Tuple[int, int] | YearRange | None = YearRange(2020, 2050),
+    original_condition: pd.DataFrame | pathlib.Path | None = None,
     calibrate_heating_rv: pd.DataFrame | pathlib.Path | None = None,
     behaviour_factor: pd.DataFrame | pathlib.Path | None = None,
     improvements: pd.DataFrame | pathlib.Path | None = None,
-    original_condition: pd.DataFrame | pathlib.Path | None = None,
     improvement_building_upgrade: pd.DataFrame | pathlib.Path | None = None,
     input_directory: pathlib.Path | str | None = None,
     **kwargs,
 ) -> EbmResult:
+    if ni := [p for p in ['calibrate_heating_rv', 'behaviour_factor'] if locals()[p] is not None]:
+        msg = f'Parameter{"s" if len(ni) == 1 else ""} {", ".join(ni)} not implemented'
+        raise NotImplementedError(msg)
     years = YearRange(*years) if isinstance(years, Tuple) else years
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
     dm = DatabaseManager(FileHandler(directory=input_directory))
-    return extractors.extract_energy_need(years, dm)
+
+    energy_need_original_condition = original_condition if original_condition is not None else dm.get_energy_req_original_condition()
+    improvement_building_upgrade_csv = improvement_building_upgrade if improvement_building_upgrade is not None else dm.get_energy_req_reduction_per_condition()
+
+    energy_need_improvements_policy = PolicyImprovement.from_energy_need_yearly_improvements(improvements) if improvements is not None else dm.get_energy_need_policy_improvement()
+    energy_need_yearly_reduction = YearlyReduction.from_energy_need_yearly_improvements(improvements) if improvements is not None else dm.get_energy_need_yearly_improvements()
+
+    energy_need_kwh_m2 =  energy_need_improvements(
+        energy_need_original_condition=energy_need_original_condition,
+        improvement_building_upgrade=improvement_building_upgrade_csv,
+        energy_need_improvements_policy=energy_need_improvements_policy,
+        energy_need_yearly_reduction=energy_need_yearly_reduction)
+
+    return energy_need_kwh_m2.set_index(['building_category', 'building_code', 'purpose', 'building_condition', 'year'])
 
 
 def calculate_heating_systems(

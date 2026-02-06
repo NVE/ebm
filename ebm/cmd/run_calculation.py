@@ -118,7 +118,9 @@ def calculate_building_category_energy_requirements(building_category: None,
     pd.DataFrame
 
     """
-    df = calculate_for_building_category(database_manager=database_manager)
+    df = calculate_for_building_category(database_manager=database_manager, energy_need_original_condition=None,
+                                         improvement_building_upgrade=None, energy_need_improvements_policy=None,
+                                         energy_need_yearly_reduction=None)
 
     df = df.set_index(['building_category', 'building_code', 'purpose', 'building_condition', 'year'])
 

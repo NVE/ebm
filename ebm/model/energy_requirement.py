@@ -22,14 +22,32 @@ def yearly_reduction(x: pd.DataFrame) -> np.array:
     return round(ls, 15)  # x.year_no.astype(int)
 
 
-def calculate_for_building_category( database_manager: DatabaseManager = None) -> pd.DataFrame:
+
+def calculate_for_building_category(database_manager: DatabaseManager = None):
+
+    energy_need_original_condition = database_manager.get_energy_req_original_condition()
+    improvement_building_upgrade = database_manager.get_energy_req_reduction_per_condition()
+    energy_need_improvements_policy = database_manager.get_energy_need_policy_improvement()
+    energy_need_yearly_reduction = database_manager.get_energy_need_yearly_improvements()
+
+    return energy_need_improvements(energy_need_original_condition=energy_need_original_condition,
+                                    improvement_building_upgrade=improvement_building_upgrade,
+                                    energy_need_improvements_policy=energy_need_improvements_policy,
+                                    energy_need_yearly_reduction=energy_need_yearly_reduction)
+
+def energy_need_improvements(energy_need_original_condition: pd.DataFrame,
+                             improvement_building_upgrade:  pd.DataFrame,
+                             energy_need_improvements_policy: pd.DataFrame,
+                             energy_need_yearly_reduction: pd.DataFrame) -> pd.DataFrame:
     """
     Calculates energy requirements for a single building category
 
     Parameters
     ----------
-    database_manager: DatabaseManager
-        optional database_manager used to load input parameters
+    energy_need_original_condition : pd.DataFrame
+    improvement_building_upgrade : pd.DataFrame
+    energy_need_improvements_policy : pd.DataFrame
+    energy_need_yearly_reduction : pd.DataFrame
 
     Returns
     -------
@@ -40,13 +58,13 @@ def calculate_for_building_category( database_manager: DatabaseManager = None) -
     """
     most_conditions = list(BuildingCondition.existing_conditions())
     model_years = YearRange(2020, 2050)
+
     merged = energy_need_improvements_kwh_m2(
-        energy_need_original_condition=database_manager.get_energy_req_original_condition(),
-        reduction_per_condition=database_manager.get_energy_req_reduction_per_condition(),
-        policy_improvement=database_manager.get_energy_need_policy_improvement(),
-        yearly_improvement=database_manager.get_energy_need_yearly_improvements(),
-        df_years=make_df_building_category_code_purpose_yearly(model_years,
-                                                                                                      building_condition=most_conditions))
+        energy_need_original_condition=energy_need_original_condition,
+        reduction_per_condition=improvement_building_upgrade,
+        policy_improvement=energy_need_improvements_policy,
+        yearly_improvement=energy_need_yearly_reduction,
+        df_years=make_df_building_category_code_purpose_yearly(model_years, building_condition=most_conditions))
 
     merged = merged.drop_duplicates(['building_category', 'building_code', 'building_condition', 'year', 'purpose'], keep='first')
 
@@ -360,7 +378,7 @@ def main() -> None:
     dm = DatabaseManager(FileHandler(directory='kalibrering'))
 
     logger.error('Calculating')
-    df = calculate_for_building_category(dm)
+    df = calculate_for_building_category(dm, None, None, None, None)
     logger.error('Writing to file')
 
     xlsx_filename = make_unique_path(pathlib.Path('output/er.xlsx'))

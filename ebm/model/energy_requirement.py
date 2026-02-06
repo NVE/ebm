@@ -66,22 +66,25 @@ class EnergyRequirement:
         model_years = YearRange(2020, 2050)
         erq_oc = database_manager.get_energy_req_original_condition()
 
-        merged = self.calculate_energy_requirement(erq_oc, model_years,
-                                                   make_df_building_category_code_purpose_yearly(model_years,
-                                                                                                 all_building_categories,
-                                                                                                 all_building_codes,
-                                                                                                 all_purpose,
-                                                                                                 most_conditions),
+        merged = self.calculate_energy_requirement(erq_oc,
                                                    reduction_per_condition=database_manager.get_energy_req_reduction_per_condition(),
                                                    policy_improvement=database_manager.get_energy_need_policy_improvement(),
-                                                   yearly_improvement=database_manager.get_energy_need_yearly_improvements())
+                                                   yearly_improvement=database_manager.get_energy_need_yearly_improvements(),
+                                                   df_years=make_df_building_category_code_purpose_yearly(model_years,
+                                                                                                          all_building_categories,
+                                                                                                          all_building_codes,
+                                                                                                          all_purpose,
+                                                                                                          most_conditions),
+                                                   model_years=model_years)
         
         merged = merged.drop_duplicates('building_category,building_code,building_condition,year,purpose'.split(','), keep='first')
 
         return merged
 
-    def calculate_energy_requirement(self, energy_requirement_original_condition, model_years, df_years,
-                                     reduction_per_condition, policy_improvement, yearly_improvement) -> pd.DataFrame:
+    def calculate_energy_requirement(self, energy_requirement_original_condition: pd.DataFrame,
+                                     reduction_per_condition: pd.DataFrame, policy_improvement: pd.DataFrame,
+                                     yearly_improvement: pd.DataFrame, df_years: pd.DataFrame,
+                                     model_years: YearRange) -> pd.DataFrame:
 
         energy_requirement_original_condition = energy_requirement_original_condition.copy()
 

@@ -319,32 +319,26 @@ def make_df_building_category_code_purpose_yearly(period: YearRange | None,
                                                   building_code: pd.DataFrame | list[str] | None = None,
                                                   purpose: pd.DataFrame | list[str] | None = None,
                                                   building_condition: pd.DataFrame | list[str] | None = None) -> pd.DataFrame:
+    def ensure_df(value, default: list[str], column_name):
+        """Normalize lists/enums/defaults to a single-column DataFrame."""
+        if isinstance(value, pd.DataFrame):
+            return value
+        if value is None:
+            return pd.DataFrame(default, columns=[column_name])
+        return pd.DataFrame(value, columns=[column_name])
 
-    if building_category is None:
-        building_category = pd.DataFrame(list(BuildingCategory), columns=['building_category'])
-    elif isinstance(building_category, list):
-        building_category = pd.DataFrame(building_category, columns=['building_category'])
-    if isinstance(building_code, list):
-        building_code = pd.DataFrame(building_code, columns=['building_code'])
-    elif building_code is None:
-        building_code = pd.DataFrame(['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17'],
-                                     columns=['building_code'])
-    if purpose is None:
-        purpose = pd.DataFrame(list(EnergyPurpose), columns=['purpose'])
-    elif not isinstance(purpose, pd.DataFrame):
-        purpose = pd.DataFrame(purpose, columns=['purpose'])
-
-    if building_condition is None:
-        building_condition = pd.DataFrame(list(BuildingCondition.existing_conditions()), columns=['building_condition'])
-    elif not isinstance(building_condition, pd.DataFrame):
-        building_condition = pd.DataFrame(building_condition, columns=['building_condition'])
     period = period if period is not None else YearRange(2020, 2050)
+    building_category = ensure_df(building_category, list(BuildingCategory), 'building_category')
+    building_code = ensure_df(building_code, ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17'], 'building_code')
+    purpose = ensure_df(purpose, list(EnergyPurpose), 'purpose')
+    building_condition = ensure_df(building_condition, list(BuildingCondition.existing_conditions()), 'building_condition')
 
-    df_building_code = pd.merge(building_category, building_code, how='cross')
-    df_purpose = pd.merge(df_building_code, purpose, how='cross')
-    df_condition = pd.merge(df_purpose, building_condition, how='cross')
-    df_years = pd.merge(df_condition, pd.DataFrame({'year': period}), how='cross')
-    return df_years
+    df = building_category.merge(building_code, how="cross")
+    df = df.merge(purpose, how="cross")
+    df = df.merge(building_condition, how="cross")
+    df = df.merge(pd.DataFrame({'year': period}), how="cross")
+
+    return df
 
 
 def main():

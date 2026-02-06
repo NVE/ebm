@@ -11,7 +11,7 @@ from ebm.heating_system_forecast import HeatingSystemsForecast
 from ebm.model.building_category import BuildingCategory
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
-from ebm.model.energy_requirement import EnergyRequirement
+from ebm.model.energy_requirement import calculate_for_building_category
 
 
 def area_forecast_result_to_dataframe(forecast: pd.DataFrame) -> pd.DataFrame:
@@ -118,11 +118,7 @@ def calculate_building_category_energy_requirements(building_category: None,
     pd.DataFrame
 
     """
-    energy_requirement = EnergyRequirement.new_instance(
-        period=YearRange(start_year, end_year),
-        calibration_year=calibration_year if calibration_year > start_year else start_year,
-        database_manager=database_manager)
-    df = energy_requirement.calculate_for_building_category(database_manager=database_manager)
+    df = calculate_for_building_category(database_manager=database_manager)
 
     df = df.set_index(['building_category', 'building_code', 'purpose', 'building_condition', 'year'])
 

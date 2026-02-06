@@ -8,7 +8,7 @@ from ebm.model import area
 from ebm.model.area import calculate_construction, calculate_construction_with_demolition
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
-from ebm.model.energy_requirement import EnergyRequirement
+from ebm.model.energy_requirement import calculate_for_building_category
 
 
 def extract_area_forecast(years: YearRange,
@@ -56,9 +56,7 @@ def extract_area_forecast(years: YearRange,
 
 
 def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
-    er_calculator = EnergyRequirement.new_instance(period=years, calibration_year=2023,
-                                                   database_manager=dm)
-    energy_need = er_calculator.calculate_for_building_category(database_manager=dm)
+    energy_need = calculate_for_building_category(database_manager=dm)
 
     energy_need = energy_need.set_index(['building_category', 'building_code', 'purpose', 'building_condition', 'year'])
 

@@ -205,8 +205,7 @@ def test_calculate_reduction_with_policy_improvement():
                                                                                                     building_code=building_code_list,
                                                                                                     purpose=purpose,
                                                                                                     building_condition=[
-                                                                                                        'original_condition']),
-                                             model_years=period)
+                                                                                                        'original_condition']))
     result = df.kwh_m2
 
     expected = pd.Series([50.0, 35.0, 20.0, 5.0, 5., 5., 5.],
@@ -352,8 +351,7 @@ def test_calculate_reduction_with_yearly_reduction():
                                                                                                     building_code=building_code_list,
                                                                                                     purpose=purpose,
                                                                                                     building_condition=[
-                                                                                                        'original_condition']),
-                                             model_years=period)
+                                                                                                        'original_condition']))
     house_lighting = df.query('purpose=="lighting"')
 
 
@@ -421,8 +419,7 @@ def test_calculate_reduction_with_yearly_reduction_with_year():
                                                                                                     building_code=building_code_list,
                                                                                                     purpose=purpose,
                                                                                                     building_condition=[
-                                                                                                        'original_condition']),
-                                             model_years=period)
+                                                                                                        'original_condition']))
     result = df.query('purpose=="electrical_equipment"').set_index(['year']).kwh_m2
 
     expected = pd.Series(
@@ -482,8 +479,7 @@ def test_calculate_reduction_by_condition():
                                              df_years=make_df_building_category_code_purpose_yearly(period=period,
                                                                                                     building_category=buildings,
                                                                                                     building_code=building_code_list,
-                                                                                                    purpose=purpose),
-                                             model_years=period)
+                                                                                                    purpose=purpose))
 
     result = df[['building_category', 'building_code', 'building_condition', 'purpose', 'year', 'original_kwh_m2', 'kwh_m2']]
 
@@ -541,8 +537,7 @@ def test_calculate_reduction_by_behavior():
                                                                                                     purpose=purpose,
                                                                                                     building_condition=[
                                                                                                         'original_condition',
-                                                                                                        'renovation']),
-                                             model_years=period)
+                                                                                                        'renovation']))
 
     result = df[['building_category', 'building_code', 'building_condition', 'purpose', 'year', 'original_kwh_m2', 'kwh_m2']]
 
@@ -605,7 +600,7 @@ def test_calculate_energy_requirements():
         yearly_improvement=dm.get_energy_need_yearly_improvements(),
         df_years=make_df_building_category_code_purpose_yearly(period=period, building_category=buildings,
                                                                building_code=building_code_list,
-                                                               purpose=purpose), model_years=period)
+                                                               purpose=purpose))
 
     assert len(df) == 96
 
@@ -713,8 +708,7 @@ def test_calculate_energy_requirements_with_multiple_building_codes():
                                              df_years=make_df_building_category_code_purpose_yearly(period=period,
                                                                                                     building_category=buildings,
                                                                                                     building_code=building_code_list,
-                                                                                                    purpose=purpose),
-                                             model_years=period)
+                                                                                                    purpose=purpose))
     tek01 = df[(df.building_code=='TEK01')].set_index(['purpose', 'building_condition', 'year'])
     tek02 = df[(df.building_code=='TEK02')].set_index(['purpose', 'building_condition', 'year'])
 

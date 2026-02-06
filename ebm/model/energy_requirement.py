@@ -59,23 +59,14 @@ class EnergyRequirement:
         """
         database_manager = database_manager if database_manager else self.database_manager
 
-        all_building_codes = database_manager.get_building_code_list().tolist()
-        all_building_categories = list(BuildingCategory)
-        all_purpose = list(EnergyPurpose)
         most_conditions = list(BuildingCondition.existing_conditions())
         model_years = YearRange(2020, 2050)
-        erq_oc = database_manager.get_energy_req_original_condition()
-
-        merged = self.calculate_energy_requirement(erq_oc,
+        merged = self.calculate_energy_requirement(energy_requirement_original_condition=database_manager.get_energy_req_original_condition(),
                                                    reduction_per_condition=database_manager.get_energy_req_reduction_per_condition(),
                                                    policy_improvement=database_manager.get_energy_need_policy_improvement(),
                                                    yearly_improvement=database_manager.get_energy_need_yearly_improvements(),
                                                    df_years=make_df_building_category_code_purpose_yearly(model_years,
-                                                                                                          all_building_categories,
-                                                                                                          all_building_codes,
-                                                                                                          all_purpose,
-                                                                                                          most_conditions),
-                                                   model_years=model_years)
+                                                                                                          building_condition=most_conditions))
         
         merged = merged.drop_duplicates('building_category,building_code,building_condition,year,purpose'.split(','), keep='first')
 
@@ -83,8 +74,7 @@ class EnergyRequirement:
 
     def calculate_energy_requirement(self, energy_requirement_original_condition: pd.DataFrame,
                                      reduction_per_condition: pd.DataFrame, policy_improvement: pd.DataFrame,
-                                     yearly_improvement: pd.DataFrame, df_years: pd.DataFrame,
-                                     model_years: YearRange) -> pd.DataFrame:
+                                     yearly_improvement: pd.DataFrame, df_years: pd.DataFrame) -> pd.DataFrame:
 
         energy_requirement_original_condition = energy_requirement_original_condition.copy()
 
@@ -98,22 +88,18 @@ class EnergyRequirement:
         erq_all_years = pd.merge(left=df_years, right=energy_requirement_original_condition, how='left')
         energy_requirements = erq_all_years.drop(columns=['index', 'level_0'], errors='ignore')
 
-        return self.calculate_energy_reduction(energy_requirements, model_years, policy_improvement,
-                                               reduction_per_condition, yearly_improvement)
+        return self.calculate_energy_reduction(energy_requirements, policy_improvement, reduction_per_condition,
+                                               yearly_improvement)
 
 
-    def calculate_energy_reduction(self, energy_requirements: pd.DataFrame,
-                                   model_years: YearRange,
-                                   policy_improvement: pd.DataFrame,
-                                   reduction_per_condition: pd.DataFrame,
-                                   yearly_improvement: pd.DataFrame) -> pd.DataFrame:
+    def calculate_energy_reduction(self, energy_requirements: pd.DataFrame, policy_improvement: pd.DataFrame,
+                                   reduction_per_condition: pd.DataFrame, yearly_improvement: pd.DataFrame) -> pd.DataFrame:
         """
         Calculate and combine all reduction factors for energy needs into a single Dataframe.
 
         Parameters
         ----------
         energy_requirements : pd.DataFrame
-        model_years : YearRange
         policy_improvement : pd.DataFrame
         reduction_per_condition : pd.DataFrame
         yearly_improvement : pd.DataFrame

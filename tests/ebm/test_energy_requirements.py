@@ -196,11 +196,11 @@ def test_calculate_reduction_with_policy_improvement():
 
     purpose = pd.DataFrame(data=[[EnergyPurpose.LIGHTING]], columns=['purpose'])
 
-    df = en_req.calculate_energy_requirement(energy_requirement_original_condition=erq_oc,
-                                             reduction_per_condition=dm.get_energy_req_reduction_per_condition(),
-                                             policy_improvement=dm.get_energy_need_policy_improvement(),
-                                             yearly_improvement=dm.get_energy_need_yearly_improvements(),
-                                             df_years=make_df_building_category_code_purpose_yearly(period=period,
+    df = en_req.energy_need_improvements_kwh_m2(energy_need_original_condition=erq_oc,
+                                                reduction_per_condition=dm.get_energy_req_reduction_per_condition(),
+                                                policy_improvement=dm.get_energy_need_policy_improvement(),
+                                                yearly_improvement=dm.get_energy_need_yearly_improvements(),
+                                                df_years=make_df_building_category_code_purpose_yearly(period=period,
                                                                                                     building_category=buildings,
                                                                                                     building_code=building_code_list,
                                                                                                     purpose=purpose,
@@ -304,7 +304,7 @@ def test_calculate_yearly_reduction():
 
 def test_calculate_reduction_with_yearly_reduction():
     """
-    Test calculate_energy_requirement with yearly reduction and policy improvement
+    Test energy_need_improvements_kwh_m2 with yearly reduction and policy improvement
     """
 
     period = YearRange(2010, 2022)
@@ -342,11 +342,11 @@ def test_calculate_reduction_with_yearly_reduction():
 
     purpose = pd.DataFrame(data=[EnergyPurpose.LIGHTING, EnergyPurpose.ELECTRICAL_EQUIPMENT], columns=['purpose'])
 
-    df = en_req.calculate_energy_requirement(energy_requirement_original_condition=erq_oc,
-                                             reduction_per_condition=dm.get_energy_req_reduction_per_condition(),
-                                             policy_improvement=dm.get_energy_need_policy_improvement(),
-                                             yearly_improvement=dm.get_energy_need_yearly_improvements(),
-                                             df_years=make_df_building_category_code_purpose_yearly(period=period,
+    df = en_req.energy_need_improvements_kwh_m2(energy_need_original_condition=erq_oc,
+                                                reduction_per_condition=dm.get_energy_req_reduction_per_condition(),
+                                                policy_improvement=dm.get_energy_need_policy_improvement(),
+                                                yearly_improvement=dm.get_energy_need_yearly_improvements(),
+                                                df_years=make_df_building_category_code_purpose_yearly(period=period,
                                                                                                     building_category=buildings,
                                                                                                     building_code=building_code_list,
                                                                                                     purpose=purpose,
@@ -410,11 +410,11 @@ def test_calculate_reduction_with_yearly_reduction_with_year():
 
     purpose = pd.DataFrame(data=[EnergyPurpose.ELECTRICAL_EQUIPMENT, EnergyPurpose.LIGHTING], columns=['purpose'])
 
-    df = en_req.calculate_energy_requirement(energy_requirement_original_condition=erq_oc,
-                                             reduction_per_condition=dm.get_energy_req_reduction_per_condition(),
-                                             policy_improvement=dm.get_energy_need_policy_improvement(),
-                                             yearly_improvement=dm.get_energy_need_yearly_improvements(),
-                                             df_years=make_df_building_category_code_purpose_yearly(period=period,
+    df = en_req.energy_need_improvements_kwh_m2(energy_need_original_condition=erq_oc,
+                                                reduction_per_condition=dm.get_energy_req_reduction_per_condition(),
+                                                policy_improvement=dm.get_energy_need_policy_improvement(),
+                                                yearly_improvement=dm.get_energy_need_yearly_improvements(),
+                                                df_years=make_df_building_category_code_purpose_yearly(period=period,
                                                                                                     building_category=buildings,
                                                                                                     building_code=building_code_list,
                                                                                                     purpose=purpose,
@@ -472,11 +472,11 @@ def test_calculate_reduction_by_condition():
             ['house', 'TEK01', 'heating_rv', BuildingCondition.RENOVATION_AND_SMALL_MEASURE, 0.3]],
         columns=['building_category', 'building_code', 'purpose', 'building_condition', 'reduction_share']))
 
-    df = en_req.calculate_energy_requirement(energy_requirement_original_condition=erq_oc,
-                                             reduction_per_condition=dm.get_energy_req_reduction_per_condition(),
-                                             policy_improvement=dm.get_energy_need_policy_improvement(),
-                                             yearly_improvement=dm.get_energy_need_yearly_improvements(),
-                                             df_years=make_df_building_category_code_purpose_yearly(period=period,
+    df = en_req.energy_need_improvements_kwh_m2(energy_need_original_condition=erq_oc,
+                                                reduction_per_condition=dm.get_energy_req_reduction_per_condition(),
+                                                policy_improvement=dm.get_energy_need_policy_improvement(),
+                                                yearly_improvement=dm.get_energy_need_yearly_improvements(),
+                                                df_years=make_df_building_category_code_purpose_yearly(period=period,
                                                                                                     building_category=buildings,
                                                                                                     building_code=building_code_list,
                                                                                                     purpose=purpose))
@@ -527,11 +527,11 @@ def test_calculate_reduction_by_behavior():
               ['house', 'TEK01', 'heating_rv', BuildingCondition.RENOVATION, 0.3]],
         columns=['building_category', 'building_code', 'purpose', 'building_condition', 'reduction_share']))
 
-    df = en_req.calculate_energy_requirement(energy_requirement_original_condition=erq_oc,
-                                             reduction_per_condition=dm.get_energy_req_reduction_per_condition(),
-                                             policy_improvement=dm.get_energy_need_policy_improvement(),
-                                             yearly_improvement=dm.get_energy_need_yearly_improvements(),
-                                             df_years=make_df_building_category_code_purpose_yearly(period=period,
+    df = en_req.energy_need_improvements_kwh_m2(energy_need_original_condition=erq_oc,
+                                                reduction_per_condition=dm.get_energy_req_reduction_per_condition(),
+                                                policy_improvement=dm.get_energy_need_policy_improvement(),
+                                                yearly_improvement=dm.get_energy_need_yearly_improvements(),
+                                                df_years=make_df_building_category_code_purpose_yearly(period=period,
                                                                                                     building_category=buildings,
                                                                                                     building_code=building_code_list,
                                                                                                     purpose=purpose,
@@ -593,8 +593,8 @@ def test_calculate_energy_requirements():
               ],
         columns=['building_category', 'building_code', 'purpose', 'building_condition', 'reduction_share']))
 
-    df = en_req.calculate_energy_requirement(
-        energy_requirement_original_condition=energy_requirements_original_condition,
+    df = en_req.energy_need_improvements_kwh_m2(
+        energy_need_original_condition=energy_requirements_original_condition,
         reduction_per_condition=dm.get_energy_req_reduction_per_condition(),
         policy_improvement=dm.get_energy_need_policy_improvement(),
         yearly_improvement=dm.get_energy_need_yearly_improvements(),
@@ -701,11 +701,11 @@ def test_calculate_energy_requirements_with_multiple_building_codes():
               ],
         columns=['building_category', 'building_code', 'purpose', 'building_condition', 'reduction_share']))
 
-    df = en_req.calculate_energy_requirement(energy_requirement_original_condition=erq_oc,
-                                             reduction_per_condition=dm.get_energy_req_reduction_per_condition(),
-                                             policy_improvement=dm.get_energy_need_policy_improvement(),
-                                             yearly_improvement=dm.get_energy_need_yearly_improvements(),
-                                             df_years=make_df_building_category_code_purpose_yearly(period=period,
+    df = en_req.energy_need_improvements_kwh_m2(energy_need_original_condition=erq_oc,
+                                                reduction_per_condition=dm.get_energy_req_reduction_per_condition(),
+                                                policy_improvement=dm.get_energy_need_policy_improvement(),
+                                                yearly_improvement=dm.get_energy_need_yearly_improvements(),
+                                                df_years=make_df_building_category_code_purpose_yearly(period=period,
                                                                                                     building_category=buildings,
                                                                                                     building_code=building_code_list,
                                                                                                     purpose=purpose))

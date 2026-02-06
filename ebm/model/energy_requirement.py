@@ -319,7 +319,70 @@ def make_df_building_category_code_purpose_yearly(period: YearRange | None,
                                                   building_code: pd.DataFrame | list[str] | None = None,
                                                   purpose: pd.DataFrame | list[str] | None = None,
                                                   building_condition: pd.DataFrame | list[str] | None = None) -> pd.DataFrame:
-    def ensure_df(value, default: list[str], column_name):
+    """
+    Generate a cross-joined dataframe of building category, building code, purpose, building condition, and year.
+
+    This function normalizes all input arguments to single-column
+    DataFrames and performs a series of cross merges to produce the full
+    combinatorial dataset. It is typically used to prepare a structured
+    index for energy modeling or building analytics.
+
+    Parameters
+    ----------
+    period : YearRange or None
+        A YearRange iterable providing the sequence of years to include.
+        If None, defaults to ``YearRange(2020, 2050)``.
+    building_category : DataFrame, list of str, or None, optional
+        Building categories to include. May be a DataFrame with a
+        ``"building_category"`` column, a list of category strings, or None.
+        If None, defaults to ``list(BuildingCategory)``.
+    building_code : DataFrame, list of str, or None, optional
+        Building codes to include. May be a DataFrame with a
+        ``"building_code"`` column, a list of code strings, or None.
+        If None, defaults to the predefined TEK code list.
+    purpose : DataFrame, list of str, or None, optional
+        Energy purposes to include. May be a DataFrame with a ``"purpose"``
+        column, a list of purpose strings, or None.
+        If None, defaults to ``list(EnergyPurpose)``.
+    building_condition : DataFrame, list of str, or None, optional
+        Building condition categories. May be a DataFrame with a
+        ``"building_condition"`` column, a list of condition strings, or None.
+        If None, defaults to ``BuildingCondition.existing_conditions()``.
+
+    Returns
+    -------
+    DataFrame
+        A DataFrame containing the full Cartesian product of all input
+        dimensions, with columns:
+
+        - ``building_category``
+        - ``building_code``
+        - ``purpose``
+        - ``building_condition``
+        - ``year``
+
+    Notes
+    -----
+    - All non-DataFrame inputs are converted to single-column DataFrames.
+    - Cross joins are implemented using ``pandas.DataFrame.merge(..., how="cross")``.
+    - The output is guaranteed to contain one row per unique combination
+      of the input dimensions.
+
+    Examples
+    --------
+    Generate a table using default categories and years:
+
+    >>> make_df_building_category_code_purpose_yearly(None).head()
+
+    Provide custom building codes and a custom year range:
+
+    >>> make_df_building_category_code_purpose_yearly(
+    ...     period=YearRange(2025, 2030),
+    ...     building_code=["TEK97", "TEK07"]
+    ... )
+    """
+
+    def ensure_df(value, default: list[str], column_name) -> pd.DataFrame:
         """Normalize lists/enums/defaults to a single-column DataFrame."""
         if isinstance(value, pd.DataFrame):
             return value

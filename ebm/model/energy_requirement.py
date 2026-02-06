@@ -66,25 +66,27 @@ class EnergyRequirement:
         model_years = YearRange(2020, 2050)
         erq_oc = database_manager.get_energy_req_original_condition()
 
-        merged = self.calculate_energy_requirement(all_building_categories, all_purpose, all_building_codes, erq_oc, model_years,
-                                                   most_conditions, database_manager)
+        df = make_df_building_category_code_purpose_yearly(model_years, all_building_categories, all_building_codes,
+                                                           all_purpose, most_conditions)
+
+        merged = self.calculate_energy_requirement(erq_oc, model_years, database_manager,
+                                                   make_df_building_category_code_purpose_yearly(model_years,
+                                                                                                 all_building_categories,
+                                                                                                 all_building_codes,
+                                                                                                 all_purpose,
+                                                                                                 most_conditions))
         
         merged = merged.drop_duplicates('building_category,building_code,building_condition,year,purpose'.split(','), keep='first')
 
         return merged
 
-    def calculate_energy_requirement(self, all_building_categories, all_purpose, all_building_codes, energy_requirement_original_condition, model_years,
-                                     most_conditions, database_manager) -> pd.DataFrame:
-        df_bc = pd.DataFrame(all_building_categories, columns=['building_category'])
-        df_building_code = pd.merge(df_bc, pd.DataFrame({'building_code': all_building_codes}), how='cross')
-        df_purpose = pd.merge(df_building_code, pd.DataFrame(all_purpose, columns=['purpose']), how='cross')
-        df_condition = pd.merge(df_purpose, pd.DataFrame({'building_condition': most_conditions}), how='cross')
-        df_years = pd.merge(df_condition, pd.DataFrame({'year': model_years}), how='cross')
+    def calculate_energy_requirement(self, energy_requirement_original_condition, model_years, database_manager,
+                                     df_years) -> pd.DataFrame:
 
         energy_requirement_original_condition = energy_requirement_original_condition.copy()
 
         energy_requirement_original_condition = energy_requirement_original_condition.join(
-            pd.DataFrame({'building_condition_r': most_conditions}),
+            pd.DataFrame({'building_condition_r': df_years.building_condition.unique()}),
             how='cross',
         )
         energy_requirement_original_condition['building_condition'] = energy_requirement_original_condition.building_condition_r
@@ -99,6 +101,7 @@ class EnergyRequirement:
 
         return self.calculate_energy_reduction(energy_requirements, model_years, policy_improvement,
                                                reduction_per_condition, yearly_improvement)
+
 
     def calculate_energy_reduction(self, energy_requirements: pd.DataFrame,
                                    model_years: YearRange,
@@ -301,27 +304,6 @@ class EnergyRequirement:
                                                                 'reduction_condition'].fillna(1.0)
         return reduction_per_condition
 
-    def calculate_energy_requirements(
-            self,
-            building_categories: typing.Iterable[BuildingCategory] = None) -> pd.DataFrame:
-        """
-        Calculates energy requirements for building categories
-
-        Parameters
-        ----------
-        building_categories : Iterable[BuildingCategory]
-            Iterable containing building categories on which to calculate energy requirements.
-
-        Returns
-        -------
-        Iterable of pd.Series
-            indexed by year, building_category, TEK, purpose, building_condition
-            column kwh_m2 representing energy requirement
-
-        """
-        building_categories = building_categories if building_categories else iter(BuildingCategory)
-
-        return self.calculate_for_building_category(self.database_manager)
 
     @staticmethod
     def new_instance(period, calibration_year, database_manager=None):
@@ -331,6 +313,38 @@ class EnergyRequirement:
         instance = EnergyRequirement(building_code_list=dm.get_building_code_list(), period=period, calibration_year=calibration_year,
                                      database_manager=dm)
         return instance
+
+def make_df_building_category_code_purpose_yearly(period: YearRange | None,
+                                                  building_category: pd.DataFrame | list[str] | None = None,
+                                                  building_code: pd.DataFrame | list[str] | None = None,
+                                                  purpose: pd.DataFrame | list[str] | None = None,
+                                                  building_condition: pd.DataFrame | list[str] | None = None) -> pd.DataFrame:
+
+    if building_category is None:
+        building_category = pd.DataFrame(list(BuildingCategory), columns=['building_category'])
+    elif isinstance(building_category, list):
+        building_category = pd.DataFrame(building_category, columns=['building_category'])
+    if isinstance(building_code, list):
+        building_code = pd.DataFrame(building_code, columns=['building_code'])
+    elif building_code is None:
+        building_code = pd.DataFrame(['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17'],
+                                     columns=['building_code'])
+    if purpose is None:
+        purpose = pd.DataFrame(list(EnergyPurpose), columns=['purpose'])
+    elif not isinstance(purpose, pd.DataFrame):
+        purpose = pd.DataFrame(purpose, columns=['purpose'])
+
+    if building_condition is None:
+        building_condition = pd.DataFrame(list(BuildingCondition.existing_conditions()), columns=['building_condition'])
+    elif not isinstance(building_condition, pd.DataFrame):
+        building_condition = pd.DataFrame(building_condition, columns=['building_condition'])
+    period = period if period is not None else YearRange(2020, 2050)
+
+    df_building_code = pd.merge(building_category, building_code, how='cross')
+    df_purpose = pd.merge(df_building_code, purpose, how='cross')
+    df_condition = pd.merge(df_purpose, building_condition, how='cross')
+    df_years = pd.merge(df_condition, pd.DataFrame({'year': period}), how='cross')
+    return df_years
 
 
 def main():
@@ -347,7 +361,7 @@ def main():
     er = EnergyRequirement.new_instance(YearRange(2020, 2050), calibration_year=2020, database_manager=dm)
 
     logger.error('Calculating')
-    df =  er.calculate_energy_requirements()
+    df = er.calculate_for_building_category(dm)
     logger.error('Writing to file')
 
     xlsx_filename = make_unique_path(pathlib.Path('output/er.xlsx'))

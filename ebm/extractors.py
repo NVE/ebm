@@ -27,7 +27,12 @@ def extract_area_forecast(years: YearRange,
 
     building_category_demolition_by_year = area.sum_building_category_demolition_by_year(demolition_floor_area_by_year)
 
-    construction_floor_area_by_year = calculate_construction(building_category_demolition_by_year, database_manager, years)
+    construction_floor_area_by_year = calculate_construction(
+        building_category_demolition_by_year=building_category_demolition_by_year, years=years,
+        area_per_person=database_manager.get_area_per_person(),
+        yearly_construction_floor_area=database_manager.get_area_new_residential_buildings(),
+        new_buildings_population=database_manager.get_construction_population()[['population', 'household_size']],
+        new_buildings_category_shares=database_manager.get_new_buildings_category_share())
 
     construction_by_building_category_and_year = area.construction_with_building_code(
         building_category_demolition_by_year=building_category_demolition_by_year,

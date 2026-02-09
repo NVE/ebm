@@ -837,16 +837,20 @@ def calculate_construction_with_demolition(construction_by_building_category_and
     return construction
 
 
-def calculate_construction(building_category_demolition_by_year: pd.Series, database_manager: DatabaseManager, years: YearRange) -> pd.DataFrame:
+def calculate_construction(building_category_demolition_by_year: pd.Series, years: YearRange,
+                           area_per_person: pd.Series, yearly_construction_floor_area: pd.Series,
+                           new_buildings_population: pd.DataFrame, new_buildings_category_shares) -> pd.DataFrame:
     """
     Calculate construction for different building_categories.
 
     Parameters
     ----------
+    new_buildings_category_shares :
+    new_buildings_population :
+    yearly_construction_floor_area :
+    area_per_person :
     building_category_demolition_by_year : pd.DataFrame
         yearly demolition for building categories
-    database_manager : DatabaseManager
-        the database manager
     years : YearRange
         period for construction
 
@@ -860,18 +864,13 @@ def calculate_construction(building_category_demolition_by_year: pd.Series, data
     building_category_demolition_by_year.loc[:] = 0.0
     for building_category in building_category_demolition_by_year.index.get_level_values(level='building_category').unique():
         if building_category not in ['house', 'apartment_block']: #TODO: temp fix. Refactor
-            new_buildings_population = database_manager.get_construction_population()[['population', 'household_size']]
-            area_per_person = database_manager.get_area_per_person(building_category)
             demolition = building_category_demolition_by_year.loc[building_category].reset_index().set_index(['year']).demolition
 
             c = calculate_commercial_construction(population=new_buildings_population['population'],
-                                                  area_by_person=area_per_person,
+                                                  area_by_person=area_per_person.loc[building_category],
                                                   demolition=demolition)
             c['building_category'] = building_category
         else:
-            yearly_construction_floor_area = database_manager.get_building_category_floor_area(building_category)
-            new_buildings_population = database_manager.get_construction_population()[['population', 'household_size']]
-            new_buildings_category_shares = database_manager.get_new_buildings_category_share()
             share_name, floor_area_name = 'new_house_share', 'floor_area_new_house'
             if building_category == BuildingCategory.APARTMENT_BLOCK:
                 share_name = 'new_apartment_block_share'
@@ -881,9 +880,11 @@ def calculate_construction(building_category_demolition_by_year: pd.Series, data
             household_size = new_buildings_population['household_size']
             population = new_buildings_population['population']
             households_by_year = calculate_households_by_year(household_size, population)
+            bc_yearly_construction_floor_area=yearly_construction_floor_area[building_category].dropna()
+
             build_area_sum = pd.Series(
-                data=yearly_construction_floor_area,
-                index=range(years.start, years.start + len(yearly_construction_floor_area)))
+                data=bc_yearly_construction_floor_area,
+                index=range(years.start, years.start + len(bc_yearly_construction_floor_area)))
 
             c = calculate_residential_construction(households_by_year=households_by_year,
                                               building_category_share=building_category_share,

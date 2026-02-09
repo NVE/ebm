@@ -57,7 +57,8 @@ Repository = "https://github.com/NVE/ebm.git"
 packages = [
     'ebm',
     'ebm.model', 'ebm.services', 'ebm.cmd', 'ebm.data', 'ebm.data.calibrated', 'ebm.data.original',
-    'ebmgeodist']
+    'ebmgeodist',
+    'energibruksmodell']
 include-package-data = true
 [project.scripts]
 ebm = "ebm.cmd.ebmexe:main"

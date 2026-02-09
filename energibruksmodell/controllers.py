@@ -1,10 +1,8 @@
 import os
 import pathlib
-from typing import Tuple
 
 import pandas as pd
 
-from ebm import extractors
 from ebm.areaforecast.s_curve import calculate_s_curves
 from ebm.heating_system_forecast import HeatingSystemsForecast
 from ebm.holiday_home_energy import HolidayHomeEnergy
@@ -44,14 +42,14 @@ class EbmResult:
 
 
 def load_scurves(
-    years: Tuple[int, int] | None = (2020, 2050),
+    years: tuple[int, int] | None = (2020, 2050),
     input_directory: pathlib.Path | str | None = None,
     building_code_parameters: pd.DataFrame | pathlib.Path | None = None,
     scurve_parameters: pd.DataFrame | pathlib.Path | None = None,
-    **kwargs,
+    **kwargs: pd.DataFrame|pd.Series,
 ) -> pd.DataFrame:
     dm = DatabaseManager(FileHandler(directory=input_directory))
-    years = YearRange(*years) if isinstance(years, Tuple) else years
+    years = YearRange(*years) if isinstance(years, tuple) else years
     scurve_parameters = scurve_parameters if scurve_parameters else dm.get_scurve_params()
     building_code_parameters = dm.get_building_codes() if not isinstance(building_code_parameters, pd.DataFrame) else building_code_parameters
     s_curves_by_condition = calculate_s_curves(scurve_parameters, building_code_parameters, years)
@@ -59,7 +57,7 @@ def load_scurves(
 
 
 def calculate_area_forecast(
-    years: Tuple[int, int] | YearRange | None = (2020, 2050),
+    years: tuple[int, int] | YearRange | None = (2020, 2050),
     area_parameters: pd.DataFrame | pathlib.Path | YearRange | None = None,
     building_code_parameters: pd.DataFrame | pathlib.Path | None = None,
     population_forecast: None = None,
@@ -68,11 +66,11 @@ def calculate_area_forecast(
     area_per_person: None = None,
     s_curves_by_condition: pd.DataFrame | pathlib.Path | None = None,
     input_directory: pathlib.Path | str | None = None,
-    **kwargs,
+    **kwargs: pd.DataFrame|pd.Series,
 ) -> pd.DataFrame:
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
     dm = DatabaseManager(FileHandler(directory=input_directory))
-    years = YearRange(*years) if isinstance(years, Tuple) else years
+    years = YearRange(*years) if isinstance(years, tuple) else years
 
     if not isinstance(area_parameters, pd.DataFrame):
         area_parameters = dm.get_area_parameters()
@@ -82,7 +80,7 @@ def calculate_area_forecast(
         s_curves_by_condition = load_scurves(years=years,
                                              input_directory=input_directory,
                                              building_code_parameters=building_code_parameters,
-                                             *kwargs)
+                                             **kwargs)
 
     if not isinstance(area_per_person, pd.DataFrame):
         area_per_person = dm.get_area_per_person()
@@ -102,26 +100,26 @@ def calculate_area_forecast(
 
 
 def calculate_energy_use(
-    years: Tuple[int, int] | YearRange | None = YearRange(2020, 2050),
+    years: tuple[int, int] | YearRange | None = YearRange(2020, 2050),  # noqa: B008
     energy_need_kwh_m2: pd.DataFrame | pathlib.Path | None = None,
     area_forecast: pd.DataFrame | pathlib.Path | None = None,
     heating_systems_projection: pd.DataFrame | pathlib.Path | None = None,
     input_directory: pathlib.Path | str | None = None,
-    **kwargs,
+    **kwargs: pd.DataFrame,
 ) -> pd.DataFrame:
-    from ebm.model import energy_need as e_n
-    from ebm.model import energy_use as e_u
-    from ebm.model import heating_systems_parameter as h_s_param
+    from ebm.model import energy_need as e_n  # noqa: PLC0415
+    from ebm.model import energy_use as e_u  # noqa: PLC0415
+    from ebm.model import heating_systems_parameter as h_s_param  # noqa: PLC0415
 
-    years = YearRange(*years) if isinstance(years, Tuple) else years
+    years = YearRange(*years) if isinstance(years, tuple) else years
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
 
     if area_forecast is None:
-        area_forecast = calculate_area_forecast(years=years, input_directory=input_directory, *kwargs)
+        area_forecast = calculate_area_forecast(years=years, input_directory=input_directory, **kwargs)
     if energy_need_kwh_m2 is None:
-        energy_need_kwh_m2 = calculate_energy_need(years=years, input_directory=input_directory, *kwargs)
+        energy_need_kwh_m2 = calculate_energy_need(years=years, input_directory=input_directory, **kwargs)
     if heating_systems_projection is None:
-        heating_systems_projection = calculate_heating_systems(years=years, input_directory=input_directory, *kwargs)
+        heating_systems_projection = calculate_heating_systems(years=years, input_directory=input_directory, **kwargs)
 
     total_energy_need = e_n.transform_total_energy_need(
         energy_need_kwh_m2,
@@ -133,27 +131,34 @@ def calculate_energy_use(
 
 
 def calculate_energy_need(
-    years: Tuple[int, int] | YearRange | None = YearRange(2020, 2050),
+    years: tuple[int, int] | YearRange | None = YearRange(2020, 2050),  # noqa: B008
     original_condition: pd.DataFrame | pathlib.Path | None = None,
     calibrate_heating_rv: pd.DataFrame | pathlib.Path | None = None,
     behaviour_factor: pd.DataFrame | pathlib.Path | None = None,
     improvements: pd.DataFrame | pathlib.Path | None = None,
     improvement_building_upgrade: pd.DataFrame | pathlib.Path | None = None,
     input_directory: pathlib.Path | str | None = None,
-    **kwargs,
+    **kwargs: pd.DataFrame|pd.Series,
 ) -> EbmResult:
     if ni := [p for p in ['calibrate_heating_rv', 'behaviour_factor'] if locals()[p] is not None]:
         msg = f'Parameter{"s" if len(ni) == 1 else ""} {", ".join(ni)} not implemented'
         raise NotImplementedError(msg)
-    years = YearRange(*years) if isinstance(years, Tuple) else years
+    years = YearRange(*years) if isinstance(years, tuple) else years
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
     dm = DatabaseManager(FileHandler(directory=input_directory))
 
     energy_need_original_condition = original_condition if original_condition is not None else dm.get_energy_req_original_condition()
     improvement_building_upgrade_csv = improvement_building_upgrade if improvement_building_upgrade is not None else dm.get_energy_req_reduction_per_condition()
 
-    energy_need_improvements_policy = PolicyImprovement.from_energy_need_yearly_improvements(improvements) if improvements is not None else dm.get_energy_need_policy_improvement()
-    energy_need_yearly_reduction = YearlyReduction.from_energy_need_yearly_improvements(improvements) if improvements is not None else dm.get_energy_need_yearly_improvements()
+    if improvements is not None:
+        energy_need_improvements_policy = PolicyImprovement.from_energy_need_yearly_improvements(improvements)
+    else:
+        energy_need_improvements_policy = dm.get_energy_need_policy_improvement()
+
+    if improvements is not None:
+        energy_need_yearly_reduction = YearlyReduction.from_energy_need_yearly_improvements(improvements)
+    else:
+        energy_need_yearly_reduction = dm.get_energy_need_yearly_improvements()
 
     energy_need_kwh_m2 =  energy_need_improvements(
         energy_need_original_condition=energy_need_original_condition,
@@ -165,17 +170,17 @@ def calculate_energy_need(
 
 
 def calculate_heating_systems(
-    years: Tuple[int, int] | YearRange | None = YearRange(2020, 2050),
+    years: tuple[int, int] | YearRange | None = YearRange(2020, 2050),  # noqa: B008
     heating_system_initial_shares: pd.DataFrame | pathlib.Path | None = None,
     heating_system_initial_forecast: pd.DataFrame | pathlib.Path | None = None,
     heating_system_efficiencies: pd.DataFrame | pathlib.Path | None = None,
     building_code_parameters: pd.DataFrame | pathlib.Path | None = None,
     input_directory: pathlib.Path | str | None = None,
-    **kwargs,
+    **kwargs: pd.DataFrame|pd.Series,
 ) -> pd.DataFrame:
-    from ebm.model import heating_systems_parameter as h_s_param
+    from ebm.model import heating_systems_parameter as h_s_param  # noqa: PLC0415
 
-    years = YearRange(*years) if isinstance(years, Tuple) else years
+    years = YearRange(*years) if isinstance(years, tuple) else years
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
     dm = DatabaseManager(FileHandler(directory=input_directory))
 
@@ -197,12 +202,12 @@ def calculate_heating_systems(
 
 
 def calculate_holiday_homes(
-    years: Tuple[int, int] | YearRange | None = (2020, 2050),
+    years: tuple[int, int] | YearRange | None = (2020, 2050),
     population_forecast: None = None,
     holiday_home_energy_consumption: pd.DataFrame | pathlib.Path | None = None,
     holiday_home_stock: pd.DataFrame | pathlib.Path | None = None,
     input_directory: pathlib.Path | str | None = None,
-    **kwargs,
+    **kwargs:  pd.DataFrame|pd.Series,
 ) -> pd.DataFrame:
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
     dm = DatabaseManager(FileHandler(directory=input_directory))
@@ -237,13 +242,13 @@ def calculate_holiday_homes(
     return output
 
 
-def run_model(input_directory: pathlib.Path | str | None, model_years: YearRange=YearRange(2020, 2050)) -> EbmResult:
+def run_model(input_directory: pathlib.Path | str | None, model_years: YearRange=YearRange(2020, 2050)) -> EbmResult:  # noqa: B008
     if isinstance(input_directory, str):
         input_directory = pathlib.Path(input_directory)
     elif input_directory is None:
         input_directory = pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
 
-    years = YearRange(*model_years) if isinstance(model_years, Tuple) else model_years
+    years = YearRange(*model_years) if isinstance(model_years, tuple) else model_years
     area_forecast = calculate_area_forecast(years=years, input_directory=input_directory)
     energy_need = calculate_energy_need(years=years, input_directory=input_directory)
     heating_systems = calculate_heating_systems(years=years, input_directory=input_directory)
@@ -257,21 +262,22 @@ def run_model(input_directory: pathlib.Path | str | None, model_years: YearRange
         energy_use_kwh=energy_use,
     )
 
-def main():
+
+def main() -> None:
     af = calculate_area_forecast(input_directory=pathlib.Path('kalibrert'))
     er: EbmResult = run_model(model_years=YearRange(2020, 2050), input_directory=pathlib.Path('kalibrert'))
-    er2: EbmResult = run_model(model_years=YearRange(2020, 2050), input_directory=pathlib.Path('kalibrert'))
-    er3: EbmResult = run_model(model_years=YearRange(2020, 2050), input_directory=pathlib.Path('kalibrert'))
-    er4: EbmResult = run_model(model_years=YearRange(2020, 2050), input_directory=pathlib.Path('kalibrert'))
+    #er2: EbmResult = run_model(model_years=YearRange(2020, 2050), input_directory=pathlib.Path('kalibrert'))
+    #er3: EbmResult = run_model(model_years=YearRange(2020, 2050), input_directory=pathlib.Path('kalibrert'))
+    #er4: EbmResult = run_model(model_years=YearRange(2020, 2050), input_directory=pathlib.Path('kalibrert'))
     print(
         af,
         er.energy_use_kwh,
         er.heating_systems,
         er.area_forecast_m2,
         er.energy_need_kwh_m2,
-        er2.holiday_homes_kwh,
-        er3.holiday_homes_kwh,
-        er4.holiday_homes_kwh,
+      #  er2.holiday_homes_kwh,
+      #  er3.holiday_homes_kwh,
+      #  er4.holiday_homes_kwh,
     )
     print('fine')
 

@@ -898,3 +898,40 @@ def calculate_construction(building_category_demolition_by_year: pd.Series, year
 
     all_construction = pd.concat(construction)
     return all_construction
+
+
+def calculate_all_area(area_new_residential_buildings, area_parameters, area_per_person,
+                       building_code_parameters, construction_population, new_buildings_category_share,
+                       s_curves_by_condition, years):
+    s_curve_demolition = s_curves_by_condition['s_curve_demolition']
+    cconditions = s_curves_by_condition[[
+        'original_condition', 'small_measure', 'renovation', 'renovation_and_small_measure', 'demolition',
+    ]].copy()
+    area_parameters = area_parameters.set_index(['building_category', 'building_code'])
+    demolition_floor_area_by_year = calculate_demolition_floor_area_by_year(area_parameters, s_curve_demolition,
+                                                                                 years)
+    building_category_demolition_by_year = sum_building_category_demolition_by_year(demolition_floor_area_by_year)
+    construction_floor_area_by_year = calculate_construction(
+        building_category_demolition_by_year=building_category_demolition_by_year, years=years,
+        area_per_person=area_per_person,
+        yearly_construction_floor_area=area_new_residential_buildings,
+        new_buildings_population=construction_population[['population', 'household_size']],
+        new_buildings_category_shares=new_buildings_category_share)
+    construction_by_building_category_and_year = construction_with_building_code(
+        building_category_demolition_by_year=building_category_demolition_by_year,
+        construction_floor_area_by_year=construction_floor_area_by_year,
+        building_code=building_code_parameters,
+        years=years)
+    construction_with_demolition = calculate_construction_with_demolition(construction_by_building_category_and_year,
+                                                                          demolition_floor_area_by_year)
+    existing_area = calculate_existing_area(area_parameters, building_code_parameters, years)
+    total_area_floor_by_year = merge_total_area_by_year(construction_with_demolition.area, existing_area)
+    floor_area_forecast = multiply_s_curves_with_floor_area(cconditions, total_area_floor_by_year)
+    floor_area_forecast_with_s_curves = floor_area_forecast.join(s_curves_by_condition,
+                                                                 on=['building_category', 'building_code', 'year'])
+    net_construction = construction_with_demolition[['net_construction', 'net_construction_acc']].copy()
+    net_construction.loc[:, 'building_condition'] = 'original_condition'
+    df = floor_area_forecast_with_s_curves.merge(
+        net_construction.reset_index(), on=['building_category', 'building_code', 'year', 'building_condition'],
+        how='left')
+    return df

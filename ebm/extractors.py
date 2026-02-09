@@ -4,8 +4,7 @@ from loguru import logger
 from ebm.areaforecast.s_curve import calculate_s_curves
 from ebm.heating_system_forecast import HeatingSystemsForecast
 from ebm.holiday_home_energy import calculate_energy_use, transform_holiday_homes_to_horizontal
-from ebm.model import area
-from ebm.model.area import calculate_construction, calculate_construction_with_demolition
+from ebm.model.area import calculate_all_area
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.energy_requirement import calculate_for_building_category
@@ -13,49 +12,18 @@ from ebm.model.energy_requirement import calculate_for_building_category
 
 def extract_area_forecast(years: YearRange,
                           s_curves_by_condition: pd.DataFrame,
-                          building_code_parameters: pd.DataFrame, area_parameters: pd.DataFrame, database_manager:DatabaseManager) -> pd.DataFrame:
+                          building_code_parameters: pd.DataFrame, area_parameters: pd.DataFrame,
+                          database_manager:DatabaseManager) -> pd.DataFrame:
     logger.debug('Calculating area by condition')
 
-    s_curve_demolition = s_curves_by_condition['s_curve_demolition']
-    cconditions = s_curves_by_condition[[
-        'original_condition',  'small_measure', 'renovation', 'renovation_and_small_measure', 'demolition',
-    ]].copy()
+    area_per_person = database_manager.get_area_per_person()
+    area_new_residential_buildings = database_manager.get_area_new_residential_buildings()
+    construction_population = database_manager.get_construction_population()
+    new_buildings_category_share = database_manager.get_new_buildings_category_share()
 
-    area_parameters = area_parameters.set_index(['building_category', 'building_code'])
-
-    demolition_floor_area_by_year = area.calculate_demolition_floor_area_by_year(area_parameters, s_curve_demolition, years)
-
-    building_category_demolition_by_year = area.sum_building_category_demolition_by_year(demolition_floor_area_by_year)
-
-    construction_floor_area_by_year = calculate_construction(
-        building_category_demolition_by_year=building_category_demolition_by_year, years=years,
-        area_per_person=database_manager.get_area_per_person(),
-        yearly_construction_floor_area=database_manager.get_area_new_residential_buildings(),
-        new_buildings_population=database_manager.get_construction_population()[['population', 'household_size']],
-        new_buildings_category_shares=database_manager.get_new_buildings_category_share())
-
-    construction_by_building_category_and_year = area.construction_with_building_code(
-        building_category_demolition_by_year=building_category_demolition_by_year,
-        construction_floor_area_by_year=construction_floor_area_by_year,
-        building_code=building_code_parameters,
-        years=years)
-
-    construction_with_demolition = calculate_construction_with_demolition(construction_by_building_category_and_year,
-                                                                          demolition_floor_area_by_year)
-
-    existing_area = area.calculate_existing_area(area_parameters, building_code_parameters, years)
-
-    total_area_floor_by_year = area.merge_total_area_by_year(construction_with_demolition.area, existing_area)
-
-    floor_area_forecast = area.multiply_s_curves_with_floor_area(cconditions, total_area_floor_by_year)
-
-    floor_area_forecast_with_s_curves = floor_area_forecast.join(s_curves_by_condition, on=['building_category', 'building_code', 'year'])
-
-    net_construction = construction_with_demolition[['net_construction', 'net_construction_acc']].copy()
-    net_construction.loc[:, 'building_condition'] = 'original_condition'
-
-    df = floor_area_forecast_with_s_curves.merge(
-        net_construction.reset_index(), on=['building_category', 'building_code', 'year', 'building_condition'], how='left')
+    df = calculate_all_area(area_new_residential_buildings, area_parameters, area_per_person,
+                            building_code_parameters, construction_population, new_buildings_category_share,
+                            s_curves_by_condition, years)
 
     return df
 

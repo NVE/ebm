@@ -8,6 +8,7 @@ from ebm import extractors
 from ebm.areaforecast.s_curve import calculate_s_curves
 from ebm.heating_system_forecast import HeatingSystemsForecast
 from ebm.holiday_home_energy import HolidayHomeEnergy
+from ebm.model.area import calculate_all_area
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.dataframemodels import PolicyImprovement, YearlyReduction
@@ -69,31 +70,35 @@ def calculate_area_forecast(
     input_directory: pathlib.Path | str | None = None,
     **kwargs,
 ) -> pd.DataFrame:
-    if ni := [p for p in ['population_forecast', 'area_new_residential_buildings', 'new_buildings_residential', 'area_parameters'] if locals()[p] is not None]:
-        msg = f'Parameter{"s" if len(ni) == 1 else ""} {", ".join(ni)} not implemented'
-        raise NotImplementedError(msg)
-
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
     dm = DatabaseManager(FileHandler(directory=input_directory))
     years = YearRange(*years) if isinstance(years, Tuple) else years
 
-    area_parameters = dm.get_area_parameters() if not isinstance(area_parameters, pd.DataFrame) else area_parameters
-    building_code_parameters = dm.get_building_codes() if not isinstance(building_code_parameters, pd.DataFrame) else building_code_parameters
+    if not isinstance(area_parameters, pd.DataFrame):
+        area_parameters = dm.get_area_parameters()
+    if not isinstance(building_code_parameters, pd.DataFrame):
+        building_code_parameters = dm.get_building_codes()
     if not isinstance(s_curves_by_condition, pd.DataFrame):
         s_curves_by_condition = load_scurves(years=years,
                                              input_directory=input_directory,
                                              building_code_parameters=building_code_parameters,
                                              *kwargs)
 
-    area_forecast = extractors.extract_area_forecast(
-        years,
-        s_curves_by_condition,
-        building_code_parameters=building_code_parameters,
-        area_parameters=area_parameters,
-        database_manager=dm,
-    )
+    if not isinstance(area_per_person, pd.DataFrame):
+        area_per_person = dm.get_area_per_person()
+    if not isinstance(area_new_residential_buildings, pd.DataFrame):
+        area_new_residential_buildings = dm.get_area_new_residential_buildings()
 
-    return area_forecast
+    if not isinstance(population_forecast, pd.DataFrame):
+        population_forecast = dm.get_construction_population()
+    if not isinstance(new_buildings_residential, pd.DataFrame):
+        new_buildings_residential = dm.get_new_buildings_category_share()
+
+    df = calculate_all_area(area_new_residential_buildings, area_parameters, area_per_person,
+                            building_code_parameters, population_forecast, new_buildings_residential,
+                            s_curves_by_condition, years)
+
+    return df
 
 
 def calculate_energy_use(

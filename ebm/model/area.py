@@ -825,13 +825,13 @@ def calculate_construction_with_demolition(construction_by_building_category_and
     demolition_by_building_category.loc[(['apartment_block', 'house'], [2020, 2021])] = 0.0
 
     demolition_cumsum: pd.Series = demolition_by_building_category.groupby(['building_category']).cumsum()
-    demolition_previous_year = demolition_cumsum
-    not_residential_index = demolition_previous_year.to_frame().query('building_category not in ["house", "apartment_block"]').index
+    reconstruct_demolished = demolition_cumsum
+    not_residential_index = reconstruct_demolished.to_frame().query('building_category not in ["house", "apartment_block"]').index
 
-    demolition_previous_year.loc[not_residential_index] = demolition_previous_year.loc[
+    reconstruct_demolished.loc[not_residential_index] = reconstruct_demolished.loc[
         not_residential_index].groupby(by=['building_category']).shift(periods=1, fill_value=0)
 
-    construction: pd.DataFrame = construction_by_building_category_and_year.join(demolition_previous_year, on=['building_category', 'year'])
+    construction: pd.DataFrame = construction_by_building_category_and_year.join(reconstruct_demolished, on=['building_category', 'year'])
     construction['area'] = construction['net_construction_acc'] + construction['demolition']
 
     return construction

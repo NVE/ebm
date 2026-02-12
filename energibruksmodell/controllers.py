@@ -185,9 +185,9 @@ def calculate_heating_systems(
     dm = DatabaseManager(FileHandler(directory=input_directory))
 
     shares_start_year = dm.get_heating_systems_shares_start_year() if not heating_system_initial_shares else heating_system_initial_forecast
-    efficiencies = heating_system_efficiencies if heating_system_efficiencies else dm.get_heating_system_efficiencies()
-    projection = heating_system_initial_forecast if heating_system_initial_forecast else dm.get_heating_system_forecast()
-    building_code_list = building_code_parameters if building_code_parameters else dm.get_building_code_list()
+    efficiencies = heating_system_efficiencies if heating_system_efficiencies is not None else dm.get_heating_system_efficiencies()
+    projection = heating_system_initial_forecast if heating_system_initial_forecast is not None else dm.get_heating_system_forecast()
+    building_code_list = building_code_parameters if building_code_parameters is not None else dm.get_building_code_list()
 
     hsf = HeatingSystemsForecast(
         shares_start_year=shares_start_year,

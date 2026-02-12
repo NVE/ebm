@@ -3,6 +3,7 @@ import pandas as pd
 from loguru import logger
 from pandas import Series
 
+from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
 
 
@@ -682,6 +683,34 @@ def scurve_rates(s_curve_parameters: pd.DataFrame) -> pd.DataFrame:
         post_rate=lambda x: x.post_share / x.post_period,
         total_share=lambda x: x.pre_share + x.rush_share + x.post_share + x.never_share,
     )
+
+    return df
+
+
+def freeze_scurves_from_year(s_curves: pd.DataFrame, years: int | YearRange | tuple[int, int]) -> pd.DataFrame:
+    df = s_curves.copy()
+    year_level_num = 2
+    minimum_year = df.index.get_level_values(year_level_num).min()
+    if isinstance(years, YearRange):
+        freeze_period = YearRange(max(years.start, minimum_year), years.end)
+    elif isinstance(years, int) and not isinstance(years, bool):
+        maximum_year = df.index.get_level_values(year_level_num).max()
+        freeze_period = YearRange(start=max(years, minimum_year), end=maximum_year)
+    elif isinstance(years, tuple) and len(years)== 2 and isinstance(years[0], int) and isinstance(years[1], int) and years[0] <= years[1]:  # noqa: PLR2004
+        freeze_period = YearRange(max(years[0], minimum_year), years[1])
+    else:
+        msg = f'Illegal value in years `{years}`. YearRange or int expected.'
+        raise ValueError(msg)
+
+    condition_columns = list(BuildingCondition)
+    freeze_rates = df.loc[pd.IndexSlice[:, :, freeze_period.start]][condition_columns]
+    post_freeze_rates = df.loc[pd.IndexSlice[:, :, freeze_period.start + 1:]][condition_columns]
+
+    freeze_index = pd.IndexSlice[:, :, freeze_period.start:freeze_period.end]
+    df.loc[freeze_index, condition_columns] = freeze_rates
+
+    post_freeze_index = pd.IndexSlice[:, :, freeze_period.end + 1:]
+    df.loc[post_freeze_index, condition_columns] = post_freeze_rates.shift(freeze_period.end - freeze_period.start).iloc[1:]
 
     return df
 

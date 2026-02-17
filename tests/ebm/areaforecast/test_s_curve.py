@@ -7,11 +7,14 @@ import pytest
 import ebm.areaforecast.s_curve
 from ebm.areaforecast import s_curve
 from ebm.areaforecast.s_curve import (
+    accumulate_building_condition_rates,
     freeze_scurves_from_year,
     make_s_curve_parameters,
+    pause_building_condition_rates,
     scurve_from_s_curve_parameters,
     scurve_rates,
     scurve_rates_with_age,
+    shift_building_condition_rates,
     translate_scurve_parameter_to_shortform,
 )
 from ebm.model.building_condition import BuildingCondition
@@ -618,6 +621,12 @@ def test_freeze_scurves_from_year_handle_bogus_years(tiny_s_curve, bogus_year):
         freeze_scurves_from_year(tiny_s_curve, bogus_year)
 
 
+@pytest.mark.parametrize('bogus_year', ['2020', (2020, 2021, 2022), None, False, True, (9999, 2000), (None, False)])
+def test_shift_building_condition_rates_handle_bogus_years(tiny_s_curve, bogus_year):
+    with pytest.raises(ValueError, match=r'Illegal value in period `.*`. YearRange or int expected.'):
+        shift_building_condition_rates(tiny_s_curve, bogus_year)
+
+
 @pytest.mark.parametrize('condition', BuildingCondition)
 def test_freeze_scurves_from_year_keep_original_dataframe_unchanged(tiny_s_curve, condition):
     original_dataframe = tiny_s_curve.copy()
@@ -626,6 +635,119 @@ def test_freeze_scurves_from_year_keep_original_dataframe_unchanged(tiny_s_curve
 
     assert original_dataframe[condition].to_list() == pytest.approx([0.01, 0.02, 0.03, 0.04, 0.05])
     assert res[condition].to_list() == pytest.approx([0.01, 0.02, 0.02, 0.02, 0.02])
+
+
+@pytest.mark.parametrize(('condition', 'year_range', 'expected'),[
+    (BuildingCondition.SMALL_MEASURE, YearRange(2021, 2022), [0.1, 0.0, 0.0, 0.1, 0.1]),
+    (BuildingCondition.RENOVATION, YearRange(2021, 2022), [0.0, 0.0, 0.0, 0.1, 0.2]),
+    (BuildingCondition.DEMOLITION, YearRange(2021, 2022), [0.0, 0.0, 0.0, 0.01, 0.02]),
+    (BuildingCondition.SMALL_MEASURE, YearRange(2020, 2023), [0.0, 0.0, 0.0, 0.0, 0.1]),
+    (BuildingCondition.DEMOLITION, YearRange(2020, 2024), [0.0, 0.0, 0.0, 0.0, 0.0]),
+    (BuildingCondition.RENOVATION, YearRange(2019, 2022), [0.0, 0.0, 0.0, 0.0, 0.1]),
+    (BuildingCondition.DEMOLITION, YearRange(2019, 2025), [0.0, 0.0, 0.0, 0.0, 0.0]),
+    (BuildingCondition.RENOVATION, YearRange(2019, 2026), [0.0, 0.0, 0.0, 0.0, 0.0]),
+    (BuildingCondition.SMALL_MEASURE, (2021, 2022), [0.1, 0.0, 0.0, 0.1, 0.1]),
+    (BuildingCondition.RENOVATION, (2019, 2022), [0.0, 0.0, 0.0, 0.0, 0.1]),
+    (BuildingCondition.RENOVATION, 2019, [0.0, 0.0, 0.0, 0.0, 0.0]),
+    (BuildingCondition.DEMOLITION, (2019, 2020), [0.0, 0.0, 0.01, 0.02, 0.03]),
+
+])
+def test_shift_building_condition_rates(condition, year_range, expected):
+    """
+    Test that condition rates are shifted the length of year_range to the right.
+    """
+    rates = {
+        'small_measure': [0.1, 0.1, 0.1, 0.1, 0.1]*2,
+        'renovation': [0.0, 0.1, 0.2, 0.3, 0.4]*2,
+        'demolition': [0.0, 0.01, 0.02, 0.03, 0.04]*2,
+    }
+    df = pd.DataFrame(rates, index=pd.MultiIndex.from_product([['A', 'B'], ['t87'], range(2020, 2025)]))
+
+    res: pd.DataFrame = shift_building_condition_rates(df, year_range)
+    assert isinstance(res, pd.DataFrame)
+    assert res.loc[('B', 't87'), condition].to_list() == expected
+    assert res.loc[('A', 't87'), condition].to_list() == expected
+
+
+@pytest.mark.parametrize(('not_selected', 'select_conditions', 'year_range', 'expected'),[
+    (BuildingCondition.SMALL_MEASURE, ['renovation', 'demolition'], YearRange(2021, 2022), [0.1, 0.1, 0.1, 0.1, 0.1]),
+])
+def test_shift_building_condition_rates_works_on_select_conditions(not_selected, select_conditions, year_range, expected):
+    """
+    Test that when the conditions parameter is set, only selected conditions are shifted right.
+    """
+    rates = {
+        'small_measure': [0.1, 0.1, 0.1, 0.1, 0.1],
+        'renovation': [0.05, 0.1, 0.2, 0.3, 0.4],
+        'demolition': [0.0, 0.01, 0.02, 0.03, 0.04],
+    }
+    df = pd.DataFrame(rates, index=pd.MultiIndex.from_product([['C'], ['t49'], range(2020, 2025)]))
+
+    res: pd.DataFrame = shift_building_condition_rates(df, year_range, conditions=['renovation', 'demolition'])
+
+    assert isinstance(res, pd.DataFrame)
+    assert res.loc[('C', 't49'), not_selected].to_list() == rates.get('small_measure')
+
+    for not_selected in select_conditions:
+        assert res.loc[('C', 't49', slice(year_range.start, year_range.end)), not_selected].to_list() == [0.0] * len(year_range)
+
+
+@pytest.mark.parametrize(('condition', 'accumulated', 'expected'),[
+    (BuildingCondition.SMALL_MEASURE, 0.5,[0.5, 0.6, 0.6, 0.7, 0.8]),
+    (BuildingCondition.SMALL_MEASURE, np.nan, [0.0, 0.1, 0.1, 0.2, 0.3]),
+    (BuildingCondition.RENOVATION, 0.05, [0.05, 0.15, 0.25, 0.25, 0.45]),
+    (BuildingCondition.RENOVATION, np.nan, [0.0, 0.1, 0.2, 0.2, 0.4]),
+    (BuildingCondition.DEMOLITION,  0.0, [0.0, 0.01, 0.03, 0.06, 0.1]),
+    (BuildingCondition.DEMOLITION,  np.nan, [0.0, 0.01, 0.03, 0.06, 0.1]),
+])
+def test_accumulate_building_condition_rates(condition, accumulated, expected):
+    """Test that the function re-accumulate the condition using the value in `condition`_acc as the base value."""
+    rates = {
+        'small_measure': [0.1, 0.1, 0.0, 0.1, 0.1]*2,
+        'small_measure_acc': [0.5, 0.1, 0.1, 0.1, 0.1] * 2,
+        'renovation': [0.1, 0.1, 0.1, 0.0, 0.2]*2,
+        'renovation_acc': [0.05, 0.1, 0.2, 0.3, 0.4]*2,
+        'demolition': [0.0, 0.01, 0.02, 0.03, 0.04]*2,
+        'demolition_acc': [0.0, 0.9, 0.9, 0.9, 0.9]*2,
+    }
+
+    df = pd.DataFrame(rates, index=pd.MultiIndex.from_product([['A', 'B'], ['t87'], range(2020, 2025)]))
+    df.loc[(slice(None), slice(None), 2020), f'{condition}_acc'] = accumulated
+
+    res: pd.DataFrame = accumulate_building_condition_rates(df)
+    assert isinstance(res, pd.DataFrame)
+    assert res.loc[('A', 't87'), condition].to_list() == rates.get(condition)[0:5]
+    assert res.loc[('A', 't87'), f'{condition}_acc'].to_list() == pytest.approx(expected)
+
+    assert res.loc[('B', 't87'), condition].to_list() == rates.get(condition)[5:10]
+    assert res.loc[('B', 't87'), f'{condition}_acc'].to_list() == pytest.approx(expected)
+
+@pytest.mark.parametrize(('condition', 'expect_shifted', 'expect_accumulated'),
+                         [('small_measure', [0.1, 0.1, 0.0, 0.0, 0.2], [0.05, 0.15, 0.15, 0.15, 0.35]),
+                          ('renovation', [0.01, 0.02, 0.0, 0.0, 0.04], [0.01, 0.03, 0.03, 0.03, 0.07]),
+                          ('demolition', [0.0, 0.01, 0.0, 0.0, 0.02], [0.0, 0.01, 0.01, 0.01, 0.03])
+                          ])
+def test_pause_building_condition_rates(condition, expect_shifted, expect_accumulated):
+    """Test that the function shift and accumulate the condition using the value in `condition`_acc as the base value."""
+    rates = {
+        'small_measure': [0.1, 0.1, 0.2, 0.2, 0.3]*2,
+        'small_measure_acc': [0.05, 0.1, 0.1, 0.1, 0.1] * 2,
+        'renovation': [0.01, 0.02, 0.04, 0.04, 0.06]*2,
+        'renovation_acc': [0.01, 0.03, 0.07, 0.11, 0.16]*2,
+        'demolition': [0.0, 0.01, 0.02, 0.03, 0.04]*2,
+        'demolition_acc': [0.0, 0.9, 0.9, 0.9, 0.9]*2,
+    }
+
+    df = pd.DataFrame(rates, index=pd.MultiIndex.from_product([['A', 'B'], ['t87'], range(2020, 2025)]))
+
+    res: pd.DataFrame = pause_building_condition_rates(df, YearRange(2022, 2023), conditions=['small_measure', 'renovation', 'demolition'])
+
+    assert isinstance(res, pd.DataFrame)
+    assert res.loc[('A', 't87'), condition].to_list() == pytest.approx(expect_shifted)
+    assert res.loc[('A', 't87'), f'{condition}_acc'].to_list() == pytest.approx(expect_accumulated)
+
+    assert res.loc[('B', 't87'), condition].to_list() == pytest.approx(expect_shifted)
+    assert res.loc[('B', 't87'), f'{condition}_acc'].to_list() == pytest.approx(expect_accumulated)
 
 
 if __name__ == "__main__":

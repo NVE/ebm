@@ -469,76 +469,79 @@ def transform_to_long(s_curves_by_condition: pd.DataFrame) -> pd.DataFrame:
     return df_long
 
 
-def calculate_s_curves(scurve_parameters: pd.DataFrame, building_code_parameters: pd.DataFrame, years: YearRange,
+def calculate_s_curves(scurve_parameters: pd.DataFrame,
+                       building_code_parameters: pd.DataFrame,
+                       years: YearRange,
                        **kwargs: pd.DataFrame|pd.Series) -> pd.DataFrame:
-    # Transform s_curve_parameters into long form with each row representing a building_condition at a certain age
-    s_curves = scurve_from_s_curve_parameters(scurve_parameters)
-    df_never_share = pad_s_curve_age(s_curves, scurve_parameters)
 
-    s_curves_with_building_code = merge_s_curves_and_building_code(s_curves, df_never_share, building_code_parameters)
-    s_curves_with_building_code = s_curves_with_building_code.loc[(slice(None), slice(None), [y for y in years])]
+    s_curves_with_building_code = calculate_scurves_with_building_code(building_code_parameters, scurve_parameters, years)
 
+    return normalize_scurve_conditions(s_curves_with_building_code, years, *kwargs)
+
+
+def normalize_scurve_conditions(s_curves_with_building_code, years, **kwargs):
     s_curves_with_demolition_acc = accumulate_demolition(s_curves_with_building_code, years)
     s_curve_demolition = s_curves_with_building_code.demolition
-
     s_curve_cumulative_demolition = transform_to_cumulative_demolition(s_curves_with_demolition_acc, years)
     s_curve_renovation_never_share = s_curves_with_building_code.renovation_never_share
-    s_curve_small_measure_never_share = kwargs.get('small_measure_never_share', s_curves_with_building_code.small_measure_never_share)
-    s_curve_cumulative_small_measure = kwargs.get('cumulative_small_measure', cumulative_small_measure(s_curves_with_building_code, years))
+    s_curve_small_measure_never_share = kwargs.get('small_measure_never_share',
+                                                   s_curves_with_building_code.small_measure_never_share)
+    s_curve_cumulative_small_measure = kwargs.get('cumulative_small_measure',
+                                                  cumulative_small_measure(s_curves_with_building_code, years))
     s_curve_cumulative_renovation = cumulative_renovation(s_curves_with_building_code, years)
-
     s_curve_renovation_max = renovation_max(s_curve_cumulative_demolition, s_curve_renovation_never_share)
-    s_curve_small_measure_max = kwargs.get('s_curve_small_measure_max', small_measure_max(s_curve_cumulative_demolition, s_curve_small_measure_never_share))
-
-
+    s_curve_small_measure_max = kwargs.get('s_curve_small_measure_max', small_measure_max(s_curve_cumulative_demolition,
+                                                                                          s_curve_small_measure_never_share))
     s_curve_small_measure_total = trim_max_value(s_curve_cumulative_small_measure, s_curve_small_measure_max)
     s_curve_renovation_total = trim_max_value(s_curve_cumulative_renovation, s_curve_renovation_max)
     scurve_total = total(s_curve_renovation_total, s_curve_small_measure_total)
-
-    s_curve_renovation_from_small_measure = renovation_from_small_measure(s_curve_renovation_max, s_curve_small_measure_total)
+    s_curve_renovation_from_small_measure = renovation_from_small_measure(s_curve_renovation_max,
+                                                                          s_curve_small_measure_total)
     s_curve_renovation = trim_renovation_from_renovation_total(s_curve_renovation=s_curve_renovation_from_small_measure,
                                                                s_curve_renovation_max=s_curve_renovation_max,
                                                                s_curve_renovation_total=s_curve_renovation_total,
                                                                scurve_total=scurve_total)
-
     s_curve_renovation_and_small_measure = renovation_and_small_measure(s_curve_renovation, s_curve_renovation_total)
-
     s_curve_small_measure = small_measure(s_curve_renovation_and_small_measure, s_curve_small_measure_total)
-
     s_curve_original_condition = original_condition(s_curve_cumulative_demolition, s_curve_renovation,
-                                                            s_curve_renovation_and_small_measure,
-                                                            s_curve_small_measure)
-
+                                                    s_curve_renovation_and_small_measure,
+                                                    s_curve_small_measure)
     s_curves_by_condition = transform_to_dataframe(s_curve_cumulative_demolition,
-                                                           s_curve_original_condition,
-                                                           s_curve_renovation,
-                                                           s_curve_renovation_and_small_measure,
-                                                           s_curve_small_measure,
-                                                           s_curve_demolition)
-
+                                                   s_curve_original_condition,
+                                                   s_curve_renovation,
+                                                   s_curve_renovation_and_small_measure,
+                                                   s_curve_small_measure,
+                                                   s_curve_demolition)
     s_curves_by_condition['original_condition'] = s_curve_original_condition
-    s_curves_by_condition['demolition'] =  s_curve_cumulative_demolition
-    s_curves_by_condition['small_measure'] =  s_curve_small_measure
-    s_curves_by_condition['renovation'] =  s_curve_renovation
-    s_curves_by_condition['renovation_and_small_measure'] =  s_curve_renovation_and_small_measure
-
-    s_curves_by_condition['s_curve_sum'] =  s_curve_original_condition + s_curve_cumulative_demolition + s_curve_small_measure + s_curve_renovation + s_curve_renovation_and_small_measure
-
-    s_curves_by_condition['s_curve_demolition'] =  s_curve_demolition
+    s_curves_by_condition['demolition'] = s_curve_cumulative_demolition
+    s_curves_by_condition['small_measure'] = s_curve_small_measure
+    s_curves_by_condition['renovation'] = s_curve_renovation
+    s_curves_by_condition['renovation_and_small_measure'] = s_curve_renovation_and_small_measure
+    s_curves_by_condition[
+        's_curve_sum'] = s_curve_original_condition + s_curve_cumulative_demolition + s_curve_small_measure + s_curve_renovation + s_curve_renovation_and_small_measure
+    s_curves_by_condition['s_curve_demolition'] = s_curve_demolition
     s_curves_by_condition['s_curve_cumulative_demolition'] = s_curve_cumulative_demolition
-    s_curves_by_condition['s_curve_small_measure_total'] =  s_curve_small_measure_total
+    s_curves_by_condition['s_curve_small_measure_total'] = s_curve_small_measure_total
     s_curves_by_condition['s_curve_small_measure_max'] = s_curve_small_measure_max
     s_curves_by_condition['s_curve_cumulative_small_measure'] = s_curve_cumulative_small_measure
     s_curves_by_condition['s_curve_small_measure_never_share'] = s_curve_small_measure_never_share
     s_curves_by_condition['scurve_total'] = scurve_total
     s_curves_by_condition['s_curve_renovation_max'] = s_curve_renovation_max
     s_curves_by_condition['s_curve_cumulative_renovation'] = s_curve_cumulative_renovation
-    s_curves_by_condition['s_curve_renovation_total'] =  s_curve_renovation_total
+    s_curves_by_condition['s_curve_renovation_total'] = s_curve_renovation_total
     s_curves_by_condition['renovation_never_share'] = s_curve_renovation_never_share
     s_curves_by_condition['age'] = s_curves_with_building_code['age']
-
     # s_curves_by_condition.to_excel('output\s_curves_by_condition.xlsx', merge_cells=False)
     return s_curves_by_condition
+
+
+def calculate_scurves_with_building_code(building_code_parameters, scurve_parameters, years):
+    # Transform s_curve_parameters into long form with each row representing a building_condition at a certain age
+    s_curves = scurve_from_s_curve_parameters(scurve_parameters)
+    df_never_share = pad_s_curve_age(s_curves, scurve_parameters)
+    s_curves_with_building_code = merge_s_curves_and_building_code(s_curves, df_never_share, building_code_parameters)
+    s_curves_with_building_code = s_curves_with_building_code.loc[(slice(None), slice(None), [y for y in years])]
+    return s_curves_with_building_code
 
 
 def make_s_curve_parameters(earliest_age: int|None=None, average_age: int|None=None, last_age: int|None=None, rush_years: int|None=None, rush_share: float|None=None, never_share: float|None=None, building_lifetime: int=130,  building_category: str | None = 'unknown', condition: str | None = 'unknown') -> pd.DataFrame:
@@ -687,10 +690,353 @@ def scurve_rates(s_curve_parameters: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def freeze_scurves_from_year(s_curves: pd.DataFrame, years: int | YearRange | tuple[int, int]) -> pd.DataFrame:
+def pause_building_condition_rates(s_curve_building_code:pd.DataFrame,
+                                   period: YearRange|tuple[int, int]|int,
+                                   conditions: list[str]|None=None) -> pd.DataFrame:
+
+    """
+    Apply a pause (deferral) to selected building condition rates and accumulate the results.
+
+    This function is a convenience wrapper that first shifts the specified building
+    condition rate columns forward in time for a given pause period—simulating a
+    deferral of activity—and then recomputes cumulative (running) totals using
+    ``accumulate_building_condition_rates``.
+
+    Internally, it applies two operations:
+
+    1. ``shift_building_condition_rates``:
+       Shifts selected condition rate columns forward by the length of the
+       pause period for all years greater than or equal to ``period.start``,
+       within each group of the first two index levels.
+    2. ``accumulate_building_condition_rates``:
+       Recomputes cumulative totals for the condition rate columns and their
+       corresponding accumulator columns.
+
+    Parameters
+    ----------
+    s_curve_building_code : pandas.DataFrame
+        A DataFrame indexed by a MultiIndex with at least three levels,
+        where index level 2 represents the year. Must contain the condition
+        rate columns referenced in ``conditions`` and the accumulator columns
+        required by ``accumulate_building_condition_rates``.
+    period : YearRange | tuple[int, int] | int
+        The period defining the pause:
+        - If a ``tuple[int, int]``: interpreted as (start_year, end_year), inclusive.
+        - If an ``int``: treated as the pause start year, with the end year taken
+          as the maximum year present in the DataFrame.
+        - If a ``YearRange``: used directly.
+        The pause length is determined as the number of years in ``period``.
+    conditions : list[str] or None, default None
+        Column names representing the building condition rates to pause.
+        If ``None``, defaults to:
+        ``['small_measure', 'renovation', 'demolition']``.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame where:
+        - Values in the selected condition columns have been shifted forward
+          according to the pause period.
+        - Accumulator columns have been updated to reflect the new running totals.
+        The presence and structure of the columns match the output of
+        ``accumulate_building_condition_rates``.
+
+    Notes
+    -----
+    - This function does not mutate the input DataFrame; it returns a new one.
+    - All shifting is done within each group of the first two index levels.
+    - Years are expected to be integers.
+    - See ``shift_building_condition_rates`` and
+      ``accumulate_building_condition_rates`` for detailed behavior of the
+      underlying operations.
+
+    Examples
+    --------
+    Pause condition rates starting from 2028 and recompute accumulations:
+
+    >>> out = pause_building_condition_rates(df, period=2028)
+
+    Pause explicitly from 2026 through 2029:
+
+    >>> out = pause_building_condition_rates(df, period=YearRange(2026, 2029))
+
+    Pause only renovation rates:
+
+    >>> out = pause_building_condition_rates(
+    ...     df, period=(2025, 2027), conditions=['renovation']
+    ... )
+    """
+    return (s_curve_building_code
+            .pipe(shift_building_condition_rates, period=period, conditions=conditions)
+            .pipe(accumulate_building_condition_rates))
+
+
+def shift_building_condition_rates(s_curve_building_code:pd.DataFrame,
+                                   period: YearRange|tuple[int, int]|int,
+                                   conditions: list[str]|None=None) -> pd.DataFrame:
+    """
+    Shift building condition rates over a given period forward in time.
+
+    This function takes a copy of the input DataFrame and, for the specified building conditions,
+    shifts values occurring from `period.start` onwards by the length of the period
+    (i.e., the number of years in `period`). The shift is done within each group
+    defined by the first two levels of the index. Newly created gaps are filled with 0.
+
+    The intended use is to simulate a pause (deferral) in certain building-related
+    condition rates (e.g., small measures, renovation, demolition) for a span of years,
+    and resume them after the pause by moving the corresponding values forward.
+
+    Parameters
+    ----------
+    s_curve_building_code : pandas.DataFrame
+        A DataFrame indexed by a MultiIndex with **at least three levels** where the
+        third level (index level number 2) is an integer year. The DataFrame must contain
+        columns whose names match those provided in `conditions`. The function
+        operates on a copy of this DataFrame and does not mutate the original.
+    period : YearRange | tuple[int, int] | int
+        The pause period:
+        - If a `tuple[int, int]`, it is interpreted as `(start_year, end_year)` inclusive.
+          The start will be clamped up to the minimum year present in the DataFrame.
+        - If an `int`, it is treated as the start year; the end year is set to the
+          maximum year present in the DataFrame. The start will be clamped up to
+          the minimum year present in the DataFrame.
+    conditions : list[str] | None, default None
+        Column names representing the building condition rates to pause. If `None`, defaults to
+        `['small_measure', 'renovation', 'demolition']`.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A new DataFrame (copy of the input) where, for rows with year >= `period.start`
+        and columns listed in `conditions`, values are shifted **forward** by the pause length
+        within each group of the first two index levels. Any values shifted beyond the
+        available years are dropped by the shift operation, and any newly introduced
+        gaps in the target slice are filled with 0.
+
+    Raises
+    ------
+    ValueError
+        If `period` is not a `YearRange`, an `int`, or a valid `(start_year, end_year)` tuple
+        where `start_year <= end_year`.
+
+    Notes
+    -----
+    - The function assumes:
+      * The DataFrame index has a third level (at position 2) representing the year.
+      * Years are integers and sortable.
+      * The columns listed in `conditions` exist in the DataFrame.
+    - The operation:
+      1. Determines the effective `YearRange` for the pause, clamping the start
+         to the minimum year in the data if needed.
+      2. Computes `pause_length = len(period)`.
+      3. For `year >= period.start`, shifts the `conditions` columns by `pause_length`
+         **within each group of the first two index levels**.
+      4. Fills `NaN` introduced by the shift with 0 in the affected slice.
+
+    Examples
+    --------
+    Suppose `df` has a MultiIndex `(region, building_code, year)` and includes
+    columns `'small_measure'`, `'renovation'`, and `'demolition'`.
+
+    Pause from 2028 through the max available year:
+    >>> out = shift_building_condition_rates(df, period=2028)
+
+    Pause explicitly from 2026 to 2029 (inclusive):
+    >>> out = shift_building_condition_rates(df, period=(2026, 2029))
+
+    Using a custom set of conditions:
+    >>> out = shift_building_condition_rates(df, period=(2025, 2027),
+    ...                                      conditions=['renovation'])
+    """
+    cr = s_curve_building_code.copy()
+
+    year_level_num = 2
+    minimum_year = cr.index.get_level_values(year_level_num).min()
+    if isinstance(period, int) and not isinstance(period, bool):
+        maximum_year = cr.index.get_level_values(year_level_num).max()
+        period = YearRange(start=max(period, minimum_year), end=maximum_year)
+    elif isinstance(period, tuple) and len(period) == 2 and isinstance(period[0], int) and isinstance(period[1], int) and \
+            period[0] <= period[1]:  # noqa: PLR2004
+        period = YearRange(max(period[0], minimum_year), period[1])
+    elif not isinstance(period, YearRange):
+        msg = f'Illegal value in period `{period}`. YearRange or int expected.'
+        raise ValueError(msg)
+
+    if conditions is None:
+        conditions = ['small_measure', 'renovation', 'demolition']
+
+    # To avoid any indexing issues, period start is set to minimum year when lower
+    if period.start < minimum_year:
+        period = YearRange(minimum_year, period.end)
+    pause_length = len(period)
+
+    shifted_cr = cr.loc[pd.IndexSlice[:, :, period.start:], conditions].groupby(level=[0, 1]).shift(pause_length)
+    cr.loc[pd.IndexSlice[:, :, period.start:], conditions] = shifted_cr.fillna(0)
+
+    return cr
+
+
+def accumulate_building_condition_rates(building_condition_rates: pd.DataFrame) -> pd.DataFrame:
+    """
+    Accumulate annual building condition rates into running totals per building category and code.
+
+    This function takes a DataFrame indexed by a MultiIndex with at least three levels,
+    where the third level (index level 2) represents the year. For three predefined
+    condition columns—``small_measure``, ``renovation``, and ``demolition``—it computes
+    cumulative sums across years within each group of the first two index levels.
+
+    The accumulation uses temporary columns:
+    - For the first year (hard‑coded as 2020), values are taken from the corresponding
+      ``*_acc`` accumulator columns (defaulting to 0 where missing).
+    - For all later years (from 2021 onward), values are taken from the annual
+      condition rate columns.
+    These temporary values are cumulatively summed per group, and the resulting
+    running totals populate the ``*_acc`` columns.
+
+    Parameters
+    ----------
+    building_condition_rates : pandas.DataFrame
+        Input DataFrame with a MultiIndex where index level 2 is an integer year.
+        Must contain the columns:
+        ``'small_measure'``, ``'renovation'``, ``'demolition'``,
+        and their accumulator counterparts:
+        ``'small_measure_acc'``, ``'renovation_acc'``, ``'demolition_acc'``.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame containing only the six columns:
+        ``['small_measure', 'renovation', 'demolition',
+           'small_measure_acc', 'renovation_acc', 'demolition_acc']``.
+        The accumulator columns contain cumulative sums over years within each
+        group of index levels 0 and 1.
+
+    Notes
+    -----
+    - The function does **not** modify the input DataFrame; it works on a copy.
+    - The first year is assumed to be **2020**.
+    - Accumulators for 2020 come from the existing ``*_acc`` columns.
+    - From 2021 onward, annual values from the condition columns are used for accumulation.
+
+    Examples
+    --------
+    Given a MultiIndex of (region, building_code, year):
+
+    >>> out = accumulate_building_condition_rates(df)
+    >>> out.columns
+    Index(['small_measure', 'renovation', 'demolition',
+           'small_measure_acc', 'renovation_acc', 'demolition_acc'], dtype='object')
+
+    The returned accumulator columns represent cumulative totals per
+    (region, building_code) across increasing years.
+    """
+    df = building_condition_rates.copy()
+    first_year = 2020
+    next_year = 2021
+
+    condition_columns = ['small_measure', 'renovation', 'demolition']
+    acc_columns = [f'{bc}_acc' for bc in condition_columns]
+    temp_columns = [f'{bc}ac' for bc in condition_columns]
+
+    df.loc[(slice(None), slice(None), first_year), temp_columns] = (
+        df.loc[(slice(None), slice(None), first_year), acc_columns].fillna(0.0).to_numpy()
+    )
+
+    df.loc[pd.IndexSlice[:, :, next_year:], temp_columns] = (
+        df.loc[pd.IndexSlice[:, :, next_year:], condition_columns].to_numpy()
+    )
+
+    df[acc_columns] = df.groupby(level=[0, 1])[temp_columns].cumsum()
+
+    return df[condition_columns + acc_columns]
+
+
+def freeze_scurves_from_year(s_curves: pd.DataFrame,
+                             years: int | YearRange | tuple[int, int],
+                             condition_columns: list[str]|None = None) -> pd.DataFrame:
+    """
+    Freeze building condition rate columns over a specified year range and resume the original trajectory after the freeze with a forward time shift.
+
+    This function operates on a MultiIndex DataFrame where the year is at index
+    level 2. For the specified freeze period (inclusive), the values of the
+    condition columns (as defined by ``list(BuildingCondition)``) are set equal to
+    their values at the first freeze year (``start``). For the years following
+    the freeze period, the original (unfrozen) time series is continued but
+    shifted forward by the length of the freeze, preserving the trajectory shape
+    while delaying it in time.
+
+    Parameters
+    ----------
+    condition_columns :
+    s_curves : pandas.DataFrame
+        Input DataFrame with a MultiIndex row index. The **year must be at level 2**
+        of the index. The DataFrame must contain one column for each member of
+        ``BuildingCondition`` (e.g., an Enum listing condition rate columns).
+    years : int or YearRange or tuple of (int, int)
+        Specification of the freeze period.
+
+        - If ``YearRange``: uses ``[years.start, years.end]`` (inclusive).
+          ``start`` is clamped to the minimum year present in the DataFrame.
+        - If ``int``: interpreted as ``start=years`` (clamped to the minimum year)
+          and ``end = max_year`` present in the DataFrame.
+        - If ``(start, end)`` tuple: uses the inclusive range after validating
+          that ``start <= end`` and clamping ``start`` to the minimum year.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A copy of ``s_curves`` where:
+        - For all index keys, the condition columns in ``[start, end]`` are set to
+          their values at ``year == start`` (i.e., frozen).
+        - For years ``> end``, the original (unfrozen) values are applied but shifted
+          forward by ``(end - start)`` years to avoid a discontinuity.
+
+    Raises
+    ------
+    ValueError
+        If ``years`` is not a supported type (``YearRange``, ``int``, or 2-tuple of
+        ``int`` with ``start <= end``).
+
+    Notes
+    -----
+    - The function assumes the year is at index level 2 and uses
+      ``pd.IndexSlice[:, :, ...]`` to select by year range.
+    - Only columns listed in ``list(BuildingCondition)`` are modified; other
+      columns remain unchanged.
+    - The freezing is inclusive of both ``start`` and ``end`` years.
+    - Post-freeze continuation uses:
+
+      ``post_freeze_rates.shift(end - start).iloc[1:]``
+
+      to align the shifted series; this implicitly drops the first shifted row to
+      guard against misalignment. If you require stricter alignment guarantees,
+      consider reindexing by explicit year keys instead of relying on
+      ``.iloc[1:]``.
+
+    Examples
+    --------
+    Freeze from a specific year to the end of the dataset:
+
+    >>> df_frozen = freeze_scurves_from_year(s_curves, 2022)
+
+    Freeze across an explicit range:
+
+    >>> df_frozen = freeze_scurves_from_year(s_curves, (2021, 2023))
+
+    Freeze using a YearRange object:
+
+    >>> rng = YearRange(start=2020, end=2022)
+    >>> df_frozen = freeze_scurves_from_year(s_curves, rng)
+    """
+
+    # Copy the input DataFrame to avoid mutating the caller data
     df = s_curves.copy()
+
+    # Identify year column and first year
     year_level_num = 2
     minimum_year = df.index.get_level_values(year_level_num).min()
+
+    # Convert arguments to YearRange. Raise error when unable to do so.
     if isinstance(years, YearRange):
         freeze_period = YearRange(max(years.start, minimum_year), years.end)
     elif isinstance(years, int) and not isinstance(years, bool):
@@ -702,13 +1048,16 @@ def freeze_scurves_from_year(s_curves: pd.DataFrame, years: int | YearRange | tu
         msg = f'Illegal value in years `{years}`. YearRange or int expected.'
         raise ValueError(msg)
 
-    condition_columns = list(BuildingCondition)
+    # Save freeze rates and post freeze rates
+    condition_columns = list(BuildingCondition) if condition_columns is None else condition_columns
     freeze_rates = df.loc[pd.IndexSlice[:, :, freeze_period.start]][condition_columns]
     post_freeze_rates = df.loc[pd.IndexSlice[:, :, freeze_period.start + 1:]][condition_columns]
 
+    # Apply freeze rate on columns for the freeze perioder
     freeze_index = pd.IndexSlice[:, :, freeze_period.start:freeze_period.end]
     df.loc[freeze_index, condition_columns] = freeze_rates
 
+    # Set post freeze rates
     post_freeze_index = pd.IndexSlice[:, :, freeze_period.end + 1:]
     df.loc[post_freeze_index, condition_columns] = post_freeze_rates.shift(freeze_period.end - freeze_period.start).iloc[1:]
 
@@ -731,6 +1080,7 @@ def main() -> None:
     print(df)
 
     logger.info('done')
+
 
 if __name__ == '__main__':
     main()

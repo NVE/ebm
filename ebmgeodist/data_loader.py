@@ -2,6 +2,7 @@ import os
 
 from typing import Optional
 import pathlib
+from functools import lru_cache
 
 import polars as pl
 import pandas as pd
@@ -10,6 +11,9 @@ from loguru import logger
 from ebm.temp_calc import calculate_energy_use_wide
 from ebmgeodist.initialize import get_output_file
 
+@lru_cache(maxsize=1)
+def _log_elhub_container_and_storage_account_once(container: str, storage_account: str):
+    logger.warning(f"Elhub container: {container}, Elhub storage Account: {storage_account}")
 # Function to load Elhub data from Azure Data Lake Storage using Polars
 def load_elhub_data(
     dataset="forbruk_per_time_prisomraade_kommune_naeringshovedgruppe",
@@ -57,10 +61,9 @@ def load_elhub_data(
     
     # Split into container and storage_account
     container, storage_account = azure_adls_path.split('/')
-    logger.warning(f"Elhub container: {container}, Elhub storage Account: {storage_account}")
+    _log_elhub_container_and_storage_account_once(container, storage_account)
     
     abfss_path = f"abfss://{container}@{storage_account}.dfs.core.windows.net/{full_path}"
-    logger.info(f"🔍 Loading Elhub data for year: {year_filter}")
     # print(f"📌 Selected columns: {columns}")
 
     # Load data lazily

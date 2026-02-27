@@ -58,7 +58,11 @@ def run_ebmgeodist():
         building_category_choice = arguments.building_category
         elhub_years = arguments.years
 
-        # Choose source
+        if arguments.level == "municipal":
+            logger.info("🏛️ Municipal level is chosen for geographical distribution.")
+        elif arguments.level == "price_area":   
+            logger.info("🗺️ Price area level is chosen for geographical distribution.")
+        # Choose sour
         if arguments.source == "azure":
             logger.info("☁️ Loading Elhub data directly from the Azure Data Lake. This assumes you have access via 'az login'.")
 
@@ -123,7 +127,9 @@ def run_ebmgeodist():
                                                 energy_product=energy_product, 
                                                 building_category=(building_category_choice if energy_product == "electricity" else filtered_categories),
                                                 step=step, 
-                                                output_format = include_start_end_years)
+                                                output_format = include_start_end_years,
+                                                level = arguments.level
+                                                )
 
         logger.info(f"✅ Municipal distribution for selected energy product has finished running and the results are saved in the output folder with filename: {file_to_open.name}")
         if os.environ.get('EBM_ALWAYS_OPEN', 'FALSE').upper() == 'TRUE':

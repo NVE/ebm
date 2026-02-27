@@ -20,17 +20,18 @@ def prepare_elhub_data(elhub_years: list[int], step: str) -> pl.DataFrame:
     input_file = get_output_file("input/yearly_aggregated_elhub_data.parquet")
 
     if step == "azure":
-        elhub_data = {
-            f"df_elhub_{str(year)[-2:]}": load_elhub_data(year_filter=year, columns=True)
-            for year in elhub_years
-        }
-        gc.collect()
+        aggregated_years = []
+        for year in elhub_years:
+                df_year = load_elhub_data(year_filter=year, columns=True)
+                df_year_agg = yearly_aggregated_elhub_data(df_year)
+                aggregated_years.append(df_year_agg)
 
-        df_stacked = list(elhub_data.values())[0]
-        for df in list(elhub_data.values())[1:]:
-            df_stacked = df_stacked.vstack(df)
-
-        df_stacked_year = yearly_aggregated_elhub_data(df_stacked)
+                del df_year
+                gc.collect()
+                logger.info(f"📍Loaded and aggregated Elhub data for year: {year}"
+        )
+        
+        df_stacked_year = pl.concat(aggregated_years)
         
         # Save the stacked DataFrame to a Parquet file with a timestamp
         norwegian_time = datetime.now(ZoneInfo("Europe/Oslo"))
@@ -38,12 +39,12 @@ def prepare_elhub_data(elhub_years: list[int], step: str) -> pl.DataFrame:
         output_file = input_file.parent / f"yearly_aggregated_elhub_data_{timestamp}.parquet"
         df_stacked_year.write_parquet(output_file, compression="zstd")
         logger.info(f"📍New stacked Elhub data with a timestamp of the format YearMonthDay_HourMinutesSeconds:{timestamp} saved in: {output_file.name}")
+        return df_stacked_year
     else:
         create_output_directory(filename=input_file)
-        df_stacked = pl.read_parquet(input_file)
+        df_stacked_year = pl.read_parquet(input_file)
         logger.info(f"📍Loaded Elhub data from: {input_file.name}")
-
-    return df_stacked
+    return df_stacked_year
 
 def get_household_data(df: pl.DataFrame) -> pl.DataFrame:
     return df.filter(
@@ -57,17 +58,22 @@ def get_holiday_home_data(df: pl.DataFrame) -> pl.DataFrame:
 
 
 def get_commercial_data(df: pl.DataFrame) -> pl.DataFrame:
-    commercial_list = [{"45": "60"}, {"64": "96"}, "99"]
-    filter_list = []
+    # single_codes = ["35.1", "35.2"] # NACE overview document in Sharepoint under "Energibruk"
+    single_codes = [] # NACE overview document in Sharepoint under "Energibruk"
+    # USE THIS! ranges = [{"36" : "39"}, {"45": "61"}, {"64": "99"}] # NACE overview document in Sharepoint under "Energibruk"
+    ranges = [{"45": "61"}, {"64": "99"}] # NACE overview document in Sharepoint under "Energibruk"
 
-    for item in commercial_list:
-        if isinstance(item, dict):
-            for start, end in item.items():
-                filter_list.extend([str(i) for i in range(int(start), int(end) + 1)])
-        else:
-            filter_list.append(item)
 
-    return df.filter(pl.col("naering_kode").is_in(filter_list))
+    filter_set: set[str] = set(single_codes)
+    for r in ranges:
+        for start, end in r.items():
+            filter_set.update({str(i) for i in range(int(start), int(end) + 1)})
+        
+    return df.filter(
+    pl.col("naering_kode").is_in(filter_set)
+    | pl.col("naeringshovedgruppe_kode").is_in(filter_set)
+)
+
 
 def calculate_elhub_factors(df_stacked: pl.DataFrame, normalized: list[str], elhub_years: list[int], year_cols) -> dict:
     """
@@ -173,7 +179,8 @@ def geographical_distribution(
     energy_product: str = None,
     building_category: str = None,
     step: str = None,
-    output_format: bool = False
+    output_format: bool = False,
+    level: str = "municipal"
 ) -> Path:
     """
     Calculate and export energy use distribution based on Elhub or district heating data.

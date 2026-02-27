@@ -52,7 +52,7 @@ def load_scurves(
     years = YearRange(*years) if isinstance(years, tuple) else years
     scurve_parameters = scurve_parameters if scurve_parameters else dm.get_scurve_params()
     building_code_parameters = dm.get_building_codes() if not isinstance(building_code_parameters, pd.DataFrame) else building_code_parameters
-    s_curves_by_condition = calculate_s_curves(scurve_parameters, building_code_parameters, years)
+    s_curves_by_condition = calculate_s_curves(scurve_parameters, building_code_parameters, years, **kwargs)
     return s_curves_by_condition
 
 
@@ -184,7 +184,7 @@ def calculate_heating_systems(
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
     dm = DatabaseManager(FileHandler(directory=input_directory))
 
-    shares_start_year = dm.get_heating_systems_shares_start_year() if not heating_system_initial_shares else heating_system_initial_forecast
+    shares_start_year = dm.get_heating_systems_shares_start_year() if heating_system_initial_shares is None else heating_system_initial_shares
     efficiencies = heating_system_efficiencies if heating_system_efficiencies is not None else dm.get_heating_system_efficiencies()
     projection = heating_system_initial_forecast if heating_system_initial_forecast is not None else dm.get_heating_system_forecast()
     building_code_list = building_code_parameters if building_code_parameters is not None else dm.get_building_code_list()
@@ -242,7 +242,7 @@ def calculate_holiday_homes(
     return output
 
 
-def run_model(input_directory: pathlib.Path | str | None, model_years: YearRange=YearRange(2020, 2050)) -> EbmResult:  # noqa: B008
+def run_model(input_directory: pathlib.Path | str | None=None, model_years: YearRange=YearRange(2020, 2050)) -> EbmResult:  # noqa: B008
     if isinstance(input_directory, str):
         input_directory = pathlib.Path(input_directory)
     elif input_directory is None:

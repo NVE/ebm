@@ -832,8 +832,9 @@ def calculate_construction_with_demolition(construction_by_building_category_and
         not_residential_index].groupby(by=['building_category']).shift(periods=1, fill_value=0)
 
     construction: pd.DataFrame = construction_by_building_category_and_year.join(reconstruct_demolished, on=['building_category', 'year'])
+    construction: pd.DataFrame = construction.join(demolition_by_building_category.rename('rebuilt'), on=['building_category', 'year'])
+    construction['construction'] = construction['rebuilt'] + construction['net_construction']
     construction['area'] = construction['net_construction_acc'] + construction['demolition']
-
     return construction
 
 
@@ -922,14 +923,16 @@ def calculate_all_area(area_new_residential_buildings, area_parameters, area_per
         construction_floor_area_by_year=construction_floor_area_by_year,
         building_code=building_code_parameters,
         years=years)
+
     construction_with_demolition = calculate_construction_with_demolition(construction_by_building_category_and_year,
                                                                           demolition_floor_area_by_year)
+
     existing_area = calculate_existing_area(area_parameters, building_code_parameters, years)
     total_area_floor_by_year = merge_total_area_by_year(construction_with_demolition.area, existing_area)
     floor_area_forecast = multiply_s_curves_with_floor_area(cconditions, total_area_floor_by_year)
     floor_area_forecast_with_s_curves = floor_area_forecast.join(s_curves_by_condition,
                                                                  on=['building_category', 'building_code', 'year'])
-    net_construction = construction_with_demolition[['net_construction', 'net_construction_acc']].copy()
+    net_construction = construction_with_demolition[['construction', 'rebuilt', 'net_construction', 'net_construction_acc']].copy()
     net_construction.loc[:, 'building_condition'] = 'original_condition'
     df = floor_area_forecast_with_s_curves.merge(
         net_construction.reset_index(), on=['building_category', 'building_code', 'year', 'building_condition'],

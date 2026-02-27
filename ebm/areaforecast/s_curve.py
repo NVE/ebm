@@ -474,9 +474,12 @@ def calculate_s_curves(scurve_parameters: pd.DataFrame,
                        years: YearRange,
                        **kwargs: pd.DataFrame|pd.Series) -> pd.DataFrame:
 
-    s_curves_with_building_code = calculate_scurves_with_building_code(building_code_parameters, scurve_parameters, years)
+    if 's_curves_with_building_code' in kwargs:
+        s_curves_with_building_code = kwargs.get('s_curves_with_building_code')
+    else:
+        s_curves_with_building_code = calculate_scurves_with_building_code(building_code_parameters, scurve_parameters, years)
 
-    return normalize_scurve_conditions(s_curves_with_building_code, years, *kwargs)
+    return normalize_scurve_conditions(s_curves_with_building_code=s_curves_with_building_code, years=years, kwargs=kwargs)
 
 
 def normalize_scurve_conditions(s_curves_with_building_code, years, **kwargs):

@@ -118,17 +118,14 @@ def calculate_building_category_energy_requirements(building_category: None,
     pd.DataFrame
 
     """
-    df = calculate_for_building_category(database_manager=database_manager, energy_need_original_condition=None,
-                                         improvement_building_upgrade=None, energy_need_improvements_policy=None,
-                                         energy_need_yearly_reduction=None)
-
+    df = calculate_for_building_category(database_manager=database_manager)
     df = df.set_index(['building_category', 'building_code', 'purpose', 'building_condition', 'year'])
 
-    q = area_forecast.reset_index()
+    merged = (area_forecast
+              .reset_index()
+              .set_index(['building_category', 'building_code', 'building_condition', 'year'])
+              .merge(df, left_index=True, right_index=True))
 
-    q = q.set_index(['building_category', 'building_code', 'building_condition', 'year'])
-
-    merged = q.merge(df, left_index=True, right_index=True)
     merged['energy_requirement'] = merged.kwh_m2 * merged.m2
 
     return merged

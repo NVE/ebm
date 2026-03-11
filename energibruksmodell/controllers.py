@@ -1,5 +1,6 @@
 import os
 import pathlib
+from typing import TypedDict
 
 import pandas as pd
 
@@ -12,6 +13,8 @@ from ebm.model.database_manager import DatabaseManager
 from ebm.model.dataframemodels import PolicyImprovement, YearlyReduction
 from ebm.model.energy_requirement import energy_need_improvements
 from ebm.model.file_handler import FileHandler
+
+
 
 
 class EbmResult:
@@ -56,6 +59,30 @@ def load_scurves(
     return s_curves_by_condition
 
 
+class AreaForecastInput(TypedDict, total=False):
+    area_parameters: pd.DataFrame | pathlib.Path | None
+    building_code_parameters: pd.DataFrame | pathlib.Path | None
+    s_curves_by_condition: pd.DataFrame | pathlib.Path | pd.DataFrame | pathlib.Path | None
+    population_forecast: pd.DataFrame | pathlib.Path | None
+    area_new_residential_buildings: pd.DataFrame | pathlib.Path | None
+    new_buildings_residential: pd.DataFrame | pathlib.Path | None
+    area_per_person: pd.DataFrame | pathlib.Path | None
+
+    s_curves_by_condition: pd.DataFrame | pathlib.Path | None
+
+
+class EnergyNeedInput(TypedDict, total=False):
+    original_condition: pd.DataFrame | pathlib.Path | None
+    calibrate_heating_rv: pd.DataFrame | pathlib.Path | None
+    behaviour_factor: pd.DataFrame | pathlib.Path | None
+    improvements: pd.DataFrame | pathlib.Path | None
+    improvement_building_upgrade: pd.DataFrame | pathlib.Path | None
+
+
+class RunModelInput(AreaForecastInput, EnergyNeedInput, total=False):
+    pass
+
+
 def calculate_area_forecast(
     years: tuple[int, int] | YearRange | None = (2020, 2050),
     area_parameters: pd.DataFrame | pathlib.Path | YearRange | None = None,
@@ -64,8 +91,8 @@ def calculate_area_forecast(
     area_new_residential_buildings: None = None,
     new_buildings_residential: None = None,
     area_per_person: None = None,
-    s_curves_by_condition: pd.DataFrame | pathlib.Path | None = None,
     input_directory: pathlib.Path | str | None = None,
+    s_curves_by_condition: pd.DataFrame | pathlib.Path | None = None,
     **kwargs: pd.DataFrame|pd.Series,
 ) -> pd.DataFrame:
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
@@ -242,7 +269,8 @@ def calculate_holiday_homes(
     return output
 
 
-def run_model(input_directory: pathlib.Path | str | None=None, model_years: YearRange=YearRange(2020, 2050)) -> EbmResult:  # noqa: B008
+def run_model(input_directory: pathlib.Path | str | None=None, model_years: YearRange=YearRange(2020, 2050),
+              **kwargs: AreaForecastInput) -> EbmResult:  # noqa: B008
     if isinstance(input_directory, str):
         input_directory = pathlib.Path(input_directory)
     elif input_directory is None:

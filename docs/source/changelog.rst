@@ -2,6 +2,21 @@
 Changelog
 =========
 
+
+Version 1.0.8 - 2026-03-26
+--------------------------
+
+Added
+^^^^^
+
+* Adds experimental interface with package energibruksmodell
+* Adds various helper functions in energibruksmodell.helpers
+* Return more columns in standard output
+* Add functions for freezing and stopping s-curves
+
+
+
+
 Version 1.0.6 - 2025-01-19
 --------------------
 

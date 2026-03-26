@@ -1,5 +1,6 @@
 import os
 import pathlib
+import typing
 from typing import TypedDict
 
 import pandas as pd
@@ -13,8 +14,6 @@ from ebm.model.database_manager import DatabaseManager
 from ebm.model.dataframemodels import PolicyImprovement, YearlyReduction
 from ebm.model.energy_requirement import energy_need_improvements
 from ebm.model.file_handler import FileHandler
-
-
 
 
 class EbmResult:
@@ -83,6 +82,20 @@ class RunModelInput(AreaForecastInput, EnergyNeedInput, total=False):
     pass
 
 
+def ebm_paths(func: typing.Callable) -> typing.Callable:
+    def str_to_path(v):
+        if isinstance(v, str):
+            return pathlib.Path(v)
+        return v
+    def wrap_ebm_input(*args, **kwargs):
+        past_as_str = {k: str_to_path(v) for k, v in kwargs.items()}
+        res = func(*args, **past_as_str)
+        return res
+
+    return wrap_ebm_input
+
+
+@ebm_paths
 def calculate_area_forecast(
     years: tuple[int, int] | YearRange | None = (2020, 2050),
     area_parameters: pd.DataFrame | pathlib.Path | YearRange | None = None,
@@ -126,6 +139,7 @@ def calculate_area_forecast(
     return df
 
 
+@ebm_paths
 def calculate_energy_use(
     years: tuple[int, int] | YearRange | None = YearRange(2020, 2050),  # noqa: B008
     energy_need_kwh_m2: pd.DataFrame | pathlib.Path | None = None,
@@ -157,6 +171,7 @@ def calculate_energy_use(
     return energy_use_kwh
 
 
+@ebm_paths
 def calculate_energy_need(
     years: tuple[int, int] | YearRange | None = YearRange(2020, 2050),  # noqa: B008
     original_condition: pd.DataFrame | pathlib.Path | None = None,
@@ -196,6 +211,7 @@ def calculate_energy_need(
     return energy_need_kwh_m2.set_index(['building_category', 'building_code', 'purpose', 'building_condition', 'year'])
 
 
+@ebm_paths
 def calculate_heating_systems(
     years: tuple[int, int] | YearRange | None = YearRange(2020, 2050),  # noqa: B008
     heating_system_initial_shares: pd.DataFrame | pathlib.Path | None = None,
@@ -228,6 +244,7 @@ def calculate_heating_systems(
     return h_s_param.heating_systems_parameter_from_projection(df)
 
 
+@ebm_paths
 def calculate_holiday_homes(
     years: tuple[int, int] | YearRange | None = (2020, 2050),
     population_forecast: None = None,
@@ -292,7 +309,8 @@ def run_model(input_directory: pathlib.Path | str | None=None, model_years: Year
 
 
 def main() -> None:
-    af = calculate_area_forecast(input_directory=pathlib.Path('kalibrert'))
+    #af = calculate_area_forecast(input_directory=pathlib.Path('kalibrert'))
+    af = calculate_area_forecast(input_directory='kalibrert')
     er: EbmResult = run_model(model_years=YearRange(2020, 2050), input_directory=pathlib.Path('kalibrert'))
     #er2: EbmResult = run_model(model_years=YearRange(2020, 2050), input_directory=pathlib.Path('kalibrert'))
     #er3: EbmResult = run_model(model_years=YearRange(2020, 2050), input_directory=pathlib.Path('kalibrert'))

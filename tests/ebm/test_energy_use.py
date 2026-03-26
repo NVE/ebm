@@ -2,9 +2,21 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ebm.energy_consumption import BASE_LOAD_ENERGY_PRODUCT, BASE_LOAD_EFFICIENCY, GRUNNLAST_ANDEL, \
-    HEATING_SYSTEM_SHARE, COOLING_EFFICIENCY, DHW_EFFICIENCY, DOMESTIC_HOT_WATER_ENERGY_PRODUCT, PEAK_LOAD_EFFICIENCY, \
-    PEAK_LOAD_ENERGY_PRODUCT, TERTIARY_LOAD_EFFICIENCY, TERTIARY_LOAD_ENERGY_PRODUCT, PEAK_LOAD_COVERAGE, TERTIARY_LOAD_COVERAGE
+from ebm.energy_consumption import (
+    BASE_LOAD_EFFICIENCY,
+    BASE_LOAD_ENERGY_PRODUCT,
+    COOLING_EFFICIENCY,
+    DHW_EFFICIENCY,
+    DOMESTIC_HOT_WATER_ENERGY_PRODUCT,
+    GRUNNLAST_ANDEL,
+    HEATING_SYSTEM_SHARE,
+    PEAK_LOAD_COVERAGE,
+    PEAK_LOAD_EFFICIENCY,
+    PEAK_LOAD_ENERGY_PRODUCT,
+    TERTIARY_LOAD_COVERAGE,
+    TERTIARY_LOAD_EFFICIENCY,
+    TERTIARY_LOAD_ENERGY_PRODUCT,
+)
 from ebm.model import energy_use
 
 
@@ -143,13 +155,14 @@ def test_other():
     pd.testing.assert_frame_equal(result , expected)
 
 def test_energy_use_kwh():
+    column_name = 'energy_need'
     energy_need = pd.DataFrame(
         data=[
             ['house', 'TEK07', 'original_condition', 'heating_rv', 1977, 200],
             ['house', 'TEK07', 'original_condition', 'heating_rv', 1978, 240],
             ['shack', 'TEK07', 'original_condition', 'heating_rv', 1978, 240],
         ],
-        columns='building_category,building_code,building_condition,purpose,year,energy_requirement'.split(','))
+        columns=f'building_category,building_code,building_condition,purpose,year,{column_name}'.split(','))
     efficiency_factor = pd.DataFrame(
         data=[
             ['house', 'TEK07', 'heating_rv', 1977, 0.5, 0.2, 4],
@@ -157,14 +170,15 @@ def test_energy_use_kwh():
             ['house', 'TEKXX', 'heating_rv', 1977, 2, 2, 2]],
         columns='building_category,building_code,purpose,year,heating_system_share,load_share,load_efficiency'.split(','))
 
-    result = energy_use.energy_use_kwh(energy_need, efficiency_factor)
+    result = energy_use.energy_use_kwh(energy_need, efficiency_factor, energy_column=column_name)
     result = result.drop(columns=['index'], errors='ignore')
+
     expected = pd.DataFrame(
         data = [
             ['house', 'TEK07', 'original_condition', 'heating_rv', 1977, 200, 0.5, 0.2, 4, 5.0, np.nan],
             ['house', 'TEK07', 'original_condition', 'heating_rv', 1978, 240, 1.0, 0.2, 4, 12.0, np.nan],
         ],
-        columns=['building_category', 'building_code', 'building_condition', 'purpose', 'year', 'energy_requirement', 'heating_system_share', 'load_share',
+        columns=['building_category', 'building_code', 'building_condition', 'purpose', 'year', column_name, 'heating_system_share', 'load_share',
        'load_efficiency', 'kwh', 'kwh_m2'],
     )
 
@@ -275,7 +289,76 @@ def test_calculate(heating_systems_parameters_house_building_code07):
     result = energy_use.energy_use_kwh(energy_need, energy_use.efficiency_factor(energy_use.all_purposes(heating_systems_parameters_house_building_code07)))
 
 
+@pytest.mark.parametrize(('energy_need', 'heating_system_share', 'load_share', 'load_efficiency', 'expect'), [
+    pytest.param([1.0], [1.0], [1.0], [1.0], [1.0], id='one'),
+    pytest.param([1.0], [1.0], [1.0], [2.0], [0.5], id='200% efficiency'),
+    pytest.param([2.0], [1.0], [1.0], [8.0], [0.25], id='energy need 800%'),
+    pytest.param([4.0], [0.5], [1.0], [1.0], [2.0], id='heating system share 50%'),
+    pytest.param([4.0], [1.0], [0.25], [1.0], [1.0], id='load share 25%'),
+    pytest.param([9.0], [0.5], [0.25], [2.0], [0.5625], id='combination'),
+    pytest.param([1.0], [1.0], [1.0], [0.0], [np.inf], id='no efficiency'),
+    pytest.param([0.0], [0.8], [0.4], [2.5], [0.0], id='no energy need'),
+])
+def test_efficiency_kwh(energy_need: list[float],
+                        heating_system_share: list[float], load_share: list[float], load_efficiency: list[float],
+                        expect: list[float]):
+    result = energy_use.efficiency_kwh(energy_need=pd.Series(energy_need),
+                                       heating_system_share=pd.Series(heating_system_share),
+                                       load_share=pd.Series(load_share),
+                                       load_efficiency=pd.Series(load_efficiency))
+    expected = pd.Series(expect)
+
+    assert result.to_list() == pytest.approx(expected, rel=1e-4)
+
+
+@pytest.mark.parametrize(('energy_need', 'heating_system_share', 'load_share', 'load_efficiency'), [
+    pytest.param([1.0, 1.0], [1.0], [1.0], [1.0], id='long energy_need'),
+    pytest.param([1.0], [1.0, 1.0], [1.0], [2.0], id='long heating_system_share'),
+    pytest.param([2.0], [1.0], [1.0, 1.0], [8.0], id='long load_share '),
+    pytest.param([4.0], [0.5], [1.0], [2.0, 1.0], id='long load_efficiency'),
+    pytest.param([4.0], [1.0, 1.0], [0.25, 1.0], [1.0, 1.0], id='short energy_need'),
+])
+def test_efficiency_kwh_input_has_different_length_raise_value_error(
+        energy_need: list[float], heating_system_share: list[float], load_share: list[float], load_efficiency: list[float]):
+    with pytest.raises(ValueError, match='All input Series must have equal length.'):
+        energy_use.efficiency_kwh(energy_need=pd.Series(energy_need),
+                                  heating_system_share=pd.Series(heating_system_share),
+                                  load_share=pd.Series(load_share),
+                                  load_efficiency=pd.Series(load_efficiency))
 
 
 
+def test_efficiency_kwh_multi_index():
+    energy_need = pd.Series({('apartment_block', 'DH', 'base', 'DH'): 161938482.19010708,
+        ('apartment_block', 'DH - Bio', 'base', 'DH'): 161938482.19010708})
 
+    load_share = pd.Series(
+        {('apartment_block', 'DH', 'base', 'DH'): 1.0, ('apartment_block', 'DH - Bio', 'base', 'DH'): 0.95})
+
+    heating_system_share = pd.Series({('apartment_block', 'DH', 'base', 'DH'): 0.11371747224812079,
+                                      ('apartment_block', 'DH - Bio', 'base', 'DH'): 0.0033946606308616})
+    load_efficiency = pd.Series(
+        {('apartment_block', 'DH', 'base', 'DH'): 0.99,
+         ('apartment_block', 'DH - Bio', 'base', 'DH'): 0.99})
+    result = energy_use.efficiency_kwh(energy_need=energy_need, heating_system_share=heating_system_share,
+                                       load_share=load_share, load_efficiency=load_efficiency)
+
+    expected = pd.Series(
+        {('apartment_block', 'DH', 'base', 'DH'): 18601247.327632632, ('apartment_block', 'DH - Bio', 'base', 'DH'): 527515.0309157848})
+
+    assert result.to_list() == pytest.approx(expected, rel=1e-4)
+
+
+@pytest.mark.parametrize(('energy_need', 'heating_system_share', 'load_share', 'load_efficiency'), [
+    pytest.param([4, 2], [0, 1], [0, 1], [0, 1], id='different energy_need index'),
+    pytest.param([0, 1], [8, 9], [0, 1], [0, 1], id='different heating_system_share index'),
+    pytest.param([0, 1], [0, 1], [8, 9], [0, 1], id='different load_share index'),
+    pytest.param([0, 1], [0, 1], [0, 1], [8, 9], id='different load_share index'),
+])
+def test_efficiency_kwh_raise_value_error_on_mismatching_index(
+        energy_need: list[float], heating_system_share: list[float], load_share: list[float], load_efficiency: list[float]):
+    with pytest.raises(ValueError, match='All input Series must share an identical index.'):
+        energy_use.efficiency_kwh(energy_need=pd.Series([1000.0, 2000.0],  index=pd.Index(energy_need)),
+                                  heating_system_share=pd.Series([0.4, 0.6], index=pd.Index(heating_system_share)),
+                                  load_share=pd.Series([0.4, 0.6], index=pd.Index(load_share)),
+                                  load_efficiency=pd.Series([0.4, 0.6], index=pd.Index(load_efficiency)))

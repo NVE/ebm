@@ -1,11 +1,9 @@
-import pandas as pd
 
-from ebm.model.database_manager import DatabaseManager 
 from ebm.model.building_category import BuildingCategory
-from ebm.model.building_condition import BuildingCondition 
+from ebm.model.building_condition import BuildingCondition
+from ebm.model.database_manager import DatabaseManager
 from ebm.model.filter_scurve_params import FilterScurveParams
 from ebm.model.scurve_processor import ScurveProcessor
-from ebm.model.data_classes import YearRange
 
 # Refactoring improvements in scurve classes
 # - use BuildingCondition members instead of strings (classes, ScurveParameters and get_scurve_condition_list())

@@ -7,8 +7,9 @@ import typing
 
 from loguru import logger
 
-from ebm.model.file_handler import FileHandler
 from ebm.__version__ import version
+from ebm.model.file_handler import FileHandler
+
 DEFAULT_INPUT = pathlib.Path(f'X:\\NAS\\Data\\ebm\\default-input-{".".join(version.split(".")[:2])}\\')
 
 

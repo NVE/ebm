@@ -1,6 +1,7 @@
 import io
 import itertools
 import warnings
+
 import numpy as np
 import pandas as pd
 import pandera as pa
@@ -10,23 +11,25 @@ from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
 from ebm.model.dataframemodels import PolicyImprovement
-from ebm.validators import (building_code_parameters,
-                            area,
-                            area_new_residential_buildings,
-                            new_buildings_residential,
-                            population_forecast,
-                            s_curve,
-                            energy_need_original_condition,
-                            improvement_building_upgrade,
-                            energy_need_improvements,
-                            area_per_person,
-                            check_overlapping_building_code_periods,
-                            heating_system_initial_shares,
-                            heating_system_forecast,
-                            heating_system_efficiencies,
-                            energy_need_behaviour_factor)
-    
-    
+from ebm.validators import (
+    area,
+    area_new_residential_buildings,
+    area_per_person,
+    building_code_parameters,
+    check_overlapping_building_code_periods,
+    energy_need_behaviour_factor,
+    energy_need_improvements,
+    energy_need_original_condition,
+    heating_system_efficiencies,
+    heating_system_forecast,
+    heating_system_initial_shares,
+    improvement_building_upgrade,
+    new_buildings_residential,
+    population_forecast,
+    s_curve,
+)
+
+
 @pytest.fixture
 def ok_building_code() -> pd.DataFrame:
     return pd.DataFrame({

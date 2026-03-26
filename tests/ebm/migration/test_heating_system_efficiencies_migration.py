@@ -1,4 +1,4 @@
-from ebm.migrations import translate_heating_system_efficiencies, migrate_input_directory
+from ebm.migrations import migrate_input_directory, translate_heating_system_efficiencies
 
 
 def test_translate_heating_system_efficiencies():

@@ -3,18 +3,14 @@
 import pathlib
 
 import pandas as pd
-
-from ebm.model.building_category import BuildingCategory
-from ebm.model.energy_purpose import EnergyPurpose
-
-
 import rich
-#%%
-from ebm.validators import energy_need_behaviour_factor
-from ebm.model.column_operations import replace_column_alias, explode_unique_columns
 
-from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.building_category import BuildingCategory
+from ebm.model.column_operations import explode_unique_columns, replace_column_alias
+from ebm.model.energy_purpose import EnergyPurpose
+
+#%%
+
 #%% md
 # # Investigate behaviour factor priority
 #%% md

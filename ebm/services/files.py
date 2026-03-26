@@ -3,6 +3,7 @@ import pathlib
 
 from loguru import logger
 
+
 def make_unique_path(path: pathlib.Path):
     path = pathlib.Path(path)
     counter = 1

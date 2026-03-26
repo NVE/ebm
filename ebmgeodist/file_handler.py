@@ -5,8 +5,6 @@ import typing
 
 import polars as pl
 from loguru import logger
-from pandera.errors import SchemaErrors, SchemaError
-
 
 
 class FileHandler:

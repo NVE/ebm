@@ -1,7 +1,10 @@
-import polars as pl
 from typing import Optional, Union
-from ebmgeodist.initialize import NameHandler
+
+import polars as pl
 from loguru import logger
+
+from ebmgeodist.initialize import NameHandler
+
 
 class NoElhubDataError(Exception):
     """Custom exception for cases where no Elhub data is available.

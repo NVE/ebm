@@ -1,5 +1,5 @@
 import typing
-from enum import unique, StrEnum, EnumType
+from enum import EnumType, StrEnum, unique
 
 import pandas as pd
 from loguru import logger
@@ -146,5 +146,72 @@ def expand_building_categories(df: pd.DataFrame, unique_columns: typing.List[str
     filtered = [d[~d.building_category.isin(specific.building_category)] for d in expanded_groups]
 
     return pd.concat(filtered + [specific]).reindex()
+
+
+def collapse_building_category(building_category: pd.Series) -> pd.Series:
+    """
+    Replace building category labels with building group labels where appropriate.
+
+    This function takes a pandas Series containing building category strings
+    separated by either "+" or ",". It normalizes token case, applies a set of
+    category‑collapse rules, and returns a new Series with collapsed category
+    labels.
+
+    building groups implemented:
+     - residential
+         house, apartment_block
+     - non_residential
+         culture, hospital, hotel, kindergarten, nursing_home, office, retail, school, sports, storage_repairs, university
+     - default
+         All of the above
+
+    Parameters
+    ----------
+    building_category : pd.Series
+        Series of building category strings. Each value must be a
+            string containing tokens separated by either ``"+"`` or `","``.
+            Tokens may contain arbitrary casing; they are normalized to lowercase.
+
+    Returns
+    -------
+    pd.Series
+        series with building categories collapsed into groups
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> collapse_building_category(pd.Series(["house+apartment_block"]))
+    0    residential
+    dtype: object
+
+    >>> collapse_building_category(pd.Series(
+    ...     ["culture+hospital+hotel+kindergarten+nursing_home+office+retail"
+    ...      "+school+sports+storage_repairs+university"]
+    ... ))
+    0    non_residential
+    dtype: object
+    """
+    def normalize(val: str) -> str:
+        split_token = '+' if '+' in val else ','
+        tokens = [t.strip().lower() for t in val.split(split_token)]
+        to_remove = set()
+        to_add = set()
+        if 'apartment_block' in set(tokens) and 'house' in set(tokens):
+            to_remove.add('apartment_block')
+            to_remove.add('house')
+            to_add.add('residential')
+        if {'culture', 'hospital', 'hotel', 'kindergarten', 'nursing_home', 'office', 'retail', 'school', 'sports', 'storage_repairs', 'university'}.issubset(tokens):
+            to_add.add('non_residential')
+            to_remove.update({'culture', 'hospital', 'hotel', 'kindergarten', 'nursing_home', 'office', 'retail', 'school', 'sports', 'storage_repairs', 'university'})
+        if {'residential', 'non_residential'}.issubset(to_add):
+            to_add.remove('residential')
+            to_add.remove('non_residential')
+            to_add.add('default')
+
+        return split_token.join(list(to_add) + [t for t in tokens if t not in to_remove])
+
+    s = building_category.astype(str).copy()
+
+    return s.apply(normalize)
 
 

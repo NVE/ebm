@@ -1,6 +1,7 @@
 # For full list of configuration elements see documentation at https://docs.astral.sh/ruff/editors/settings.
 
 line-length = 160
+src = ['ebm', 'ebmgeodist']
 
 [format]
 quote-style = "single"
@@ -9,9 +10,14 @@ docstring-code-format = true
 
 # For full list of available rules check documentation at https://docs.astral.sh/ruff/rules/.
 [lint]
-select = ["A", "ANN", "ASYNC", "B", "C90", "COM", "D", "E", "EM", "F", "FIX", "G", "I", "INP", "ISC", "N", "PD", "PLC", "PLE", "PLR", "PLW", "PT", "PTH", "Q", "RET", "RSE", "RUF", "SIM", "SLF", "UP", "W"]
-ignore = ["ANN204", "B007", "N999", "D203", "D212", "D104", "D100", "INP001", "EM101", "FIX002", "PLR0912", "PLR0913", "SIM108","Q000", "RET504"]
+select = ["A", "ANN", "ASYNC", "B", "C90", "COM", "E", "EM", "F", "FIX", "G", "I", "INP", "ISC", "N", "PD", "PLC", "PLE", "PLR", "PLW", "PT", "PTH", "Q", "RET", "RSE", "RUF", "SIM", "SLF", "UP", "W"]
+ignore = ["ANN204", "B007", "N999", "D203", "D212", "D104", "D100", "INP001", "EM101", "FIX002", "PLR0912", "PLR0913", "SIM108","Q000", "RET504", 'W293']
+
+[lint.isort]
+case-sensitive = true
+no-lines-before = ["future", "standard-library"]
+known-first-party = ['ebm', 'ebmgeodist']
 
 [lint.per-file-ignores]
-"tests/*.py" = ["ANN201", "D103", "PLR2004", "ANN001", "SLF001"]
+"test_*.py" = ["ANN201", "D103", "PLR2004", "ANN001", "SLF001"]
 "**/__init__.py" = ["I001"]

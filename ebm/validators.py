@@ -7,9 +7,9 @@ import numpy as np
 import pandas as pd
 import pandera as pa
 
-from ebm.model.building_category import BuildingCategory, RESIDENTIAL, NON_RESIDENTIAL
+from ebm.model.building_category import NON_RESIDENTIAL, RESIDENTIAL, BuildingCategory
 from ebm.model.building_condition import BuildingCondition
-from ebm.model.column_operations import explode_unique_columns, explode_column_alias
+from ebm.model.column_operations import explode_column_alias, explode_unique_columns
 from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.heating_systems import HeatingSystems

@@ -1,6 +1,7 @@
 import pandas as pd
+import pytest
 
-from ebm.model.building_category import BuildingCategory, expand_building_categories, expand_building_category
+from ebm.model.building_category import BuildingCategory, expand_building_categories, expand_building_category, collapse_building_category
 
 
 def test_expand_building_category_expands_residential():
@@ -92,6 +93,40 @@ def test_expand_building_categories_ignore_duplicates_by_default():
                             columns=['building_category', 'other_index', 'foo'])
 
     pd.testing.assert_frame_equal(actual, expected)
+
+@pytest.mark.parametrize(('column', 'expected'),[('house+apartment_block', 'residential'),
+                                                 ('HOUSE+Apartment_block', 'residential'),
+                                                 (' house + apartment_block ', 'residential'),
+                                                 ('house+house+apartment_block+culture', 'residential+culture'),
+                                                 ('culture+hospital+hotel+kindergarten+nursing_home+office+retail+school+sports+storage_repairs+university', 'non_residential'),
+                                                 ('culture+hospital+hotel+kindergarten+nursing_home+office+retail+school+sports+storage_repairs+university+house','non_residential+house'),
+                                                 ('apartment_block+culture+hospital+hotel+house+kindergarten+nursing_home+office+retail+school+sports+storage_repairs+university','default'),
+                                                 ('house+house','house+house'),
+                                                # ('house++','house'),
+                                                 ],)
+def test_collapse_building_category(column, expected):
+    r = collapse_building_category(pd.Series([
+        'apartment_block',
+        'apartment_block+house',
+        column,
+        'house+house',
+        'kindergarten+school+university',
+        'culture+culture+culture+culture+culture+culture+culture+culture+culture+culture+culture',
+        'house, apartment_block',
+    ], name='building_category'))
+    expected = pd.Series(
+        [
+            'apartment_block',
+            'residential',
+            expected,
+            'house+house',
+            'kindergarten+school+university',
+            'culture+culture+culture+culture+culture+culture+culture+culture+culture+culture+culture',
+            'residential',
+         ],
+        name='building_category')
+
+    pd.testing.assert_series_equal(r, expected)
 
 
 def test_building_category_contains():

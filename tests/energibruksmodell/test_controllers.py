@@ -2,7 +2,10 @@ import os
 import pathlib
 
 import pytest
-from energibruksmodell.controllers import ebm_paths
+
+from energibruksmodell import calculate_area_forecast, calculate_holiday_homes
+from energibruksmodell.controllers import ebm_paths, calculate_energy_use, calculate_energy_need, \
+    calculate_heating_systems
 
 
 def test_string_kwargs_are_left_untouched():
@@ -115,3 +118,13 @@ def test_ebm_paths_raise_not_a_directory_when_input_directory_is_a_file(tmp_path
 
     with pytest.raises(NotADirectoryError, match='input_directory `a_file` is not a directory'):
         func(input_directory=a_file)
+
+@pytest.mark.parametrize('func', [(calculate_energy_use), (calculate_energy_need), (calculate_area_forecast), calculate_heating_systems, calculate_holiday_homes])
+def test_controllers_require_years_as_year_range(tmp_path, func):
+    tmp_path = pathlib.Path(tmp_path)
+    os.chdir(tmp_path)
+    (tmp_path / 'input').mkdir()
+
+    with pytest.raises(TypeError, match='Expected type YearRange or tuple\[int, int\] for years'):
+        func('input')
+

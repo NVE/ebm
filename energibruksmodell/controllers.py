@@ -53,6 +53,10 @@ def calculate_s_curves_by_condition(
     **kwargs: pd.DataFrame|pd.Series,
 ) -> pd.DataFrame:
     dm = DatabaseManager(FileHandler(directory=input_directory))
+
+    if not isinstance(years, YearRange) and not isinstance(years, tuple):
+        raise TypeError('Expected type YearRange or tuple[int, int] for years')
+
     years = YearRange(*years) if isinstance(years, tuple) else years
     scurve_parameters = scurve_parameters if scurve_parameters else dm.get_scurve_params()
     building_code_parameters = dm.get_building_codes() if not isinstance(building_code_parameters, pd.DataFrame) else building_code_parameters
@@ -213,6 +217,8 @@ def calculate_area_forecast(
     """
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
     dm = DatabaseManager(FileHandler(directory=input_directory))
+    if not isinstance(years, YearRange) and not isinstance(years, tuple):
+        raise TypeError('Expected type YearRange or tuple[int, int] for years')
     years = YearRange(*years) if isinstance(years, tuple) else years
 
     if not isinstance(area_parameters, pd.DataFrame):
@@ -315,6 +321,8 @@ def calculate_energy_use(
     from ebm.model import energy_need as e_n  # noqa: PLC0415
     from ebm.model import energy_use as e_u  # noqa: PLC0415
     from ebm.model import heating_systems_parameter as h_s_param  # noqa: PLC0415
+    if not isinstance(years, YearRange) and not isinstance(years, tuple):
+        raise TypeError('Expected type YearRange or tuple[int, int] for years')
 
     years = YearRange(*years) if isinstance(years, tuple) else years
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
@@ -349,6 +357,8 @@ def calculate_energy_need(
     if ni := [p for p in ['calibrate_heating_rv', 'behaviour_factor'] if locals()[p] is not None]:
         msg = f'Parameter{"s" if len(ni) == 1 else ""} {", ".join(ni)} not implemented'
         raise NotImplementedError(msg)
+    if not isinstance(years, YearRange) and not isinstance(years, tuple):
+        raise TypeError('Expected type YearRange or tuple[int, int] for years.')
     years = YearRange(*years) if isinstance(years, tuple) else years
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
     dm = DatabaseManager(FileHandler(directory=input_directory))
@@ -387,6 +397,8 @@ def calculate_heating_systems(
 ) -> pd.DataFrame:
     from ebm.model import heating_systems_parameter as h_s_param  # noqa: PLC0415
 
+    if not isinstance(years, YearRange) and not isinstance(years, tuple):
+        raise TypeError('Expected type YearRange or tuple[int, int] for years')
     years = YearRange(*years) if isinstance(years, tuple) else years
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
     dm = DatabaseManager(FileHandler(directory=input_directory))
@@ -417,6 +429,8 @@ def calculate_holiday_homes(
     input_directory: pathlib.Path | str | None = None,
     **kwargs:  pd.DataFrame|pd.Series,
 ) -> pd.DataFrame:
+    if not isinstance(years, YearRange) and not isinstance(years, tuple):
+        raise TypeError('Expected type YearRange or tuple[int, int] for years')
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
     dm = DatabaseManager(FileHandler(directory=input_directory))
     population_forecast = population_forecast if population_forecast is not None else dm.get_construction_population().population

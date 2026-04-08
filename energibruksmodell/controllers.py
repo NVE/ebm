@@ -1,6 +1,8 @@
+import inspect
 import os
 import pathlib
 import typing
+from functools import wraps
 from typing import TypedDict
 
 import pandas as pd
@@ -43,7 +45,7 @@ class EbmResult:
         return super().__str__()
 
 
-def load_scurves(
+def calculate_s_curves_by_condition(
     years: tuple[int, int] | None = (2020, 2050),
     input_directory: pathlib.Path | str | None = None,
     building_code_parameters: pd.DataFrame | pathlib.Path | None = None,
@@ -82,30 +84,47 @@ class RunModelInput(AreaForecastInput, EnergyNeedInput, total=False):
     pass
 
 
-def ebm_paths(func: typing.Callable) -> typing.Callable:
-    def str_to_path(v):
-        if isinstance(v, str):
-            return pathlib.Path(v)
-        return v
-    def wrap_ebm_input(*args, **kwargs):
-        past_as_str = {k: str_to_path(v) for k, v in kwargs.items()}
-        res = func(*args, **past_as_str)
-        return res
+def ebm_paths(func):
+    sig = inspect.signature(func)
 
-    return wrap_ebm_input
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        bound = sig.bind(*args, **kwargs)
+        bound.apply_defaults()
+        if 'input_directory' in bound.arguments and bound.arguments['input_directory'] is None:
+            bound.arguments['input_directory'] = pathlib.Path('input')
+
+        for name, value in bound.arguments.items():
+            annotation = sig.parameters[name].annotation
+            if (annotation is pathlib.Path or pathlib.Path in typing.get_args(annotation)) and isinstance(value, str):
+                bound.arguments[name] = pathlib.Path(value)
+
+        if 'input_directory' in bound.arguments:
+            input_directory = bound.arguments['input_directory']
+            if input_directory.name.endswith('EBM_INPUT_DIRECTORY'):
+                input_directory = pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', default='input'))
+                bound.arguments['input_directory'] = input_directory
+            if not input_directory.exists():
+                raise FileNotFoundError(f'input_directory `{bound.arguments['input_directory']}` does not exist')
+            if not input_directory.is_dir():
+                raise NotADirectoryError(f'input_directory `{bound.arguments['input_directory'].name}` is not a directory')
+
+        return func(*bound.args, **bound.kwargs)
+
+    return wrapper
 
 
 @ebm_paths
 def calculate_area_forecast(
     years: tuple[int, int] | YearRange | None = (2020, 2050),
-    area_parameters: pd.DataFrame | pathlib.Path | YearRange | None = None,
-    building_code_parameters: pd.DataFrame | pathlib.Path | None = None,
-    population_forecast: pd.DataFrame | pathlib.Path | None = None,
-    area_new_residential_buildings: pd.DataFrame | pathlib.Path | None = None,
-    new_buildings_residential: pd.DataFrame | pathlib.Path | None = None,
-    area_per_person: pd.DataFrame | pathlib.Path | None = None,
+    area_parameters: pd.DataFrame | pathlib.Path | str | None = None,
+    building_code_parameters: pd.DataFrame | pathlib.Path | str |  None = None,
+    population_forecast: pd.DataFrame | pathlib.Path | str | None = None,
+    area_new_residential_buildings: pd.DataFrame | pathlib.Path | str | None = None,
+    new_buildings_residential: pd.DataFrame | pathlib.Path | str | None = None,
+    area_per_person: pd.DataFrame | pathlib.Path | str | None = None,
     input_directory: pathlib.Path | str | None = None,
-    s_curves_by_condition: pd.DataFrame | pathlib.Path | None = None,
+    s_curves_by_condition: pd.DataFrame | pathlib.Path | str | None = None,
     **kwargs: pd.DataFrame|pd.Series,
 ) -> pd.DataFrame:
 
@@ -125,26 +144,26 @@ def calculate_area_forecast(
         ``(start_year, end_year)`` and will be converted to a ``YearRange``.
         If ``None``, default behavior depends on downstream loaders.
 
-    area_parameters : pandas.DataFrame or pathlib.Path or YearRange or None, optional
+    area_parameters : pandas.DataFrame or pathlib.Path or str or None, optional
         Parameters describing existing building areas. If not provided as a
         DataFrame, the parameters are loaded from ``input_directory``.
 
-    building_code_parameters : pandas.DataFrame or pathlib.Path or None, optional
+    building_code_parameters : pandas.DataFrame or pathlib.Path or str or None, optional
         Parameters describing building code categories and conditions.
         Loaded from ``input_directory`` if not provided as a DataFrame.
 
-    population_forecast : pandas.DataFrame or pathlib.Path or None, optional
+    population_forecast : pandas.DataFrame or pathlib.Path or str or None, optional
         Population forecast data used in area calculations. If not provided,
         construction population data is loaded from the input_directory.
 
-    area_new_residential_buildings : pandas.DataFrame or pathlib.Path or None, optional
+    area_new_residential_buildings : pandas.DataFrame or pathlib.Path or str or None, optional
         Area data for new residential buildings. Loaded from ``input_directory``
         if not provided.
 
-    new_buildings_residential : pandas.DataFrame or pathlib.Path or None, optional
+    new_buildings_residential : pandas.DataFrame or pathlib.Path or str or None, optional
         Shares or categories of new residential buildings. Loaded from ``input_directory`` if not provided.
 
-    area_per_person : pandas.DataFrame or pathlib.Path or None, optional
+    area_per_person : pandas.DataFrame or str or pathlib.Path or None, optional
         Area-per-person assumptions used to derive residential area demand.
         Loaded from ``input_directory`` if not provided.
 
@@ -153,12 +172,12 @@ def calculate_area_forecast(
         is taken from the ``EBM_INPUT_DIRECTORY`` environment variable or
         defaults to ``"input"``.
 
-    s_curves_by_condition : pandas.DataFrame or pathlib.Path or None, optional
+    s_curves_by_condition : pandas.DataFrame or pathlib.Path or str or None, optional
         S-curve parameters by building condition. If not provided as a
-        DataFrame, they are loaded using ``load_scurves``.
+        DataFrame, they are loaded using ``calculate_s_curves_by_condition``.
 
     **kwargs : pandas.DataFrame or pandas.Series
-        Additional keyword arguments forwarded to ``load_scurves``.
+        Additional keyword arguments forwarded to ``calculate_s_curves_by_condition``.
 
     Returns
     -------
@@ -182,7 +201,7 @@ def calculate_area_forecast(
     See Also
     --------
     calculate_all_area : Core function performing the area forecast calculation.
-    load_scurves : Load S-curve parameters for building conditions.
+    calculate_s_curves_by_condition : Load S-curve parameters for building conditions.
 
     Notes
     -----
@@ -201,10 +220,10 @@ def calculate_area_forecast(
     if not isinstance(building_code_parameters, pd.DataFrame):
         building_code_parameters = dm.get_building_codes()
     if not isinstance(s_curves_by_condition, pd.DataFrame):
-        s_curves_by_condition = load_scurves(years=years,
-                                             input_directory=input_directory,
-                                             building_code_parameters=building_code_parameters,
-                                             **kwargs)
+        s_curves_by_condition = calculate_s_curves_by_condition(years=years,
+                                                                input_directory=input_directory,
+                                                                building_code_parameters=building_code_parameters,
+                                                                **kwargs)
 
     if not isinstance(area_per_person, pd.DataFrame):
         area_per_person = dm.get_area_per_person()

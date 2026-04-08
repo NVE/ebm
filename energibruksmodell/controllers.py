@@ -105,9 +105,9 @@ def ebm_paths(func):
                 input_directory = pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', default='input'))
                 bound.arguments['input_directory'] = input_directory
             if not input_directory.exists():
-                raise FileNotFoundError(f'input_directory `{bound.arguments['input_directory']}` does not exist')
+                raise FileNotFoundError(f'input_directory `{bound.arguments["input_directory"]}` does not exist')
             if not input_directory.is_dir():
-                raise NotADirectoryError(f'input_directory `{bound.arguments['input_directory'].name}` is not a directory')
+                raise NotADirectoryError(f'input_directory `{bound.arguments["input_directory"].name}` is not a directory')
 
         return func(*bound.args, **bound.kwargs)
 

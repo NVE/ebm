@@ -354,7 +354,8 @@ def calculate_energy_need(
     input_directory: pathlib.Path | str | None = None,
     **kwargs: pd.DataFrame|pd.Series,
 ) -> EbmResult:
-    if ni := [p for p in ['calibrate_heating_rv', 'behaviour_factor'] if locals()[p] is not None]:
+    # Raise NotImplementedError when attempting to use parameters calibrate_heating_rv or behaviour_factor
+    if ni := [p for p in ['calibrate_heating_rv', 'behaviour_factor'] if p in locals() and locals()[p] is not None]:
         msg = f'Parameter{"s" if len(ni) == 1 else ""} {", ".join(ni)} not implemented'
         raise NotImplementedError(msg)
     if not isinstance(years, YearRange) and not isinstance(years, tuple):

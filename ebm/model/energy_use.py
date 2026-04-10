@@ -216,6 +216,9 @@ def energy_use_kwh(energy_need: pd.DataFrame, efficiency_factor: pd.DataFrame, e
         df['kwh_m2'] = df['kwh_m2'] * df['efficiency_factor']
     else:
         df['kwh_m2'] = np.nan
+    if 'm2' in df.columns:
+        df['m2_share'] = df['m2'] * df['heating_system_share']
+
     return df
 
 

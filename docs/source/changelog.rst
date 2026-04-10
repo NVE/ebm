@@ -6,12 +6,12 @@ Changelog
 Version 1.0.9 - 2026-04-10
 --------------------------
 
-Fixes
+Fixed
 ^^^^^
 
 * Fixes bug #3821 where custom building_code was ignored by energy need input
 * Fixes data missing from heating systems shares in for the user case example.
-* Fixes missing version number in documentation introduced by c15e5bfc.
+* Fixes #3812 missing version number in documentation introduced by c15e5bfc.
 
 
 Version 1.0.8 - 2026-03-26

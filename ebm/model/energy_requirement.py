@@ -60,12 +60,8 @@ def energy_need_improvements(energy_need_original_condition: pd.DataFrame,
     most_conditions = list(BuildingCondition.existing_conditions())
     model_years = YearRange(2020, 2050)
 
-    building_codes = functools.reduce(np.union1d, (
-        energy_need_original_condition.building_code.unique(),
-        improvement_building_upgrade.building_code.unique(),
-        energy_need_improvements_policy.building_code.unique(),
-        energy_need_yearly_reduction.building_code.unique()
-    ))
+    building_codes = gather_building_codes(energy_need_improvements_policy, energy_need_original_condition,
+                                           energy_need_yearly_reduction, improvement_building_upgrade)
 
     merged = energy_need_improvements_kwh_m2(
         energy_need_original_condition=energy_need_original_condition,
@@ -77,6 +73,12 @@ def energy_need_improvements(energy_need_original_condition: pd.DataFrame,
     merged = merged.drop_duplicates(['building_category', 'building_code', 'building_condition', 'year', 'purpose'], keep='first')
 
     return merged
+
+
+def gather_building_codes(*dataframes):
+    building_codes = functools.reduce(np.union1d, (df.building_code.unique() for df in dataframes))
+    return building_codes
+
 
 def energy_need_improvements_kwh_m2(energy_need_original_condition: pd.DataFrame,
                                     reduction_per_condition: pd.DataFrame, policy_improvement: pd.DataFrame,

@@ -731,8 +731,8 @@ def test_make_df_building_category_code_purpose_yearly(skip_parameter):
     expected_purpose = ['heating_rv', 'heating_dhw', 'fans_and_pumps', 'lighting', 'electrical_equipment', 'cooling']
     expected_condition = ['original_condition', 'small_measure', 'renovation', 'renovation_and_small_measure']
     expected_years = YearRange(2022, 2023)
-    # len(expected_building_category) * len(expected_building_code) * len(expected_purpose) * len(expected_condition) * len(expected_years)
     expected_row_count = 4992
+    expected_row_count =len(expected_building_category) * len(expected_building_code) * len(expected_purpose) * len(expected_condition) * len(expected_years)
 
     parameters = {'building_category': expected_building_category,
                   'building_code': expected_building_code,

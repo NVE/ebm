@@ -513,17 +513,18 @@ building code, it requires its own definition in this file.
             hotel,TEK30,HP Central heating - Electric boiler,2023,0.364043511904947
             sports,TEK30,HP Central heating - Electric boiler,2023,0.364043511904947
             sports,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
-            kindergarten,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
-            kindergarten,TEK30,Gas,2023,0.0016565044759408
-            kindergarten,TEK30,HP - Electricity,2023,0.1632849356867121
             storage_repairs,TEK30,DH - Bio,2023,0.0002142250969049
-            kindergarten,TEK30,DH,2023,0.3182453573763764
-            kindergarten,TEK30,DH - Bio,2023,0.0002142250969049
-            kindergarten,TEK30,Electric boiler,2023,0.0596845137090352
-            kindergarten,TEK30,Electricity - Bio,2023,0.0216740945571909
-            kindergarten,TEK30,Electricity,2023,0.0706818896188211
-            kindergarten,TEK30,HP Central heating - Bio,2023,0.00019362655741
-            kindergarten,TEK30,HP Central heating - Electric boiler,2023,0.364043511904947
+            kindergarten,TEK30,DH,2023,0.318245357
+            kindergarten,TEK30,DH - Bio,2023,0.000214225
+            kindergarten,TEK30,Electric boiler,2023,0.059684514
+            kindergarten,TEK30,Electric boiler - Solar,2023,0.000249379
+            kindergarten,TEK30,Electricity,2023,0.07068189
+            kindergarten,TEK30,Electricity - Bio,2023,0.021674095
+            kindergarten,TEK30,Gas,2023,0.001656504
+            kindergarten,TEK30,HP - Electricity,2023,0.163284936
+            kindergarten,TEK30,HP Central heating - Bio,2023,0.000193627
+            kindergarten,TEK30,HP Central heating - Electric boiler,2023,0.364043512
+            kindergarten,TEK30,HP Central heating - Gas,2023,7.20E-05
             sports,TEK30,HP Central heating - Bio,2023,0.00019362655741
             sports,TEK30,HP - Electricity,2023,0.1632849356867121
             sports,TEK30,Electricity - Bio,2023,0.0216740945571909
@@ -656,17 +657,18 @@ building code, it requires its own definition in this file.
             hotel,TEK30,HP Central heating - Electric boiler,2023,0.364043511904947
             sports,TEK30,HP Central heating - Electric boiler,2023,0.364043511904947
             sports,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
-            kindergarten,TEK30,HP Central heating - Gas,2023,7.196160696758601e-05
-            kindergarten,TEK30,Gas,2023,0.0016565044759408
-            kindergarten,TEK30,HP - Electricity,2023,0.1632849356867121
             storage_repairs,TEK30,DH - Bio,2023,0.0002142250969049
-            kindergarten,TEK30,DH,2023,0.3182453573763764
-            kindergarten,TEK30,DH - Bio,2023,0.0002142250969049
-            kindergarten,TEK30,Electric boiler,2023,0.0596845137090352
-            kindergarten,TEK30,Electricity - Bio,2023,0.0216740945571909
-            kindergarten,TEK30,Electricity,2023,0.0706818896188211
-            kindergarten,TEK30,HP Central heating - Bio,2023,0.00019362655741
-            kindergarten,TEK30,HP Central heating - Electric boiler,2023,0.364043511904947
+            kindergarten,TEK30,DH,2023,0.318245357
+            kindergarten,TEK30,DH - Bio,2023,0.000214225
+            kindergarten,TEK30,Electric boiler,2023,0.059684514
+            kindergarten,TEK30,Electric boiler - Solar,2023,0.000249379
+            kindergarten,TEK30,Electricity,2023,0.07068189
+            kindergarten,TEK30,Electricity - Bio,2023,0.021674095
+            kindergarten,TEK30,Gas,2023,0.001656504
+            kindergarten,TEK30,HP - Electricity,2023,0.163284936
+            kindergarten,TEK30,HP Central heating - Bio,2023,0.000193627
+            kindergarten,TEK30,HP Central heating - Electric boiler,2023,0.364043512
+            kindergarten,TEK30,HP Central heating - Gas,2023,7.20E-05
             sports,TEK30,HP Central heating - Bio,2023,0.00019362655741
             sports,TEK30,HP - Electricity,2023,0.1632849356867121
             sports,TEK30,Electricity - Bio,2023,0.0216740945571909

@@ -1,3 +1,4 @@
+import functools
 
 import numpy as np
 import pandas as pd
@@ -59,12 +60,19 @@ def energy_need_improvements(energy_need_original_condition: pd.DataFrame,
     most_conditions = list(BuildingCondition.existing_conditions())
     model_years = YearRange(2020, 2050)
 
+    building_codes = functools.reduce(np.union1d, (
+        energy_need_original_condition.building_code.unique(),
+        improvement_building_upgrade.building_code.unique(),
+        energy_need_improvements_policy.building_code.unique(),
+        energy_need_yearly_reduction.building_code.unique()
+    ))
+
     merged = energy_need_improvements_kwh_m2(
         energy_need_original_condition=energy_need_original_condition,
         reduction_per_condition=improvement_building_upgrade,
         policy_improvement=energy_need_improvements_policy,
         yearly_improvement=energy_need_yearly_reduction,
-        df_years=make_df_building_category_code_purpose_yearly(model_years, building_condition=most_conditions))
+        df_years=make_df_building_category_code_purpose_yearly(model_years, building_condition=most_conditions, building_code=building_codes))
 
     merged = merged.drop_duplicates(['building_category', 'building_code', 'building_condition', 'year', 'purpose'], keep='first')
 

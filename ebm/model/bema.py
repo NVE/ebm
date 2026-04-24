@@ -9,12 +9,12 @@ _building_category_order = {
     BuildingCategory.RETAIL: 301, BuildingCategory.OFFICE: 302, BuildingCategory.KINDERGARTEN: 303, BuildingCategory.SCHOOL: 304,
     BuildingCategory.UNIVERSITY: 305, BuildingCategory.HOSPITAL: 306, BuildingCategory.NURSING_HOME: 307,
     BuildingCategory.HOTEL: 308, BuildingCategory.SPORTS: 309, BuildingCategory.CULTURE: 310,
-    BuildingCategory.STORAGE: 312, 'storage': 311, NON_RESIDENTIAL: 399}
+    BuildingCategory.STORAGE: 312, 'storage': 311, NON_RESIDENTIAL: 399, 'default': 498,  'all': 499}
 
 BUILDING_CATEGORY_ORDER = MappingProxyType(_building_category_order)
 """An immutable dict of BeMa sorting order for building_category"""
 
-_building_group_order = {'residential': 199, 'holiday_home': 299, 'non_residential': 399}
+_building_group_order = {'residential': 199, 'holiday_home': 299, 'non_residential': 399, 'Residential': 199, 'Non Residential': 399}
 
 BUILDING_GROUP_ORDER = MappingProxyType(_building_group_order)
 """An immutable dict of BeMa sorting order for building_group"""

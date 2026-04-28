@@ -36,8 +36,10 @@ _purpose_order = {'heating_rv': 1, 'heating_dhw': 2, 'fans_and_pumps': 3, 'light
 PURPOSE_ORDER = MappingProxyType(_purpose_order)
 """A dict of BeMa sorting order for purpose"""
 
-_building_condition_order = {BuildingCondition.ORIGINAL_CONDITION: 1, BuildingCondition.SMALL_MEASURE: 2,
-    BuildingCondition.RENOVATION: 3, BuildingCondition.RENOVATION_AND_SMALL_MEASURE: 4, BuildingCondition.DEMOLITION: 5}
+_building_condition_order = {
+    BuildingCondition.ORIGINAL_CONDITION: 1, BuildingCondition.SMALL_MEASURE: 2,
+    BuildingCondition.RENOVATION: 3, BuildingCondition.RENOVATION_AND_SMALL_MEASURE: 4, BuildingCondition.DEMOLITION: 5,
+'demolished': 6, 'existing': 7, 'constructed': 8}
 
 BUILDING_CONDITION_ORDER = MappingProxyType(_building_condition_order)
 """A dict of BeMa sorting order for building_condition"""

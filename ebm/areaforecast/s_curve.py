@@ -477,7 +477,7 @@ def calculate_s_curves(scurve_parameters: pd.DataFrame,
     if 's_curves_with_building_code' in kwargs:
         s_curves_with_building_code = kwargs.get('s_curves_with_building_code')
     else:
-        s_curves_with_building_code = calculate_scurves_with_building_code(building_code_parameters, scurve_parameters, years)
+        s_curves_with_building_code = calculate_scurves_with_building_code(building_code_parameters, scurve_parameters, years, **kwargs)
 
     return normalize_scurve_conditions(s_curves_with_building_code=s_curves_with_building_code, years=years, kwargs=kwargs)
 
@@ -538,9 +538,20 @@ def normalize_scurve_conditions(s_curves_with_building_code, years, **kwargs):
     return s_curves_by_condition
 
 
-def calculate_scurves_with_building_code(building_code_parameters, scurve_parameters, years):
+def calculate_scurves_with_building_code(building_code_parameters, scurve_parameters, years, **kwargs):
     # Transform s_curve_parameters into long form with each row representing a building_condition at a certain age
     s_curves = scurve_from_s_curve_parameters(scurve_parameters)
+    if 'replace_s_curves' in kwargs and kwargs.get('replace_s_curves') is not None:
+        replace_s_curves = kwargs.get('replace_s_curves')
+        actual_index = replace_s_curves.index.names
+        if actual_index != ['building_category', 'age', 'building_condition']:
+            msg = f'Expected index (building_category, age, building_condition). Got: ({actual_index})'
+            raise ValueError(msg)
+        if 'scurve' not in replace_s_curves.columns:
+            msg=f'Expected column "scurve" in replace_s_curves. Got: ({replace_s_curves.columns})'
+            raise ValueError(msg)
+        logger.debug('Replacing s_curves {index}', index=actual_index)
+        s_curves.loc[replace_s_curves.index, 'scurve'] = replace_s_curves.loc[replace_s_curves.index, 'scurve']
     df_never_share = pad_s_curve_age(s_curves, scurve_parameters)
     s_curves_with_building_code = merge_s_curves_and_building_code(s_curves, df_never_share, building_code_parameters)
     s_curves_with_building_code = s_curves_with_building_code.loc[(slice(None), slice(None), [y for y in years])]

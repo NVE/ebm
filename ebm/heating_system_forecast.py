@@ -392,7 +392,7 @@ def check_sum_of_shares(projected_shares: pd.DataFrame, precision: int = 10) -> 
     projected_shares: pd.Dataframe
         Dataframe must contain columns: 'building_category', 'building_code', 'year' and 'heating_system_share'
     precision: int
-        Precision used for value check (with round)
+        Precision used for value check (with round), Defaults to 10
 
     Raises
     ------
@@ -408,7 +408,7 @@ def check_sum_of_shares(projected_shares: pd.DataFrame, precision: int = 10) -> 
     if len(invalid_shares) > 0:
         logger.error('Sum of TEK shares not equal to 1 for:')
         for idx, row in invalid_shares.iterrows():
-            logger.error('{idx}: {}', idx=idx, row_dict=row.to_dict())
+            logger.error('{idx}: {row_dict}', idx=idx, row_dict=row.to_dict())
         logger.warning('Skipping ValueError on sum!=1.0')
 
 

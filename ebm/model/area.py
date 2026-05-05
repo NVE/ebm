@@ -390,7 +390,7 @@ def multiply_s_curves_with_floor_area(s_curves_by_condition: pd.DataFrame, with_
 
     """
     floor_area_by_condition = s_curves_by_condition.multiply(with_area['area'], axis=0)
-    floor_area_forecast = floor_area_by_condition.stack().reset_index()  # noqa: PD013
+    floor_area_forecast = floor_area_by_condition.stack(dropna=False).reset_index()  # noqa: PD013
     floor_area_forecast = floor_area_forecast.rename(columns={'level_3': 'building_condition', 0: 'm2'})  # m²
     return floor_area_forecast
 

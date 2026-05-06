@@ -412,8 +412,12 @@ def merge_total_area_by_year(construction_by_building_category_yearly: pd.Series
         Dataframe with constructed and existing area
 
     """
-    total_area_by_year = pd.concat([existing_area.drop(columns=['year_r'], errors='ignore'),
-                                    construction_by_building_category_yearly])
+
+    total_area_by_year = (existing_area
+                              .drop(columns=['year_r'], errors='ignore')
+                              .combine_first(construction_by_building_category_yearly.to_frame())
+                              .groupby(by=['building_category', 'building_code']).ffill()
+    )
     return total_area_by_year
 
 
@@ -445,7 +449,7 @@ def calculate_existing_area(area_parameters: pd.DataFrame,
     # Reindex the DataFrame to include all combinations, filling missing values with NaN
     area = index.to_frame().set_index(['building_category', 'building_code', 'year']).reindex(index).reset_index()
     # Optional: Fill missing values with a default, e.g., 0
-    existing_area = pd.merge(left=area_parameters, right=area, on=['building_category', 'building_code'], suffixes=('_r', ''))  # noqa: PD015
+    existing_area = pd.merge(left=area_parameters, right=area, on=['building_category', 'building_code'], suffixes=('_r', ''), how='right')  # noqa: PD015
     existing_area = existing_area.set_index(['building_category', 'building_code', 'year'])
     return existing_area
 

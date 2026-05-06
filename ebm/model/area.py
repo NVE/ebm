@@ -477,7 +477,7 @@ def construction_with_building_code(building_category_demolition_by_year: pd.Ser
     if not years:
         years = YearRange.from_series(building_category_demolition_by_year)
 
-    building_code_years = years.cross_join(building_code)
+    building_code_years = explode_building_code_parameters_years(building_code)
 
     filtered_building_code_years = building_code_years.query(f'period_end_year>={years.start}')
 
@@ -496,6 +496,19 @@ def construction_with_building_code(building_category_demolition_by_year: pd.Ser
     #s.name = 'construction'
 
     return df.rename(columns={'constructed_floor_area': 'net_construction'})
+
+
+def explode_building_code_parameters_years(building_code_parameters: pd.DataFrame) -> pd.DataFrame:
+    df = building_code_parameters.copy()
+
+    min_year = max(df['period_start_year'].min(), 2020)
+    max_year = df['period_end_year'].max()
+
+    df = df.assign(year=lambda x: x.apply(lambda r: list(range(r.period_start_year, r.period_end_year + 1)), axis=1))
+    df = df.explode('year').query(f'year>={min_year} and year <={max_year}').reset_index(drop=True)
+    df['year'] = df['year'].astype(int)
+
+    return df
 
 
 def sum_building_category_demolition_by_year(demolition_by_year: pd.Series) -> pd.Series:

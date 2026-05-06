@@ -953,9 +953,13 @@ def calculate_all_area(area_new_residential_buildings, area_parameters, area_per
     floor_area_forecast = multiply_s_curves_with_floor_area(cconditions, total_area_floor_by_year)
     floor_area_forecast_with_s_curves = floor_area_forecast.join(s_curves_by_condition,
                                                                  on=['building_category', 'building_code', 'year'])
-    net_construction = construction_with_demolition[['construction', 'rebuilt', 'net_construction', 'net_construction_acc']].copy()
+    net_construction = construction_with_demolition[['construction', 'rebuilt', 'net_construction', 'net_construction_acc', 'rebuilt_acc']].copy()
     net_construction.loc[:, 'building_condition'] = 'original_condition'
     df = floor_area_forecast_with_s_curves.merge(
-        net_construction.reset_index(), on=['building_category', 'building_code', 'year', 'building_condition'],
-        how='left')
-    return df
+        net_construction.reset_index(),
+        on=['building_category', 'building_code', 'year', 'building_condition'],
+        how='left').copy()
+
+    df = df.set_index([ 'building_category', 'building_code', 'building_condition', 'year']).copy()
+    df[['net_construction_acc', 'rebuilt_acc']] = df.groupby(by=['building_category', 'building_code', 'building_condition'])[['net_construction_acc', 'rebuilt_acc']].ffill()
+    return df.reset_index()

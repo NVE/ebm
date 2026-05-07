@@ -147,6 +147,46 @@ def merge_energy_requirement_reductions(condition_factor: pd.DataFrame, yearly_i
 
     return merged
 
+def multiply_reduction_yearly(df: pd.DataFrame) -> pd.DataFrame:
+        group_cols = ["building_category", "building_code", "purpose", "year"]
+
+        # Work on a copy
+        df = df.copy()
+        # df['function'] = 'reduction_yearly'
+        # 1. Number factors per group *per function*
+        df["factor_no"] = (
+                df
+                .groupby(group_cols + ["function"])
+                .cumcount()
+                + 1
+        )
+
+        # 2. Build final column names from `function` + number
+        df["factor_col"] = (
+                'factor_' +
+                df["function"]
+                + "_"
+                + df["factor_no"].astype(str)
+        )
+
+        # 3. Pivot to wide format
+        result = (
+            df
+            .pivot(
+                index=group_cols,
+                columns="factor_col",
+                values="reduction_yearly"
+            )
+            .reset_index()
+        )
+        result['reduction_yearly'] = result['factor_yearly_reduction_1']
+        result["reduction_yearly"] = (
+            result
+            .filter(like="factor_")
+            .prod(axis=1)
+        )
+        return result
+
 
 def calculate_reduction_yearly( df_years: pd.DataFrame, yearly_improvement: pd.DataFrame) -> pd.DataFrame:
     """
@@ -168,7 +208,9 @@ def calculate_reduction_yearly( df_years: pd.DataFrame, yearly_improvement: pd.D
     pd.DataFrame
         DataFrame with the calculated 'reduction_yearly' column and updated entries.
     """
-    required_in_yearly_improvement = {'yearly_efficiency_improvement', 'start_year', 'end_year'}
+
+
+    required_in_yearly_improvement = {'function', 'yearly_efficiency_improvement', 'start_year', 'end_year'}
     if not required_in_yearly_improvement.issubset(yearly_improvement.columns):
         logger.debug(f'Got columns {", ".join(yearly_improvement.columns)}')
         missing = required_in_yearly_improvement.difference(yearly_improvement.columns)
@@ -191,7 +233,7 @@ def calculate_reduction_yearly( df_years: pd.DataFrame, yearly_improvement: pd.D
         df[df.start_year > df.year].index, 'reduction_yearly'].fillna(1.0)
     df.loc[:, 'reduction_yearly'] = df.loc[:, 'reduction_yearly'].ffill()
 
-    return df[['building_category', 'building_code', 'purpose', 'year', 'reduction_yearly']]
+    return multiply_reduction_yearly(df[['building_category', 'building_code', 'purpose', 'year', 'function', 'reduction_yearly']])
 
 
 def calculate_reduction_policy( policy_improvement: pd.DataFrame, all_things: pd.DataFrame) -> pd.DataFrame:

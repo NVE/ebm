@@ -56,7 +56,7 @@ class YearlyReduction(pa.DataFrameModel):
             When the resulting dataframe fails to validate
 
         """
-        unique_columns = ['building_category', 'building_code', 'purpose', 'function'] #, 'start_year', 'end_year']
+        unique_columns = ['building_category', 'building_code', 'purpose', 'function', 'start_year'] #, 'start_year', 'end_year']
 
         # Casting en_yearly_improvement to DataFrame so that type checkers complaining about datatype
         df = cast(pd.DataFrame, en_yearly_improvement)

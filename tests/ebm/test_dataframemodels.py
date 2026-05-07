@@ -88,6 +88,29 @@ def test_from_energy_need_yearly_improvements_fill_optional_columns():
     assert (df['end_year'] == 2050).all()
 
 
+@pytest.mark.parametrize(('building_category', 'building_code', 'expected_1', 'expected_2'), [
+    ('house', 'TEK69', 0.1, 0.2),
+])
+def test_from_energy_need_yearly_improvement_return_consecutive_series(building_category: str, building_code: str, expected_1: float, expected_2: float) -> None:
+    energy_need_yearly_improvements = pd.DataFrame(
+        data=[
+            ['house', building_code, 'lighting', 2020, 'yearly_reduction', 2030, expected_1],
+            ['house', building_code, 'lighting', 2031, 'yearly_reduction', 2050, expected_2],
+            ['default', 'default', 'lighting', None, 'yearly_reduction', None, 3.0],
+        ],
+        columns=['building_category', 'building_code', 'purpose', 'start_year', 'function', 'end_year', 'value'],
+    )
+    yearly_improvements = EnergyNeedYearlyImprovements(energy_need_yearly_improvements)
+
+    df = YearlyReduction.from_energy_need_yearly_improvements(yearly_improvements)
+
+    row = df.query(f'building_category=="{building_category}" and building_code=="{building_code}" and purpose=="lighting"')
+
+    assert len(row) == 2, 'Expected consecutive selections for yearly reduction'
+    assert row.iloc[0].yearly_efficiency_improvement == expected_1
+    assert row.iloc[1].yearly_efficiency_improvement == expected_2
+
+
 @pytest.mark.parametrize(('building_category', 'building_code', 'expected'), [
     ('house', 'TEK69', 0.2),
     ('house', 'TEK97', 0.3),
@@ -170,7 +193,7 @@ house,TEK01,electrical_equipment,0.8,2025,improvement_at_end_year,2029
                              ('house', 'TEK69', 'lighting', 'improvement_at_end_year', 2020, 0.555555556, 2030),
                              ('apartment_block', 'TEK17', 'lighting', 'improvement_at_end_year', 2020, 0.555555556, 2030),
                              ('culture', 'TEK17', 'lighting', 'improvement_at_end_year', 2021, 0.555555556, 2025),
-                             ('house', 'TEK17', 'lighting', 'yearly_reduction', 2031, 0.005, 2050),
+                             # ('house', 'TEK17', 'lighting', 'yearly_reduction', 2031, 0.005, 2050), # Disabled because due to changing requirements #4061
                              ('kindergarten', 'TEK17', 'lighting', 'yearly_reduction', 2027, 0.005, 2050),
                              ('school', 'TEK69', 'cooling', 'yearly_reduction', 2020, 0, 2050),
                              ('university', 'TEK49', 'fans_and_pumps', 'yearly_reduction', 2020, 0, 2050),
@@ -217,7 +240,7 @@ def test_energy_need_policy_improvement_bugfix_3520_use_correct_alias_unpacking(
 
     # the values have different names for some reason.
     # Should probably have matched function name in both cases.
-    assert result['yearly_efficiency_improvement' if function == 'yearly_reduction' else function] == expected_value
+    assert (result['yearly_efficiency_improvement' if function == 'yearly_reduction' else function] == expected_value).all()
 
 
 def test_from_energy_need_policy_improvement_explode_groups():

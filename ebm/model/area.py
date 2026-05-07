@@ -837,26 +837,122 @@ def calculate_households_by_year(household_size: pd.Series, population: pd.Serie
     return households
 
 
-def calculate_construction_with_demolition(construction_by_building_category_and_year: pd.DataFrame, demolition_floor_area_by_year: pd.Series) -> pd.DataFrame:
-    demolition_by_building_category = demolition_floor_area_by_year.groupby(['building_category', 'year']).sum().to_frame()
-    demolition_by_building_category.loc[(['apartment_block', 'house'], [2020, 2021]), 'demolition'] = 0.0
+def calculate_construction_with_demolition(construction_by_building_category_and_year: pd.DataFrame,
+                                           demolition_floor_area_by_year: pd.Series,
+                                           residential_building_categories: set[str]|None) -> pd.DataFrame:
+    """
+    Combine construction and demolition data to compute rebuilt, total construction, and cumulative built area by building category, building code, and year.
+
+    The function aligns demolition floor area with construction data, applying
+    domain-specific timing rules:
+    - Residential demolition is assumed to already be aligned with construction
+      and is forced to zero for years 2020 and 2021.
+    - Non-residential demolition is shifted one year forward to align with
+      construction timing.
+
+    Demolition is treated as fully rebuilt (1:1), and demolition values are
+    broadcast across building codes within each building category.
+
+    Parameters
+    ----------
+    construction_by_building_category_and_year : pandas.DataFrame
+        Construction data indexed by
+        ``('building_category', 'building_code', 'year')``.
+        Must contain the following columns:
+
+        - ``net_construction`` : float
+            Net new construction area for the given year.
+        - ``net_construction_acc`` : float
+            Cumulative net construction area up to and including the given year.
+
+    demolition_floor_area_by_year : pandas.Series
+        Demolition floor area indexed by
+        ``('building_category', 'year')``.
+        Values represent annual demolished area before any timing adjustments.
+
+    residential_building_categories : set of str, optional
+        Set of building categories considered residential. These categories
+        are exempt from the one-year demolition shift applied to non-residential
+        buildings. Defaults to ``{'house', 'apartment_block'}``.
+
+    Returns
+    -------
+    pandas.DataFrame
+        DataFrame indexed by
+        ``('building_category', 'building_code', 'year')`` containing the
+        original construction data along with additional columns:
+
+        - ``demolition`` : float
+            Aligned demolition area for the given year.
+        - ``rebuilt`` : float
+            Annual rebuilt area, assumed equal to demolition.
+        - ``rebuilt_acc`` : float
+            Cumulative rebuilt area over time.
+        - ``construction`` : float
+            Total annual construction (net construction + rebuilt).
+        - ``area`` : float
+            Total cumulative built area (net construction accumulated +
+            rebuilt accumulated).
+
+    Raises
+    ------
+    ValueError
+        If required index levels or columns are missing from the input data.
+
+    Notes
+    -----
+    - Demolition values are aggregated by ``('building_category', 'year')``
+      prior to alignment.
+    - Demolition is merged with construction using an inner join on
+      ``('building_category', 'year')``; construction rows without corresponding
+      demolition data are dropped.
+    - For non-residential buildings, demolition in the first available year
+      after shifting will be ``NaN``.
+
+    """
+    def make_non_residential_query(residential_building_categories: tuple[str]) -> str:
+        """Returns `~building_category.isin(["house","apartment_block"]) `"""
+        return '~' + make_residential_query(residential_building_categories)
+    def make_residential_query(residential_building_categories: tuple[str]) -> str:
+        """Returns `building_category.isin(["house","apartment_block"]) `"""
+        return 'building_category.isin([' + ','.join([f'"{b}"' for b in residential_building_categories]) + ']) '
+    if residential_building_categories is None:
+        residential_building_categories = {'house', 'apartment_block'}
+    expected_construction_index = ('building_category', 'building_code', 'year')
+    expected_demolition_index = ('building_category', 'year')
+    expected_columns = 'net_construction', 'net_construction_acc'
+
+    if missing_levels := [eci for eci in expected_construction_index if eci not in construction_by_building_category_and_year.index.names]:
+        msg = f'Missing required levels in construction_by_building_category_and_year ({", ".join(missing_levels)})'
+        raise ValueError(msg)
+
+    if missing_levels := [edi for edi in expected_demolition_index if edi not in demolition_floor_area_by_year.index.names]:
+        msg = f'Missing required levels in demolition_floor_area_by_year ({", ".join(missing_levels)})'
+        raise ValueError(msg)
+
+    if missing_columns := [ec for ec in expected_columns if ec not in construction_by_building_category_and_year.columns]:
+        msg = f'Missing required columns in construction_by_building_category_and_year ({", ".join(missing_columns)})'
+        raise ValueError(msg)
+
+    demolition_by_building_category: pd.DataFrame = demolition_floor_area_by_year.rename('demolition').to_frame().groupby(['building_category', 'year']).sum()
+    demolition_by_building_category.loc[(list(residential_building_categories), [2020, 2021]), 'demolition'] = 0.0
 
     # not_residential buildings require shifting 1 year forward to align properly. Residential is already shifted for
-    # some reason. The shifting must occure before the construction area building_code is applied.
-    not_residential = demolition_by_building_category.query('~building_category.isin(["house", "apartment_block"])').index
+    # some reason. The shifting must occur before the construction area building_code is applied.
+    not_residential = demolition_by_building_category.query(
+        make_non_residential_query(residential_building_categories)).index
     demolition_by_building_category.loc[not_residential, 'demolition'] = demolition_by_building_category.groupby(by=['building_category'])['demolition'].shift(1)
 
-    construction_with_demolition = construction_by_building_category_and_year.reset_index().merge(demolition_by_building_category.reset_index(), on=['building_category', 'year'])
-    construction_with_demolition = construction_with_demolition.set_index(['building_category', 'building_code', 'year'])
+    #construction_with_demolition = construction_by_building_category_and_year.merge(demolition_by_building_category, on=['building_category', 'year'])
+    construction_with_demolition = construction_by_building_category_and_year.join(demolition_by_building_category, on=['building_category', 'year'])
+    construction_with_demolition = construction_with_demolition.reset_index().set_index(['building_category', 'building_code', 'year'])
     construction_with_demolition['rebuilt'] = construction_with_demolition['demolition']
 
-    construction = construction_with_demolition
-    construction[['rebuilt_acc']] = construction.groupby(by=['building_category', 'building_code'])[['rebuilt']].cumsum()
-    construction['construction'] = construction['rebuilt'] + construction['net_construction']
-    construction['area'] = construction['net_construction_acc'] + construction['rebuilt_acc']
+    construction_with_demolition['rebuilt_acc'] = construction_with_demolition.groupby(by=['building_category', 'building_code'])['rebuilt'].cumsum()
+    construction_with_demolition['construction'] = construction_with_demolition['rebuilt'] + construction_with_demolition['net_construction']
+    construction_with_demolition['area'] = construction_with_demolition['net_construction_acc'] + construction_with_demolition['rebuilt_acc']
 
-    construction['net_construction_acc'] = construction.groupby(by=['building_category', 'building_code', 'year'])['net_construction_acc'].ffill()
-    return construction
+    return construction_with_demolition
 
 
 def calculate_construction(building_category_demolition_by_year: pd.Series, years: YearRange,

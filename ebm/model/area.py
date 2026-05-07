@@ -839,7 +839,7 @@ def calculate_households_by_year(household_size: pd.Series, population: pd.Serie
 
 def calculate_construction_with_demolition(construction_by_building_category_and_year: pd.DataFrame,
                                            demolition_floor_area_by_year: pd.Series,
-                                           residential_building_categories: set[str]|None) -> pd.DataFrame:
+                                           residential_building_categories: set[str]|None=None) -> pd.DataFrame:
     """
     Combine construction and demolition data to compute rebuilt, total construction, and cumulative built area by building category, building code, and year.
 

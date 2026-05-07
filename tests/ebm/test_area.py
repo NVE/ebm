@@ -12,6 +12,7 @@ from ebm.model.area import (
     transform_area_forecast_to_area_change,
     transform_construction_by_year,
     transform_cumulative_demolition_to_yearly_demolition,
+    multiply_s_curves_with_floor_area,
 )
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
@@ -242,6 +243,7 @@ def test_construction_with_building_code():
     pd.testing.assert_series_equal(result.net_construction, expected_net_construction)
 
 
+
 @pytest.mark.parametrize("years_parameter", [YearRange(2020, 2029), None])
 def test_construction_with_building_code_more_than_one_building_code(years_parameter):
     years = YearRange(2020, 2029)
@@ -251,9 +253,9 @@ def test_construction_with_building_code_more_than_one_building_code(years_param
     demolition = pd.Series(demolition_by_year, name='demolition',
                               index=pd.Index([('house', y) for y in years], name=('building_category', 'year')))
     building_code = pd.DataFrame(
-        [{'building_code': 'TEK0X', 'building_year': 2010.0, 'period_start_year': 1945, 'period_end_year': 2019.0},
-         {'building_code': 'TEK17', 'building_year': 2025.0, 'period_start_year': 2020.0, 'period_end_year': 2026.0},
-         {'building_code': 'TEK21', 'building_year': 2027.0, 'period_start_year': 2027.0, 'period_end_year': 2029.0}])
+        [{'building_code': 'TEK0X', 'building_year': 2010, 'period_start_year': 1945, 'period_end_year': 2019},
+         {'building_code': 'TEK17', 'building_year': 2025, 'period_start_year': 2020, 'period_end_year': 2026},
+         {'building_code': 'TEK21', 'building_year': 2027, 'period_start_year': 2027, 'period_end_year': 2029}])
 
     mock_database_manager = DatabaseManager()
     mock_database_manager.get_building_codes = MagicMock(return_value=building_code)
@@ -267,16 +269,120 @@ def test_construction_with_building_code_more_than_one_building_code(years_param
 
     expected = pd.Series({('house', 'TEK17', 2020): 0.0, ('house', 'TEK17', 2021): 1.0, ('house', 'TEK17', 2022): 2.0,
                           ('house', 'TEK17', 2023): 3.0, ('house', 'TEK17', 2024): 4.0, ('house', 'TEK17', 2025): 6.0,
-                          ('house', 'TEK17', 2026): 8.0, ('house', 'TEK17', 2027): 8.0, ('house', 'TEK17', 2028): 8.0,
-                          ('house', 'TEK17', 2029): 8.0, ('house', 'TEK21', 2020): 0.0, ('house', 'TEK21', 2021): 0.0,
-                          ('house', 'TEK21', 2022): 0.0, ('house', 'TEK21', 2023): 0.0, ('house', 'TEK21', 2024): 0.0,
-                          ('house', 'TEK21', 2025): 0.0, ('house', 'TEK21', 2026): 0.0, ('house', 'TEK21', 2027): 2.0,
+                          ('house', 'TEK17', 2026): 8.0, ('house', 'TEK21', 2027): 2.0,
                           ('house', 'TEK21', 2028): 4.0, ('house', 'TEK21', 2029): 6.0})
     expected.name = 'net_construction_acc'
     expected.index.names = ['building_category', 'building_code', 'year']
 
     pd.testing.assert_series_equal(r.sort_index(), expected)
 
+
+@pytest.fixture
+def s_curves_by_condition() -> pd.DataFrame:
+    index = pd.MultiIndex.from_tuples(
+        [
+            ("kindergarten", "A", 2025),
+            ("kindergarten", "A", 2026),
+            ("kindergarten", "B", 2025),
+            ("kindergarten", "B", 2026),
+        ],
+        names=["building_category", "building_code", "year"],
+    )
+
+    return pd.DataFrame(
+        {
+            'original_condition': [0.6, 0.6, 0.4, 0.4],
+            'small_measure': [0.4, 0.4, 0.3, 0.3],
+        },
+        index=index,
+    )
+
+
+@pytest.fixture
+def with_area() -> pd.DataFrame:
+    index = pd.MultiIndex.from_tuples(
+        [
+            ("kindergarten", "A", 2025),
+            ("kindergarten", "A", 2026),
+            ("kindergarten", "B", 2025),
+            ("kindergarten", "B", 2026),
+        ],
+        names=["building_category", "building_code", "year"],
+    )
+
+    return pd.DataFrame(
+        {
+            "area": [1000.0, 1000.0, 500.0, 500.0],
+        },
+        index=index,
+    )
+
+
+def test_multiply_s_curves_with_floor_area_multiply_s_curves_with_area(s_curves_by_condition, with_area):
+    result = multiply_s_curves_with_floor_area(
+        s_curves_by_condition, with_area
+    )
+
+    # Expected rows: 4 index rows × 2 years
+    assert len(result) == 8
+
+    assert set(result.columns) == {
+        "building_category",
+        "building_code",
+        "year",
+        "building_condition",
+        "m2",
+    }
+
+    original_condition = result[(result["building_condition"] == 'original_condition')]
+    assert original_condition["m2"].iloc[0] == pytest.approx(600.0)
+    assert original_condition["m2"].iloc[1] == pytest.approx(600.0)
+    assert original_condition["m2"].iloc[2] == pytest.approx(200.0)
+    assert original_condition["m2"].iloc[3] == pytest.approx(200.0)
+
+    small_measure = result[(result["building_condition"] == 'small_measure')]
+    assert small_measure["m2"].iloc[0] == pytest.approx(400.0)
+    assert small_measure["m2"].iloc[1] == pytest.approx(400.0)
+    assert small_measure["m2"].iloc[2] == pytest.approx(150.0)
+    assert small_measure["m2"].iloc[3] == pytest.approx(150.0)
+
+
+def test_multiply_s_curves_with_floor_area_output_is_long_format(s_curves_by_condition, with_area):
+    result = multiply_s_curves_with_floor_area(
+        s_curves_by_condition, with_area
+    )
+
+    assert result["building_condition"].nunique() == 2
+    assert result["m2"].dtype == float
+
+
+def test_multiply_s_curves_with_floor_area_index_values_preserved(s_curves_by_condition, with_area):
+    result = multiply_s_curves_with_floor_area(s_curves_by_condition, with_area)
+
+    assert set(result["building_category"]) == {'kindergarten'}
+    assert set(result["building_code"]) == {'A', 'B'}
+    assert set(result["year"]) == {2025, 2026}
+
+
+def test_multiply_s_curves_with_floor_area_keep_nan_in_with_area(s_curves_by_condition, with_area):
+    with_area.loc[('kindergarten', 'B', 2025), 'area'] = np.nan
+    result = multiply_s_curves_with_floor_area(
+        s_curves_by_condition, with_area
+    )
+
+    assert len(result) == 8
+
+    original_condition = result[(result["building_condition"] == 'original_condition')]
+    assert original_condition["m2"].iloc[0] == pytest.approx(600.0)
+    assert original_condition["m2"].iloc[1] == pytest.approx(600.0)
+    assert original_condition["m2"].iloc[3] == pytest.approx(200.0)
+    assert np.isnan(original_condition["m2"].iloc[2])
+
+    small_measure = result[(result["building_condition"] == 'small_measure')]
+    assert small_measure["m2"].iloc[0] == pytest.approx(400.0)
+    assert small_measure["m2"].iloc[1] == pytest.approx(400.0)
+    assert small_measure["m2"].iloc[3] == pytest.approx(150.0)
+    assert np.isnan(small_measure["m2"].iloc[2])
 
 
 if __name__ == "__main__":

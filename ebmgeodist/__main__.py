@@ -57,11 +57,15 @@ def run_ebmgeodist():
 
         building_category_choice = arguments.building_category
         elhub_years = arguments.years
-
-        if arguments.level == "municipal":
-            logger.info("🏛️ Municipal level is chosen for geographical distribution.")
-        elif arguments.level == "price_area":   
-            logger.info("🗺️ Price area level is chosen for geographical distribution.")
+        level = arguments.level
+        if level == "municipal":
+            level_label = "municipal"
+            logger.info("🏛️  Municipal level is chosen for geographical distribution.")
+        elif level == "pricearea":
+            level_label = "price area" 
+            logger.info("🗺️  Price area level is chosen for geographical distribution.")
+        else:
+            raise ValueError(f"Unnsupported geographical distribution level: {level}.")
         # Choose sour
         if arguments.source == "azure":
             logger.info("☁️ Loading Elhub data directly from the Azure Data Lake. This assumes you have access via 'az login'.")
@@ -77,14 +81,14 @@ def run_ebmgeodist():
 
         if energy_product == "electricity":
             logger.info(
-                f"🔍 Municipal electricity distribution for building category '{building_category_choice}' "
+                f"🔍 {level_label.capitalize()} electricity distribution for building category '{building_category_choice}' "
                 f"from Elhub data in the time period: {elhub_years} ..."
             )
 
         elif energy_product == "dh":
             filtered_categories = [cat for cat in building_category_choice if cat.lower() != NameHandler.COLUMN_NAME_HOLIDAY_HOME.lower()]
             logger.info(
-                f"🔍 Municipal district heating distribution for building category {filtered_categories}."
+                f"🔍 {level_label.capitalize()} district heating distribution for building category {filtered_categories}."
                 )
             try:
                 if not filtered_categories:
@@ -98,7 +102,7 @@ def run_ebmgeodist():
         elif energy_product == "fuelwood":
             filtered_categories = [cat for cat in building_category_choice if cat.lower() != NameHandler.COLUMN_NAME_NON_RESIDENTIAL.lower()]
             logger.info(
-                f"🔍 Municipal fuelwood distribution for building category  {filtered_categories}."
+                f"🔍 {level_label.capitalize()} fuelwood distribution for building category  {filtered_categories}."
                 )
             try:
                 if not filtered_categories:
@@ -112,7 +116,7 @@ def run_ebmgeodist():
             filtered_categories = [cat for cat in building_category_choice if cat.lower() != NameHandler.COLUMN_NAME_RESIDENTIAL.lower()\
                                 and cat.lower() != NameHandler.COLUMN_NAME_NON_RESIDENTIAL.lower()]
             logger.info(
-                f"🔍 Municipal fossilfuel distribution for building category {filtered_categories}."
+                f"🔍 {level_label.capitalize()} fossilfuel distribution for building category {filtered_categories}."
                 )
             try:
                 if not filtered_categories:
@@ -131,7 +135,8 @@ def run_ebmgeodist():
                                                 level = arguments.level
                                                 )
 
-        logger.info(f"✅ Municipal distribution for selected energy product has finished running and the results are saved in the output folder with filename: {file_to_open.name}")
+        logger.info(f"✅ {level_label.capitalize()} distribution for selected energy product has finished running and"
+                     f" the results are saved in the output folder with filename: {file_to_open.name}")
         if os.environ.get('EBM_ALWAYS_OPEN', 'FALSE').upper() == 'TRUE':
             logger.info(f'Open {file_to_open}')
             os.startfile(file_to_open, 'open')

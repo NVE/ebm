@@ -117,7 +117,7 @@ file, (default: local)
                              Choose energy product: electricity, dh, fuelwood or fossilfuel. (default: electricity) 
                             ''')
     
-    arg_parser.add_argument('--level','-l', choices=['municipal', 'pricearea'], default='commune',
+    arg_parser.add_argument('--level','-l', choices=['municipal', 'pricearea'], default='municipal',
                             help=(
                                 "Distribution level: "
                                 "'municipal' (municipality level) or "

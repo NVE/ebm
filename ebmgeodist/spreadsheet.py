@@ -1,12 +1,13 @@
 import math
-from typing import Tuple
 from pathlib import Path
+from typing import Tuple
+
 from loguru import logger
+from openpyxl import load_workbook
+from openpyxl.cell import Cell
+from openpyxl.formatting.rule import FormulaRule
 from openpyxl.styles import Font, PatternFill
 from openpyxl.utils.cell import get_column_letter
-from openpyxl import load_workbook
-from openpyxl.formatting.rule import FormulaRule
-from openpyxl.cell import Cell
 from openpyxl.worksheet.errors import IgnoredError
 
 

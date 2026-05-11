@@ -1,14 +1,13 @@
 import io
-import typing
 import re
-import pytest
+import typing
 
 import pandas as pd
+import pytest
 
 from ebm.model.building_category import BuildingCategory
 from ebm.model.energy_need_filter import filter_original_condition
 from ebm.model.energy_purpose import EnergyPurpose
-from ebm.model.energy_requirement import EnergyRequirement
 from ebm.model.exceptions import AmbiguousDataError
 
 

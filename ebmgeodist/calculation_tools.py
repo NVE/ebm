@@ -3,6 +3,9 @@ from typing import Union
 from ebmgeodist.initialize import NameHandler
 from loguru import logger
 
+from ebmgeodist.initialize import NameHandler
+
+
 class NoElhubDataError(Exception):
     """Custom exception for cases where no Elhub data is available.
       Raised when no Elhub data is found for the provided years."""

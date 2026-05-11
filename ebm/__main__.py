@@ -1,6 +1,5 @@
 """EBM start from where when running as a script or module"""
 import os
-import subprocess
 
 os.environ['DISABLE_PANDERA_IMPORT_WARNING'] = 'True'
 import pathlib

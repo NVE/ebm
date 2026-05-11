@@ -1,6 +1,6 @@
 import pandas as pd
 
-from ebm.energy_consumption import HP_ENERGY_SOURCE, HEAT_PUMP
+from ebm.energy_consumption import HEAT_PUMP, HP_ENERGY_SOURCE
 
 
 def air_source_heat_pump(heating_systems_parameters: pd.DataFrame):
@@ -47,6 +47,23 @@ def heat_prod_hp(production: pd.DataFrame, group_by:list|None=None) -> pd.DataFr
 
 
 def heat_prod_hp_wide(production: pd.DataFrame) -> pd.DataFrame:
+    """
+    Change transform the result of production into heat_prod_hp wide format with years as columns.
+
+    Parameters
+    ----------
+    production : pd.DataFrame
+        Containing year, building_group, hp_source
+
+    Returns
+    -------
+    pd.DataFRame
+        heat_prod_hp in wide format
+
+    Notes
+    -----
+    The function will modify the original dataframe by adding an RV_HP column
+    """
     df = heat_prod_hp(production)
     wide = df.reset_index().pivot(columns=['year'], index=['building_group', 'hp_source'], values=['RV_HP']).reset_index()
     wide.columns = ['building_group', 'hp_source'] + [c for c in wide.columns.get_level_values(1)[2:]]

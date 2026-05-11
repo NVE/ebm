@@ -1,11 +1,10 @@
 import os
-
 from typing import Optional
 import pathlib
 from functools import lru_cache
 
-import polars as pl
 import pandas as pd
+import polars as pl
 from loguru import logger
 
 from ebm.temp_calc import calculate_energy_use_wide

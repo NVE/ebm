@@ -1,7 +1,8 @@
-import pathlib
 import os
+import pathlib
 import sys
-from dotenv import load_dotenv, find_dotenv
+
+from dotenv import find_dotenv, load_dotenv
 from loguru import logger
 
 

@@ -3,6 +3,7 @@ import re
 
 import pandas as pd
 import pytest
+from loguru import logger
 
 from ebm.heating_system_forecast import (
     HeatingSystemsForecast,
@@ -385,9 +386,8 @@ kindergarten,TEK97,Gas,2022,1
     pd.testing.assert_frame_equal(result, expected)
 
 
-@pytest.mark.skip
-def test_check_sum_of_shares_ok():
-    """Control that the sum of heating_system_share equals 1 per TEK, building category and year."""
+def test_check_sum_of_shares_use_log_error():
+    """Make sure that check_sum_of_share log error when the sum of heating_system_share is not equal to 1."""
     projected_shares = pd.read_csv(io.StringIO("""
 house,TEK97,DH,2020,0.5
 house,TEK97,Electricity,2020,0.5
@@ -401,11 +401,39 @@ kindergarten,TEK97,DH,2020,0.4
 kindergarten,TEK97,Gas,2020,0.5
 kindergarten,TEK97,DH,2021,0.5
 kindergarten,TEK97,Gas,2021,0.5
-""".strip()),
-                                   names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, YEAR, HEATING_SYSTEM_SHARE], skipinitialspace=True)
+""".strip()), names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, YEAR, HEATING_SYSTEM_SHARE], skipinitialspace=True)
 
-    with pytest.raises(ValueError): # noqa: PT011
-        check_sum_of_shares(projected_shares, precision=1)
+    messages = []
+
+    def sink(msg) -> None:
+        messages.append(msg.split(' - ')[-1].strip())
+
+    logger.add(sink, level="ERROR")
+    check_sum_of_shares(projected_shares, precision=1)
+    assert "('kindergarten', 'TEK97', 2020): {'heating_system_share': 0.9}" in messages
+    assert "('house', 'TEK07', 2021): {'heating_system_share': 0.9}" in messages
+    assert len(messages) > 2, 'Expected at least 2 messages in error log'
+    logger.remove()
+
+
+def test_check_sum_of_shares_ignore_tiny_deviations():
+    """Make sure that check_sum_of_share does not log error when the sum of heating_system_share similar enough to 1."""
+    projected_shares = pd.read_csv(io.StringIO("""
+house,TEK97,DH,2020,0.50000001
+house,TEK97,Electricity,2020,0.5
+house,TEK97,DH,2021,0.5
+house,TEK97,Electricity,2021,0.5
+""".strip()), names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, YEAR, HEATING_SYSTEM_SHARE], skipinitialspace=True)
+
+    messages = []
+
+    def sink(msg) -> None:
+        messages.append(msg.split(' - ')[-1].strip())
+
+    logger.add(sink, level="ERROR")
+    check_sum_of_shares(projected_shares, precision=5)
+    assert len(messages) == 0, 'Expected empty error log when the difference is tiny'
+    logger.remove()
 
 
 def test_calculate_forecast_ok(building_code_list):

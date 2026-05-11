@@ -9,9 +9,9 @@ import webbrowser
 from http.server import HTTPServer
 
 from loguru import logger
+from scripts.build_and_watch_docs import NoCacheHTTPRequestHandler
 from sphinx.cmd.build import build_main
 
-from scripts.build_and_watch_docs import NoCacheHTTPRequestHandler
 
 def find_most_recent_rst(directory):
     # Get all .rst files recursively

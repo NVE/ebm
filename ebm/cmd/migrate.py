@@ -5,7 +5,8 @@ import sys
 import typing
 
 from loguru import logger
-from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel
+
+from ebm.cmd.helpers import configure_loglevel, load_environment_from_dotenv
 from ebm.migrations import migrate_input_directory, translate_heating_system_efficiencies
 from ebm.model.file_handler import FileHandler
 

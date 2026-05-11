@@ -1,8 +1,8 @@
 import io
 import typing
-import pytest
 
 import pandas as pd
+import pytest
 
 from ebm.model.building_category import BuildingCategory
 from ebm.model.energy_need_filter import filter_original_condition

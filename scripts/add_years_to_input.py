@@ -1,9 +1,9 @@
 import os
 import pathlib
 
+import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
-import pandas as pd
 
 from ebm.model.file_handler import FileHandler
 

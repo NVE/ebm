@@ -3,7 +3,6 @@ import typing
 import pandas as pd
 
 from .building_category import BuildingCategory
-from .building_condition import BuildingCondition
 from .data_classes import ScurveParameters
 
 

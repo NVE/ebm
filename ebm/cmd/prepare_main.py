@@ -4,16 +4,13 @@ import os
 import pathlib
 import sys
 import textwrap
-import typing
 from dataclasses import dataclass
 from typing import List
 
 from loguru import logger
 
 from ebm.__version__ import version
-
 from ebm.model.building_category import BuildingCategory
-from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
 from ebm.model.enums import ReturnCode
 from ebm.services.files import file_is_writable

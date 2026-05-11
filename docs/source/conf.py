@@ -7,11 +7,12 @@ import os
 import sys
 from pathlib import Path
 
+from ebm.__version__ import version  # noqa: F401
+
 # Get project root (one level up from docs)
 project_root = str(Path(__file__).parent.parent.parent)
 sys.path.insert(0, project_root)
 
-from ebm.__version__ import version
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information

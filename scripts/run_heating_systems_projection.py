@@ -1,12 +1,12 @@
-from time import time, sleep
 import os
 import pathlib
+from time import time
 
 from dotenv import load_dotenv
 
+from ebm.heating_system_forecast import *
 from ebm.model.database_manager import DatabaseManager
 from ebm.model.file_handler import FileHandler
-from ebm.heating_system_forecast import *
 
 load_dotenv(pathlib.Path('.env'))
 

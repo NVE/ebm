@@ -6,10 +6,8 @@ from ebmgeodist.calculation_tools import df_geography_mean, df_total_consumption
 from ebmgeodist.initialize import create_output_directory, get_output_file
 from ebmgeodist.spreadsheet import make_pretty
 import gc
-import polars as pl
-import pandas as pd
-from loguru import logger
 from datetime import datetime
+from pathlib import Path
 from zoneinfo import ZoneInfo
 from collections.abc import Iterable
 

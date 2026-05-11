@@ -1,12 +1,12 @@
 import io
 import itertools
 import pathlib
-from unittest.mock import Mock, MagicMock
+from io import StringIO
+from unittest.mock import MagicMock, Mock
 
 import numpy as np
 import pandas as pd
 import pytest
-from io import StringIO
 
 from ebm.model.building_category import BuildingCategory
 from ebm.model.data_classes import YearRange

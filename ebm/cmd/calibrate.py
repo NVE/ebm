@@ -5,6 +5,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from ebm.model.bema import map_sort_order
 from ebm.model.calibrate_heating_systems import load_area_forecast, load_energy_need, load_heating_systems
+
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.services.files import make_unique_path

@@ -4,16 +4,19 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ebm.holiday_home_energy import (sum_holiday_homes,
-                                     population_over_holiday_homes,
-                                     projected_holiday_homes,
-                                     projected_electricity_usage_holiday_homes,
-                                     project_electricity_usage,
-                                     energy_usage_by_holiday_homes,
-                                     projected_fuelwood_usage_holiday_homes,
-                                     project_fuelwood_usage, project_fossil_fuel_usage, HolidayHomeEnergy)
+from ebm.holiday_home_energy import (
+    HolidayHomeEnergy,
+    energy_usage_by_holiday_homes,
+    population_over_holiday_homes,
+    project_electricity_usage,
+    project_fossil_fuel_usage,
+    project_fuelwood_usage,
+    projected_electricity_usage_holiday_homes,
+    projected_fuelwood_usage_holiday_homes,
+    projected_holiday_homes,
+    sum_holiday_homes,
+)
 from ebm.model.data_classes import YearRange
-
 
 Spreadsheet = namedtuple('Spreadsheet',
                          ('population',

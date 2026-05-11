@@ -1,6 +1,6 @@
 import pandas as pd
 
-from ebm.s_curve import transform_to_long
+from ebm.areaforecast.s_curve import transform_to_long
 
 
 def test_transform_to_long():

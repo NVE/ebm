@@ -1,13 +1,12 @@
-import typing
-from datetime import datetime
 import os
+import typing
 
-from loguru import logger
 import pandas as pd
+from loguru import logger
 
 from ebm.model import building_category
-from ebm.model.heating_systems import HeatingSystems
 from ebm.model.energy_purpose import EnergyPurpose
+from ebm.model.heating_systems import HeatingSystems
 from ebm.services.excel_loader import access_excel_sheet
 from ebm.services.spreadsheet import SpreadsheetCell
 from openpyxl.utils.cell import coordinate_to_tuple

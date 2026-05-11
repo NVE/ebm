@@ -4,10 +4,9 @@ import pathlib
 import sys
 import typing
 
+import pandas as pd
 from dotenv import load_dotenv
 from loguru import logger
-import pandas as pd
-
 
 DEFAULT_SOURCE = pathlib.Path('C:/Users/lfep/work_space/Energibruksmodell/ebm/data/heating_systems_projection.xlsx')
 

@@ -99,6 +99,9 @@ instance/
 # Scrapy stuff:
 .scrapy
 
+# Python venv
+ebm-venv/
+
 # Sphinx documentation
 docs/_build/
 

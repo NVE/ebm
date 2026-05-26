@@ -100,15 +100,23 @@ Use `<program name> --create-input --input={input_directory}` to create an input
 
     database_manager.file_handler.validate_input_files()
 
-    output_file = arguments.output_file
-    create_output_directory(filename=output_file)
-
-    output_file_return_code = prepare_main.check_output_file_status(output_file, arguments.force, default_path,
-                                                                    program_name)
-    if output_file_return_code!= ReturnCode.OK:
-        return output_file_return_code, None
-
     step_choice = arguments.step
+    output_file = arguments.output_file
+
+    if step_choice == 'energy-use':
+        try:
+            output_directory = prepare_main.resolve_output_directory_for_energy_use(output_file)
+            create_output_directory(output_directory=output_directory)
+        except (NotADirectoryError, ValueError, OSError) as ex:
+            logger.error(str(ex))
+            return ReturnCode.FILE_NOT_ACCESSIBLE, None
+    else:
+        create_output_directory(filename=output_file)
+
+        output_file_return_code = prepare_main.check_output_file_status(output_file, arguments.force, default_path,
+                                                                        program_name)
+        if output_file_return_code!= ReturnCode.OK:
+            return output_file_return_code, None
 
     convert_result_to_horizontal: bool = arguments.horizontal_years
 
@@ -119,7 +127,6 @@ Use `<program name> --create-input --input={input_directory}` to create an input
     files_to_open = [output_file]
 
     if step_choice == 'energy-use':
-        output_directory = output_file if output_file.is_dir() else output_file.parent
         files_to_open = export_energy_model_reports(model_years, database_manager, output_directory)
     else:
         model = default_handler.extract_model(model_years, building_categories, database_manager, step_choice)

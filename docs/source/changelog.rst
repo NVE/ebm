@@ -3,6 +3,17 @@ Changelog
 =========
 
 
+Version 1.0.10 - Unreleased
+--------------------------
+
+Changed
+^^^^^^^
+
+* Fixes bug #4059. The ``energy-use`` step now treats the output argument as a directory instead of a file path.
+  If the directory does not exist it will be created automatically.
+  File-like paths (e.g. ``output.xlsx``) and console output (``-``) are rejected with a clear error message.
+
+
 Version 1.0.9 - 2026-04-10
 --------------------------
 

@@ -89,9 +89,11 @@ The calculation step you want to run. The steps are sequential. Any prerequisite
     automatically.""")
     arg_parser.add_argument('output_file', nargs='?', type=pathlib.Path, default=default_path,
                             help=textwrap.dedent(
-                                f'''The location of the file you want to be written. default: {default_path}
-    If the file already exists the program will terminate without overwriting. 
-    Use "-" to output to the console instead'''))
+                                f'''The location of the output to be written. default: {default_path}
+    For energy-use, this is treated as an output directory and multiple files will be written there.
+    For other steps, this is treated as a single output file.
+    If the file already exists the program will terminate without overwriting.
+    Use "-" to output to the console instead. This is not supported for energy-use.'''))
     arg_parser.add_argument('--categories', '--building-categories', '-c',
                             nargs='*', type=str, default=default_building_categories,
                             help=textwrap.dedent(f"""
@@ -129,6 +131,28 @@ Create input directory containing all required files in the current working dire
 
     arguments = arg_parser.parse_args()
     return arguments
+
+
+def resolve_output_directory_for_energy_use(output_path: pathlib.Path) -> pathlib.Path:
+    """Return a directory path for energy-use output.
+
+    energy-use always writes multiple files, so file-like paths and console output
+    are rejected to avoid silently guessing the destination.
+    """
+    if output_path.name == '-':
+        raise ValueError('energy-use does not support writing output to the console')
+
+    if output_path.exists():
+        if output_path.is_dir():
+            return output_path
+        raise NotADirectoryError(f'energy-use output must be a directory, got file: {output_path}')
+
+    if output_path.suffix:
+        raise NotADirectoryError(
+            f'energy-use output must be a directory path, not a file-like path: {output_path}'
+        )
+
+    return output_path
 
 
 def check_output_file_status(output_file: pathlib.Path,

@@ -166,11 +166,14 @@ The energy consumption is calculated by multiplying the energy requirements from
 7. Holiday homes energy consumption
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+For the ``energy-use`` step the output argument is treated as a **directory**.
+Multiple report files (``area.xlsx``, ``energy_use.xlsx``, etc.) will be written there.
+If the directory does not exist it will be created automatically.
+
 .. code:: bash
 
-  # This is the default command, where the output file is energy-use-vertical.xlsx located
-  # in the output directory
-  ebm energy-use output/energy-use-vertical.xlsx
+  # The default command writes several report files to the output directory
+  ebm energy-use output
 
 .. csv-table:: Output from using the command above
   :file: ../tables/example_seven_output.csv
@@ -185,7 +188,7 @@ If the user wants to run the program with input files located in another directo
 .. code:: bash
 
   # This command will run the program with input files located in the "calibration" directory
-  ebm --input calibration energy-use output/energy-use.xlsx
+  ebm --input calibration energy-use output
 
 .. |date| date::
 

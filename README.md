@@ -107,9 +107,11 @@ positional arguments:
 
                         The calculation step you want to run. The steps are sequential. Any prerequisite to the chosen step will run
                             automatically.
-  output_file           The location of the file you want to be written. default: output\ebm_output.xlsx
+  output_file           The location of the output to be written. default: output\ebm_output.xlsx
+                            For energy-use, this is treated as an output directory and multiple files will be written there.
+                            For other steps, this is treated as a single output file.
                             If the file already exists the program will terminate without overwriting.
-                            Use "-" to output to the console instead
+                            Use "-" to output to the console instead. This is not supported for energy-use.
 
 options:
   -h, --help            show this help message and exit

@@ -3,7 +3,6 @@ import os
 import pathlib
 import typing
 from functools import wraps
-from typing import TypedDict
 
 import pandas as pd
 
@@ -64,35 +63,11 @@ def calculate_s_curves_by_condition(
     return s_curves_by_condition
 
 
-class AreaForecastInput(TypedDict, total=False):
-    area_parameters: pd.DataFrame | pathlib.Path | None
-    building_code_parameters: pd.DataFrame | pathlib.Path | None
-    s_curves_by_condition: pd.DataFrame | pathlib.Path | pd.DataFrame | pathlib.Path | None
-    population_forecast: pd.DataFrame | pathlib.Path | None
-    area_new_residential_buildings: pd.DataFrame | pathlib.Path | None
-    new_buildings_residential: pd.DataFrame | pathlib.Path | None
-    area_per_person: pd.DataFrame | pathlib.Path | None
-
-    s_curves_by_condition: pd.DataFrame | pathlib.Path | None
-
-
-class EnergyNeedInput(TypedDict, total=False):
-    original_condition: pd.DataFrame | pathlib.Path | None
-    calibrate_heating_rv: pd.DataFrame | pathlib.Path | None
-    behaviour_factor: pd.DataFrame | pathlib.Path | None
-    improvements: pd.DataFrame | pathlib.Path | None
-    improvement_building_upgrade: pd.DataFrame | pathlib.Path | None
-
-
-class RunModelInput(AreaForecastInput, EnergyNeedInput, total=False):
-    pass
-
-
-def ebm_paths(func):
+def ebm_paths(func): # noqa: ANN201, ANN001
     sig = inspect.signature(func)
 
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: dict[str, pd.DataFrame|pd.Series|str|pathlib.Path], **kwargs: dict[str, pd.DataFrame|pd.Series|str|pathlib.Path]): # noqa: ANN202
         bound = sig.bind(*args, **kwargs)
         bound.apply_defaults()
         if 'input_directory' in bound.arguments and bound.arguments['input_directory'] is None:
@@ -109,9 +84,11 @@ def ebm_paths(func):
                 input_directory = pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', default='input'))
                 bound.arguments['input_directory'] = input_directory
             if not input_directory.exists():
-                raise FileNotFoundError(f'input_directory `{bound.arguments["input_directory"]}` does not exist')
+                msg = f'input_directory `{bound.arguments["input_directory"]}` does not exist'
+                raise FileNotFoundError(msg)
             if not input_directory.is_dir():
-                raise NotADirectoryError(f'input_directory `{bound.arguments["input_directory"].name}` is not a directory')
+                msg = f'input_directory `{bound.arguments["input_directory"].name}` is not a directory'
+                raise NotADirectoryError(msg)
 
         return func(*bound.args, **bound.kwargs)
 
@@ -354,6 +331,35 @@ def calculate_energy_need(
     input_directory: pathlib.Path | str | None = None,
     **kwargs: pd.DataFrame|pd.Series,
 ) -> EbmResult:
+    """
+    Calculate annual building energy use need by adding reductions from upgrades and improvements.
+
+    Parameters
+    ----------
+    years : tuple[int, int] or YearRange or None, default YearRange(2020, 2050)
+        Year range for the calculation. If a tuple is provided, it is converted
+        to a `YearRange` instance.
+    original_condition : pd.DataFrame
+        dataframe with with building_category, building_code, purpose and kwh_m2
+    calibrate_heating_rv : pd.DataFrame
+        Pandas dataframe with building_category, purpose and heating_rv_factor
+    behaviour_factor : pd.DataFrame
+        Pandas dataframe with building_category,building_code,purpose,start_year,value,end_year
+    improvements : pd.DataFrame
+        Pandas dataframe with building_category,building_code,purpose,function,start_year,value,end_year
+    improvement_building_upgrade : pd.DataFrame
+        Pandas dataframe with building_category,building_code,purpose,function,start_year,value,end_year
+    input_directory : pathlib.Path
+       Location of EBM input directory
+    kwargs : pd.DataFrame
+       Override named pandas dataframes
+
+    Returns
+    -------
+    pd.DataFrame
+        Annual energy need in kwh_m2
+
+    """
     # Raise NotImplementedError when attempting to use parameters calibrate_heating_rv or behaviour_factor
     if ni := [p for p in ['calibrate_heating_rv', 'behaviour_factor'] if p in locals() and locals()[p] is not None]:
         msg = f'Parameter{"s" if len(ni) == 1 else ""} {", ".join(ni)} not implemented'
@@ -465,8 +471,8 @@ def calculate_holiday_homes(
     return output
 
 
-def run_model(input_directory: pathlib.Path | str | None=None, model_years: YearRange=YearRange(2020, 2050),
-              **kwargs: AreaForecastInput) -> EbmResult:  # noqa: B008
+def run_model(input_directory: pathlib.Path | str | None=None, model_years: YearRange=YearRange(2020, 2050), # noqa: B008
+              **kwargs: pd.DataFrame) -> EbmResult:
     if isinstance(input_directory, str):
         input_directory = pathlib.Path(input_directory)
     elif input_directory is None:

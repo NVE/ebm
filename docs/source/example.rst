@@ -293,7 +293,7 @@ Referanser
 
  * :ref:`Implisitt referanse til inline *csv-tabell* på denne siden (Bruker overskrift) <inline csv-tabell>`
  * :ref:`Eksplisitt refaranse til * Etter csvtabeller* på denne siden (Bruker referansekode)<Etter csvtabeller>`
- * :ref:`Refaranse til Model Description 👈 The Four Steps of the Model <The Four Steps of the Model>`
+ * :ref:`Refaranse til Model Description 👈 The Four Steps of the Model <main_steps_of_model>`
 
 
 .. code-block:: rst

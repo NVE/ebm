@@ -32,9 +32,11 @@ This website provides documentation on how to use EBM, how the model works and a
    results
    user_guide/user_case
    input_description
+   datasets/index
    user_guide/geographical_distribution
    user_guide/configuration
    user_guide/troubleshooting
+
 
 .. toctree::
    :maxdepth: 1

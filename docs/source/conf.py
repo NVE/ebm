@@ -18,7 +18,7 @@ sys.path.insert(0, project_root)
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "EBM - Energibruksmodell"
-copyright = "2025, The Norwegian Water Resources and Energy Directorate (NVE)"  # noqa: A001
+copyright = "2026, The Norwegian Water Resources and Energy Directorate (NVE)"  # noqa: A001
 author = "The Norwegian Water Resources and Energy Directorate (NVE)"
 
 # -- General configuration ---------------------------------------------------

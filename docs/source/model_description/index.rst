@@ -22,6 +22,8 @@ The annual energy use can be distributed geographically as defined by the user.
    :backlinks: none
 
 
+.. _main_steps_of_model:
+
 The main steps of the model
 ===========================
 

@@ -167,7 +167,7 @@ extreme temperatures. The current efficiencies and coverage factors are assumpti
 
 All the combinations can be found in the :any:`Tables and glossary` subchapter.
 
-
+.. _heating_systems_forecast_doc:
 Forecasting
 -----------
 |heating_system_forecast_ref|

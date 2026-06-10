@@ -30,6 +30,8 @@ In wide and long format.
 
 Running the ``ebmgeodist`` module will add four additional files:
 
+.. _{energy-product}_use_geographically_distributed xlsx:
+
 7. **📄 {energy-product}_use_geographically_distributed.xlsx**.
 The geographically distributed energy use for the specified energy product. The energy use is given per year from 2020 to 2050.
 

@@ -1,3 +1,4 @@
+import sys
 import typing
 
 import numpy as np
@@ -276,8 +277,6 @@ def projected_electricity_usage_holiday_homes(electricity_usage: pd.Series):
         raise ValueError(msg)
     if not any(electricity_usage.isna()):
         raise ValueError('Expected empty energy_usage for projection')
-    if len(electricity_usage.index) <= 40:
-        raise ValueError('At least 41 years of electricity_usage is required to predict future electricity use')
     left_pad_len = len(electricity_usage) - electricity_usage.isna().sum()
 
     initial_e_u = electricity_usage[2019]
@@ -290,21 +289,26 @@ def projected_electricity_usage_holiday_homes(electricity_usage: pd.Series):
     right_pad_len = len(electricity_usage) - left_pad_len - len(first_range) - len(second_range) - len(third_range)
     right_padding = [third_range[-1]] * right_pad_len
 
-    return pd.Series(([np.nan] * left_pad_len) +
-                     first_range +
-                     second_range +
-                     third_range +
-                     right_padding,
-                     name='projected_electricity_usage_kwh',
-                     index=electricity_usage.index)
+    data = ([np.nan] * left_pad_len) + first_range + second_range + third_range + right_padding
 
+    return pd.Series(data[0: len(electricity_usage.index)], name='projected_electricity_usage_kwh', index=electricity_usage.index)
 
-if __name__ == '__main__':
-    holiday_home_energy = HolidayHomeEnergy.new_instance()
+def main():
+    import pathlib
+    from ebm.model.file_handler import FileHandler
+
+    input_directory = pathlib.Path('input') if len(sys.argv) < 2 else pathlib.Path(sys.argv[1])
+
+    dm = DatabaseManager(FileHandler(input_directory))
+    holiday_home_energy = HolidayHomeEnergy.new_instance(dm)
+
     for energy_usage, h in zip(holiday_home_energy.calculate_energy_usage(), ['electricity', 'fuelwood', 'fossil fuel']):
         print('====', h, '====')
         print(energy_usage)
 
+
+if __name__ == '__main__':
+    main()
 
 def calculate_energy_use(database_manager: DatabaseManager) -> pd.DataFrame:
     """

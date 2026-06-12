@@ -185,17 +185,6 @@ def test_projected_electricity_usage_holiday_homes_raise_value_error_when_missin
         projected_electricity_usage_holiday_homes(electricity_usage)
 
 
-def test_projected_electricity_usage_holiday_homes_raise_value_error_when_electricity_usage_is_too_short():
-    """
-    projected_electricity_usage_holiday_homes assumes at least 41 years in the index
-    """
-    electricity_usage = pd.Series({y: y + 0.1 if y < 2024 else np.nan for y in range(2001, 2041)})
-
-    msg = 'At least 41 years of electricity_usage is required to predict future electricity use'
-    with pytest.raises(ValueError, match=msg):
-        projected_electricity_usage_holiday_homes(electricity_usage)
-
-
 def test_projected_electricity_usage_holiday_homes_using_spreadsheet_data():
     """
     Tests that the correct projection is returned from projected_electricity_usage_holiday_homes when using
@@ -313,3 +302,49 @@ def test_project_electricity_usage(spreadsheet):
         index=YearRange(2001, 2050).to_index())
 
     pd.testing.assert_series_equal(result, expected)
+
+
+def test_project_electricity_usage_when_end_year_is_2030(spreadsheet):
+    """
+    Test project_electricity_usage using spreadsheet values
+    """
+    # 09 Elektrisitet pr fritidsbolig framskrevet (kWh)
+    electricity_usage = pd.Series(
+        data=[1128.0, 1173.0, 1183.0, 1161.0, 1235.0, 1317.0, 1407.0, 1522.0, 1635.0, 1931.0, 1818.0, 1929.0, 2141.0,
+              2006.0, 2118.0, 2278.0, 2350.0, 2417.0, 2384.0, 2467.0, 2819.0, 2318.0, 2427.0],
+        index=YearRange(2001, 2023).to_index(), name='gwh')
+
+    population_2030 = spreadsheet.population.loc[2001:2030]
+    holiday_homes_by_category = spreadsheet.holiday_homes_by_category
+    result = project_electricity_usage(electricity_usage, holiday_homes_by_category, population_2030)
+
+    expected = pd.Series(
+        data=[np.nan] * 23 + [2511.2188, 2570.5439, 2625.309, 2675.4518, 2726.0161, 2764.3374, 2802.6652],
+        name='gwh',
+        index=YearRange(2001, 2030).to_index())
+
+    pd.testing.assert_series_equal(result, expected)
+
+
+def test_projected_electricity_usage_holiday_homes_with_limited_population_forecast():
+    """
+    Tests that the correct projection is returned from projected_electricity_usage_holiday_homes.
+    """
+    electricity_usage = pd.Series({y: 2.0 if y < 2024 else np.nan for y in range(2001, 2031)}, name='kwh')
+    electricity_usage.index.name = 'year'
+    # The projection is exclusively calculated from 2019, so it is the only year that really need a sensible value.
+    electricity_usage[2019] = 100.0
+    result = projected_electricity_usage_holiday_homes(electricity_usage)
+
+    expected = pd.Series(data=[np.nan]*23 +
+                              [175.0, 250.0, 325.0, 400.0, 475.0] +
+                              [525.0, 575.0],
+                         index=pd.Index([y for y in range(2001, 2031)], name='year'),
+                         name='projected_electricity_usage_kwh')
+
+    pd.testing.assert_series_equal(result, expected)
+
+
+if __name__ == "__main__":
+    import sys
+    pytest.main([sys.argv[0]])

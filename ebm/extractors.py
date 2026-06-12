@@ -29,7 +29,7 @@ def extract_area_forecast(years: YearRange,
 
 
 def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
-    energy_need = calculate_for_building_category(database_manager=dm)
+    energy_need = calculate_for_building_category(database_manager=dm, years=years)
 
     energy_need = energy_need.set_index(['building_category', 'building_code', 'purpose', 'building_condition', 'year'])
 

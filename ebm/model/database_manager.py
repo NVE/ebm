@@ -249,7 +249,7 @@ class DatabaseManager:
         return behaviour_factor
 
 
-    def get_energy_req_original_condition(self) -> pd.DataFrame:
+    def get_energy_req_original_condition(self, year_range: YearRange|None=None) -> pd.DataFrame:
         """
         Get dataframe with energy requirement (kWh/m^2) for floor area in original condition. The result will be
             calibrated using the dataframe from DatabaseManger.get_calibrate_heating_rv
@@ -260,8 +260,10 @@ class DatabaseManager:
             Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
             per building category and purpose.
         """
-        logger.debug('Using default year 2020 -> 2050')
-        building_purpose = self.make_building_purpose(years=YearRange(2020, 2050)).set_index(
+        logger.debug('Using default year 2020 -> 2050 (not critical)')
+        years = YearRange(2020, 2050) if year_range is None else year_range
+
+        building_purpose = self.make_building_purpose(years=years).set_index(
             ['building_category', 'purpose', 'building_code', 'year'], drop=True
         )
         building_purpose = building_purpose.drop(columns=['building_condition'])

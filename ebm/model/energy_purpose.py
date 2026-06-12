@@ -86,7 +86,7 @@ def group_energy_use_kwh_by_building_group_purpose_year_wide(energy_use_kwh: pd.
                              'electrical_equipment': 5, 'cooling': 6}) if x.name == 'purpose' else x)
 
     hz.insert(2, 'U', 'GWh')
-    hz.columns = ['building_group', 'purpose', 'U'] + [y for y in range(2020, 2051)]
+    hz.columns = ['building_group', 'purpose', 'U'] + [y for y in range(summed.year.min(), summed.year.max()+1)]
 
     return hz.rename(columns={'building_group': 'building_category'})
 

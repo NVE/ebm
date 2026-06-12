@@ -370,7 +370,7 @@ def calculate_energy_need(
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
     dm = DatabaseManager(FileHandler(directory=input_directory))
 
-    energy_need_original_condition = original_condition if original_condition is not None else dm.get_energy_req_original_condition()
+    energy_need_original_condition = original_condition if original_condition is not None else dm.get_energy_req_original_condition(year_range=years)
     improvement_building_upgrade_csv = improvement_building_upgrade if improvement_building_upgrade is not None else dm.get_energy_req_reduction_per_condition()
 
     if improvements is not None:

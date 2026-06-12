@@ -25,7 +25,7 @@ def transform_model_to_horizontal(model, value_column = 'm2'):
 
     hz = hz.sort_values(by=['building_category', 'building_code', 'building_condition'], key=bema.map_sort_order)
     hz.insert(3, 'U', value_column)
-    hz.columns = ['building_category', 'building_code', 'building_condition', 'U'] + [y for y in range(2020, 2051)]
+    hz.columns = ['building_category', 'building_code', 'building_condition', 'U'] + [y for y in range(model.year.min(), model.year.max()+1)]
 
     return hz
 

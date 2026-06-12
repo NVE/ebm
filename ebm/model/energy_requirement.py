@@ -24,9 +24,9 @@ def yearly_reduction(x: pd.DataFrame) -> np.array:
 
 
 
-def calculate_for_building_category(database_manager: DatabaseManager = None):
+def calculate_for_building_category(database_manager: DatabaseManager = None, years=None):
 
-    energy_need_original_condition = database_manager.get_energy_req_original_condition()
+    energy_need_original_condition = database_manager.get_energy_req_original_condition(years)
     improvement_building_upgrade = database_manager.get_energy_req_reduction_per_condition()
     energy_need_improvements_policy = database_manager.get_energy_need_policy_improvement()
     energy_need_yearly_reduction = database_manager.get_energy_need_yearly_improvements()

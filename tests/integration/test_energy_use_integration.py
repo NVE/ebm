@@ -318,7 +318,8 @@ expected_holiday_home = {'kwh': {('Holiday homes', 'Bio', 2020): 1450.0, ('Holid
 
 
 def test_energy_use_holiday_home(kalibrert_database_manager):
-    energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(kalibrert_database_manager)
+    energy_use_holiday_homes = extractors.extract_energy_use_holiday_homes(kalibrert_database_manager,
+                                                                           YearRange(2020, 2050))
 
     result = pd.melt(energy_use_holiday_homes, id_vars=['building_group', 'energy_source'], var_name='year',
                      value_name='kwh')

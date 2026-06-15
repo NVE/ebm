@@ -334,10 +334,13 @@ def calculate_energy_use(database_manager: DatabaseManager) -> pd.DataFrame:
     return output
 
 
-def transform_holiday_homes_to_horizontal(df: pd.DataFrame) -> pd.DataFrame:
+def transform_holiday_homes_to_horizontal(df: pd.DataFrame, years: YearRange|None=None) -> pd.DataFrame:
+    if years is None:
+        years = YearRange(2020, 2050)
+
     df = df.reset_index()
     df = df.rename(columns={'energy_type': 'energy_source'})
-    columns_to_keep = [y for y in YearRange(2020, 2050)] + ['building_category', 'energy_source']
+    columns_to_keep = [y for y in years if y in df.columns] + ['building_category', 'energy_source']
     df = df.drop(columns=[c for c in df.columns if c not in columns_to_keep])
     df['energy_source'] = df['energy_source'].apply(lambda x: 'Elektrisitet' if x == 'electricity' else 'Bio' if x == 'fuelwood' else x)
     df['building_category'] = 'Holiday homes'

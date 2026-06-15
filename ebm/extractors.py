@@ -46,8 +46,14 @@ def extract_heating_systems_forecast(years: YearRange, database_manager: Databas
     return heating_system_forecast
 
 
-def extract_energy_use_holiday_homes(database_manager: DatabaseManager) -> pd.DataFrame:
-    df = transform_holiday_homes_to_horizontal(calculate_energy_use(database_manager)).copy()
+def extract_energy_use_holiday_homes(database_manager: DatabaseManager, years: YearRange|None=None) -> pd.DataFrame:
+    if years is None:
+        logger.info('Using default years {years} for energy_use_holiday_homes', years=years)
+        years = YearRange(2020, 2050)
+    else:
+        logger.debug('Using years={years} for energy_use_holiday_homes', years=years)
+
+    df = transform_holiday_homes_to_horizontal(calculate_energy_use(database_manager), years=years).copy()
     df = df.rename(columns={'building_category': 'building_group'})
     df.loc[df.energy_source=='Elektrisitet', 'energy_source'] = 'Electricity'
     df.loc[df.energy_source=='fossil', 'energy_source'] = 'Fossil'

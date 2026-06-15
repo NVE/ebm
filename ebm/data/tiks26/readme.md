@@ -2,7 +2,7 @@
 
 
 
-\## Riving
+## Riving
 
 
 
@@ -12,7 +12,7 @@
 
 
 
-\## Innfasing av LED
+## Innfasing av LED
 
 
 * Vi endret forutsetningen for overgang til LED i småhus og boligblokker slik at besparelsen skjer raskere.
@@ -22,7 +22,7 @@
 
 
 
-\## Virkningsgrader oppvarmingsløsninger
+## Virkningsgrader oppvarmingsløsninger
 
 
 
@@ -34,7 +34,7 @@
 
 
 
-\## Fordeling av nye boliger mellom småhus og boligblokk
+## Fordeling av nye boliger mellom småhus og boligblokk
 
 
 
@@ -44,7 +44,7 @@
 
 
 
-\## Størrelse av nye boliger
+## Størrelse av nye boliger
 
 
 
@@ -53,7 +53,7 @@
 
 
 
-\## Kalibrering
+## Kalibrering
 
 
 

@@ -1,4 +1,4 @@
-\# Dette er default-datasettet som brukes i EBM
+# Dette er default-datasettet som brukes i EBM
 
 
 

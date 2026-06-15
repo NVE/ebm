@@ -82,11 +82,13 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
                             choices=['area-forecast',
                                      'energy-requirements',
                                      'heating-systems',
-                                     'energy-use'],
+                                     'energy-use',
+                                     'list-input'],
                             default='energy-use',
                             help="""
 The calculation step you want to run. The steps are sequential. Any prerequisite to the chosen step will run 
-    automatically.""")
+    automatically.
+list-input: List available input datasets bundled with ebm.""")
     arg_parser.add_argument('output_file', nargs='?', type=pathlib.Path, default=default_path,
                             help=textwrap.dedent(
                                 f'''The location of the output to be written. default: {default_path}

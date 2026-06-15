@@ -48,7 +48,15 @@ def main() -> tuple[ReturnCode, pd.DataFrame | None]:
     default_path = pathlib.Path('output/ebm_output.xlsx')
 
     arguments = prepare_main.make_arguments(program_name, default_path)
-
+    
+    if arguments.step == 'list-input':
+        data_directory = pathlib.Path(__file__).parent / 'data'
+        datasets = sorted(p.name for p in data_directory.iterdir() if p.is_dir())
+        print('Available datasets:')
+        for dataset in datasets:
+            print(f'- {dataset}')
+        return ReturnCode.OK, None
+    
     # Make local variable from arguments for clarity
     building_categories = [BuildingCategory.from_string(b_c) for b_c in arguments.categories]
     if not building_categories:

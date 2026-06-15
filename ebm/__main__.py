@@ -76,7 +76,15 @@ def main() -> tuple[ReturnCode, pd.DataFrame | None]:
 
     # Create input directory if requested
     if arguments.create_input:
-        if init(database_manager.file_handler):
+        source_directory = None
+        if arguments.dataset:
+            data_directory = pathlib.Path(__file__).parent / 'data'
+            source_directory = data_directory / arguments.dataset
+            if not source_directory.is_dir():
+                available = sorted(p.name for p in data_directory.iterdir() if p.is_dir())
+                logger.error(f'Dataset "{arguments.dataset}" not found. Available datasets: {", ".join(available)}')
+                return ReturnCode.FILE_NOT_ACCESSIBLE, None
+        if init(database_manager.file_handler, source_directory=source_directory):
             logger.success('Finished creating input files in {input_directory}',
                            input_directory=database_manager.file_handler.input_directory)
             return ReturnCode.OK, None

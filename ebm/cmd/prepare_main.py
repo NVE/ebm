@@ -119,6 +119,16 @@ list-input: List available input datasets bundled with ebm.""")
                             help='''
 Create input directory containing all required files in the current working directory''')
 
+    data_directory = pathlib.Path(__file__).parent.parent / 'data'
+    available_datasets = sorted(p.name for p in data_directory.iterdir() if p.is_dir())
+    arg_parser.add_argument('--dataset', type=str, default=None,
+                            metavar='DATASET',
+                            help=textwrap.dedent(f'''\
+The built-in dataset to use when creating input with --create-input.
+Available datasets: {", ".join(available_datasets)}.
+Default: calibrated.
+Use `list-input` to list available datasets.'''))
+
     arg_parser.add_argument('--migrate', action='store_true', help=argparse.SUPPRESS)
 
     arg_parser.add_argument('--start-year', nargs='?', type=int,

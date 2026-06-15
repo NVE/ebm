@@ -83,7 +83,7 @@ class FileHandler:
         create_missing_input_files
         """
         data_directory = pathlib.Path(__file__).parent.parent / 'data'
-        default_data_directory =  data_directory / 'calibrated'
+        default_data_directory =  data_directory / 'tiks26'
         if not default_data_directory.is_dir():
             msg = f'Could not find default data directory {default_data_directory}'
             raise FileNotFoundError(msg)

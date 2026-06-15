@@ -82,11 +82,13 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
                             choices=['area-forecast',
                                      'energy-requirements',
                                      'heating-systems',
-                                     'energy-use'],
+                                     'energy-use',
+                                     'list-input'],
                             default='energy-use',
                             help="""
 The calculation step you want to run. The steps are sequential. Any prerequisite to the chosen step will run 
-    automatically.""")
+    automatically.
+list-input: List available input datasets bundled with ebm.""")
     arg_parser.add_argument('output_file', nargs='?', type=pathlib.Path, default=default_path,
                             help=textwrap.dedent(
                                 f'''The location of the output to be written. default: {default_path}
@@ -116,6 +118,16 @@ The calculation step you want to run. The steps are sequential. Any prerequisite
     arg_parser.add_argument('--create-input', action='store_true',
                             help='''
 Create input directory containing all required files in the current working directory''')
+
+    data_directory = pathlib.Path(__file__).parent.parent / 'data'
+    available_datasets = sorted(p.name for p in data_directory.iterdir() if p.is_dir())
+    arg_parser.add_argument('--dataset', type=str, default=None,
+                            metavar='DATASET',
+                            help=textwrap.dedent(f'''\
+The built-in dataset to use when creating input with --create-input.
+Available datasets: {", ".join(available_datasets)}.
+Default: calibrated.
+Use `list-input` to list available datasets.'''))
 
     arg_parser.add_argument('--migrate', action='store_true', help=argparse.SUPPRESS)
 

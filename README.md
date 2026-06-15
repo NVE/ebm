@@ -130,6 +130,10 @@ options:
                         A single character to be used for separating columns when writing csv. Default: "," Special characters like ; should be quoted ";"
   --create-input
                         Create input directory containing all required files in the current working directory
+  --dataset DATASET     The built-in dataset to use when creating input with --create-input.
+                        Available datasets: calibrated, original, tiks26, tiks26v1.0.9.
+                        Default: calibrated.
+                        Use `list-input` to list available datasets.
   --horizontal-years, --horizontal, --horisontal
                         Show years horizontal (left to right)
 ```

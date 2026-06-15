@@ -55,12 +55,12 @@ class SCurve:
 
     def __repr__(self):
         return (
-        f"SCurve(earliest_age={int(self.df.earliest_age_for_measure)}, "
-        f"average_age={int(self.df.average_age_for_measure)}, "
-        f"rush_years={int(self.df.rush_period_years)}, "
-        f"rush_share={float(self.df.rush_share)}, "
-        f"last_age={int(self.df.last_age_for_measure)}, "
-        f"never_share={float(self.df.never_share)})"
+        f"SCurve(earliest_age={int(self.df.earliest_age_for_measure.iloc[0])}, "
+        f"average_age={int(self.df.average_age_for_measure.iloc[0])}, "
+        f"rush_years={int(self.df.rush_period_years.iloc[0])}, "
+        f"rush_share={float(self.df.rush_share.iloc[0])}, "
+        f"last_age={int(self.df.last_age_for_measure.iloc[0])}, "
+        f"never_share={float(self.df.never_share.iloc[0])})"
         )
 
     def calc_scurve(self) -> pd.DataFrame:

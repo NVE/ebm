@@ -11,7 +11,7 @@ from loguru import logger
 
 from ebm.cmd import prepare_main
 from ebm.cmd.helpers import configure_json_log, configure_loglevel, load_environment_from_dotenv, open_file
-from ebm.cmd.initialize import create_output_directory, init
+from ebm.cmd.initialize import create_output_directory, init, list_available_datasets
 from ebm.cmd.migrate import migrate_directories
 from ebm.cmd.pipeline import export_energy_model_reports
 from ebm.cmd.result_handler import EbmDefaultHandler, append_result, transform_model_to_horizontal
@@ -48,13 +48,8 @@ def main() -> tuple[ReturnCode, pd.DataFrame | None]:
     default_path = pathlib.Path('output/ebm_output.xlsx')
 
     arguments = prepare_main.make_arguments(program_name, default_path)
-    
     if arguments.step == 'list-input':
-        data_directory = pathlib.Path(__file__).parent / 'data'
-        datasets = sorted(p.name for p in data_directory.iterdir() if p.is_dir())
-        print('Available datasets:')
-        for dataset in datasets:
-            print(f'- {dataset}')
+        list_available_datasets()
         return ReturnCode.OK, None
     
     # Make local variable from arguments for clarity

@@ -280,10 +280,6 @@ The input constraints, datatypes and accepted values are listed per input file i
             - integer
             - **start_year** ≤ value ≤ **2070**
             - default 2050
-            
-            .. csv-table:: input/energy_need_improvements.csv
-               :file: tables/energy_need_improvements.csv
-               :header-rows: 1
 
    .. tab:: Holiday home
       .. tabs::

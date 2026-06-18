@@ -9,9 +9,11 @@ Submodules
 
    ebm.cmd.calibrate
    ebm.cmd.calibrate_excel_com_io
+   ebm.cmd.ebmexe
    ebm.cmd.heating_systems_by_year
    ebm.cmd.helpers
    ebm.cmd.initialize
+   ebm.cmd.load_scurve
    ebm.cmd.migrate
    ebm.cmd.pipeline
    ebm.cmd.prepare_main

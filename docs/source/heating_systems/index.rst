@@ -167,7 +167,7 @@ extreme temperatures. The current efficiencies and coverage factors are assumpti
 
 All the combinations can be found in the :any:`Tables and glossary` subchapter.
 
-
+.. _heating_systems_forecast_doc:
 Forecasting
 -----------
 |heating_system_forecast_ref|
@@ -228,27 +228,11 @@ The table below shows the abbrevations used for the various heating systems. The
   :header-rows: 1
   :delim: ;
 
-The tables below show the various combinations of heating systems and heating technologies.
+The assosicated input files for heating systems are:
 
-.. csv-table:: Heating systems efficiency
-  :file: ../tables/heating_systems_efficiencies.csv
-  :widths: 15 15 15 15 5 5 5
-  :header-rows: 1
-  :delim: ;
-
-
-.. csv-table:: Heating systems coverage
-  :file: ../tables/heating_systems_coverage.csv
-  :widths: 15 15 15 15 5 5 5
-  :header-rows: 1
-  :delim: ;
-
-
-.. csv-table:: Heating systems domestic hot water
-  :file: ../tables/heating_systems_dhw.csv
-  :widths: 15 15 15
-  :header-rows: 1
-  :delim: ;
+* |heating_system_efficiencies_ref| 
+* |heating_system_forecast_ref|
+* |heating_system_initial_shares_ref|  
 
 Heating systems glossary
 ------------------------

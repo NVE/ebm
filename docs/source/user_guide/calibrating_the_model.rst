@@ -25,7 +25,7 @@ year can be specified, in addition to the mathematical function.
 The table below shows how the csv file is formatted. When "default" is input all valid
 possibilites are affected. 
 
-.. csv-table:: Energy need behaviour factor.
+.. csv-table:: Energy need behaviour factor. Most recent calibration.
    :file: ../tables/energy_need_behaviour_factor.csv
    :header-rows: 1
    :widths: 10 10 10 10 10 10

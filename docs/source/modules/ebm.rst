@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   ebm.areaforecast
    ebm.cmd
    ebm.model
    ebm.services
@@ -22,7 +23,8 @@ Submodules
    ebm.heating_system_forecast
    ebm.holiday_home_energy
    ebm.migrations
-   ebm.s_curve
+   ebm.saving
+   ebm.sigmoid
    ebm.temp_calc
    ebm.validators
 

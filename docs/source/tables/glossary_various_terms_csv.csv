@@ -24,3 +24,4 @@ Storage.;Lager.;Omfatter kun lagerbygg i modellen. En underkategori av lettindus
 Energy need.;Energibehov.;Arealets energibehov i kWh/m2 etter definisjon i TEK. Energimengden arealet trenger for å fungere optimalt. Teoretisk størrelse.;The area's energy need in kWh/m\ :sup:`2` as defined in the building code. This is the amount of energy the area needs to function properly. A theoretical size.
 Energy use.;Energibruk.;Den energimengden arealet må få tilført for å dekke energibehovet. Målbar mengde. I kWh/m\ :sup:`2`.;The amount of delivered energy the area requires in order to cover the energy need. In kWh/m\ :sup:`2` This is a measurable quantity.
 Energy product.;Energivare.;Energivaren til oppvarmingsteknologien. ;Energy product used by the heating technology. 
+Energy purpose.;Energiformål.;Hva energien skal brukes til. Eks. belysning eller romoppvarming.;What the energy is used for. Ex. lighting or space heating.

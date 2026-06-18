@@ -3,8 +3,8 @@ Energy need
 ###########
 
 :ref:`Energy need <various_terms_glossary>` in the model is determined by many factors, building category, the area's age and if the area has been upgraded.
-The baseline energy need per square meter is defined in the building code. Each :ref:`building category <building category and building code>` has a specific energy need according
-to its building code, building condition and :ref:`energy purpose <energy purpose>`.
+The baseline energy need per square meter is defined in the building code. Each :ref:`building category <building_category_building_code_doc>` has a specific energy need according
+to its building code, building condition and :ref:`energy purpose <various_terms_glossary>`.
 The energy condition of the area in the model changes between the model years due to implementation of renovation, small measures and other
 energy efficiency measures (e.g. LED lighting). User defined S-curves determines how often and how much of the 
 area undergoes renovation and small measures. 

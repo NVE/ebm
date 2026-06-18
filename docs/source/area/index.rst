@@ -22,8 +22,8 @@ The total area in the model changes over time because some of the area is demoli
 
 When new area replaces demolished area the total amount of area does not change. 
 However, the new area is constructed according to the newest building code, which has an impact on the energy need. 
-Demolition is determined by a user defined :ref:`S-curve`, which decides how much area is demolished each year.
-The demolition rates are set in relation to the area’s age, and a development comparable to an :ref:`S-curve` is expected. The
+Demolition is determined by a user defined :ref:`s-curve<s_curve csv>`, which decides how much area is demolished each year.
+The demolition rates are set in relation to the area’s age, and a development comparable to an :ref:`s-curve<s_curve csv>` is expected. The
 rates can be defined individually for each building category.
 
 S-curve: Retail renovation
@@ -170,7 +170,7 @@ Area in the starting year of the model
 ---------------------------------------
 |area_ref|
 
-Data for the building area used in this model was prepared by Prognosesenteret in 2022. . This data describes the building stock in 2020 in Norway, 
+Data for the building area used in this model was prepared by Prognosesenteret in 2022. This data describes the building stock in 2020 in Norway, 
 distributed by building categories and age. The area is grouped into age groups that correspond to the periods during which the 
 various building codes (TEK) have been in effect. The age is suitable for use with the 
 age-specific rates for small measures, renovation, and demolition.

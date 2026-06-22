@@ -1,2 +1,9 @@
-# Dette er det originale ikke-kalibrerte datasettet
+# Original 
 
+
+
+# Beskrivelse
+
+Det originale ikke-kalibrerte datasettet.
+
+# Sist oppdatert

@@ -83,19 +83,26 @@ def make_arguments(program_name, default_path: pathlib.Path) -> argparse.Namespa
                                      'energy-requirements',
                                      'heating-systems',
                                      'energy-use',
-                                     'list-input'],
+                                     'list-input',
+                                     'create-input'],
                             default='energy-use',
                             help="""
 The calculation step you want to run. The steps are sequential. Any prerequisite to the chosen step will run 
     automatically.
-list-input: List available input datasets bundled with ebm.""")
+list-input: List available input datasets bundled with ebm.
+create-input: Create input directory containing all required files in the current working directory.""")
     arg_parser.add_argument('output_file', nargs='?', type=pathlib.Path, default=default_path,
                             help=textwrap.dedent(
                                 f'''The location of the output to be written. default: {default_path}
     For energy-use, this is treated as an output directory and multiple files will be written there.
     For other steps, this is treated as a single output file.
     If the file already exists the program will terminate without overwriting.
-    Use "-" to output to the console instead. This is not supported for energy-use.'''))
+    Use "-" to output to the console instead. This is not supported for energy-use.
+    For create-input, this is the dataset name (e.g. calibrated).'''))
+    arg_parser.add_argument('create_input_dir', nargs='?', type=pathlib.Path, default=None,
+                            help=textwrap.dedent(
+                                '''The location of the input directory to be created. default: current working directory
+                                '''))
     arg_parser.add_argument('--categories', '--building-categories', '-c',
                             nargs='*', type=str, default=default_building_categories,
                             help=textwrap.dedent(f"""

@@ -397,6 +397,13 @@ class FileHandler:
             logger.debug(f'Create input file {file}')
             self.create_input_file(file, source_directory=source)
 
+        readme = source / 'README.md'
+        if readme.is_file():
+            target_readme = self.input_directory / 'README.md'
+            if not target_readme.is_file():
+                shutil.copy(readme, target_readme)
+                logger.info(f'Creating missing file  {target_readme}')
+
     def create_input_file(self, file, source_directory=None):
         source_directory = FileHandler.default_data_directory() if not source_directory else source_directory
 

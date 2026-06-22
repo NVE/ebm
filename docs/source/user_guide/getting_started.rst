@@ -145,7 +145,7 @@ This creates an input directory named ``my-tiks26`` based on the ``tiks26`` data
       PS C:\Users\user\Documents> ebm create-input tiks26 my-tiks26
       
       0:00:00.55 - Using data from "input"
-      0:00:00.55- Copy input from C:\Users\moe\OneDrive - Norges vassdrags- og energidirektorat\prosjekter\EBM\ebm_azure_devops\Energibruksmodell\ebm\data\tiks26
+      0:00:00.55- Copy input from C:\Users\user\pyc\Energibruksmodell\ebm\data\tiks26
       0:00:00.55 - Creating directory my-tiks26
       0:00:00.55 - Creating missing file  my-tiks26\building_code_parameters.csv
       0:00:00.55 - Creating missing file  my-tiks26\s_curve.csv

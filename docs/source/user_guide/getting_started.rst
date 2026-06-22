@@ -73,17 +73,67 @@ in the example.
 
     These instructions are made for |version|, but should work for later versions as well.
 
+List available datasets
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
+The following command lists all available input datasets:
+
+.. code-block:: bash
+
+   ebm list-input
+
+.. admonition:: expected output
+   :collapsible: closed
+   :class: expected-output
+
+   .. code-block:: powershell
+
+      PS C:\Users\user\Documents> ebm list-input
+      Available datasets: 
+      - <dataset name 1>: <description of dataset 1> 
+
+The output shows the names of the available datasets. If a dataset contains a ``README.md`` file with a ``Description``
+section, the description will also be shown in the output. 
 
 Create an input directory
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Before running the model you need to create a directory with the necessary input files. The recommended way of creating
-the input directory is to use ebm:
+an input directory is to use ``create-input`` command.
+
+``create-input`` is a command at the same level as ``list-input``:
 
 .. code-block:: bash
 
-   ebm --create-input
+   ebm list-input
+   ebm create-input
+
+The command can be used with or without arguments.
+
+Create input from the default dataset
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: bash
+
+   ebm create-input
+
+This creates an input directory basesd on the default dataset. 
+
+Create input from a specific dataset
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+   ebm create-input tiks26
+
+This creates an input directory based on the ``tiks26`` dataset.
+
+Create input from a specific dataset with a custom directory name
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. code-block:: bash
+
+   ebm create-input tiks26 my-tiks26
+
+This creates an input directory named ``my-tiks26`` based on the ``tiks26`` dataset. 
 
 
 .. admonition:: expected output
@@ -92,33 +142,55 @@ the input directory is to use ebm:
 
    .. code-block:: powershell
 
-      PS C:\Users\user\Documents> python -m ebm --create-input
-      0:00:01.25 - Using data from "input"
-      0:00:01.26 - Copy input from C:\Users\user\pyc\Energibruksmodell\ebm\data
-      0:00:01.26 - Creating directory input
-      0:00:01.28 - Creating missing file  input\building_code_parameters.csv
-      0:00:01.30 - Creating missing file  input\s_curve.csv
-      0:00:01.33 - Creating missing file  input\population_forecast.csv
-      0:00:01.35 - Creating missing file  input\new_buildings_residential.csv
-      0:00:01.38 - Creating missing file  input\area_new_residential_buildings.csv
-      0:00:01.42 - Creating missing file  input\area.csv
-      0:00:01.45 - Creating missing file  input\energy_need_behaviour_factor.csv
-      0:00:01.48 - Creating missing file  input\energy_need_original_condition.csv
-      0:00:01.51 - Creating missing file  input\improvement_building_upgrade.csv
-      0:00:01.54 - Creating missing file  input\energy_need_improvements.csv
-      0:00:01.57 - Creating missing file  input\holiday_home_energy_consumption.csv
-      0:00:01.60 - Creating missing file  input\holiday_home_stock.csv
-      0:00:01.62 - Creating missing file  input\area_per_person.csv
-      0:00:01.65 - Creating missing file  input\heating_system_initial_shares.csv
-      0:00:01.68 - Creating missing file  input\heating_system_efficiencies.csv
-      0:00:01.71 - Creating missing file  input\heating_system_forecast.csv
-      0:00:01.71 - Finished creating input files in input
+      PS C:\Users\user\Documents> ebm create-input tiks26 my-tiks26
+      
+      0:00:00.55 - Using data from "input"
+      0:00:00.55- Copy input from C:\Users\moe\OneDrive - Norges vassdrags- og energidirektorat\prosjekter\EBM\ebm_azure_devops\Energibruksmodell\ebm\data\tiks26
+      0:00:00.55 - Creating directory my-tiks26
+      0:00:00.55 - Creating missing file  my-tiks26\building_code_parameters.csv
+      0:00:00.55 - Creating missing file  my-tiks26\s_curve.csv
+      0:00:00.55 - Creating missing file  my-tiks26\population_forecast.csv
+      0:00:00.56- Creating missing file  my-tiks26\new_buildings_residential.csv
+      0:00:00.56 - Creating missing file  my-tiks26\area_new_residential_buildings.csv
+      0:00:00.57 - Creating missing file  my-tiks26\area.csv
+      0:00:00.57 - Creating missing file  my-tiks26\energy_need_behaviour_factor.csv
+      0:00:00.57 - Creating missing file  my-tiks26\energy_need_original_condition.csv
+      0:00:00.57 - Creating missing file  my-tiks26\improvement_building_upgrade.csv
+      0:00:00.57 - Creating missing file  my-tiks26\energy_need_improvements.csv
+      0:00:00.57 - Creating missing file  my-tiks26\holiday_home_energy_consumption.csv
+      0:00:00.58 - Creating missing file  my-tiks26\holiday_home_stock.csv
+      0:00:00.58 - Creating missing file  my-tiks26\area_per_person.csv
+      0:00:00.58 - Creating missing file  my-tiks26\heating_system_initial_shares.csv
+      0:00:00.58 - Creating missing file  my-tiks26\heating_system_efficiencies.csv
+      0:00:00.58 - Creating missing file  my-tiks26\heating_system_forecast.csv
+      0:00:00.59 - Creating missing file  my-tiks26\README.md
+      0:00:00.60 - Finished creating input files in my-tiks26
 
 
 The command creates a new directory named ``input``, containing copies of all input files. By default, this directory is
 created in the current working directory. To specify a different location, use the ``--input=<directory name>`` option.
 
 If the directory already exists, only missing files will be copied. Existing files will not be overwritten.
+
+If the dataset contains a ``README.md`` file, it is copied to the created input directory. This ensures that information
+about the dataset is included together with the generated input files.
+
+README.md descriptions
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Dataset descriptions shown by the ``ebm list-input`` are read from the dataset's ``README.md`` file. 
+
+The description should be placed under a description heading in the ``README.md`` file, for example:
+
+.. code-block:: markdown
+
+   # Beskrivelse
+   Short description of the dataset.
+
+The text under this heading is read until the next heading and shown together with the dataset in ``ebm list-input``. 
+
+List files in the input directory
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can use ``ls`` to get a list of all the files in the ``input`` directory:
 

@@ -1,10 +1,10 @@
 building_category,condition,earliest_age_for_measure,average_age_for_measure,rush_period_years,last_age_for_measure,rush_share,never_share
 apartment_block,small_measure,5,20,20,50,0.8,0.1
 apartment_block,renovation,10,30,14,60,0.6,0.15
-apartment_block,demolition,1,90,75,200,0.15,0.8
+apartment_block,demolition,1,90,76,200,0.152,0.798485
 house,small_measure,3,23,30,80,0.8,0.01
 house,renovation,10,37,24,75,0.65,0.05
-house,demolition,1,90,75,200,0.2,0.75
+house,demolition,1,90,76,200,0.20266692,0.74781852
 kindergarten,small_measure,3,25,20,50,0.8,0.01
 kindergarten,renovation,10,50,40,90,0.7,0.05
 kindergarten,demolition,50,100,30,130,0.7,0.05

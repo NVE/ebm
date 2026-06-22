@@ -13,16 +13,40 @@ from ebm.model.file_handler import FileHandler
 DEFAULT_INPUT = pathlib.Path(f'X:\\NAS\\Data\\ebm\\default-input-{".".join(version.split(".")[:2])}\\')
 
 
+def _read_dataset_description(dataset_dir: pathlib.Path) -> str:
+    """Return the text under the '# Beskrivelse' heading in README.md, or empty string."""
+    readme = dataset_dir / 'README.md'
+    if not readme.is_file():
+        return ''
+    lines = readme.read_text(encoding='utf-8').splitlines()
+    in_section = False
+    description_lines = []
+    for line in lines:
+        if line.strip().lower() == '# beskrivelse':
+            in_section = True
+            continue
+        if in_section:
+            if line.startswith('#'):
+                break
+            description_lines.append(line)
+    description = ' '.join(l.strip() for l in description_lines if l.strip())
+    return description
+
+
 def list_available_datasets() -> None:
     """
     List available datasets in the default data directory. 
     The default data directory is defined by FileHandler.default_data_directory().
     """
     data_directory = pathlib.Path(__file__).parent.parent / 'data'
-    datasets = sorted(p.name for p in data_directory.iterdir() if p.is_dir())
+    datasets = sorted(p for p in data_directory.iterdir() if p.is_dir())
     print('Available datasets:')
     for dataset in datasets:
-        print(f'- {dataset}')
+        description = _read_dataset_description(dataset)
+        if description:
+            print(f'- {dataset.name}: {description}')
+        else:
+            print(f'- {dataset.name}')
 
 def create_input(file_handler: FileHandler,
                  source_directory: typing.Optional[pathlib.Path]=None) -> bool:

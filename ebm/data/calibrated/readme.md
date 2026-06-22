@@ -1,6 +1,10 @@
-# Dette er default-datasettet som brukes i EBM
+# calibrated
 
 
 
-* Dersom bruker utelater å velge hvilken datasett ebm skal kjøre med, vil ebm kjøre med dette datasettet, som er satt til å være default.
-* Datasettet er også kalt prognosedatasettet fra høsten 2025
+# Beskrivelse
+
+Standard input-datasett for LA25. Datasettet inneholder input-filer som brukes for å kjøre ebm med forutsetninger for LA25.
+Datasettet er også kalt prognosedatasettet fra høsten 2025.
+
+# Sist oppdatert

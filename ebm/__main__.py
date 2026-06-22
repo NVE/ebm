@@ -127,6 +127,9 @@ Use `<program name> create-input --input={input_directory}` to create an input d
 
     if step_choice == 'energy-use':
         try:
+            # When the default file-based path is used, fall back to its parent directory
+            if output_file == default_path:
+                output_file = default_path.parent
             output_directory = prepare_main.resolve_output_directory_for_energy_use(output_file)
             create_output_directory(output_directory=output_directory)
         except (NotADirectoryError, ValueError, OSError) as ex:

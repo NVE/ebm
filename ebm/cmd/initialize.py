@@ -36,17 +36,18 @@ def _read_dataset_description(dataset_dir: pathlib.Path) -> str:
 def list_available_datasets() -> None:
     """
     List available datasets in the default data directory. 
-    The default data directory is defined by FileHandler.default_data_directory().
     """
     data_directory = pathlib.Path(__file__).parent.parent / 'data'
     datasets = sorted(p for p in data_directory.iterdir() if p.is_dir())
     print('Available datasets:')
+    print('-------------------')
     for dataset in datasets:
         description = _read_dataset_description(dataset)
         if description:
             print(f'- {dataset.name}: {description}')
         else:
             print(f'- {dataset.name}')
+        print()
 
 def create_input(file_handler: FileHandler,
                  source_directory: typing.Optional[pathlib.Path]=None) -> bool:

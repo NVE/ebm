@@ -174,7 +174,7 @@ class EbmDefaultHandler:
             if 'heating-systems' in step_choice or 'energy-use' in step_choice:
                 logger.debug('Extracting heating systems')
                 df = calculate_heating_systems(energy_requirements=energy_requirements_result,
-                                               database_manager=database_manager)
+                                               database_manager=database_manager, period=year_range)
         return df
 
     # noinspection PyTypeChecker

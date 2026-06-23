@@ -189,13 +189,14 @@ def calculate_building_category_area_forecast(database_manager: DatabaseManager,
     return area_forecast
 
 
-def calculate_heating_systems(energy_requirements, database_manager: DatabaseManager) -> pd.DataFrame:
+def calculate_heating_systems(energy_requirements, database_manager: DatabaseManager, period) -> pd.DataFrame:
     """
     Calculate heating systems projection, efficiencies and multiplies by energy_requirements for total energy use
     by building_category, TEK, building_condition, purpose and heating_system.
 
     Parameters
     ----------
+    period :
     energy_requirements : pd.DataFrame
     database_manager : ebm.model.database_manager.DatabaseManager
 
@@ -204,7 +205,8 @@ def calculate_heating_systems(energy_requirements, database_manager: DatabaseMan
     pd.DataFrame
 
     """
-    projection_period = YearRange(2023, 2050)
+    # projection_period = YearRange(2023, 2050)
+    projection_period = YearRange(2023, period.end)
     hsp = HeatingSystemsForecast.new_instance(projection_period, database_manager)
     hf = hsp.calculate_forecast()
     hf = hsp.pad_projection(hf, YearRange(2020, 2022))

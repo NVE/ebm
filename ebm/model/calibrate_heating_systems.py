@@ -65,7 +65,7 @@ def load_energy_need(area_forecast: pd.DataFrame, database_manager: DatabaseMana
 
 def load_heating_systems(energy_requirements: pd.DataFrame, database_manager: DatabaseManager) -> pd.DataFrame:
     heating_systems = calculate_heating_systems(energy_requirements=energy_requirements,
-                                                database_manager=database_manager)
+                                                database_manager=database_manager, period=YearRange(2020, 2050))
 
     return heating_systems
 

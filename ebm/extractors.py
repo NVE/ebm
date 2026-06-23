@@ -37,7 +37,7 @@ def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
 
 
 def extract_heating_systems_forecast(years: YearRange, database_manager: DatabaseManager) -> pd.DataFrame:
-    forecast_period = YearRange(2023, 2050)
+    forecast_period = YearRange(2023, years.end)
     hsp = HeatingSystemsForecast.new_instance(forecast_period, database_manager)
     df: pd.DataFrame = hsp.calculate_forecast()
     df = hsp.pad_projection(df, YearRange(2020, 2022))

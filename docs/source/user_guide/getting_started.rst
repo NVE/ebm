@@ -124,17 +124,17 @@ Create input from a specific dataset
 
 .. code-block:: bash
 
-   ebm create-input tiks26
+   ebm create-input short_analysis_2025
 
-This creates an input directory based on the ``tiks26`` dataset.
+This creates an input directory based on the `short_analysis_2025` dataset.
 
 Create input from a specific dataset with a custom directory name
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. code-block:: bash
 
-   ebm create-input tiks26 my-tiks26
+   ebm create-input short_analysis_2025 my-short_analysis_2025
 
-This creates an input directory named ``my-tiks26`` based on the ``tiks26`` dataset. 
+This creates an input directory named ``my-short_analysis_2025`` based on the ``short_analysis_2025`` dataset.
 
 
 .. admonition:: expected output
@@ -143,29 +143,29 @@ This creates an input directory named ``my-tiks26`` based on the ``tiks26`` data
 
    .. code-block:: powershell
 
-      PS C:\Users\user\Documents> ebm create-input tiks26 my-tiks26
+      PS C:\Users\user\Documents> ebm create-input short_analysis_2025 my-short_analysis_2025
       
       0:00:00.55 - Using data from "input"
-      0:00:00.55- Copy input from C:\Users\user\pyc\Energibruksmodell\ebm\data\tiks26
-      0:00:00.55 - Creating directory my-tiks26
-      0:00:00.55 - Creating missing file  my-tiks26\building_code_parameters.csv
-      0:00:00.55 - Creating missing file  my-tiks26\s_curve.csv
-      0:00:00.55 - Creating missing file  my-tiks26\population_forecast.csv
-      0:00:00.56- Creating missing file  my-tiks26\new_buildings_residential.csv
-      0:00:00.56 - Creating missing file  my-tiks26\area_new_residential_buildings.csv
-      0:00:00.57 - Creating missing file  my-tiks26\area.csv
-      0:00:00.57 - Creating missing file  my-tiks26\energy_need_behaviour_factor.csv
-      0:00:00.57 - Creating missing file  my-tiks26\energy_need_original_condition.csv
-      0:00:00.57 - Creating missing file  my-tiks26\improvement_building_upgrade.csv
-      0:00:00.57 - Creating missing file  my-tiks26\energy_need_improvements.csv
-      0:00:00.57 - Creating missing file  my-tiks26\holiday_home_energy_consumption.csv
-      0:00:00.58 - Creating missing file  my-tiks26\holiday_home_stock.csv
-      0:00:00.58 - Creating missing file  my-tiks26\area_per_person.csv
-      0:00:00.58 - Creating missing file  my-tiks26\heating_system_initial_shares.csv
-      0:00:00.58 - Creating missing file  my-tiks26\heating_system_efficiencies.csv
-      0:00:00.58 - Creating missing file  my-tiks26\heating_system_forecast.csv
-      0:00:00.59 - Creating missing file  my-tiks26\README.md
-      0:00:00.60 - Finished creating input files in my-tiks26
+      0:00:00.55- Copy input from C:\Users\user\pyc\Energibruksmodell\ebm\data\short_analysis_2025
+      0:00:00.55 - Creating directory my-short_analysis_2025
+      0:00:00.55 - Creating missing file  my-short_analysis_2025\building_code_parameters.csv
+      0:00:00.55 - Creating missing file  my-short_analysis_2025\s_curve.csv
+      0:00:00.55 - Creating missing file  my-short_analysis_2025\population_forecast.csv
+      0:00:00.56- Creating missing file  my-short_analysis_2025\new_buildings_residential.csv
+      0:00:00.56 - Creating missing file  my-short_analysis_2025\area_new_residential_buildings.csv
+      0:00:00.57 - Creating missing file  my-short_analysis_2025\area.csv
+      0:00:00.57 - Creating missing file  my-short_analysis_2025\energy_need_behaviour_factor.csv
+      0:00:00.57 - Creating missing file  my-short_analysis_2025\energy_need_original_condition.csv
+      0:00:00.57 - Creating missing file  my-short_analysis_2025\improvement_building_upgrade.csv
+      0:00:00.57 - Creating missing file  my-short_analysis_2025\energy_need_improvements.csv
+      0:00:00.57 - Creating missing file  my-short_analysis_2025\holiday_home_energy_consumption.csv
+      0:00:00.58 - Creating missing file  my-short_analysis_2025\holiday_home_stock.csv
+      0:00:00.58 - Creating missing file  my-short_analysis_2025\area_per_person.csv
+      0:00:00.58 - Creating missing file  my-short_analysis_2025\heating_system_initial_shares.csv
+      0:00:00.58 - Creating missing file  my-short_analysis_2025\heating_system_efficiencies.csv
+      0:00:00.58 - Creating missing file  my-short_analysis_2025\heating_system_forecast.csv
+      0:00:00.59 - Creating missing file  my-short_analysis_2025\README.md
+      0:00:00.60 - Finished creating input files in my-short_analysis_2025
 
 
 The command creates a new directory named ``input``, containing copies of all input files. By default, this directory is
@@ -206,9 +206,9 @@ You can use ``ls`` to get a list of all the files in the ``input`` directory:
 
    .. code-block:: powershell
 
-      PS C:\Users\user\Documents> ls input
+      PS C:\Users\user\Documents> ls my-short_analysis_2025
 
-           Directory: C:\Users\user\Documents\input
+           Directory: C:\Users\user\Documents\my-short_analysis_2025
       
       Mode                 LastWriteTime         Length Name
       ----                 -------------         ------ ----

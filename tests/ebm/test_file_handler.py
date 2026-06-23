@@ -21,7 +21,7 @@ def tmp_file_handler(tmp_path):
 
 def test_default_data_directory():
     """Return the default data directory: calibrated"""
-    expected_directory = pathlib.Path(__file__).parent.parent.parent / 'ebm' / 'data' / 'tiks26'
+    expected_directory = pathlib.Path(__file__).parent.parent.parent / 'ebm' / 'data' / 'short_analysis_2025'
     assert FileHandler.default_data_directory() == expected_directory
 
 

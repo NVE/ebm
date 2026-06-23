@@ -10,21 +10,20 @@ foundation of the model and the datasets is the data on area and builidng age. T
 stock from 2020, and all area after this is modelled. The available datasets are considered a base scenario, meaning 
 the analysis and assumptions are based on current and adopted policy. 
 
-There are two available datasets for EBM, a short analysis and a long analysis. The two datasets are updated at 
+There are two available datasets for EBM, a short term analysis and a long term analysis. The two datasets are updated at 
 different times in the relation to the publication of NVEs short- and long term electricity market analysis. 
-The most recent dataset was made for the short analysis
+The most recent dataset was made for the short term analysis
 `Status and development in the power system 2025-2030 <https://www.nve.no/energi/analyser-og-statistikk/status-og-utvikling-i-kraftsystemet/status-og-utvikling-i-kraftsystemet-2025-2030/>`_.
-The report for the long analysis can be found here  `Long electricity market analysis 2025 <https://www.nve.no/energi/analyser-og-statistikk/langsiktig-kraftmarkedsanalyse/langsiktig-kraftmarkedsanalyse-2025/>`_.
-The short analysis is valid for the given start year plus 5 years. The long analysis is valid from the given start year until 2050.
+The report for the long term analysis can be found here  `Long electricity market analysis 2025 <https://www.nve.no/energi/analyser-og-statistikk/langsiktig-kraftmarkedsanalyse/langsiktig-kraftmarkedsanalyse-2025/>`_.
+The short term analysis is valid for the given start year plus 5 years. The long term analysis is valid from the given start year until 2050.
 
-An imporant part of updating the datasets is the calibration step. The model is calibrated each year and is based on historical energy use trends and statistics. 
-Historical trends and statistics are used so the start year is not widely changed from year to year, based on the
-most recent statstics. This means the calibration year is an "ideal model year", and it can differ from the actual statistical year.
+An imporant part of updating the datasets is the calibration step. The model is calibrated to trends in historical energy use to create a start point for the analysis. 
+Historical trends and statistics from several years are used to create the calibration year. This means the calibration year is an "ideal model year", and it can differ from the actual statistical year.
 How to calibrate the model is explained here :ref:`Calibrating the model<Calibrating the model>`. 
 
 **Limitations**
 
-The current version of the two datasets and their respective forecasts have the following imitations
+The current version of the two datasets and their respective analysis have the following imitations
 and data assumptions:
 
 - "Norgespris" has not been taken into account in the current version.

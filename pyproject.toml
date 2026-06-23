@@ -56,7 +56,10 @@ Repository = "https://github.com/NVE/ebm.git"
 [tool.setuptools]
 packages = [
     'ebm',
-    'ebm.model', 'ebm.services', 'ebm.cmd', 'ebm.data', 'ebm.data.calibrated', 'ebm.data.original',
+    'ebm.model', 'ebm.services', 'ebm.cmd', 'ebm.data',
+    'ebm.data.long_analysis_2024',
+    'ebm.data.short_analysis_2025',
+    'ebm.data.original',
     'ebmgeodist',
     'energibruksmodell']
 include-package-data = true

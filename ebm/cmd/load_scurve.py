@@ -18,14 +18,14 @@ Run the script from the command line:
 
 .. code-block:: bash
 
-    python -m ebm.cmd.load_scurve data/calibrated/s_curve.csv --query "building_category == 'house'" --output results.csv
+    python -m ebm.cmd.load_scurve data/long_analysis_2024/s_curve.csv --query "building_category == 'house'" --output results.csv
 
 
 Optionally use python flag ``-i`` to work with the result in the python repl:
 
 .. code-block:: bash
 
-    python -i ebm/cmd/load_scurve.py data/calibrated/s_curve.csv --query "building_category == 'house'" --output results.csv
+    python -i ebm/cmd/load_scurve.py data/long_analysis_2024/s_curve.csv --query "building_category == 'house'" --output results.csv
 
 
 Functions

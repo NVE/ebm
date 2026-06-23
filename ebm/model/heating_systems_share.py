@@ -17,6 +17,8 @@ def transform_heating_systems_share_long(heating_systems_projection: pd.DataFram
 def transform_heating_systems_share_wide(heating_systems_share_long: pd.DataFrame) -> pd.DataFrame:
     value_column = 'heating_system_share'
     df = heating_systems_share_long.copy().reset_index()
+
+    years = df['year'].unique()
     df = df.pivot(columns=['year'], index=['building_category', 'heating_systems'], values=[value_column]).reset_index()
 
     df = df.sort_values(by=['building_category', 'heating_systems'],
@@ -24,5 +26,5 @@ def transform_heating_systems_share_wide(heating_systems_share_long: pd.DataFram
     df.insert(2, 'U', value_column)
     df['U'] = '%'
 
-    df.columns = ['building_category', 'heating_systems', 'U'] + [y for y in range(2020, 2051)]
+    df.columns = ['building_category', 'heating_systems', 'U'] + [y for y in range(min(years), max(years)+1)]
     return df

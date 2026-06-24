@@ -315,3 +315,26 @@ TEK69,1977,1969,1986""".strip()))
 
     assert (result == ['PRE_TEK49', 'TEK49', 'TEK69']).all()
 
+
+def test_get_population_forecast_end_year():
+    """Test that get_population_forecast_end_year return the actual end_year
+
+    Does not assume the source file is sorted. Does not attempt to validate any of the other columns in the dataframe with
+    the assumption that validation is handled elsewhere.
+    """
+    mock_fh = MagicMock(spec=FileHandler)
+
+    all_building_codes = pd.read_csv(StringIO("""
+year,population,household_size
+2020,5367580,2.15
+2021,5391369,2.14
+2023,5488984,2.12
+2019,5488984,2.12
+""".strip()))
+
+    mock_fh.get_construction_population.return_value = all_building_codes
+
+    dm = DatabaseManager(file_handler=mock_fh)
+    result = dm.get_population_forecast_end_year()
+
+    assert result == 2023

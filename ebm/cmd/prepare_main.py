@@ -142,7 +142,7 @@ Use `list-input` to list available datasets.'''))
                             default=os.environ.get('EBM_START_YEAR', 2020),
                             help=argparse.SUPPRESS)
     arg_parser.add_argument('--end-year', nargs='?', type=int,
-                            default=os.environ.get('EBM_END_YEAR', 2050),
+                            default=os.environ.get('EBM_END_YEAR', 0),
                             help=argparse.SUPPRESS)
 
     arg_parser.add_argument('--horizontal-years', '--horizontal', '--horisontal', action='store_true',

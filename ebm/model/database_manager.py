@@ -160,6 +160,28 @@ class DatabaseManager:
         new_buildings_population = new_buildings_population.set_index('year')
         return new_buildings_population
 
+
+    def get_population_forecast_end_year(self) -> int:
+        """Retrieve the maximum year from the population forecast data
+
+        This method extracts the highest value from the 'year' level
+        of the MultiIndex in the construction population dataset.
+
+        Returns
+        -------
+        int
+            The maximum year available in the population forecast data.
+
+        Raises
+        ------
+        ValueError
+            If the population forecast index does not contain a 'year' level.
+        """
+
+        construction_population = self.get_construction_population()
+        return construction_population.index.get_level_values(level='year').max()
+
+
     def get_new_buildings_category_share(self) -> pd.DataFrame:
         """
         Get building category share by year as a DataFrame.
@@ -414,7 +436,6 @@ class DatabaseManager:
 
     def explode_building_code_column(self, ff, unique_columns):
         return explode_building_code_column(ff, unique_columns, default_building_code=self.get_building_code_list())
-
 
 if __name__ == '__main__':
     db = DatabaseManager()

@@ -61,8 +61,6 @@ def main() -> tuple[ReturnCode, pd.DataFrame | None]:
     # delimiter is empty make the assumption that the user used ;. An empty delimiter is not valid anyway.
     csv_delimiter = arguments.csv_delimiter if arguments.csv_delimiter else ';'
 
-    # Make sure everything is working as expected
-    model_years = validate_years(start_year=arguments.start_year, end_year=arguments.end_year)
 
     input_directory = arguments.input
     logger.debug('Using platform {os}', os=platform.system())
@@ -105,6 +103,7 @@ def main() -> tuple[ReturnCode, pd.DataFrame | None]:
 Use `<program name> create-input --input={input_directory}` to create an input directory with the default input files
 """.strip().replace('\n',  ' ')
 
+
     # Make sure all required files exists
     try:
         missing_files = database_manager.file_handler.check_for_missing_files()
@@ -121,6 +120,9 @@ Use `<program name> create-input --input={input_directory}` to create an input d
         logger.info(f'Input directory "{input_directory}" contains calibration files', directory=database_manager.file_handler.input_directory.name)
 
     database_manager.file_handler.validate_input_files()
+
+    end_year = arguments.end_year if arguments.end_year else database_manager.get_population_forecast_end_year()
+    model_years = validate_years(start_year=arguments.start_year, end_year=end_year)
 
     step_choice = arguments.step
     output_file = arguments.output_file

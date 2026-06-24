@@ -6,6 +6,8 @@ This page is a quick guide to get you started with the Energibruksmodell (EBM) m
 energy use in the norwegian building stock. The model is developed by the
 `Norwegian Water Resources and Energy Directorate (NVE) <https://www.nve.no>`_.
 
+Both the model and the datasets used by EBM can be downloaded from `GitHub <https://github.com/nve/ebm>`_.
+
 
 Requirements
 ------------

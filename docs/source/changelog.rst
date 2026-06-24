@@ -3,6 +3,15 @@ Changelog
 =========
 
 
+Version 1.0.11 - 2026-06-24
+---------------------------
+
+Added
+^^^^^
+
+* Missing README.md files for datasets
+
+
 Version 1.0.10 - 2026-06-24
 ---------------------------
 

@@ -950,7 +950,7 @@ def calculate_construction_with_demolition(construction_by_building_category_and
 
     construction_with_demolition['rebuilt_acc'] = construction_with_demolition.groupby(by=['building_category', 'building_code'])['rebuilt'].cumsum()
     construction_with_demolition['construction'] = construction_with_demolition['rebuilt'] + construction_with_demolition['net_construction']
-    construction_with_demolition['area'] = construction_with_demolition['net_construction_acc'] + construction_with_demolition['rebuilt_acc']
+    construction_with_demolition['area'] = (construction_with_demolition['net_construction_acc'] + construction_with_demolition['rebuilt_acc']).fillna(0.0)
 
     return construction_with_demolition
 

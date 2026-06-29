@@ -955,6 +955,16 @@ def calculate_construction_with_demolition(construction_by_building_category_and
     return construction_with_demolition
 
 
+def check_yearly_index( df: pd.DataFrame, year_range: YearRange):
+    name = 'population_forecast'
+    required = set(year_range)
+    present = set(df.index.dropna().astype(int))
+    missing = required - present
+    if missing:
+        raise ValueError(f"{name} missing values for years: {sorted(missing)}")
+    return df
+
+
 def calculate_construction(building_category_demolition_by_year: pd.Series, years: YearRange,
                            area_per_person: pd.Series, yearly_construction_floor_area: pd.Series,
                            new_buildings_population: pd.DataFrame, new_buildings_category_shares) -> pd.DataFrame:
@@ -978,6 +988,8 @@ def calculate_construction(building_category_demolition_by_year: pd.Series, year
         dataframe with columns constructed_floor_area, accumulated_constructed_floor_area, demolished_floor_area
 
     """
+    check_yearly_index(new_buildings_population, years)
+
     construction = []
     building_category_demolition_by_year.loc[:] = 0.0
     for building_category in building_category_demolition_by_year.index.get_level_values(level='building_category').unique():
@@ -1021,6 +1033,8 @@ def calculate_construction(building_category_demolition_by_year: pd.Series, year
 def calculate_all_area(area_new_residential_buildings, area_parameters, area_per_person,
                        building_code_parameters, construction_population, new_buildings_category_share,
                        s_curves_by_condition, years):
+
+
     s_curve_demolition = s_curves_by_condition['s_curve_demolition']
     cconditions = s_curves_by_condition[[
         'original_condition', 'small_measure', 'renovation', 'renovation_and_small_measure', 'demolition',

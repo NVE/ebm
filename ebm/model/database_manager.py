@@ -41,7 +41,10 @@ class DatabaseManager:
         # Create default FileHandler if file_handler is None
 
         self.file_handler = file_handler if file_handler is not None else FileHandler()
-    
+
+    def __repr__(self):
+        return f'self.file_handler={self.file_handler}'
+
     def get_building_code_list(self):
         """
         Get a list of building_code.

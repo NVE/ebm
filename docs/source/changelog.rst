@@ -3,16 +3,7 @@ Changelog
 =========
 
 
-Version 1.0.11 - 2026-06-24
----------------------------
-
-Added
-^^^^^
-
-* Missing README.md files for datasets
-
-
-Version 1.0.10 - 2026-06-24
+Version 1.1.0 - 2026-06-29
 ---------------------------
 
 Added
@@ -28,21 +19,22 @@ Changed
 ^^^^^^^
 
 * Updated :ref:`Getting started`
-* Fixes bug #4059. The ``energy-use`` step now treats the output argument as a directory instead of a file path.
-  If the directory does not exist it will be created automatically.
   File-like paths (e.g. ``output.xlsx``) and console output (``-``) are rejected with a clear error message.
 * `--create-input` has been changed to a command. ``ebm create-input`` rather than ``ebm --create-input`` See also :ref:`Create an input directory`
 * The dataset named calibrated has been renamed to long_analysis_2024
 * The dataset short_analysis_2025 is now the default when using ``create-input``
-
+* Replaces versions 1.0.10 and 1.0.11
 
 Fixed
 ^^^^^
 
 * Fixes data missing from heating systems shares in for the user case example.
+* Fixes bug #4059. The ``energy-use`` step now treats the output argument as a directory instead of a file path.
+  If the directory does not exist it will be created automatically.
 * Fixed a bug where heat_prod_hp.xlsx included years beyond defined model end year
 * Fixed a bug where holiday_homes ignored model end year
 * Energy use for holiday homes no longer crashes when population forecast ends before 2050
+* Better error message for missing years in population_forecast.csv
 
 
 Version 1.0.9 - 2026-04-10

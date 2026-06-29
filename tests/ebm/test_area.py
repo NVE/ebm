@@ -12,7 +12,7 @@ from ebm.model.area import (
     transform_area_forecast_to_area_change,
     transform_construction_by_year,
     transform_cumulative_demolition_to_yearly_demolition,
-    multiply_s_curves_with_floor_area,
+    multiply_s_curves_with_floor_area, check_yearly_index,
 )
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
@@ -199,6 +199,19 @@ def test_building_condition_scurves():
     res = building_condition_scurves(house_parameters)
 
     assert isinstance(res, pd.DataFrame)
+
+
+def test_check_yearly_index_raise_value_error():
+    population = pd.DataFrame({'population': [0,1,2,3, 4]},
+                              pd.Index([2020, 2021, 2020, 2023, 2024], name='year'))
+    with pytest.raises(ValueError, match='population_forecast missing values for years: \[2022, 2025\]'):
+        check_yearly_index(population, year_range=YearRange(2020, 2025))
+
+def test_check_yearly_index():
+    population = pd.DataFrame({'population': [0,1,2,3, 4]},
+                              pd.Index([2020, 2021, 2020, 2023, 2024], name='year'))
+    check_yearly_index(population, year_range=YearRange(2020, 2024))
+
 
 
 def test_construction_with_building_code():

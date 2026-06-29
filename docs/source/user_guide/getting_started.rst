@@ -77,7 +77,7 @@ in the example.
     These instructions are made for |version|, but should work for later versions as well.
 
 List available datasets
-^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The following command lists all available input datasets:
 

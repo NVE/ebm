@@ -12,7 +12,8 @@ from ebm.model.area import (
     transform_area_forecast_to_area_change,
     transform_construction_by_year,
     transform_cumulative_demolition_to_yearly_demolition,
-    multiply_s_curves_with_floor_area,
+    multiply_s_curves_with_floor_area, calculate_construction_with_demolition,
+    check_yearly_index,
 )
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
@@ -201,6 +202,19 @@ def test_building_condition_scurves():
     assert isinstance(res, pd.DataFrame)
 
 
+def test_check_yearly_index_raise_value_error():
+    population = pd.DataFrame({'population': [0,1,2,3, 4]},
+                              pd.Index([2020, 2021, 2020, 2023, 2024], name='year'))
+    with pytest.raises(ValueError, match='population_forecast missing values for years: \[2022, 2025\]'):
+        check_yearly_index(population, year_range=YearRange(2020, 2025))
+
+def test_check_yearly_index():
+    population = pd.DataFrame({'population': [0,1,2,3, 4]},
+                              pd.Index([2020, 2021, 2022, 2023, 2024], name='year'))
+    check_yearly_index(population, year_range=YearRange(2020, 2024))
+
+
+
 def test_construction_with_building_code():
     years = YearRange(2020, 2024)
     demolition_by_year = [0.0, 1, 1, 1, 1] + [0.0, 2, 2, 2, 2]
@@ -383,6 +397,82 @@ def test_multiply_s_curves_with_floor_area_keep_nan_in_with_area(s_curves_by_con
     assert small_measure["m2"].iloc[1] == pytest.approx(400.0)
     assert small_measure["m2"].iloc[3] == pytest.approx(150.0)
     assert np.isnan(small_measure["m2"].iloc[2])
+
+
+def test_calculate_construction_with_demolition_returns_float():
+    index = pd.MultiIndex.from_tuples(
+        [
+            ('culture', 'TEK17', 2020),
+            ('culture', 'TEK17', 2021),
+            ('culture', 'TEK17', 2022),
+            ('house', 'TEK17', 2020),
+            ('house', 'TEK17', 2021),
+            ('house', 'TEK17', 2022),
+        ],
+        names=['building_category', 'building_code', 'year']
+    )
+
+    construction = pd.DataFrame(
+        {
+            'net_construction': [
+                0.0,
+                30925.700000000186,
+                44071.299999999814,
+                0.0,
+                2733711.49774,
+                1922645.9609056404,
+            ],
+            'net_construction_acc': [
+                0.0,
+                30925.700000000186,
+                74997.0,
+                0.0,
+                2733711.49774,
+                4656357.45864564,
+            ],
+        },
+        index=index
+    )
+
+    index = pd.MultiIndex.from_tuples(
+        [
+            ('culture', 'TEK07', 2020),
+            ('culture', 'TEK07', 2021),
+            ('culture', 'TEK07', 2022),
+            ('culture', 'TEK17', 2020),
+            ('culture', 'TEK17', 2021),
+            ('culture', 'TEK17', 2022),
+            ('house', 'TEK07', 2020),
+            ('house', 'TEK07', 2021),
+            ('house', 'TEK07', 2022),
+            ('house', 'TEK17', 2020),
+            ('house', 'TEK17', 2021),
+            ('house', 'TEK17', 2022),
+        ],
+        names=['building_category', 'building_code', 'year']
+    )
+
+    demolition = pd.DataFrame(
+        {
+            'demolition': [
+                0.0, 0.0, 0.0,
+                np.nan, np.nan, np.nan,
+                0.0, 4336.70118420392, 4336.70118420392,
+                np.nan, np.nan, np.nan,
+            ]
+        },
+        index=index
+    )
+
+    residential = {'house'}
+
+    df = calculate_construction_with_demolition(
+        construction_by_building_category_and_year=construction,
+        demolition_floor_area_by_year=demolition.demolition,
+        residential_building_categories=residential
+    )
+    assert df.area.notna().all(), f"NaNs found in df.area:\n{df[df.area.isna()]}"
+    assert pd.api.types.is_float_dtype(df.area), "Expected df.area to be float dtype"
 
 
 if __name__ == "__main__":

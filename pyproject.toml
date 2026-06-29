@@ -71,7 +71,7 @@ ebm-calibrate = "ebm.cmd.calibrate_excel_com_io:main"
 version = { attr = "ebm.__version__.version" }
 
 [tool.setuptools.package-data]
-ebm = ["*.csv"]
+ebm = ["*.csv", "data/**/README.md"]
 [tool.pytest.ini_options]
 pythonpath = "."
 testpaths = ["tests"]

@@ -210,7 +210,7 @@ def test_check_yearly_index_raise_value_error():
 
 def test_check_yearly_index():
     population = pd.DataFrame({'population': [0,1,2,3, 4]},
-                              pd.Index([2020, 2021, 2020, 2023, 2024], name='year'))
+                              pd.Index([2020, 2021, 2022, 2023, 2024], name='year'))
     check_yearly_index(population, year_range=YearRange(2020, 2024))
 
 

@@ -37,7 +37,7 @@ An example of a ``.env`` configuration file is shown below:
       LOG_FORMAT="<green>{time:HH:mm:ss.SSS}</green> | <blue>{elapsed}</blue> | <level>{level: <8}</level> | <cyan>{function: <20}</cyan>:<cyan>{line: <3}</cyan> - <level>{message}</level>"
       EBM_INPUT_DIRECTORY=/data/ebm/input
       EBM_OUTPUT_DIRECTORY=/data/ebm/output
-      EBM_DEFAULT_INPUT=baseline_input.csv
+      EBM_DEFAULT_INPUT=/data/ebm/default-input
       EBM_ALWAYS_OPEN=false
 
       # EBMGeoDist module

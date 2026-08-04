@@ -353,7 +353,7 @@ area = pa.DataFrameSchema(
     columns={
         "building_category": pa.Column(str, checks=[pa.Check(check_building_category)]),
         'building_code': pa.Column(str, checks=[pa.Check(check_building_code, element_wise=True)]),
-        "area": pa.Column(float, checks=[pa.Check.greater_than(0)], coerce=True)},
+        "area": pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0)], coerce=True)},
     name='area_parameters'
 )
 

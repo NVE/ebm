@@ -1,4 +1,4 @@
-import io
+﻿import io
 import itertools
 import warnings
 
@@ -125,6 +125,13 @@ def test_area_parameters_raises_schema_error_on_illegal_area():
 
     with pytest.raises(pa.errors.SchemaError):
         area.validate(df)
+
+
+def test_area_parameters_allows_zero_area():
+    rows = [[str(building_category), 'TEK10', 0] for building_category in BuildingCategory]
+    df = pd.DataFrame(data=rows, columns=['building_category', 'building_code', 'area'])
+
+    area.validate(df)
 
 
 @pytest.fixture

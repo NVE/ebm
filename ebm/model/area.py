@@ -935,7 +935,11 @@ def calculate_construction_with_demolition(construction_by_building_category_and
         raise ValueError(msg)
 
     demolition_by_building_category: pd.DataFrame = demolition_floor_area_by_year.rename('demolition').to_frame().groupby(['building_category', 'year']).sum()
-    demolition_by_building_category.loc[(list(residential_building_categories), [2020, 2021]), 'demolition'] = 0.0
+
+    demolition_building_categories = set(demolition_floor_area_by_year.index.get_level_values(level='building_category').unique())
+    residential_in_frame = demolition_building_categories.intersection(residential_building_categories)
+    if residential_in_frame:
+        demolition_by_building_category.loc[(list(residential_in_frame), [2020, 2021]), 'demolition'] = 0.0
 
     # not_residential buildings require shifting 1 year forward to align properly. Residential is already shifted for
     # some reason. The shifting must occur before the construction area building_code is applied.
@@ -943,7 +947,6 @@ def calculate_construction_with_demolition(construction_by_building_category_and
         make_non_residential_query(residential_building_categories)).index
     demolition_by_building_category.loc[not_residential, 'demolition'] = demolition_by_building_category.groupby(by=['building_category'])['demolition'].shift(1)
 
-    #construction_with_demolition = construction_by_building_category_and_year.merge(demolition_by_building_category, on=['building_category', 'year'])
     construction_with_demolition = construction_by_building_category_and_year.join(demolition_by_building_category, on=['building_category', 'year'])
     construction_with_demolition = construction_with_demolition.reset_index().set_index(['building_category', 'building_code', 'year'])
     construction_with_demolition['rebuilt'] = construction_with_demolition['demolition']

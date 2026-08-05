@@ -475,6 +475,64 @@ def test_calculate_construction_with_demolition_returns_float():
     assert pd.api.types.is_float_dtype(df.area), "Expected df.area to be float dtype"
 
 
+def test_calculate_construction_with_demolition_works_without_no_residential_rows():
+    index = pd.MultiIndex.from_tuples(
+        [
+            ('culture', 'TEK17', 2020),
+            ('culture', 'TEK17', 2021),
+            ('culture', 'TEK17', 2022),
+        ],
+        names=['building_category', 'building_code', 'year']
+    )
+
+    construction = pd.DataFrame(
+        {
+            'net_construction': [
+                0.0,
+                30925.700000000186,
+                44071.299999999814,
+            ],
+            'net_construction_acc': [
+                0.0,
+                30925.700000000186,
+                74997.0,
+            ],
+        },
+        index=index
+    )
+
+    index = pd.MultiIndex.from_tuples(
+        [
+            ('culture', 'TEK07', 2020),
+            ('culture', 'TEK07', 2021),
+            ('culture', 'TEK07', 2022),
+            ('culture', 'TEK17', 2020),
+            ('culture', 'TEK17', 2021),
+            ('culture', 'TEK17', 2022),
+        ],
+        names=['building_category', 'building_code', 'year']
+    )
+
+    demolition = pd.DataFrame(
+        {
+            'demolition': [
+                0.0, 0.0, 0.0,
+                np.nan, np.nan, np.nan,
+            ]
+        },
+        index=index
+    )
+
+    residential = {'house', 'apartment_block'}
+
+    df = calculate_construction_with_demolition(
+        construction_by_building_category_and_year=construction,
+        demolition_floor_area_by_year=demolition.demolition,
+        residential_building_categories=residential
+    )
+    assert df.area.notna().all(), f"NaNs found in df.area:\n{df[df.area.isna()]}"
+    assert pd.api.types.is_float_dtype(df.area), "Expected df.area to be float dtype"
+
 if __name__ == "__main__":
     import os
     pytest.main([os.path.abspath(__file__)])

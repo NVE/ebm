@@ -2,6 +2,7 @@ import typing
 from enum import StrEnum, auto, unique
 
 import pandas as pd
+from pandas import DataFrame
 
 from ebm.model.bema import BUILDING_CATEGORY_ORDER, TEK_ORDER
 
@@ -59,21 +60,40 @@ class EnergyPurpose(StrEnum):
     @classmethod
     def cooling(cls) -> typing.Iterable['EnergyPurpose']:
         return [cls.COOLING]
-
+    
 
 def group_energy_use_kwh_by_building_group_purpose_year_wide(energy_use_kwh: pd.DataFrame) -> pd.DataFrame:
+    """
+    Group non-residential building_categories and transform energy_use_kwh to wide.
+
+    Adds or replace column building_group. Adds column GWh as kwh/1_000_000. Adds columns U for unit.
+
+    Parameters
+    ----------
+    energy_use_kwh : pd.DataFrame
+        expects columns building_category, building_condition, building_code, purpose, heating_systems, load, year, kwh
+
+    Returns
+    -------
+    pd.DataFrame
+        columns building_group, purpose, U, year1, year2, ..., yearN
+    """
+    def group_non_residential(df: DataFrame):
+        df.loc[:, 'building_group'] = df.index.get_level_values(level='building_category')
+        query = '~building_category.isin(["house", "apartment_block", "holiday_home"])'
+        df.loc[df.query(query).index, 'building_group'] = 'non_residential'
+        return df
+
     df = (energy_use_kwh
           .copy()
           .reset_index()
           .set_index(['building_category', 'building_condition', 'building_code', 'purpose', 'heating_systems', 'load', 'year'])
-          .sort_index())
+          .sort_index()).drop(columns='building_group')
 
     df.loc[:, 'GWh'] = df.loc[:, 'kwh'] / 1_000_000
     df.loc[:, ('building_code', 'building_condition')] = ('all', 'all')
 
-    df['building_group'] = 'non_residential'
-    df.loc['house', 'building_group'] = 'house'
-    df.loc['apartment_block', 'building_group'] = 'apartment_block'
+    df = group_non_residential(df)
 
     summed = df.groupby(by=['building_group', 'purpose', 'year']).sum().reset_index()
     summed = summed[['building_group', 'purpose', 'year', 'GWh']]
@@ -89,6 +109,8 @@ def group_energy_use_kwh_by_building_group_purpose_year_wide(energy_use_kwh: pd.
     hz.columns = ['building_group', 'purpose', 'U'] + [y for y in range(summed.year.min(), summed.year.max()+1)]
 
     return hz.rename(columns={'building_group': 'building_category'})
+
+
 
 
 def group_energy_use_by_year_category_building_code_purpose(energy_use_kwh: pd.DataFrame) -> pd.DataFrame:

@@ -533,6 +533,72 @@ def test_calculate_construction_with_demolition_works_without_no_residential_row
     assert df.area.notna().all(), f"NaNs found in df.area:\n{df[df.area.isna()]}"
     assert pd.api.types.is_float_dtype(df.area), "Expected df.area to be float dtype"
 
+
+def test_calculate_construction_with_demolition_apply_zero_residential_demolition_to_minimum_year_and_next():
+    index = pd.MultiIndex.from_tuples(
+        [
+            ('apartment_block', 'TEK17', 2010),
+            ('apartment_block', 'TEK17', 2011),
+            ('apartment_block', 'TEK17', 2012),
+        ],
+        names=['building_category', 'building_code', 'year']
+    )
+
+    construction = pd.DataFrame(
+        {
+            'net_construction': [
+                0.0,
+                2733711.49774,
+                1922645.9609056404,
+            ],
+            'net_construction_acc': [
+                0.0,
+                2733711.49774,
+                4656357.45864564,
+            ],
+        },
+        index=index
+    )
+
+    index = pd.MultiIndex.from_tuples(
+        [
+            ('apartment_block', 'TEK07', 2010),
+            ('apartment_block', 'TEK07', 2011),
+            ('apartment_block', 'TEK07', 2012),
+            ('apartment_block', 'TEK17', 2010),
+            ('apartment_block', 'TEK17', 2011),
+            ('apartment_block', 'TEK17', 2012),
+        ],
+        names=['building_category', 'building_code', 'year']
+    )
+
+    demolition = pd.DataFrame(
+        {
+            'demolition': [
+                0.0, 0.0, 4336.70118420392,
+                np.nan, np.nan, np.nan,
+            ]
+        },
+        index=index
+    )
+
+    residential = {'apartment_block'}
+
+    df = calculate_construction_with_demolition(
+        construction_by_building_category_and_year=construction,
+        demolition_floor_area_by_year=demolition.demolition,
+        residential_building_categories=residential
+    )
+    assert df.demolition.loc[('apartment_block', 'TEK17', 2010)] == 0.0
+    assert df.area.loc[('apartment_block', 'TEK17', 2010)] == 0.0
+
+    assert df.demolition.loc[('apartment_block', 'TEK17', 2011)] == 0.0
+    assert df.area.loc[('apartment_block', 'TEK17', 2011)] == 2733711.49774
+
+    assert df.demolition.loc[('apartment_block', 'TEK17', 2012)] == 4336.70118420392
+    assert df.area.loc[('apartment_block', 'TEK17', 2012)] == 4660694.159829844
+
+
 if __name__ == "__main__":
     import os
     pytest.main([os.path.abspath(__file__)])

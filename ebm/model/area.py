@@ -939,7 +939,8 @@ def calculate_construction_with_demolition(construction_by_building_category_and
     demolition_building_categories = set(demolition_floor_area_by_year.index.get_level_values(level='building_category').unique())
     residential_in_frame = demolition_building_categories.intersection(residential_building_categories)
     if residential_in_frame:
-        demolition_by_building_category.loc[(list(residential_in_frame), [2020, 2021]), 'demolition'] = 0.0
+        start_year = demolition_by_building_category.index.get_level_values(level='year').min()
+        demolition_by_building_category.loc[(list(residential_in_frame), [start_year, start_year+1]), 'demolition'] = 0.0
 
     # not_residential buildings require shifting 1 year forward to align properly. Residential is already shifted for
     # some reason. The shifting must occur before the construction area building_code is applied.

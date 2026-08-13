@@ -275,5 +275,13 @@ def test_filehandler_get_area_per_person_calls_get_file(tmp_path):
     fh.get_file.assert_called_with('area_per_person.csv')
 
 
+def test_filehandler_get_energy_need_improvements_include_lineno_column(tmp_file_handler):
+    result = tmp_file_handler.get_energy_need_yearly_improvements()
+
+    assert 'lineno' in result.columns
+    assert result.lineno.to_list() == [i+2 for i in range(len(result))]
+
+
+
 if __name__ == "__main__":
     pytest.main()

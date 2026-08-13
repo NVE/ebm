@@ -245,7 +245,9 @@ class FileHandler:
             Dataframe containing yearly efficiency rates (%) for energy requirement improvements,
             per building category, tek and purpose.
         """
-        return self.get_file(self.ENERGY_NEED_YEARLY_IMPROVEMENTS)
+        energy_need_yearly_improvements = self.get_file(self.ENERGY_NEED_YEARLY_IMPROVEMENTS)
+        energy_need_yearly_improvements['lineno'] = range(2, len(energy_need_yearly_improvements) + 2)
+        return energy_need_yearly_improvements
 
     def get_holiday_home_energy_consumption(self) -> pd.DataFrame:
         return self.get_file(self.HOLIDAY_HOME_ENERGY_CONSUMPTION)

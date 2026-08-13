@@ -5,7 +5,7 @@ from ebm import input_filter
 
 
 @pytest.mark.parametrize('missing_column', [
-    '_energy_need_improvements_csv',
+    'lineno',
     'building_category_org',
     'building_code_org',
     'purpose',
@@ -15,7 +15,7 @@ from ebm import input_filter
 ])
 def test_detect_conflicts_raise_value_error_for_missing_column(missing_column):
     df = pd.DataFrame({
-        '_energy_need_improvements_csv': [1],
+        'lineno': [1],
         'building_category_org': ['house'],
         'building_code_org': ['TEK17'],
         'purpose': ['lighting'],
@@ -187,35 +187,38 @@ def score_building_category_all_inputs():
     return specific, groups, default
 
 
-def test_score_building_category_all_row_count(score_building_category_all_inputs):
+def test_score_building_category_row_count(score_building_category_all_inputs):
     specific, groups, default = score_building_category_all_inputs
-    result = input_filter.score_building_category_all(specific, groups, default)
+    building_categories = pd.DataFrame({'building_category': ['house', 'office']})
+    
+    result = input_filter.score_building_category(building_categories)
     assert len(result) == len(specific) + len(groups) + len(default)
 
 
 def test_score_building_category_all_contains_all_rows_from_specific(score_building_category_all_inputs):
-    specific, groups, default = score_building_category_all_inputs
-    result = input_filter.score_building_category_all(specific, groups, default)
+    building_categories = pd.DataFrame({'building_category': ['house', 'office']})
+
+    result = input_filter.score_building_category(building_categories)
     assert (result['building_group'] == 'house').any()
     assert (result['building_group'] == 'office').any()
 
 
-def test_score_building_category_all_contains_all_rows_from_groups(score_building_category_all_inputs):
-    specific, groups, default = score_building_category_all_inputs
-    result = input_filter.score_building_category_all(specific, groups, default)
+def test_score_building_category_contains_all_rows_from_groups(score_building_category_all_inputs):
+    building_categories = pd.DataFrame({'building_category': ['house', 'office']})
+    result = input_filter.score_building_category(building_categories)
     assert (result['building_group'] == 'residential').any()
     assert (result['building_group'] == 'non_residential').any()
 
 
-def test_score_building_category_all_contains_all_rows_from_default(score_building_category_all_inputs):
-    specific, groups, default = score_building_category_all_inputs
-    result = input_filter.score_building_category_all(specific, groups, default)
+def test_score_building_category_contains_all_rows_from_default(score_building_category_all_inputs):
+    building_categories = pd.DataFrame({'building_category': ['house', 'office']})
+    result = input_filter.score_building_category(building_categories)
     assert (result['building_group'] == 'default').any()
 
 
 def test_score_building_category_all_empty_inputs():
-    empty = pd.DataFrame({'building_category': [], 'building_group': [], 'score': [], 'num': []})
-    result = input_filter.score_building_category_all(empty, empty, empty)
+    empty = pd.DataFrame({'building_category': []})
+    result = input_filter.score_building_category(empty)
     assert len(result) == 0
 
 
@@ -270,33 +273,29 @@ def test_score_building_code_group_default_preserves_building_code(building_code
 
 # --- score_building_code_all ---
 
-def test_score_building_code_all_row_count(building_codes):
+def test_score_building_code_row_count(building_codes):
     specific = input_filter.score_building_code_specific(building_codes)
     default = input_filter.score_building_code_group_default(building_codes)
-    result = input_filter.score_building_code_all(specific, default)
+    result = input_filter.score_building_code(building_codes)
     assert len(result) == len(specific) + len(default)
 
 
-def test_score_building_code_all_order_is_specific_then_default(building_codes):
+def test_score_building_code_order_is_specific_then_default(building_codes):
     specific = input_filter.score_building_code_specific(building_codes)
     default = input_filter.score_building_code_group_default(building_codes)
-    result = input_filter.score_building_code_all(specific, default)
+    result = input_filter.score_building_code(building_codes)
     scores = result['score'].tolist()
     assert scores[:len(specific)] == specific['score'].tolist()
     assert scores[len(specific):] == default['score'].tolist()
 
 
-def test_score_building_code_all_contains_specific_code_groups(building_codes):
-    specific = input_filter.score_building_code_specific(building_codes)
-    default = input_filter.score_building_code_group_default(building_codes)
-    result = input_filter.score_building_code_all(specific, default)
+def test_score_building_code_contains_specific_code_groups(building_codes):
+    result = input_filter.score_building_code(building_codes)
     assert set(building_codes['building_code']).issubset(set(result['code_group'].dropna()))
 
 
-def test_score_building_code_all_contains_default_code_group(building_codes):
-    specific = input_filter.score_building_code_specific(building_codes)
-    default = input_filter.score_building_code_group_default(building_codes)
-    result = input_filter.score_building_code_all(specific, default)
+def test_score_building_code_contains_default_code_group(building_codes):
+    result = input_filter.score_building_code(building_codes)
     assert (result['code_group'] == 'default').any()
 
 

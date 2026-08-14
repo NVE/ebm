@@ -6,6 +6,7 @@ from loguru import logger
 
 from ebm import validators
 from ebm.energy_consumption import calibrate_heating_systems
+from ebm.input_filter import load_energy_need_improvements
 from ebm.model.building_category import BuildingCategory, expand_building_categories
 from ebm.model.column_operations import explode_building_category_column, explode_building_code_column, explode_unique_columns
 from ebm.model.data_classes import TEKParameters, YearRange
@@ -347,11 +348,25 @@ class DatabaseManager:
             Dataframe containing yearly efficiency rates (%) for energy need improvements,
             per building category, tek and purpose.        
         """
+
+        year_range = YearRange(2020, 2050)
+
+        energy_need_original_condition_csv = self.file_handler.get_energy_req_original_condition()
+        building_code_parameters_csv = self.file_handler.get_building_code()
+        
+        building_categories = pd.DataFrame({'building_category': energy_need_original_condition_csv.building_category.unique()})
+        building_codes = building_code_parameters_csv[['building_code']]
         yearly_improvements = self.file_handler.get_energy_need_yearly_improvements()
         improvements = EnergyNeedYearlyImprovements.validate(yearly_improvements)
-        eny = YearlyReduction.from_energy_need_yearly_improvements(improvements)
-        return eny
-    
+
+        df = load_energy_need_improvements(
+            building_categories=building_categories, building_codes=building_codes, yearly_improvements=improvements, year_range=year_range
+        ).rename(columns={'value': 'yearly_efficiency_improvement'})
+
+        # Move or remove function filter bellow
+        return df.reset_index(drop=True)
+
+
     def get_energy_need_policy_improvement(self) -> pd.DataFrame:
         """
         Get dataframe with total energy need improvement in a period related to a policy. This

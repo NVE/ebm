@@ -1,14 +1,7 @@
-import os
-import pathlib
-import sys
-
 import numpy as np
 import pandas as pd
 from energibruksmodell.helpers import bema_sort, filter_by_start_end_year, group_non_residential, group_residential
 from loguru import logger
-
-from ebm.cmd.helpers import configure_loglevel, load_environment_from_dotenv
-from ebm.model.data_classes import YearRange
 
 
 def score_building_group_default(building_categories: pd.DataFrame) -> pd.DataFrame:
@@ -309,66 +302,12 @@ def prepare_energy_need_improvements(df: pd.DataFrame) -> pd.DataFrame:
     return cleaned.rename(columns={'building_category_org': 'building_category', 'building_code_org': 'building_code'}).pipe(bema_sort)
 
 
-def main() -> None:
-    load_environment_from_dotenv()
-    configure_loglevel(log_format=os.environ.get('LOG_FORMAT', None))
-
-    logger.debug(f'Starting {sys.executable} {__file__}')
-
-    input_directories = [pathlib.Path(r'C:\dev\ws\root\task\4061\input-med-flere-perioder'),
-                         pathlib.Path(r'C:\dev\ws\root\task\4061\overlapping-tek17'),
-                         pathlib.Path(r'C:\dev\ws\root\task\4061\input-periode-overlapp')]
-    input_directory = os.environ.get('EBM_INPUT_DIRECTORY', input_directories[1])
-
-    logger.info(f'Using input directory: {input_directory}')
-    energy_need_improvements_csv = pd.read_csv(input_directory / 'energy_need_improvements.csv')
-    building_code_parameters_csv = pd.read_csv(input_directory / 'building_code_parameters.csv')
-    # Spreadsheets typically starts counting at 1
-    # Spreadsheets typically has a header row so that we should add 2 that the first row is identified as 2.
-
-    energy_need_original_condition_csv = pd.read_csv(input_directory / 'energy_need_original_condition.csv')
-
-    energy_need_improvements_csv = pd.read_csv(input_directory / 'energy_need_improvements.csv')
-    energy_need_improvements_csv['lineno'] = range(2, len(energy_need_improvements_csv) + 2)
-
-    # 🛠️
-    building_categories = pd.DataFrame({'building_category': energy_need_original_condition_csv.building_category.unique()})
-
-    # 🛠️
-    building_code_parameters_csv['building_code_parameters_csv'] = range(2, len(building_code_parameters_csv) + 2)
-    building_codes = building_code_parameters_csv[['building_code', 'building_code_parameters_csv']]
-
-    # 🛠️
+def load_energy_need_improvements(building_categories=None, yearly_improvements=None, year_range=None,
+                                  building_codes=None):
     building_category_scores = score_building_category(building_categories)
-
-    # 🛠️
     building_code_scores = score_building_code(building_codes)
-
-    # 🛠️
     building_category_code_score = combine_category_code_scores(building_category_scores, building_code_scores)
-
-    # 🛠️
-    energy_need_improvements_score = score_energy_need_improvements(energy_need_improvements_csv, building_category_code_score)
-    
-    energy_need_improvements_high_score =  energy_need_improvements_score.pipe(mark_high_score)
-
-    year_range = YearRange(2020, 2050)
-
-    # 🛠️
+    energy_need_improvements_high_score = score_energy_need_improvements(yearly_improvements, building_category_code_score).pipe(mark_high_score)
     energy_need_improvements_yearly = year_range.cross_join(energy_need_improvements_high_score)
-    #conflicts = detect_conflicts(energy_need_improvements_yearly)
-
-    # 🛠️
-    #df = make_energy_need_improvements_periodical(conflicts, energy_need_improvements_csv)
-    df = energy_need_improvements_high_score.rename(columns={'lineno': 'definition_lineno'})
-    display_columns = ['building_category', 'building_code',
-                       'building_category_org', 'building_code_org', 'purpose', 'function',
-                       'start_year', 'value', 'end_year', 'score', 'high_score', 'definition_lineno']
-
-    duplicate_columns = display_columns[2:-3]
-    display_df = df[df.high_score][display_columns].drop_duplicates(duplicate_columns).query('building_category_org=="apartment_block"').pipe(bema_sort).iloc[::-1]
-    print(display_df.to_markdown())
-
-
-if __name__ == '__main__':
-    main()
+    prepared_energy_need_improvements = prepare_energy_need_improvements(energy_need_improvements_yearly)
+    return prepared_energy_need_improvements.reset_index(drop=True)

@@ -221,7 +221,7 @@ def calculate_reduction_yearly( df_years: pd.DataFrame, yearly_improvement: pd.D
         raise ValueError('df_years does not contain column year')
 
     years = pd.DataFrame(data=[y for y in df_years.year.unique()], columns=['year'])
-
+    yearly_improvement = yearly_improvement.query('function=="yearly_reduction"')
     df = yearly_improvement.merge(right=years, how='cross')
     rows_in_range = df[(df.year >= df.start_year) & (df.year <= df.end_year)].index
 

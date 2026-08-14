@@ -316,6 +316,40 @@ def test_calculate_yearly_reduction():
     pd.testing.assert_series_equal(house_el_eq.reduction_yearly, house_el_expected)
 
 
+
+def test_calculate_yearly_reduction_ignore_unknown_function_values():
+    """
+    reduction_yearly starts on start_year and ends in end_year
+    reduction_yearly replace nan values with 1.0 before start_year and by ffill after end_year
+
+    """
+    period = YearRange(2010, 2022)
+    dm = DatabaseManager()
+
+    yearly_efficiency_improvement = pd.DataFrame(
+        data=[
+            ['house', 'TEK01', 'lighting', 'improvement_at_end_year', 2016, 0.5, period.end],
+            ['house', 'TEK01', 'lighting', 'yearly_reduction', 2011, 0.01, 2020],
+            ['house', 'TEK01', 'lighting', 'unknown', 2012, 0.05, 2020],
+        ],
+        columns=['building_category', 'building_code', 'purpose', 'function', 'start_year', 'yearly_efficiency_improvement',
+                 'end_year'])
+
+    result = calculate_reduction_yearly(df_years=period.to_dataframe(), yearly_improvement=yearly_efficiency_improvement).set_index(['year'])
+
+
+
+    expected = pd.Series(
+        data={2010: 1.0, 2011: 0.99, 2012: 0.9801, 2013: 0.970299, 2014: 0.96059601, 2015: 0.9509900498999999,
+              2016: 0.941480149401, 2017: 0.9320653479069899, 2018: 0.9227446944279201, 2019: 0.9135172474836408,
+              2020: 0.9043820750088044, 2021: 0.9043820750088044, 2022: 0.9043820750088044},
+        name='reduction_yearly',
+        index=period.to_index())
+
+    pd.testing.assert_series_equal(result.factor_yearly_reduction_1, expected, check_names=False)
+    pd.testing.assert_series_equal(result.reduction_yearly, expected)
+
+
 def test_calculate_reduction_with_yearly_reduction():
     """
     Test energy_need_improvements_kwh_m2 with yearly reduction and policy improvement

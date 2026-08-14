@@ -11,6 +11,7 @@ from ebm.model.calibrate_heating_systems import group_heating_systems_by_energy_
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
 from ebm.services.spreadsheet import detect_format_from_values, find_max_column_width
+from energibruksmodell.helpers import bema_sort
 
 
 def transform_model_to_horizontal(model, value_column = 'm2'):
@@ -169,7 +170,7 @@ class EbmDefaultHandler:
                                                                           database_manager,
                                                                           area_forecast[['m2']],
                                                                           period=year_range)
-            df = energy_requirements_result
+            df = energy_requirements_result.reset_index().pipe(bema_sort).reset_index(drop=True)
 
             if 'heating-systems' in step_choice or 'energy-use' in step_choice:
                 logger.debug('Extracting heating systems')

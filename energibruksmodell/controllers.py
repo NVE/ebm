@@ -7,7 +7,6 @@ from functools import wraps
 import pandas as pd
 
 from ebm.areaforecast.s_curve import calculate_s_curves
-from ebm.heating_system_forecast import HeatingSystemsForecast
 from ebm.holiday_home_energy import HolidayHomeEnergy
 from ebm.model.area import calculate_all_area
 from ebm.model.data_classes import YearRange
@@ -403,6 +402,7 @@ def calculate_heating_systems(
     **kwargs: pd.DataFrame|pd.Series,
 ) -> pd.DataFrame:
     from ebm.model import heating_systems_parameter as h_s_param  # noqa: PLC0415
+    from ebm.heating_system_forecast import HeatingSystemsForecast  # noqa: PLC0415 (lazy import to break circular dependency)
 
     if not isinstance(years, YearRange) and not isinstance(years, tuple):
         raise TypeError('Expected type YearRange or tuple[int, int] for years')

@@ -456,13 +456,15 @@ energy_need_improvements = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=pa.Check(check_default_building_category_with_group)),
         'building_code': pa.Column(str, checks=pa.Check(check_default_building_code, element_wise=True)),
-        'purpose':pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
+        'purpose':pa.Column(str, checks=pa.Check(check_default_energy_purpose,
+                                                 title='Expected value in purpose', name='expected_value_in_purpose')),
         'value': pa.Column(float, coerce=True,
                                                    checks=[pa.Check.between(min_value=0.0, include_min=True,
                                                                             max_value=1.0, include_max=True)])
     },
     unique=['building_category', 'building_code', 'purpose', 'start_year', 'function', 'end_year'],
-    report_duplicates='all'
+    report_duplicates='all',
+    name='energy_need_improvements',
 )
 
 

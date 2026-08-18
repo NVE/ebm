@@ -128,7 +128,15 @@ def calculate_building_category_energy_requirements(building_category: None,
 
     merged['energy_requirement'] = merged.kwh_m2 * merged.m2
 
-    return merged
+    return merged.drop(
+        errors='ignore',
+        columns=[
+            'start_year',
+            'end_year',
+            'function',
+            'parameter',
+            'interpolation',],
+    )
 
 
 def write_to_disk(constructed_floor_area, building_category: BuildingCategory):

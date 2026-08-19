@@ -804,11 +804,11 @@ def test_make_df_building_category_code_purpose_yearly(skip_parameter):
 
     res = make_df_building_category_code_purpose_yearly(expected_years, **parameters)
 
-    assert res.building_category.unique() == pytest.approx(expected_building_category)
-    assert res.building_code.unique() == pytest.approx(expected_building_code)
-    assert res.purpose.unique() == pytest.approx(expected_purpose)
-    assert res.building_condition.unique() == pytest.approx(expected_condition)
-    assert res.year.unique() == pytest.approx(expected_years)
+    assert (res.building_category.unique() == expected_building_category).all()
+    assert (res.building_code.unique() == expected_building_code).all()
+    assert (res.purpose.unique() == expected_purpose).all()
+    assert (res.building_condition.unique() == expected_condition).all()
+    assert (res.year.unique() == expected_years).all()
 
     assert len(res) == expected_row_count
 

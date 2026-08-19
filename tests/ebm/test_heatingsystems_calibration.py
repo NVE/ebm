@@ -211,7 +211,7 @@ house,TEK07,2023,HP - Electricity,0.09929473189808154
 house,TEK07,2023,HP Central heating - Electric boiler,0.003815290330247105
 house,TEK07,2023,HP Central heating - Gas,0.00373076086305975""".strip()))
 
-    assert 0.9999999 < float(result.groupby(by=['building_category', 'building_code']).sum().heating_system_share) < 1.000001
+    assert 0.9999999 < float(result.groupby(by=['building_category', 'building_code']).sum().heating_system_share.iloc[0]) < 1.000001
     pd.testing.assert_frame_equal(result, expected, check_like=True, atol=1e-5)
 
 

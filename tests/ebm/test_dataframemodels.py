@@ -6,6 +6,8 @@ import pandera as pa
 import pytest
 from ebm.model.dataframemodels import EnergyNeedYearlyImprovements, PolicyImprovement, YearlyReduction
 
+schema_errors = (pa.errors.SchemaError, pa.errors.SchemaErrors)
+
 
 def test_from_energy_need_yearly_improvements_handle_duplicate_keys():
     """Make sure from_energy_need_yearly_improvements does not raise ValueError when unpacking."""
@@ -297,21 +299,21 @@ def test_energy_req_policy_improvements_wrong_year_range(policy_improvements_df)
     policy_improvements_df.loc[0, 'start_year'] = 2050
     policy_improvements_df.loc[0, 'end_year'] = 2010
 
-    with pytest.raises(pa.errors.SchemaError):
+    with pytest.raises(schema_errors):
         PolicyImprovement.to_schema().validate(policy_improvements_df)
 
 
 @pytest.mark.parametrize('start_year', [-1, ""])
 def test_energy_req_policy_improvements_wrong_start_year(policy_improvements_df, start_year):
     policy_improvements_df['start_year'] = start_year
-    with pytest.raises(pa.errors.SchemaError):
+    with pytest.raises(schema_errors):
         PolicyImprovement.to_schema().validate(policy_improvements_df)
 
 
 @pytest.mark.parametrize('end_year', [-1, ""])
 def test_energy_req_policy_improvements_wrong_end_year(policy_improvements_df, end_year):
     policy_improvements_df['end_year'] = end_year
-    with pytest.raises(pa.errors.SchemaError):
+    with pytest.raises(schema_errors):
         PolicyImprovement.to_schema().validate(policy_improvements_df)
 
 
@@ -319,7 +321,7 @@ def test_energy_req_policy_improvements_wrong_end_year(policy_improvements_df, e
 def test_energy_req_policy_improvements_value_between_zero_and_one(policy_improvements_df,
                                                                    improvement_at_end_year):
     policy_improvements_df.loc[0, 'improvement_at_end_year'] = improvement_at_end_year
-    with pytest.raises(pa.errors.SchemaError):
+    with pytest.raises(schema_errors):
         PolicyImprovement.to_schema().validate(policy_improvements_df)
 
 
@@ -329,22 +331,23 @@ def test_energy_req_policy_improvements_require_unique_rows():
         data=[['default', 'default', 'lighting', 2018, 2030, 0.6],
               ['default', 'default', 'lighting', 2018, 2030, 0.6],
               ['default', 'default', 'lighting', 2018, 2030, 0.1]])
-    with pytest.raises(pa.errors.SchemaError):
+    with pytest.raises(schema_errors):
         PolicyImprovement.to_schema()(duplicate_df)
 
 
 def test_from_policy_improvements__fill_optional_columns():
     dfm = EnergyNeedYearlyImprovements(pd.DataFrame(
         data=[
-            ['house', 'TEK1', 'lighting', 'improvement_at_period_end', 0.1],
-            ['house', 'TEK2', 'lighting', 'improvement_at_period_end', 0.2],
-            ['house', 'TEK3', 'lighting', 'improvement_at_period_end', 0.3],
+            ['house', 'TEK1', 'lighting', 'improvement_at_end_year', 0.1],
+            ['house', 'TEK2', 'lighting', 'improvement_at_end_year', 0.2],
+            ['house', 'TEK3', 'lighting', 'improvement_at_end_year', 0.3],
         ],
         columns=['building_category', 'building_code', 'purpose', 'function', 'value'],
     ))
     df = PolicyImprovement.from_energy_need_yearly_improvements(dfm)
 
     df = cast(pd.DataFrame, df)
+    assert len(df) == 3
     assert df['start_year'].dtype == int
     assert (df['start_year'] == 2020).all()
 

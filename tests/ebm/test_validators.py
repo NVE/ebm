@@ -762,7 +762,8 @@ residential,default,default,1.0,,,,
 house,PRE_TEK49+TEK69+TEK87+TEK49+TEK97,default,0.85,,,,
 house,default,lighting,0.85,,,,
 non_residential,default,default,1.15,,,,
-retail,default,electrical_equipment,2.0,,,,""".strip()))
+retail,default,electrical_equipment,2.0,,,,
+""".strip()))
 
     res = energy_need_behaviour_factor.validate(df)
 
@@ -781,6 +782,35 @@ retail,default,electrical_equipment,2.0,,,,""".strip()))
     non_residential_non_electrical_equipment = res.query(
         'building_category not in ["house", "apartment_block"] and purpose!="electrical_equipment"')
     assert (non_residential_non_electrical_equipment['behaviour_factor'] == 1.15).all()
+
+
+def test_behaviour_factor_parse_end_year():
+    df = pd.read_csv(io.StringIO("""
+building_category,building_code,purpose,behaviour_factor,start_year,function,end_year,parameter
+kindergarten,TEK17,default,0.6,2020,,2060,
+""".strip()))
+
+    res = energy_need_behaviour_factor.validate(df)
+
+    kindergarten_tek17 = res.query('building_category=="kindergarten" and building_code=="TEK17" and purpose=="lighting"')
+    assert (kindergarten_tek17['behaviour_factor'] == 0.60).all()
+    assert (kindergarten_tek17['end_year'] == 2060).all()
+    assert kindergarten_tek17.year.to_list() == [y for y in range(2020, 2061)]
+
+
+def test_behaviour_factor_parse_start_year():
+    df = pd.read_csv(io.StringIO("""
+building_category,building_code,purpose,behaviour_factor,start_year,function,end_year,parameter
+kindergarten,TEK17,default,0.6,2010,,2030,
+""".strip()))
+
+    res = energy_need_behaviour_factor.validate(df)
+
+    kindergarten_tek17 = res.query('building_category=="kindergarten" and building_code=="TEK17" and purpose=="lighting"')
+    assert (kindergarten_tek17['behaviour_factor'] == 0.60).all()
+    assert (kindergarten_tek17['end_year'] == 2030).all()
+    assert (kindergarten_tek17['start_year'] == 2010).all()
+    assert kindergarten_tek17.year.to_list() == [y for y in range(2010, 2031)]
 
 
 def test_behaviour_factor_validate_and_parse_add_year():

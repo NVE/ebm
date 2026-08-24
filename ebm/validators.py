@@ -279,7 +279,11 @@ def make_building_purpose(years: YearRange | None = None) -> pd.DataFrame:
 
 
 def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
-    model_years = YearRange(2020, 2050)
+    start_year = min(2020, df['start_year'].fillna(2020).astype(int).min()) if 'start_year' in df.columns else 2020
+    end_year = df['end_year'].fillna(2050).astype(int).max() if 'end_year' in df.columns else 2050
+
+    model_years = YearRange(start_year, end_year)
+
     all_combinations = make_building_purpose(years=model_years)
 
     if 'start_year' not in df.columns:
@@ -328,6 +332,7 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
 
     joined = all_combinations.join(behaviour_factor, how='left')
     joined.behaviour_factor = joined.behaviour_factor.fillna(1.0)
+
     return joined.reset_index()
 
 

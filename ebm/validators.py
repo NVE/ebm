@@ -279,30 +279,22 @@ def make_building_purpose(years: YearRange | None = None) -> pd.DataFrame:
 
 
 def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
-    start_year = min(2020, df['start_year'].fillna(2020).astype(int).min()) if 'start_year' in df.columns else 2020
-    end_year = df['end_year'].fillna(2050).astype(int).max() if 'end_year' in df.columns else 2050
+    # start_year = min(2020, df['start_year'].fillna(2020).astype(int).min()) if 'start_year' in df.columns else 2020
+    # end_year = df['end_year'].fillna(2050).astype(int).max() if 'end_year' in df.columns else 2050
 
-    model_years = YearRange(start_year, end_year)
+    if 'model_start_year' not in df.columns or 'model_end_year' not in df.columns:
+        raise ValueError('Missing model years in behaviour factor data. Please provide model_start_year and model_end_year.')
+    model_years = YearRange(df['model_start_year'].astype(int).min(), df['model_end_year'].astype(int).max())
 
     all_combinations = make_building_purpose(years=model_years)
-
-    if 'start_year' not in df.columns:
-        df=df.assign(**{'start_year': model_years.start})
-    if 'end_year' not in df.columns:
-        df=df.assign(**{'end_year': model_years.end})
     if 'function' not in df.columns:
-        df=df.assign(function='noop')
-    else:
-        df['function'] = df.function.fillna('noop')
-    if 'parameter' not in df.columns:
-        df=df.assign(parameter=0.0)
+        df=df.assign(function='behaviour_factor')
+    
+    df['start_year'] = model_years.start
+    df['end_year'] = model_years.end
 
-    df['start_year'] = df.start_year.fillna(model_years.start).astype(int)
-    df['end_year'] = df.end_year.fillna(model_years.end).astype(int)
-
-    unique_columns = ['building_category', 'building_code', 'purpose', 'start_year', 'end_year']
-    behaviour_factor = explode_unique_columns(df,
-                                              unique_columns=unique_columns)
+    unique_columns = ['building_category', 'building_code', 'purpose']
+    behaviour_factor = explode_unique_columns(df, unique_columns=unique_columns)
 
     behaviour_factor = explode_column_alias(behaviour_factor,
                        column='purpose',
@@ -310,30 +302,22 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
                        alias='default',
                        de_dup_by=unique_columns)
 
-    behaviour_factor['year'] = behaviour_factor.apply(
-        lambda row: range(row.start_year, row.end_year+1), axis=1)
-    behaviour_factor['interpolation'] = behaviour_factor.apply(
-        lambda row: np.linspace(row.behaviour_factor, row.parameter, num=row.end_year+1-row.start_year), axis=1)
+    behaviour_factor['year'] = behaviour_factor.apply(lambda row: range(row.start_year, row.end_year+1), axis=1)
+    behaviour_factor = behaviour_factor.explode(['year']).astype({'year': int})
 
-    behaviour_factor = behaviour_factor.explode(['year', 'interpolation'])
+    behaviour_factor=behaviour_factor.set_index(unique_columns + ['year'], drop=True)
+    all_combinations=all_combinations.set_index(unique_columns + ['year'], drop=True)
 
-    behaviour_factor['year'] = behaviour_factor['year'].astype(int)
+    joined = all_combinations.join(behaviour_factor.drop(columns=['start_year', 'behaviour_factor', 'end_year']), how='left').reset_index()
+    periods = behaviour_factor.groupby(unique_columns).agg(start_year=('start_year', 'min'), end_year=('end_year', 'max'), behaviour_factor=('behaviour_factor', 'max')).reset_index()
+    joined = joined.merge(periods, on=unique_columns, how='left')
 
-    interpolation_slice = (behaviour_factor.function == 'improvement_at_end_year') & (~behaviour_factor.interpolation.isna())
-    behaviour_factor.loc[interpolation_slice, 'behaviour_factor'] = behaviour_factor.loc[
-        interpolation_slice, 'interpolation'].astype(float)
-
-    behaviour_factor.sort_values(['building_category', 'building_code', 'purpose', 'year'])
-
-    behaviour_factor = calculate_yearly_reduction(behaviour_factor)
-
-    behaviour_factor=behaviour_factor.set_index(['building_category', 'building_code', 'purpose', 'year'], drop=True)
-    all_combinations=all_combinations.set_index(['building_category', 'building_code', 'purpose', 'year'], drop=True)
-
-    joined = all_combinations.join(behaviour_factor, how='left')
     joined.behaviour_factor = joined.behaviour_factor.fillna(1.0)
+    joined.start_year = joined.start_year.fillna(model_years.start).astype(int)
+    joined.end_year = joined.end_year.fillna(model_years.end).astype(int)
+    joined['function'] = joined['function'].fillna('behaviour_factor')
 
-    return joined.reset_index()
+    return joined
 
 
 def calculate_yearly_reduction(df):

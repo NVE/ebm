@@ -287,6 +287,8 @@ class DatabaseManager:
 
     def get_behaviour_factor(self) -> pd.DataFrame:
         f = self.file_handler.get_file(self.file_handler.BEHAVIOUR_FACTOR)
+        f['model_start_year'] = self._years.start
+        f['model_end_year'] = self._years.end
         behaviour_factor = validators.energy_need_behaviour_factor.validate(f)
         return behaviour_factor
 

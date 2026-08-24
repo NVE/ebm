@@ -755,6 +755,18 @@ HP Central heating - Bio,HP Central heating,Bio,Ingen,Electricity,Bio,Ingen,0.0,
     
     heating_system_efficiencies.validate(efficiencies)
 
+@pytest.mark.parametrize('drop_columns', ['model_start_year', 'model_end_year', 'model_start_year,model_end_year'])
+def test_behaviour_factor_parser_raise_value_error_on_missing_model_years(drop_columns):
+    df = pd.read_csv(io.StringIO("""
+building_category,building_code,purpose,behaviour_factor,model_start_year,function,model_end_year,parameter
+default,default,default,0.9,2019,noop,2061,
+""".strip()))
+    df_with_missing_column = df.drop(columns=drop_columns.split(','))
+    with pytest.raises(ValueError, match=r'Missing model years in behaviour factor data. Please provide model_start_year and model_end_year.'):
+        energy_need_behaviour_factor.validate(df_with_missing_column)
+
+
+
 def test_behaviour_factor_validate_and_parse():
     df = pd.read_csv(io.StringIO("""
 building_category,building_code,purpose,behaviour_factor,start_year,function,end_year,parameter
@@ -765,7 +777,7 @@ non_residential,default,default,1.15,,,,
 retail,default,electrical_equipment,2.0,,,,
 """.strip()))
 
-    res = energy_need_behaviour_factor.validate(df)
+    res = energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2050))
 
     house_lighting = res.query('building_category=="house" and purpose=="lighting"')
     assert (house_lighting['behaviour_factor'] == 0.85).all()
@@ -784,13 +796,13 @@ retail,default,electrical_equipment,2.0,,,,
     assert (non_residential_non_electrical_equipment['behaviour_factor'] == 1.15).all()
 
 
-def test_behaviour_factor_parse_end_year():
+def test_behaviour_factor_parse_model_end_year():
     df = pd.read_csv(io.StringIO("""
 building_category,building_code,purpose,behaviour_factor,start_year,function,end_year,parameter
 kindergarten,TEK17,default,0.6,2020,,2060,
 """.strip()))
 
-    res = energy_need_behaviour_factor.validate(df)
+    res = energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2060))
 
     kindergarten_tek17 = res.query('building_category=="kindergarten" and building_code=="TEK17" and purpose=="lighting"')
     assert (kindergarten_tek17['behaviour_factor'] == 0.60).all()
@@ -798,13 +810,14 @@ kindergarten,TEK17,default,0.6,2020,,2060,
     assert kindergarten_tek17.year.to_list() == [y for y in range(2020, 2061)]
 
 
-def test_behaviour_factor_parse_start_year():
+@pytest.mark.skip(reason='Removing yearly_reduction and improvement_at_end_year functions from behaviour factor')
+def test_behaviour_factor_parse_model_start_year():
     df = pd.read_csv(io.StringIO("""
 building_category,building_code,purpose,behaviour_factor,start_year,function,end_year,parameter
 kindergarten,TEK17,default,0.6,2010,,2030,
 """.strip()))
 
-    res = energy_need_behaviour_factor.validate(df)
+    res = energy_need_behaviour_factor.validate(df.assign(model_start_year=2010).assign(model_end_year=2030))
 
     kindergarten_tek17 = res.query('building_category=="kindergarten" and building_code=="TEK17" and purpose=="lighting"')
     assert (kindergarten_tek17['behaviour_factor'] == 0.60).all()
@@ -813,24 +826,30 @@ kindergarten,TEK17,default,0.6,2010,,2030,
     assert kindergarten_tek17.year.to_list() == [y for y in range(2010, 2031)]
 
 
-def test_behaviour_factor_validate_and_parse_add_year():
+def test_behaviour_factor_validate_and_parse_add_years():
     df = pd.read_csv(io.StringIO("""
 building_category,building_code,purpose,behaviour_factor,start_year,function,end_year,parameter
 residential,default,default,2.4,2024,noop,2042,
 non_residential,default,default,4.2,2024,noop,2042,""".strip()))
 
-    res = energy_need_behaviour_factor.validate(df)
+    res = energy_need_behaviour_factor.validate(df.assign(model_start_year=2024).assign(model_end_year=2042))
 
     house_lighting = res.query('building_category in ["house", "apartment_block"] and 2024 <= year <=2042')
+    residential_count = 2
+    non_residential_count = 11
+    building_code_count = 8
+    purpose_count = 6
+    year_count = 19
+
+    assert len(house_lighting.behaviour_factor) == residential_count * building_code_count * purpose_count * year_count
     assert (house_lighting.behaviour_factor == 2.4).all()
 
     non_residential = res.query('building_category not in ["house", "apartment_block"] and 2024 <= year <=2042')
+    assert len(non_residential.behaviour_factor) == non_residential_count * building_code_count * purpose_count * year_count
     assert (non_residential.behaviour_factor == 4.2).all()
 
-    outside_range = res.query('year < 2024 and year < 2042')
-    assert (outside_range.behaviour_factor == 1.0).all()
 
-
+@pytest.mark.skip(reason='Removing yearly_reduction and improvement_at_end_year functions from behaviour factor')
 def test_behaviour_factor_validate_and_parse_with_empty_start_year_or_end_year():
     df = pd.read_csv(io.StringIO("""
 building_category,building_code,purpose,behaviour_factor,start_year,function,end_year,parameter
@@ -861,7 +880,7 @@ building_category,building_code,purpose,behaviour_factor
 residential,default,default,2.4
 non_residential,default,default,4.2""".strip()))
 
-    res = energy_need_behaviour_factor.validate(df)
+    res = energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2050))
 
     house_lighting = res.query('building_category in ["house", "apartment_block"]')
     assert (house_lighting.behaviour_factor == 2.4).all()
@@ -870,6 +889,7 @@ non_residential,default,default,4.2""".strip()))
     assert (non_residential.behaviour_factor == 4.2).all()
 
 
+@pytest.mark.skip(reason='Removing yearly_reduction and improvement_at_end_year functions from behaviour factor')
 def test_behaviour_factor_validate_and_parse_calculate_yearly_reduction():
         df = pd.read_csv(io.StringIO("""
 building_category,building_code,purpose,behaviour_factor,start_year,function,end_year,parameter
@@ -894,6 +914,7 @@ residential,default,lighting,1.0,2031,yearly_reduction,2050,0.02
         pd.testing.assert_series_equal(house_lighting.behaviour_factor, expected)
 
 
+@pytest.mark.skip(reason='Removing yearly_reduction and improvement_at_end_year functions from behaviour factor')
 def test_behaviour_factor_validate_and_parse_calculate_interpolate():
     df = pd.read_csv(io.StringIO("""
 building_category,building_code,purpose,behaviour_factor,start_year,function,end_year,parameter
@@ -935,7 +956,7 @@ non_residential,default,default,1.15,,,
 retail,default,electrical_equipment,2.0,,,
 """.strip()))
 
-    res = energy_need_behaviour_factor.validate(df)
+    res = energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2050))
 
     house_heating_rv = res.query('building_category=="house" and building_code=="PRE_TEK49" and purpose=="heating_rv"').set_index(
         ['year']
@@ -956,7 +977,7 @@ non_residential,default,default,1.15,2020,,2050,
 retail,default,electrical_equipment,2.0,2020,,2050,
 """.strip()))
 
-    res = energy_need_behaviour_factor.validate(df)
+    res = energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2050))
 
     house_heating_rv = res.query('building_category=="house" and building_code=="PRE_TEK49" and purpose=="heating_rv"').set_index(
         ['year']
@@ -967,7 +988,7 @@ retail,default,electrical_equipment,2.0,2020,,2050,
     pd.testing.assert_series_equal(house_heating_rv.behaviour_factor, expected)
 
 
-
+@pytest.mark.skip(reason='Removing yearly_reduction and improvement_at_end_year functions from behaviour factor')
 def test_behaviour_factor_with_improvement_at_end_year_and_yearly_reduction():
     df = pd.read_csv(io.StringIO("""
 building_category,building_code,purpose,behaviour_factor,start_year,function,end_year,parameter

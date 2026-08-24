@@ -1,4 +1,6 @@
 import itertools
+import os
+import sys
 import typing
 
 import pandas as pd
@@ -286,7 +288,16 @@ class DatabaseManager:
             Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
             per building category and purpose.
         """
-        logger.debug('Using default year 2020 -> 2050 (not critical)')
+        start_year = os.environ.get('EBM_START_YEAR', '2020')
+        end_year = os.environ.get('EBM_END_YEAR', '2050')
+
+        if not year_range and (start_year!='2020' or '--start-year') in sys.argv:
+            logger.warning('year_range is undefined while, EBM_START_YEAR ({start_year}) is not set to default values. ', start_year=start_year)
+        if not year_range and (end_year != '2050' or '--end-year' in sys.argv):
+            logger.warning('year_range is undefined while,  EBM_END_YEAR ({end_year}) is not set to default values.', end_year=end_year)
+        if not year_range:
+            logger.warning('Using default year 2020 -> 2050')
+
         years = YearRange(2020, 2050) if year_range is None else year_range
 
         building_purpose = self.make_building_purpose(years=years).set_index(

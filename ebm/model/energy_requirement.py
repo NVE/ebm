@@ -36,15 +36,15 @@ def calculate_for_building_category(database_manager: DatabaseManager = None, ye
                                     energy_need_improvements_policy=energy_need_improvements_policy,
                                     energy_need_yearly_reduction=energy_need_yearly_reduction)
 
-def energy_need_improvements(energy_need_original_condition: pd.DataFrame,
-                             improvement_building_upgrade:  pd.DataFrame,
-                             energy_need_improvements_policy: pd.DataFrame,
-                             energy_need_yearly_reduction: pd.DataFrame) -> pd.DataFrame:
+def energy_need_improvements(energy_need_original_condition: pd.DataFrame, improvement_building_upgrade: pd.DataFrame,
+                             energy_need_improvements_policy: pd.DataFrame, energy_need_yearly_reduction: pd.DataFrame,
+                             years) -> pd.DataFrame:
     """
     Calculates energy requirements for a single building category
 
     Parameters
     ----------
+    years :
     energy_need_original_condition : pd.DataFrame
     improvement_building_upgrade : pd.DataFrame
     energy_need_improvements_policy : pd.DataFrame
@@ -58,17 +58,18 @@ def energy_need_improvements(energy_need_original_condition: pd.DataFrame,
 
     """
     most_conditions = list(BuildingCondition.existing_conditions())
-    model_years = YearRange(2020, 2050)
 
     building_codes = gather_building_codes(energy_need_improvements_policy, energy_need_original_condition,
                                            energy_need_yearly_reduction, improvement_building_upgrade)
 
+    df_years = make_df_building_category_code_purpose_yearly(years, building_condition=most_conditions,
+                                                           building_code=building_codes)
     merged = energy_need_improvements_kwh_m2(
         energy_need_original_condition=energy_need_original_condition,
         reduction_per_condition=improvement_building_upgrade,
         policy_improvement=energy_need_improvements_policy,
         yearly_improvement=energy_need_yearly_reduction,
-        df_years=make_df_building_category_code_purpose_yearly(model_years, building_condition=most_conditions, building_code=building_codes))
+        df_years=df_years)
 
     merged = merged.drop_duplicates(['building_category', 'building_code', 'building_condition', 'year', 'purpose'], keep='first')
 

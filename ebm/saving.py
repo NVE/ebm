@@ -208,7 +208,7 @@ def flat_household_size(dm: DatabaseManager, period: YearRange=YearRange(2020, 2
     from ebm.cmd.run_calculation import calculate_building_category_area_forecast  # noqa: PLC0415
 
     fh_flat = FileHandler(directory=dm.file_handler.input_directory)
-    dm_flat = DatabaseManager(file_handler=fh_flat)
+    dm_flat = DatabaseManager(file_handler=fh_flat, years=period)
 
     construction_population = fh_flat.get_construction_population()
     construction_population['household_size'] = construction_population.loc[

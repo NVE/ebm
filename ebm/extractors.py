@@ -70,8 +70,8 @@ def extract_energy_use_holiday_homes(database_manager: DatabaseManager, years: Y
 def main() -> None:  # noqa: D103
     from ebm.model.file_handler import FileHandler   # noqa: I001, PLC0415
     fh = FileHandler(directory='input')
-    dm = DatabaseManager(fh)
     years = YearRange(2020, 2050)
+    dm = DatabaseManager(fh, years=years)
 
     building_code_parameters = fh.get_building_code()
     scurve_params = dm.get_scurve_params()

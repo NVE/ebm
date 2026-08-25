@@ -233,17 +233,7 @@ The input constraints, datatypes and accepted values are listed per input file i
             - required
             - values: heating_rv, heating_dhw, fans_and_pumps, lighting, electrical_equipment, cooling, default
 
-            ``period_start_year``
-            - required
-            - integer value
-            - value **≥** 0
-
-            ``period_end_year``
-            - required
-            - integer value
-            - value **≥** 0
-
-            ``improvement_at_period_end``
+            ``behaviour_factor``
             - required
             - float using a decimal point ('.') as the separator
             - **0.0** ≤ value ≤ **1.0**

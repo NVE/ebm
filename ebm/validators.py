@@ -279,9 +279,6 @@ def make_building_purpose(years: YearRange | None = None) -> pd.DataFrame:
 
 
 def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
-    # start_year = min(2020, df['start_year'].fillna(2020).astype(int).min()) if 'start_year' in df.columns else 2020
-    # end_year = df['end_year'].fillna(2050).astype(int).max() if 'end_year' in df.columns else 2050
-
     if 'model_start_year' not in df.columns or 'model_end_year' not in df.columns:
         raise ValueError('Missing model years in behaviour factor data. Please provide model_start_year and model_end_year.')
     model_years = YearRange(df['model_start_year'].astype(int).min(), df['model_end_year'].astype(int).max())
@@ -328,15 +325,28 @@ def calculate_yearly_reduction(df):
 
 
 energy_need_behaviour_factor = pa.DataFrameSchema(
-    parsers=pa.Parser(behaviour_factor_parser),
     columns={
         "building_category": pa.Column(str),
-        'building_code': pa.Column(str), #
+        'building_code': pa.Column(str),
         "purpose": pa.Column(str),
         'year': pa.Column(int, required=False),
         'behaviour_factor': pa.Column(float)
     }
 )
+
+
+expanded_energy_need_behaviour_factor = pa.DataFrameSchema(
+    parsers=pa.Parser(behaviour_factor_parser),
+    columns={
+        "building_category": pa.Column(str),
+        'building_code': pa.Column(str),
+        "purpose": pa.Column(str),
+        'year': pa.Column(int, required=False),
+        'behaviour_factor': pa.Column(float)
+    }
+)
+
+
 
 area = pa.DataFrameSchema(
     columns={

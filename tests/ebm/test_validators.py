@@ -27,6 +27,7 @@ from ebm.validators import (
     new_buildings_residential,
     population_forecast,
     s_curve,
+    expanded_energy_need_behaviour_factor,
 )
 
 
@@ -735,18 +736,18 @@ HP Central heating - Bio,HP Central heating,Bio,Ingen,Electricity,Bio,Ingen,0.0,
     heating_system_efficiencies.validate(efficiencies)
 
 @pytest.mark.parametrize('drop_columns', ['model_start_year', 'model_end_year', 'model_start_year,model_end_year'])
-def test_behaviour_factor_parser_raise_value_error_on_missing_model_years(drop_columns):
+def test_expanded_behaviour_factor_parser_raise_value_error_on_missing_model_years(drop_columns):
     df = pd.read_csv(io.StringIO("""
 building_category,building_code,purpose,behaviour_factor,model_start_year,function,model_end_year,parameter
 default,default,default,0.9,2019,noop,2061,
 """.strip()))
     df_with_missing_column = df.drop(columns=drop_columns.split(','))
     with pytest.raises(ValueError, match=r'Missing model years in behaviour factor data. Please provide model_start_year and model_end_year.'):
-        energy_need_behaviour_factor.validate(df_with_missing_column)
+        expanded_energy_need_behaviour_factor.validate(df_with_missing_column)
 
 
 
-def test_behaviour_factor_validate_and_parse():
+def test_expanded_behaviour_factor_validate_and_parse():
     df = pd.read_csv(io.StringIO("""
 building_category,building_code,purpose,behaviour_factor,start_year,function,end_year,parameter
 residential,default,default,1.0,,,,
@@ -756,7 +757,7 @@ non_residential,default,default,1.15,,,,
 retail,default,electrical_equipment,2.0,,,,
 """.strip()))
 
-    res = energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2050))
+    res = expanded_energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2050))
 
     house_lighting = res.query('building_category=="house" and purpose=="lighting"')
     assert (house_lighting['behaviour_factor'] == 0.85).all()
@@ -775,13 +776,13 @@ retail,default,electrical_equipment,2.0,,,,
     assert (non_residential_non_electrical_equipment['behaviour_factor'] == 1.15).all()
 
 
-def test_behaviour_factor_parse_model_end_year():
+def test_expanded_behaviour_factor_parse_model_end_year():
     df = pd.read_csv(io.StringIO("""
 building_category,building_code,purpose,behaviour_factor,start_year,function,end_year,parameter
 kindergarten,TEK17,default,0.6,2020,,2060,
 """.strip()))
 
-    res = energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2060))
+    res = expanded_energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2060))
 
     kindergarten_tek17 = res.query('building_category=="kindergarten" and building_code=="TEK17" and purpose=="lighting"')
     assert (kindergarten_tek17['behaviour_factor'] == 0.60).all()
@@ -789,13 +790,13 @@ kindergarten,TEK17,default,0.6,2020,,2060,
     assert kindergarten_tek17.year.to_list() == [y for y in range(2020, 2061)]
 
 
-def test_behaviour_factor_validate_and_parse_add_years():
+def test_expanded_behaviour_factor_validate_and_parse_add_years():
     df = pd.read_csv(io.StringIO("""
 building_category,building_code,purpose,behaviour_factor,start_year,function,end_year,parameter
 residential,default,default,2.4,2024,noop,2042,
 non_residential,default,default,4.2,2024,noop,2042,""".strip()))
 
-    res = energy_need_behaviour_factor.validate(df.assign(model_start_year=2024).assign(model_end_year=2042))
+    res = expanded_energy_need_behaviour_factor.validate(df.assign(model_start_year=2024).assign(model_end_year=2042))
 
     house_lighting = res.query('building_category in ["house", "apartment_block"] and 2024 <= year <=2042')
     residential_count = 2
@@ -812,13 +813,13 @@ non_residential,default,default,4.2,2024,noop,2042,""".strip()))
     assert (non_residential.behaviour_factor == 4.2).all()
 
 
-def test_behaviour_factor_validate_and_parse_missing_years():
+def test_expanded_behaviour_factor_validate_and_parse_missing_years():
     df = pd.read_csv(io.StringIO("""
 building_category,building_code,purpose,behaviour_factor
 residential,default,default,2.4
 non_residential,default,default,4.2""".strip()))
 
-    res = energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2050))
+    res = expanded_energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2050))
 
     house_lighting = res.query('building_category in ["house", "apartment_block"]')
     assert (house_lighting.behaviour_factor == 2.4).all()
@@ -827,7 +828,7 @@ non_residential,default,default,4.2""".strip()))
     assert (non_residential.behaviour_factor == 4.2).all()
 
 
-def test_behaviour_factor_set_default_start_year_and_end_year():
+def test_expanded_behaviour_factor_set_default_start_year_and_end_year():
     df = pd.read_csv(io.StringIO("""
 building_category,building_code,purpose,behaviour_factor,start_year,function,end_year
 residential,default,default,1.0,2020,noop,2050
@@ -837,7 +838,7 @@ non_residential,default,default,1.15,,,
 retail,default,electrical_equipment,2.0,,,
 """.strip()))
 
-    res = energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2050))
+    res = expanded_energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2050))
 
     house_heating_rv = res.query('building_category=="house" and building_code=="PRE_TEK49" and purpose=="heating_rv"').set_index(
         ['year']
@@ -848,7 +849,7 @@ retail,default,electrical_equipment,2.0,,,
     pd.testing.assert_series_equal(house_heating_rv.behaviour_factor, expected)
 
 
-def test_behaviour_factor_with_start_year_and_end_year():
+def test_expanded_behaviour_factor_with_start_year_and_end_year():
     df = pd.read_csv(io.StringIO("""
 building_category,building_code,purpose,behaviour_factor,start_year,function,end_year,parameter
 residential,default,default,1.0,2020,,2050,
@@ -858,7 +859,7 @@ non_residential,default,default,1.15,2020,,2050,
 retail,default,electrical_equipment,2.0,2020,,2050,
 """.strip()))
 
-    res = energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2050))
+    res = expanded_energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2050))
 
     house_heating_rv = res.query('building_category=="house" and building_code=="PRE_TEK49" and purpose=="heating_rv"').set_index(
         ['year']
@@ -867,6 +868,24 @@ retail,default,electrical_equipment,2.0,2020,,2050,
     expected = pd.Series([0.85]*31, index=YearRange(2020, 2050).to_index(), name='behaviour_factor')
 
     pd.testing.assert_series_equal(house_heating_rv.behaviour_factor, expected)
+
+
+@pytest.mark.parametrize('query,expected_behaviour_factor', [
+                            ('building_category=="residential"', 2.4),
+                            ('building_category=="non_residential"', 4.2),
+                            ('building_category=="house"', 0.48),
+])
+def test_behaviour_factor_validate_and_parse_as_expected(query, expected_behaviour_factor):
+    df = pd.read_csv(io.StringIO("""
+building_category,building_code,purpose,behaviour_factor
+residential,default,default,2.4
+house,TEK49,cooling,0.48
+non_residential,default,default,4.2""".strip()))
+
+    res = energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2050))
+
+    house_lighting = res.query(query)
+    assert (house_lighting.behaviour_factor == expected_behaviour_factor).all()
 
 
 if __name__ == "__main__":

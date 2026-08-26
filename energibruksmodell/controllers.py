@@ -382,11 +382,11 @@ def calculate_energy_need(
     else:
         energy_need_yearly_reduction = dm.get_energy_need_yearly_improvements()
 
-    energy_need_kwh_m2 =  energy_need_improvements(
-        energy_need_original_condition=energy_need_original_condition,
-        improvement_building_upgrade=improvement_building_upgrade_csv,
-        energy_need_improvements_policy=energy_need_improvements_policy,
-        energy_need_yearly_reduction=energy_need_yearly_reduction)
+    energy_need_kwh_m2 = energy_need_improvements(energy_need_original_condition=energy_need_original_condition,
+                                                  improvement_building_upgrade=improvement_building_upgrade_csv,
+                                                  energy_need_improvements_policy=energy_need_improvements_policy,
+                                                  energy_need_yearly_reduction=energy_need_yearly_reduction,
+                                                  years=years)
 
     return energy_need_kwh_m2.set_index(['building_category', 'building_code', 'purpose', 'building_condition', 'year'])
 

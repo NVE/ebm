@@ -1,13 +1,14 @@
 import pathlib
-from typing import List, Optional
+from typing import Optional
 
+import numpy as np
 import pandas as pd
 from pandera.typing.common import DataFrameBase
 
 from ebm.model.building_category import BuildingCategory
 
 
-def explode_building_category_column(df: pd.DataFrame, unique_columns: List[str]) -> pd.DataFrame:
+def explode_building_category_column(df: pd.DataFrame, unique_columns: list[str]) -> pd.DataFrame:
     """
         Explodes the 'building_category' column in the DataFrame into multiple columns based on residential and non-residential categories.
 
@@ -38,8 +39,8 @@ def explode_building_category_column(df: pd.DataFrame, unique_columns: List[str]
     return df
 
 
-def explode_building_code_column(df: pd.DataFrame, unique_columns: List[str],
-                       default_building_code: None | pd.DataFrame = None) -> pd.DataFrame:
+def explode_building_code_column(df: pd.DataFrame, unique_columns: list[str],
+                       default_building_code: pd.DataFrame | None = None) -> pd.DataFrame:
     """
         Explodes the 'building_code' column in the DataFrame into multiple columns based on the provided building_codelist.
 
@@ -66,9 +67,9 @@ def explode_building_code_column(df: pd.DataFrame, unique_columns: List[str],
     return df
 
 
-def explode_unique_columns(df: pd.DataFrame| DataFrameBase,
-                           unique_columns: List[str],
-                           default_building_code: List[str]|None = None) -> pd.DataFrame:
+def explode_unique_columns(df: pd.DataFrame | DataFrameBase,
+                           unique_columns: np.ndarray| list [str],
+                           default_building_code: np.ndarray| list[str]|None = None) -> pd.DataFrame:
     """
     Explodes 'building_code' and 'building_category' columns in df.
 

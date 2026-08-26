@@ -1,6 +1,9 @@
 import itertools
+import os
+import sys
 import typing
 
+import numpy as np
 import pandas as pd
 from loguru import logger
 
@@ -286,7 +289,16 @@ class DatabaseManager:
             Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
             per building category and purpose.
         """
-        logger.debug('Using default year 2020 -> 2050 (not critical)')
+        start_year = os.environ.get('EBM_START_YEAR', '2020')
+        end_year = os.environ.get('EBM_END_YEAR', '2050')
+
+        if not year_range and (start_year!='2020' or '--start-year') in sys.argv:
+            logger.warning('year_range is undefined while, EBM_START_YEAR ({start_year}) is not set to default values. ', start_year=start_year)
+        if not year_range and (end_year != '2050' or '--end-year' in sys.argv):
+            logger.warning('year_range is undefined while,  EBM_END_YEAR ({end_year}) is not set to default values.', end_year=end_year)
+        if not year_range:
+            logger.warning('Using default year 2020 -> 2050')
+
         years = YearRange(2020, 2050) if year_range is None else year_range
 
         building_purpose = self.make_building_purpose(years=years).set_index(
@@ -429,31 +441,35 @@ class DatabaseManager:
             return df.area_per_person.loc[building_category]
         return df.area_per_person
 
-    def validate_database(self):
+    def validate_database(self) -> bool:
         missing_files = self.file_handler.check_for_missing_files()
         return True
 
-    def get_heating_systems_shares_start_year(self):
+    def get_heating_systems_shares_start_year(self) -> pd.DataFrame:
         df = self.file_handler.get_heating_systems_shares_start_year()
         heating_systems_factor = self.get_calibrate_heating_systems()
         calibrated = calibrate_heating_systems(df, heating_systems_factor)
 
         return calibrated
 
-    def get_heating_system_efficiencies(self):
+    def get_heating_system_efficiencies(self) -> pd.DataFrame:
         return self.file_handler.get_heating_system_efficiencies()
 
-    def get_heating_system_forecast(self):
+
+    def get_heating_system_forecast(self) -> pd.DataFrame:
         return self.file_handler.get_heating_system_forecast()
 
-    def explode_unique_columns(self, df, unique_columns):
+
+    def explode_unique_columns(self, df: pd.DataFrame, unique_columns: np.ndarray | list[str]) -> pd.DataFrame:
         return explode_unique_columns(df, unique_columns, default_building_code=self.get_building_code_list())
 
-    def explode_building_category_column(self, df, unique_columns):
+
+    def explode_building_category_column(self, df, unique_columns: np.ndarray | list[str]) -> pd.DataFrame:
         return explode_building_category_column(df, unique_columns)
 
-    def explode_building_code_column(self, ff, unique_columns):
+    def explode_building_code_column(self, ff, unique_columns: np.ndarray | list[str]) -> pd.DataFrame:
         return explode_building_code_column(ff, unique_columns, default_building_code=self.get_building_code_list())
+
 
 if __name__ == '__main__':
     db = DatabaseManager()

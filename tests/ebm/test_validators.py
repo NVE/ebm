@@ -1,16 +1,19 @@
 ﻿import io
-import itertools
 import warnings
 
 import numpy as np
 import pandas as pd
-import pandera as pa
+
+# Try to import pandera.pandas for compatibility with newer versions of Pandera. If not available, fall back to importing pandera directly.
+try:
+    import pandera.pandas as pa
+except ModuleNotFoundError:
+    import pandera as pa
 import pytest
 
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.data_classes import YearRange
-from ebm.model.dataframemodels import PolicyImprovement
 from ebm.validators import (
     area,
     area_new_residential_buildings,
@@ -20,6 +23,7 @@ from ebm.validators import (
     energy_need_behaviour_factor,
     energy_need_improvements,
     energy_need_original_condition,
+    expanded_energy_need_behaviour_factor,
     heating_system_efficiencies,
     heating_system_forecast,
     heating_system_initial_shares,
@@ -27,7 +31,6 @@ from ebm.validators import (
     new_buildings_residential,
     population_forecast,
     s_curve,
-    expanded_energy_need_behaviour_factor,
 )
 
 
@@ -37,7 +40,7 @@ def ok_building_code() -> pd.DataFrame:
         'building_code': ['PRE_TEK49_1940', 'TEK69_COM', 'TEK07'],
         'building_year': [1940, 1978, 1990],
         'period_start_year': [0, 1956, 2014],
-        'period_end_year': [1955, 2013, 2050]
+        'period_end_year': [1955, 2013, 2050],
     })
 
 
@@ -46,7 +49,7 @@ def test_building_code_overlapping_periods():
         'building_code': ['PRE_TEK49_1940', 'TEK07'],
         'building_year': [1940, 1990],
         'period_start_year': [0, 2014],
-        'period_end_year': [1955, 2050]
+        'period_end_year': [1955, 2050],
     })
     
     with pytest.raises(pa.errors.SchemaError):
@@ -89,7 +92,7 @@ def test_building_code_period_start_year(ok_building_code: pd.DataFrame, start_y
         building_code_parameters.validate(ok_building_code)
 
 
-@pytest.mark.parametrize('start_year,end_year', [(2007, -1), (2007, None), (2007, 'period_end_year'), (2024, 2007)])
+@pytest.mark.parametrize(('start_year','end_year'), [(2007, -1), (2007, None), (2007, 'period_end_year'), (2024, 2007)])
 def test_building_code_period_end_year(ok_building_code: pd.DataFrame, start_year, end_year):
     ok_building_code.loc[len(ok_building_code)] = ['TEK10', 2011, start_year, end_year]
 
@@ -180,9 +183,16 @@ def test_construction_building_category_yearly(ok_construction_building_category
                                    check_index=False)
 
 
-@pytest.mark.parametrize('building_category,row', itertools.product(
-    [b for b in [BuildingCategory.HOUSE, BuildingCategory.APARTMENT_BLOCK]],
-    [0, 1, 2, 3]))
+@pytest.mark.parametrize(('building_category','row'), [
+    (BuildingCategory.HOUSE, 0),
+    (BuildingCategory.HOUSE, 1),
+    (BuildingCategory.HOUSE, 2),
+    (BuildingCategory.HOUSE, 3),
+    (BuildingCategory.APARTMENT_BLOCK, 0),
+    (BuildingCategory.APARTMENT_BLOCK, 1),
+    (BuildingCategory.APARTMENT_BLOCK, 2),
+    (BuildingCategory.APARTMENT_BLOCK, 3),
+])
 def test_construction_building_category_yearly_commercial_area(ok_construction_building_category_yearly,
                                                                building_category: BuildingCategory,
                                                                row: int):
@@ -227,7 +237,7 @@ def new_buildings_residential_df():
                  'new_house_share',
                  'new_apartment_block_share',
                  'floor_area_new_house',
-                 'flood_area_new_apartment_block']
+                 'flood_area_new_apartment_block'],
     )
 
 
@@ -235,7 +245,7 @@ def test_new_buildings_residential_ok(new_buildings_residential_df):
     new_buildings_residential.validate(new_buildings_residential_df)
 
 
-@pytest.mark.parametrize('column, too_low, too_high',
+@pytest.mark.parametrize(('column', 'too_low', 'too_high'),
                          [('year', 2009, 2071),
                           ('new_house_share', -0.01, 1.01),
                           ('new_apartment_block_share', -0.01, 1.01),
@@ -272,7 +282,7 @@ def test_population_coerce_values():
 def test_population_ok(new_buildings_residential_df):
     standard_years = [(y, 4858199, 2.22) for y in YearRange(2001, 2070)]
 
-    df = pd.DataFrame(data=[(2000, 4000000, np.nan, )] + standard_years,
+    df = pd.DataFrame(data=[(2000, 4000000, np.nan )] + standard_years,
                       columns=['year', 'population', 'household_size'])
 
     population_forecast.validate(df)
@@ -387,7 +397,7 @@ def original_condition_df():
                             ['apartment_block', 'PRE_TEK49_RES_1950', 'heating_dhw', 4.4],
                             ['apartment_block', 'PRE_TEK49_RES_1950', 'heating_rv', 5.5],
                             ['apartment_block', 'PRE_TEK49_RES_1950', 'lighting', 5.5],
-                            ['default', 'default', 'default', 0]
+                            ['default', 'default', 'default', 0],
                         ])
 
 
@@ -508,7 +518,7 @@ def test_energy_req_reduction_per_condition_require_unique_rows():
                                          'reduction_share'],
                                 data=[['house', 'default', 'heating_rv', 'original_condition', 0.1],
                                       ['house', 'default', 'heating_rv', 'original_condition', 0.2],
-                                      ['house', 'default', 'heating_rv', 'original_condition', 0.2]
+                                      ['house', 'default', 'heating_rv', 'original_condition', 0.2],
                                       ])
     with pytest.raises(pa.errors.SchemaError):
         improvement_building_upgrade.validate(duplicate_df)
@@ -528,7 +538,7 @@ def yearly_improvements_df():
                             ['default', 'default', 'fans_and_pumps', 0.0],
                             ['default', 'default', 'heating_dhw', 0.0],
                             ['default', 'default', 'lighting', 0.05],
-                            ['house', 'TEK01', 'heating_rv', 0.0]
+                            ['house', 'TEK01', 'heating_rv', 0.0],
                         ])
 
 
@@ -541,7 +551,7 @@ def test_energy_need_yearly_improvements(yearly_improvements_df):
 def test_energy_need_yearly_improvements_allow_building_groups(building_group, expected_category):
     df = pd.DataFrame(columns=['building_category', 'building_code', 'purpose', 'function', 'value'],
                  data=[
-                     [building_group, 'default', 'cooling', 'yearly_improvements', 0.0],])
+                     [building_group, 'default', 'cooling', 'yearly_improvements', 0.0]])
 
     result = energy_need_improvements.validate(df)
     assert (result.building_category == expected_category).all()
@@ -577,7 +587,7 @@ def test_energy_need_yearly_improvements_value_between_zero_and_one(yearly_impro
 
 def test_energy_need_yearly_improvements_require_unique_rows():
     duplicate_df = pd.DataFrame(
-        columns='building_category,building_code,purpose,yearly_efficiency_improvement,start_year,function,end_year'.split(','),
+        columns=['building_category', 'building_code', 'purpose', 'yearly_efficiency_improvement', 'start_year', 'function', 'end_year'],
         data=[['default', 'default', 'cooling', 0.0, 2020, 'yearly_reduction', 2050],
               ['default', 'default', 'cooling', 0.1, 2020, 'yearly_reduction', 2050],
               ['default', 'default', 'cooling', 0.0, 2020, 'yearly_reduction', 2050]])
@@ -633,7 +643,7 @@ university,TEK97,HP - Electricity,2023,0.0030762755043380
 university,TEK97,HP Central heating - Bio,2023,0.0001936265574100
 university,TEK97,HP Central heating - Electric boiler,2023,0.3640435119049470
 university,TEK97,HP Central heating - Gas,2023,0.0000719616069676                                                                                                                                             
-""".strip()), skipinitialspace=True) 
+""".strip()), skipinitialspace=True)
     
     heating_system_initial_shares.validate(shares_start_year)
 
@@ -643,7 +653,7 @@ def test_heating_systems_shares_require_same_start_year():
 building_category,building_code,heating_systems,year,heating_system_share
 apartment_block,TEK07,DH,2020,0.3316670026630616
 apartment_block,TEK07,DH - Bio,2021,0.003305887353335002                                               
-""".strip()), skipinitialspace=True) 
+""".strip()), skipinitialspace=True)
     
     with pytest.raises(pa.errors.SchemaError):
         heating_system_initial_shares.validate(shares_start_year)
@@ -653,7 +663,7 @@ def test_heating_systems_shares_between_zero_and_one():
     shares_start_year = pd.read_csv(io.StringIO("""
 building_category,building_code,heating_systems,year,heating_system_share
 apartment_block,TEK07,DH,2020,-1                                               
-""".strip()), skipinitialspace=True) 
+""".strip()), skipinitialspace=True)
     
     with pytest.raises(pa.errors.SchemaError):
         heating_system_initial_shares.validate(shares_start_year)
@@ -661,7 +671,7 @@ apartment_block,TEK07,DH,2020,-1
     shares_start_year = pd.read_csv(io.StringIO("""
 building_category,building_code,heating_systems,year,heating_system_share
 apartment_block,TEK07,DH,2020,2                                               
-""".strip()), skipinitialspace=True) 
+""".strip()), skipinitialspace=True)
     
     with pytest.raises(pa.errors.SchemaError):
         heating_system_initial_shares.validate(shares_start_year)
@@ -675,7 +685,7 @@ apartment_block,TEK17,DH,2023,0.5
 apartment_block,TEK17,DH - Bio,2023,0.5
 university,TEK97,Electricity,2023,0.5
 university,TEK97,Electricity - Bio,2023,0.4                                                                                                                         
-""".strip()), skipinitialspace=True) 
+""".strip()), skipinitialspace=True)
     
     with warnings.catch_warnings(record=True) as caught_warnings:
         warnings.simplefilter("always")
@@ -700,7 +710,7 @@ non_residential,TEK69,HP Central heating - Gas,HP Central heating - Electric boi
 office,TEK87,Electricity,DH,0.1,0.1
 office,TEK97,Electricity,DH,0.1,0.1
 residential,default,HP - Electricity,HP - Bio - Electricity,0.1,0.1                                                                                                                                                                                                                                                                             
-""".strip()), skipinitialspace=True) 
+""".strip()), skipinitialspace=True)
 
     heating_system_forecast.validate(projection)
 
@@ -710,7 +720,7 @@ def test_heating_system_forecast_unique_columns():
 building_category,building_code,heating_systems,new_heating_systems,2021,2022
 default,default,Gas,Electric boiler,0.05,0.06
 default,default,Gas,Electric boiler,0.05,0.05
-""".strip()), skipinitialspace=True) 
+""".strip()), skipinitialspace=True)
 
     with pytest.raises(pa.errors.SchemaError):
         heating_system_forecast.validate(projection)
@@ -731,7 +741,7 @@ HP Central heating - Electric boiler,HP Central heating,Electric boiler,Ingen,El
 HP Central heating - Gas,HP Central heating,Gas,Ingen,Electricity,Fossil,Ingen,0.0,0.85,0.15000000000000002,3.0,0.96,1,HP Central heating,Electricity,3.0,1,4
 Electric boiler - Solar,Electric boiler,Solar,Ingen,Electricity,Solar,Ingen,0.0,0.85,0.15000000000000002,0.98,0.7,1,Electric boiler,Electricity,0.98,1,4
 HP Central heating - Bio,HP Central heating,Bio,Ingen,Electricity,Bio,Ingen,0.0,0.85,0.15000000000000002,3.0,0.65,1,HP Central heating,Electricity,3.0,1,4
-""".strip()), skipinitialspace=True) 
+""".strip()), skipinitialspace=True)
     
     heating_system_efficiencies.validate(efficiencies)
 
@@ -841,7 +851,7 @@ retail,default,electrical_equipment,2.0,,,
     res = expanded_energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2050))
 
     house_heating_rv = res.query('building_category=="house" and building_code=="PRE_TEK49" and purpose=="heating_rv"').set_index(
-        ['year']
+        ['year'],
     )
 
     expected = pd.Series([0.85]*31, index=YearRange(2020, 2050).to_index(), name='behaviour_factor')
@@ -862,7 +872,7 @@ retail,default,electrical_equipment,2.0,2020,,2050,
     res = expanded_energy_need_behaviour_factor.validate(df.assign(model_start_year=2020).assign(model_end_year=2050))
 
     house_heating_rv = res.query('building_category=="house" and building_code=="PRE_TEK49" and purpose=="heating_rv"').set_index(
-        ['year']
+        ['year'],
     )
 
     expected = pd.Series([0.85]*31, index=YearRange(2020, 2050).to_index(), name='behaviour_factor')
@@ -870,7 +880,7 @@ retail,default,electrical_equipment,2.0,2020,,2050,
     pd.testing.assert_series_equal(house_heating_rv.behaviour_factor, expected)
 
 
-@pytest.mark.parametrize('query,expected_behaviour_factor', [
+@pytest.mark.parametrize(('query','expected_behaviour_factor'), [
                             ('building_category=="residential"', 2.4),
                             ('building_category=="non_residential"', 4.2),
                             ('building_category=="house"', 0.48),

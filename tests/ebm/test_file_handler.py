@@ -4,7 +4,12 @@ import shutil
 from unittest.mock import Mock
 
 import pandas as pd
-import pandera as pa
+
+# Try to import pandera.pandas for compatibility with newer versions of Pandera. If not available, fall back to importing pandera directly.
+try:
+    import pandera.pandas as pa
+except ModuleNotFoundError:
+    import pandera as pa
 import pytest
 
 from ebm.model.file_handler import FileHandler

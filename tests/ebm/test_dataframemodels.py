@@ -2,8 +2,14 @@ import io
 from typing import cast
 
 import pandas as pd
-import pandera as pa
+
+# Try to import pandera.pandas for compatibility with newer versions of Pandera. If not available, fall back to importing pandera directly.
+try:
+    import pandera.pandas as pa
+except ModuleNotFoundError:
+    import pandera as pa
 import pytest
+
 from ebm.model.dataframemodels import EnergyNeedYearlyImprovements, PolicyImprovement, YearlyReduction
 
 schema_errors = (pa.errors.SchemaError, pa.errors.SchemaErrors)
@@ -93,7 +99,8 @@ def test_from_energy_need_yearly_improvements_fill_optional_columns():
 @pytest.mark.parametrize(('building_category', 'building_code', 'expected_1', 'expected_2'), [
     ('house', 'TEK69', 0.1, 0.2),
 ])
-def test_from_energy_need_yearly_improvement_return_consecutive_series(building_category: str, building_code: str, expected_1: float, expected_2: float) -> None:
+def test_from_energy_need_yearly_improvement_return_consecutive_series(
+        building_category: str, building_code: str, expected_1: float, expected_2: float) -> None:
     energy_need_yearly_improvements = pd.DataFrame(
         data=[
             ['house', building_code, 'lighting', 2020, 'yearly_reduction', 2030, expected_1],

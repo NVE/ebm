@@ -3,9 +3,13 @@ Pandera validators for ebm input files.
 """
 import itertools
 
-import numpy as np
 import pandas as pd
-import pandera as pa
+
+# Try to import pandera.pandas for compatibility with newer versions of Pandera. If not available, fall back to importing pandera directly.
+try:
+    import pandera.pandas as pa
+except ModuleNotFoundError:
+    import pandera as pa
 
 from ebm.model.building_category import NON_RESIDENTIAL, RESIDENTIAL, BuildingCategory
 from ebm.model.building_condition import BuildingCondition

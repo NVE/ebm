@@ -1,11 +1,16 @@
 from typing import cast
 
 import pandas as pd
-import pandera as pa
-from ebm.model.column_operations import explode_column_alias, explode_unique_columns
-from ebm.model.energy_purpose import EnergyPurpose
+# Try to import pandera.pandas for compatibility with newer versions of Pandera. If not available, fall back to importing pandera directly.
+try:
+    import pandera.pandas as pa
+except ModuleNotFoundError:
+    import pandera as pa
 from pandera.typing import Series
 from pandera.typing.common import DataFrameBase
+
+from ebm.model.column_operations import explode_column_alias, explode_unique_columns
+from ebm.model.energy_purpose import EnergyPurpose
 
 
 class EnergyNeedYearlyImprovements(pa.DataFrameModel):

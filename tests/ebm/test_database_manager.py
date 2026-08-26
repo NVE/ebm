@@ -183,6 +183,40 @@ def test_get_calibrate_heating_rv():
     pd.testing.assert_frame_equal(result, expected, check_like=True)
 
 
+@pytest.mark.parametrize(
+    'query, expected_start_years, expected_end_years, expected_behaviour_factor',
+    [
+        (('apartment_block', 'TEK49',  'heating_rv'), [2021]*4, [2024]*4, [.9]*4),
+        (('house', 'PRE_TEK49',  'heating_rv'), [2021]*4, [2024]*4, [0.8]*4),
+        (('kindergarten', 'TEK49',  'heating_rv'), [2021]*4, [2024]*4, [.7]*4),
+        (('university', 'TEK07',  'lighting'), [2021]*4, [2024]*4, [1.0]*4),
+    ],
+)
+def test_behaviour_factor_add_model_return_expected_columns(query, expected_start_years, expected_end_years, expected_behaviour_factor):
+    behaviour_factor_df = pd.DataFrame(
+        [
+            ['apartment_block', 'TEK49', 'heating_rv', 0.9, None, None],
+            ['house', 'PRE_TEK49', 'heating_rv', 0.8, 2022, None],
+            ['kindergarten', 'TEK49', 'heating_rv', 0.7, None, 2023],
+        ],
+        columns=['building_category', 'building_code', 'purpose', 'behaviour_factor', 'start_year', 'end_year',],
+    )
+
+    mock_fh = Mock()
+    mock_fh.get_file = Mock()
+    mock_fh.get_file.return_value = behaviour_factor_df
+
+    dm = DatabaseManager(mock_fh, years=YearRange(2021, 2024))
+    result = dm.get_behaviour_factor()
+
+    actual = result.query(f'building_category=="{query[0]}" and building_code=="{query[1]}" and purpose=="{query[2]}"')
+    assert list(actual['start_year']) == expected_start_years
+    assert list(actual['end_year']) == expected_end_years
+    assert list(actual['behaviour_factor']) == expected_behaviour_factor
+    assert list(actual['year']) == [2021, 2022, 2023, 2024]
+    assert list(actual['function']) == ['behaviour_factor'] * len(expected_behaviour_factor)
+
+
 def test_expand_unique_columns_building_category_and_building_code():
     residential = pd.DataFrame(data=[
         ['residential', 'default', 'lighting', 'residential-default-lighting'],

@@ -50,12 +50,12 @@ def calculate_s_curves_by_condition(
     scurve_parameters: pd.DataFrame | pathlib.Path | None = None,
     **kwargs: pd.DataFrame|pd.Series,
 ) -> pd.DataFrame:
-    dm = DatabaseManager(FileHandler(directory=input_directory))
 
     if not isinstance(years, YearRange) and not isinstance(years, tuple):
         raise TypeError('Expected type YearRange or tuple[int, int] for years')
-
     years = YearRange(*years) if isinstance(years, tuple) else years
+    dm = DatabaseManager(FileHandler(directory=input_directory), years=years)
+    
     scurve_parameters = scurve_parameters if scurve_parameters else dm.get_scurve_params()
     building_code_parameters = dm.get_building_codes() if not isinstance(building_code_parameters, pd.DataFrame) else building_code_parameters
     s_curves_by_condition = calculate_s_curves(scurve_parameters, building_code_parameters, years, **kwargs)
@@ -191,11 +191,12 @@ def calculate_area_forecast(
     performing the area forecast.
 
     """
+    years = YearRange(*years) if isinstance(years, tuple) else years
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
-    dm = DatabaseManager(FileHandler(directory=input_directory))
+    dm = DatabaseManager(FileHandler(directory=input_directory), years=years)
+
     if not isinstance(years, YearRange) and not isinstance(years, tuple):
         raise TypeError('Expected type YearRange or tuple[int, int] for years')
-    years = YearRange(*years) if isinstance(years, tuple) else years
 
     if not isinstance(area_parameters, pd.DataFrame):
         area_parameters = dm.get_area_parameters()
@@ -367,7 +368,7 @@ def calculate_energy_need(
         raise TypeError('Expected type YearRange or tuple[int, int] for years.')
     years = YearRange(*years) if isinstance(years, tuple) else years
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
-    dm = DatabaseManager(FileHandler(directory=input_directory))
+    dm = DatabaseManager(FileHandler(directory=input_directory), years=years)
 
     energy_need_original_condition = original_condition if original_condition is not None else dm.get_energy_req_original_condition(year_range=years)
     improvement_building_upgrade_csv = improvement_building_upgrade if improvement_building_upgrade is not None else dm.get_energy_req_reduction_per_condition()
@@ -408,7 +409,7 @@ def calculate_heating_systems(
         raise TypeError('Expected type YearRange or tuple[int, int] for years')
     years = YearRange(*years) if isinstance(years, tuple) else years
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
-    dm = DatabaseManager(FileHandler(directory=input_directory))
+    dm = DatabaseManager(FileHandler(directory=input_directory), years=years)
 
     shares_start_year = dm.get_heating_systems_shares_start_year() if heating_system_initial_shares is None else heating_system_initial_shares
     efficiencies = heating_system_efficiencies if heating_system_efficiencies is not None else dm.get_heating_system_efficiencies()
@@ -439,7 +440,7 @@ def calculate_holiday_homes(
     if not isinstance(years, YearRange) and not isinstance(years, tuple):
         raise TypeError('Expected type YearRange or tuple[int, int] for years')
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
-    dm = DatabaseManager(FileHandler(directory=input_directory))
+    dm = DatabaseManager(FileHandler(directory=input_directory), years=years)
     population_forecast = population_forecast if population_forecast is not None else dm.get_construction_population().population
     holiday_home_stock = holiday_home_stock if holiday_home_stock is not None else dm.get_holiday_home_by_year()
 

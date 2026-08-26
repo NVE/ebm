@@ -41,13 +41,26 @@ class DatabaseManager:
 
     DEFAULT_VALUE = 'default'
 
-    def __init__(self, file_handler: FileHandler = None):
+    def __init__(self, file_handler: FileHandler = None, years: YearRange|None=None):
         # Create default FileHandler if file_handler is None
 
         self.file_handler = file_handler if file_handler is not None else FileHandler()
+        if years:
+            self._years = years
+        else:
+            import os  # noqa: PLC0415
+            logger.warning('YearRange was not provided for DatabaseManager.')
+            try:
+                _years = YearRange(int(os.environ.get('EBM_START_YEAR', 2020)), int(os.environ.get('EBM_END_YEAR', 2050)))
+                self._years = _years
+                logger.warning('Using default {default_years} from environment.', default_years=_years)
+            except ValueError as e:
+                logger.error(f"Invalid year range in environment variables: {e}. Using default YearRange(2020, 2050).")
+                self._years = YearRange(2020, 2050)
+
 
     def __repr__(self):
-        return f'self.file_handler={self.file_handler}'
+        return f'DatabaseManager(file_handler={self.file_handler}, years={self._years})'
 
     def get_building_code_list(self):
         """
@@ -274,7 +287,9 @@ class DatabaseManager:
 
     def get_behaviour_factor(self) -> pd.DataFrame:
         f = self.file_handler.get_file(self.file_handler.BEHAVIOUR_FACTOR)
-        behaviour_factor = validators.energy_need_behaviour_factor.validate(f)
+        f['model_start_year'] = self._years.start
+        f['model_end_year'] = self._years.end
+        behaviour_factor = validators.expanded_energy_need_behaviour_factor.validate(f)
         return behaviour_factor
 
 
@@ -472,6 +487,7 @@ class DatabaseManager:
 
 
 if __name__ == '__main__':
+    logger.info('Running DatabaseManager.__main__ {cwd}', cwd=os.getcwd())
     db = DatabaseManager()
     building_category = BuildingCategory.HOUSE
 

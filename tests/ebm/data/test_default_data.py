@@ -1,13 +1,14 @@
 import io
-from pathlib import Path
+from importlib.resources import files
 
 import pandas as pd
 
 
 def test_area_new_residential_buildings():
     """Make sure area_new_residential_buildings is correct."""
-    ebm_data = Path(__file__).parent.parent.parent.parent / 'ebm' / 'data' / 'original'
-    df: pd.DataFrame = pd.read_csv(ebm_data / 'area_new_residential_buildings.csv')
+    resource = files('ebm.data.original').joinpath('area_new_residential_buildings.csv')
+    with resource.open('rb') as csv_file:
+        df: pd.DataFrame = pd.read_csv(csv_file)
 
     assert 'year' in df.columns
     assert 'house' in df.columns

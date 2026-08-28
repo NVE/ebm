@@ -61,6 +61,7 @@ packages = [
     'ebm.data.short_analysis_2025',
     'ebm.data.original',
     'ebmgeodist',
+    'ebmgeodist.data',
     'energibruksmodell']
 include-package-data = true
 [project.scripts]
@@ -71,7 +72,10 @@ ebm-calibrate = "ebm.cmd.calibrate_excel_com_io:main"
 version = { attr = "ebm.__version__.version" }
 
 [tool.setuptools.package-data]
-ebm = ["*.csv", "data/**/README.md"]
+"ebm.data.long_analysis_2024" = ["*.csv", "README.md"]
+"ebm.data.short_analysis_2025" = ["*.csv", "README.md"]
+"ebm.data.original" = ["*.csv", "README.md"]
+"ebmgeodist.data" = ["*.xlsx", "*.parquet"]
 [tool.pytest.ini_options]
 pythonpath = "."
 testpaths = ["tests"]

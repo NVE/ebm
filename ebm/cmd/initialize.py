@@ -4,6 +4,8 @@ import os
 import pathlib
 import shutil
 import typing
+from importlib.resources import files
+from importlib.resources.abc import Traversable
 
 from loguru import logger
 
@@ -13,9 +15,9 @@ from ebm.model.file_handler import FileHandler
 DEFAULT_INPUT = pathlib.Path(f'X:\\NAS\\Data\\ebm\\default-input-{".".join(version.split(".")[:2])}\\')
 
 
-def _read_dataset_description(dataset_dir: pathlib.Path) -> str:
+def _read_dataset_description(dataset_dir: pathlib.Path | Traversable) -> str:
     """Return the text under the '# Beskrivelse' heading in README.md, or empty string."""
-    readme = dataset_dir / 'README.md'
+    readme = dataset_dir.joinpath('README.md')
     if not readme.is_file():
         return ''
     lines = readme.read_text(encoding='utf-8').splitlines()
@@ -37,8 +39,11 @@ def list_available_datasets() -> None:
     """
     List available datasets in the default data directory. 
     """
-    data_directory = pathlib.Path(__file__).parent.parent / 'data'
-    datasets = sorted(p for p in data_directory.iterdir() if p.is_dir())
+    data_directory = files('ebm.data')
+    datasets = sorted(
+        item for item in data_directory.iterdir()
+        if item.is_dir() and item.joinpath(FileHandler.POPULATION_FORECAST).is_file()
+    )
     print('Available datasets:')
     print('-------------------')
     for dataset in datasets:
@@ -50,7 +55,7 @@ def list_available_datasets() -> None:
         print()
 
 def create_input(file_handler: FileHandler,
-                 source_directory: typing.Optional[pathlib.Path]=None) -> bool:
+                 source_directory: pathlib.Path | Traversable | None = None) -> bool:
     """
     Create any input file missing in file_handler.input_directory using the default data source.
 
@@ -82,7 +87,8 @@ def create_input(file_handler: FileHandler,
     return True
 
 
-def copy_available_calibration_files(file_handler: FileHandler, source_directory: pathlib.Path):
+def copy_available_calibration_files(
+        file_handler: FileHandler, source_directory: pathlib.Path | Traversable) -> None:
     """
 
     Copies calibration file from source to file_handler
@@ -99,14 +105,19 @@ def copy_available_calibration_files(file_handler: FileHandler, source_directory
     """
 
     logger.debug(f'Copy calibration files from {source_directory}')
-    for calibration_file in [source_directory / FileHandler.CALIBRATE_ENERGY_REQUIREMENT,
-                             (source_directory / FileHandler.CALIBRATE_ENERGY_REQUIREMENT).with_suffix('.csv'),
-                             source_directory / FileHandler.CALIBRATE_ENERGY_CONSUMPTION,
-                            (source_directory / FileHandler.CALIBRATE_ENERGY_CONSUMPTION).with_suffix('.csv')
-                             ]:
+    calibration_filenames = [
+        FileHandler.CALIBRATE_ENERGY_REQUIREMENT,
+        pathlib.Path(FileHandler.CALIBRATE_ENERGY_REQUIREMENT).with_suffix('.csv').name,
+        FileHandler.CALIBRATE_ENERGY_CONSUMPTION,
+        pathlib.Path(FileHandler.CALIBRATE_ENERGY_CONSUMPTION).with_suffix('.csv').name,
+    ]
+    for filename in calibration_filenames:
+        calibration_file = source_directory.joinpath(filename)
         if calibration_file.is_file():
             logger.debug(f'Creating calibration file {file_handler.input_directory / calibration_file.name}')
-            shutil.copy(calibration_file, file_handler.input_directory)
+            target = file_handler.input_directory / calibration_file.name
+            with calibration_file.open('rb') as source, target.open('wb') as destination:
+                shutil.copyfileobj(source, destination)
 
 
 def create_output_directory(output_directory: typing.Optional[pathlib.Path]=None,
@@ -148,7 +159,9 @@ def create_output_directory(output_directory: typing.Optional[pathlib.Path]=None
         return filename.parent
 
 
-def init(file_handler: FileHandler, source_directory: pathlib.Path|None = None) -> pathlib.Path:
+def init(
+        file_handler: FileHandler,
+        source_directory: pathlib.Path | Traversable | None = None) -> pathlib.Path:
     """
     Initialize file_handler with input data from ebm.data or DEFAULT_INPUT_OVERRIDE.
     Create output directory in current working directory if missing

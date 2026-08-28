@@ -59,6 +59,7 @@ import argparse
 import os
 import pathlib
 import sys
+from importlib.resources import files
 
 import pandas as pd
 from loguru import logger
@@ -122,10 +123,8 @@ def filter_s_curve_parameters(filter_query: str | None, scurve_parameters: pd.Da
 
 def parse_arguments() -> argparse.Namespace:
     """Parse command-line arguments."""
-    default_csv_path = pathlib.Path(__file__).parent.parent / "data/calibrated/s_curve.csv"
-
     parser = argparse.ArgumentParser(description="Generate S-curves from CSV parameters.")
-    parser.add_argument("scurve_csv", nargs="?", type=str, default=default_csv_path, help="Path to S-curve CSV file")
+    parser.add_argument("scurve_csv", nargs="?", type=pathlib.Path, help="Path to S-curve CSV file")
     parser.add_argument("--query", type=str, default=None, help="Optional pandas query to filter data")
     parser.add_argument("--output", type=str, default=None, help="Optional path to save the generated S-curves as a CSV file.")
     return parser.parse_args()
@@ -143,13 +142,13 @@ def main() -> tuple[pd.DataFrame | None, pd.DataFrame]:
     pd.set_option("display.multi_sparse", False)
 
     args = parse_arguments()
-    csv = args.scurve_csv
-    csv_file = pathlib.Path(csv)
+    csv_file = args.scurve_csv or files('ebm.data.short_analysis_2025').joinpath('s_curve.csv')
 
     logger.info("Calculating all S-curves from {filename}", filename=csv_file)
     query = args.query
 
-    s_curve_parameters = pd.read_csv(csv_file)
+    with csv_file.open('rb') as csv:
+        s_curve_parameters = pd.read_csv(csv)
 
     df = generate_scurve_dataframe(filter_s_curve_parameters(query, s_curve_parameters))
 

@@ -1,6 +1,9 @@
 import os
 import pathlib
 import shutil
+import typing
+from importlib.resources import files
+from importlib.resources.abc import Traversable
 
 import pandas as pd
 from loguru import logger
@@ -67,7 +70,7 @@ class FileHandler:
         return repr(self)
 
     @staticmethod
-    def default_data_directory() -> pathlib.Path:
+    def default_data_directory() -> Traversable:
         """
         Returns the path for ebm default data. The function is used when content is needed for a new input directory
 
@@ -75,20 +78,16 @@ class FileHandler:
 
         Returns
         -------
-        pathlib.Path
+        importlib.resources.abc.Traversable
 
         See Also
         --------
         create_missing_input_files
         """
-        data_directory = pathlib.Path(__file__).parent.parent / 'data'
-        default_data_directory =  data_directory / 'short_analysis_2025'
+        default_data_directory = files('ebm.data.short_analysis_2025')
         if not default_data_directory.is_dir():
             msg = f'Could not find default data directory {default_data_directory}'
             raise FileNotFoundError(msg)
-        if not default_data_directory.is_dir():
-            msg = f'{default_data_directory} is not a directory'
-            raise NotADirectoryError(msg)
         return default_data_directory
 
     def get_file(self, file_name: str) -> pd.DataFrame:
@@ -370,7 +369,8 @@ class FileHandler:
         return missing_files
 
 
-    def create_missing_input_files(self, source_directory: (pathlib.Path | None)=None) -> None:
+    def create_missing_input_files(
+            self, source_directory: pathlib.Path | Traversable | None = None) -> None:
         """
         Creates any input files missing in self.input_directory. When source is omitted FileHandler
 
@@ -398,25 +398,30 @@ class FileHandler:
             logger.debug(f'Create input file {file}')
             self.create_input_file(file, source_directory=source)
 
-        readme = source / 'README.md'
+        readme = source.joinpath('README.md')
         if readme.is_file():
             target_readme = self.input_directory / 'README.md'
             if not target_readme.is_file():
-                shutil.copy(readme, target_readme)
+                self._copy_file(readme, target_readme)
                 logger.info(f'Creating missing file  {target_readme}')
 
     def create_input_file(self, file, source_directory=None):
         source_directory = FileHandler.default_data_directory() if not source_directory else source_directory
 
-        source_file = source_directory / file
+        source_file = source_directory.joinpath(file)
         target_file = self.input_directory / file
         if target_file.is_file():
             logger.debug(f'Skipping existing file {target_file}')
         elif not source_file.is_file():
             logger.error(f'Source file {source_file} does not exist!')
         else:
-            shutil.copy(source_file, target_file)
+            self._copy_file(source_file, target_file)
             logger.info( f'Creating missing file  {target_file}')
+
+    @staticmethod
+    def _copy_file(source_file: pathlib.Path | Traversable, target_file: pathlib.Path) -> None:
+        with source_file.open('rb') as source, target_file.open('wb') as target:
+            shutil.copyfileobj(source, target)
 
     def validate_input_files(self):
         """
@@ -461,4 +466,3 @@ class FileHandler:
         if energy_consumption.with_suffix('.csv').is_file() and energy_requirement.with_suffix('.csv').is_file():
             return True
         return False
-

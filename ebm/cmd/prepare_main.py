@@ -5,6 +5,7 @@ import pathlib
 import sys
 import textwrap
 from dataclasses import dataclass
+from importlib.resources import files
 from typing import List
 
 from loguru import logger
@@ -13,6 +14,7 @@ from ebm.__version__ import version
 from ebm.model.building_category import BuildingCategory
 from ebm.model.data_classes import YearRange
 from ebm.model.enums import ReturnCode
+from ebm.model.file_handler import FileHandler
 from ebm.services.files import file_is_writable
 
 TEK = """PRE_TEK49
@@ -126,8 +128,11 @@ create-input: Create input directory containing all required files in the curren
                             help='''
 Create input directory containing all required files in the current working directory''')
 
-    data_directory = pathlib.Path(__file__).parent.parent / 'data'
-    available_datasets = sorted(p.name for p in data_directory.iterdir() if p.is_dir())
+    data_directory = files('ebm.data')
+    available_datasets = sorted(
+        item.name for item in data_directory.iterdir()
+        if item.is_dir() and item.joinpath(FileHandler.POPULATION_FORECAST).is_file()
+    )
     arg_parser.add_argument('--dataset', type=str, default=None,
                             metavar='DATASET',
                             help=textwrap.dedent(f'''\

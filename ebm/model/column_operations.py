@@ -1,4 +1,4 @@
-import pathlib
+from importlib.resources import files
 from typing import List, Optional
 
 import pandas as pd
@@ -57,8 +57,12 @@ def explode_building_code_column(df: pd.DataFrame, unique_columns: List[str],
         pd.DataFrame
             The DataFrame with exploded 'building_code' columns.
         """
-    # Hvor skal building_code_list hentes fra?
-    building_code_list = pd.read_csv(pathlib.Path(__file__).parent.parent / 'data' / 'original' /'building_code_parameters.csv')['building_code'].unique() if default_building_code is None else default_building_code
+    if default_building_code is None:
+        resource = files('ebm.data.original').joinpath('building_code_parameters.csv')
+        with resource.open('rb') as csv_file:
+            building_code_list = pd.read_csv(csv_file)['building_code'].unique()
+    else:
+        building_code_list = default_building_code
     df = explode_column_alias(df=df,
                               column='building_code',
                               values=building_code_list,

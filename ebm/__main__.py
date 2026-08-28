@@ -5,6 +5,7 @@ os.environ['DISABLE_PANDERA_IMPORT_WARNING'] = 'True'
 import pathlib
 import platform
 import sys
+from importlib.resources import files
 
 import pandas as pd
 from loguru import logger
@@ -82,10 +83,13 @@ def main() -> tuple[ReturnCode, pd.DataFrame | None]:
             database_manager = DatabaseManager(file_handler=FileHandler(directory=input_directory))
         source_directory = None
         if dataset:
-            data_directory = pathlib.Path(__file__).parent / 'data'
-            source_directory = data_directory / dataset
+            data_directory = files('ebm.data')
+            source_directory = data_directory.joinpath(dataset)
             if not source_directory.is_dir():
-                available = sorted(p.name for p in data_directory.iterdir() if p.is_dir())
+                available = sorted(
+                    item.name for item in data_directory.iterdir()
+                    if item.is_dir() and item.joinpath(FileHandler.POPULATION_FORECAST).is_file()
+                )
                 logger.error(f'Dataset "{dataset}" not found. Available datasets: {", ".join(available)}')
                 return ReturnCode.FILE_NOT_ACCESSIBLE, None
         if init(database_manager.file_handler, source_directory=source_directory):

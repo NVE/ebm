@@ -1079,10 +1079,11 @@ def freeze_scurves_from_year(s_curves: pd.DataFrame,
 
 
 def main() -> None:
-    import pathlib  # noqa: PLC0415
+    from importlib.resources import files  # noqa: PLC0415
     logger.info('Calculate all scurves from data/s_curve.csv')
-    scurve_parameters_csv_path = pathlib.Path(__file__).parent.parent / 'data/original/s_curve.csv'
-    scurve_parameters_csv = pd.read_csv(scurve_parameters_csv_path)
+    resource = files('ebm.data.original').joinpath('s_curve.csv')
+    with resource.open('rb') as csv_file:
+        scurve_parameters_csv = pd.read_csv(csv_file)
 
     df_scurve_rates = scurve_rates(translate_scurve_parameter_to_shortform(scurve_parameters_csv))
     print(df_scurve_rates)

@@ -2,6 +2,8 @@ import os
 import pathlib
 import shutil
 import typing
+from importlib.resources import files
+from importlib.resources.abc import Traversable
 
 import polars as pl
 from loguru import logger
@@ -43,20 +45,20 @@ class FileHandler:
         return repr(self)
 
     @staticmethod
-    def default_data_directory() -> pathlib.Path:
+    def default_data_directory() -> Traversable:
         """
         Returns the path for GD default data. The function is used when content is needed for a new input directory.
         Not to be confused with FileHandler.input_directory.
 
         Returns
         -------
-        pathlib.Path
+        importlib.resources.abc.Traversable
 
         See Also
         --------
         create_missing_input_files
         """
-        return pathlib.Path(__file__).parent / 'data'
+        return files('ebmgeodist.data')
 
     def get_file(self, file_name: str) -> pl.DataFrame:
         """
@@ -128,7 +130,8 @@ class FileHandler:
         return missing_files
 
 
-    def create_missing_input_files(self, source_directory: (pathlib.Path | None)=None) -> None:
+    def create_missing_input_files(
+            self, source_directory: pathlib.Path | Traversable | None = None) -> None:
         """
         Creates any input files missing in self.input_directory. When source is omitted FileHandler
 
@@ -159,14 +162,15 @@ class FileHandler:
     def create_input_file(self, file, source_directory=None):
         source_directory = FileHandler.default_data_directory() if not source_directory else source_directory
 
-        source_file = source_directory / file
+        source_file = source_directory.joinpath(file)
         target_file = self.input_directory / file
         if target_file.is_file():
             logger.debug(f'Skipping existing file {target_file}')
         elif not source_file.is_file():
             logger.error(f'Source file {source_file} does not exist!')
         else:
-            shutil.copy(source_file, target_file)
+            with source_file.open('rb') as source, target_file.open('wb') as target:
+                shutil.copyfileobj(source, target)
             logger.info( f'Creating missing file  {target_file}')
 
 if __name__ == "__main__":

@@ -20,9 +20,10 @@ def tmp_file_handler(tmp_path):
     return file_handler
 
 def test_default_data_directory():
-    """Return the default data directory: calibrated"""
-    expected_directory = pathlib.Path(__file__).parent.parent.parent / 'ebm' / 'data' / 'short_analysis_2025'
-    assert FileHandler.default_data_directory() == expected_directory
+    """Return the default data directory: short_analysis_2025"""
+    default_data = FileHandler.default_data_directory()
+    assert default_data.name == 'short_analysis_2025'
+    assert default_data.joinpath('area.csv').is_file()
 
 
 def test_check_for_missing_files_return_list(tmp_path):

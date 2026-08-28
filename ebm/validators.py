@@ -3,9 +3,13 @@ Pandera validators for ebm input files.
 """
 import itertools
 
-import numpy as np
 import pandas as pd
-import pandera as pa
+
+# Try to import pandera.pandas for compatibility with newer versions of Pandera. If not available, fall back to importing pandera directly.
+try:
+    import pandera.pandas as pa
+except ModuleNotFoundError:
+    import pandera as pa
 
 from ebm.model.building_category import NON_RESIDENTIAL, RESIDENTIAL, BuildingCategory
 from ebm.model.building_condition import BuildingCondition
@@ -279,26 +283,19 @@ def make_building_purpose(years: YearRange | None = None) -> pd.DataFrame:
 
 
 def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
-    model_years = YearRange(2020, 2050)
+    if 'model_start_year' not in df.columns or 'model_end_year' not in df.columns:
+        raise ValueError('Missing model years in behaviour factor data. Please provide model_start_year and model_end_year.')
+    model_years = YearRange(df['model_start_year'].astype(int).min(), df['model_end_year'].astype(int).max())
+
     all_combinations = make_building_purpose(years=model_years)
-
-    if 'start_year' not in df.columns:
-        df=df.assign(**{'start_year': model_years.start})
-    if 'end_year' not in df.columns:
-        df=df.assign(**{'end_year': model_years.end})
     if 'function' not in df.columns:
-        df=df.assign(function='noop')
-    else:
-        df['function'] = df.function.fillna('noop')
-    if 'parameter' not in df.columns:
-        df=df.assign(parameter=0.0)
+        df=df.assign(function='behaviour_factor')
+    
+    df['start_year'] = model_years.start
+    df['end_year'] = model_years.end
 
-    df['start_year'] = df.start_year.fillna(model_years.start).astype(int)
-    df['end_year'] = df.end_year.fillna(model_years.end).astype(int)
-
-    unique_columns = ['building_category', 'building_code', 'purpose', 'start_year', 'end_year']
-    behaviour_factor = explode_unique_columns(df,
-                                              unique_columns=unique_columns)
+    unique_columns = ['building_category', 'building_code', 'purpose']
+    behaviour_factor = explode_unique_columns(df, unique_columns=unique_columns)
 
     behaviour_factor = explode_column_alias(behaviour_factor,
                        column='purpose',
@@ -306,29 +303,22 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
                        alias='default',
                        de_dup_by=unique_columns)
 
-    behaviour_factor['year'] = behaviour_factor.apply(
-        lambda row: range(row.start_year, row.end_year+1), axis=1)
-    behaviour_factor['interpolation'] = behaviour_factor.apply(
-        lambda row: np.linspace(row.behaviour_factor, row.parameter, num=row.end_year+1-row.start_year), axis=1)
+    behaviour_factor['year'] = behaviour_factor.apply(lambda row: range(row.start_year, row.end_year+1), axis=1)
+    behaviour_factor = behaviour_factor.explode(['year']).astype({'year': int})
 
-    behaviour_factor = behaviour_factor.explode(['year', 'interpolation'])
+    behaviour_factor=behaviour_factor.set_index(unique_columns + ['year'], drop=True)
+    all_combinations=all_combinations.set_index(unique_columns + ['year'], drop=True)
 
-    behaviour_factor['year'] = behaviour_factor['year'].astype(int)
+    joined = all_combinations.join(behaviour_factor.drop(columns=['start_year', 'behaviour_factor', 'end_year']), how='left').reset_index()
+    periods = behaviour_factor.groupby(unique_columns).agg(start_year=('start_year', 'min'), end_year=('end_year', 'max'), behaviour_factor=('behaviour_factor', 'max')).reset_index()
+    joined = joined.merge(periods, on=unique_columns, how='left')
 
-    interpolation_slice = (behaviour_factor.function == 'improvement_at_end_year') & (~behaviour_factor.interpolation.isna())
-    behaviour_factor.loc[interpolation_slice, 'behaviour_factor'] = behaviour_factor.loc[
-        interpolation_slice, 'interpolation'].astype(float)
-
-    behaviour_factor.sort_values(['building_category', 'building_code', 'purpose', 'year'])
-
-    behaviour_factor = calculate_yearly_reduction(behaviour_factor)
-
-    behaviour_factor=behaviour_factor.set_index(['building_category', 'building_code', 'purpose', 'year'], drop=True)
-    all_combinations=all_combinations.set_index(['building_category', 'building_code', 'purpose', 'year'], drop=True)
-
-    joined = all_combinations.join(behaviour_factor, how='left')
     joined.behaviour_factor = joined.behaviour_factor.fillna(1.0)
-    return joined.reset_index()
+    joined.start_year = joined.start_year.fillna(model_years.start).astype(int)
+    joined.end_year = joined.end_year.fillna(model_years.end).astype(int)
+    joined['function'] = joined['function'].fillna('behaviour_factor')
+
+    return joined
 
 
 def calculate_yearly_reduction(df):
@@ -339,15 +329,28 @@ def calculate_yearly_reduction(df):
 
 
 energy_need_behaviour_factor = pa.DataFrameSchema(
-    parsers=pa.Parser(behaviour_factor_parser),
     columns={
         "building_category": pa.Column(str),
-        'building_code': pa.Column(str), #
+        'building_code': pa.Column(str),
         "purpose": pa.Column(str),
         'year': pa.Column(int, required=False),
         'behaviour_factor': pa.Column(float)
     }
 )
+
+
+expanded_energy_need_behaviour_factor = pa.DataFrameSchema(
+    parsers=pa.Parser(behaviour_factor_parser),
+    columns={
+        "building_category": pa.Column(str),
+        'building_code': pa.Column(str),
+        "purpose": pa.Column(str),
+        'year': pa.Column(int, required=False),
+        'behaviour_factor': pa.Column(float)
+    }
+)
+
+
 
 area = pa.DataFrameSchema(
     columns={
@@ -456,13 +459,15 @@ energy_need_improvements = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=pa.Check(check_default_building_category_with_group)),
         'building_code': pa.Column(str, checks=pa.Check(check_default_building_code, element_wise=True)),
-        'purpose':pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
+        'purpose':pa.Column(str, checks=pa.Check(check_default_energy_purpose,
+                                                 title='Expected value in purpose', name='expected_value_in_purpose')),
         'value': pa.Column(float, coerce=True,
                                                    checks=[pa.Check.between(min_value=0.0, include_min=True,
                                                                             max_value=1.0, include_max=True)])
     },
     unique=['building_category', 'building_code', 'purpose', 'start_year', 'function', 'end_year'],
-    report_duplicates='all'
+    report_duplicates='all',
+    name='energy_need_improvements',
 )
 
 

@@ -1,11 +1,15 @@
 import itertools
+import os
+import sys
 import typing
 
+import numpy as np
 import pandas as pd
 from loguru import logger
 
 from ebm import validators
 from ebm.energy_consumption import calibrate_heating_systems
+from ebm.input_filter import load_energy_need_improvements
 from ebm.model.building_category import BuildingCategory, expand_building_categories
 from ebm.model.column_operations import explode_building_category_column, explode_building_code_column, explode_unique_columns
 from ebm.model.data_classes import TEKParameters, YearRange
@@ -37,13 +41,26 @@ class DatabaseManager:
 
     DEFAULT_VALUE = 'default'
 
-    def __init__(self, file_handler: FileHandler = None):
+    def __init__(self, file_handler: FileHandler = None, years: YearRange|None=None):
         # Create default FileHandler if file_handler is None
 
         self.file_handler = file_handler if file_handler is not None else FileHandler()
+        if years:
+            self._years = years
+        else:
+            import os  # noqa: PLC0415
+            logger.warning('YearRange was not provided for DatabaseManager.')
+            try:
+                _years = YearRange(int(os.environ.get('EBM_START_YEAR', 2020)), int(os.environ.get('EBM_END_YEAR', 2050)))
+                self._years = _years
+                logger.warning('Using default {default_years} from environment.', default_years=_years)
+            except ValueError as e:
+                logger.error(f"Invalid year range in environment variables: {e}. Using default YearRange(2020, 2050).")
+                self._years = YearRange(2020, 2050)
+
 
     def __repr__(self):
-        return f'self.file_handler={self.file_handler}'
+        return f'DatabaseManager(file_handler={self.file_handler}, years={self._years})'
 
     def get_building_code_list(self):
         """
@@ -270,7 +287,9 @@ class DatabaseManager:
 
     def get_behaviour_factor(self) -> pd.DataFrame:
         f = self.file_handler.get_file(self.file_handler.BEHAVIOUR_FACTOR)
-        behaviour_factor = validators.energy_need_behaviour_factor.validate(f)
+        f['model_start_year'] = self._years.start
+        f['model_end_year'] = self._years.end
+        behaviour_factor = validators.expanded_energy_need_behaviour_factor.validate(f)
         return behaviour_factor
 
 
@@ -285,7 +304,16 @@ class DatabaseManager:
             Dataframe containing energy requirement (kWh/m^2) for floor area in original condition,
             per building category and purpose.
         """
-        logger.debug('Using default year 2020 -> 2050 (not critical)')
+        start_year = os.environ.get('EBM_START_YEAR', '2020')
+        end_year = os.environ.get('EBM_END_YEAR', '2050')
+
+        if not year_range and (start_year!='2020' or '--start-year') in sys.argv:
+            logger.warning('year_range is undefined while, EBM_START_YEAR ({start_year}) is not set to default values. ', start_year=start_year)
+        if not year_range and (end_year != '2050' or '--end-year' in sys.argv):
+            logger.warning('year_range is undefined while,  EBM_END_YEAR ({end_year}) is not set to default values.', end_year=end_year)
+        if not year_range:
+            logger.warning('Using default year 2020 -> 2050')
+
         years = YearRange(2020, 2050) if year_range is None else year_range
 
         building_purpose = self.make_building_purpose(years=years).set_index(
@@ -347,11 +375,25 @@ class DatabaseManager:
             Dataframe containing yearly efficiency rates (%) for energy need improvements,
             per building category, tek and purpose.        
         """
+
+        year_range = YearRange(2020, 2050)
+
+        energy_need_original_condition_csv = self.file_handler.get_energy_req_original_condition()
+        building_code_parameters_csv = self.file_handler.get_building_code()
+        
+        building_categories = pd.DataFrame({'building_category': energy_need_original_condition_csv.building_category.unique()})
+        building_codes = building_code_parameters_csv[['building_code']]
         yearly_improvements = self.file_handler.get_energy_need_yearly_improvements()
         improvements = EnergyNeedYearlyImprovements.validate(yearly_improvements)
-        eny = YearlyReduction.from_energy_need_yearly_improvements(improvements)
-        return eny
-    
+
+        df = load_energy_need_improvements(
+            building_categories=building_categories, building_codes=building_codes, yearly_improvements=improvements, year_range=year_range
+        ).rename(columns={'value': 'yearly_efficiency_improvement'})
+
+        # Move or remove function filter bellow
+        return df.reset_index(drop=True)
+
+
     def get_energy_need_policy_improvement(self) -> pd.DataFrame:
         """
         Get dataframe with total energy need improvement in a period related to a policy. This
@@ -414,33 +456,38 @@ class DatabaseManager:
             return df.area_per_person.loc[building_category]
         return df.area_per_person
 
-    def validate_database(self):
+    def validate_database(self) -> bool:
         missing_files = self.file_handler.check_for_missing_files()
         return True
 
-    def get_heating_systems_shares_start_year(self):
+    def get_heating_systems_shares_start_year(self) -> pd.DataFrame:
         df = self.file_handler.get_heating_systems_shares_start_year()
         heating_systems_factor = self.get_calibrate_heating_systems()
         calibrated = calibrate_heating_systems(df, heating_systems_factor)
 
         return calibrated
 
-    def get_heating_system_efficiencies(self):
+    def get_heating_system_efficiencies(self) -> pd.DataFrame:
         return self.file_handler.get_heating_system_efficiencies()
 
-    def get_heating_system_forecast(self):
+
+    def get_heating_system_forecast(self) -> pd.DataFrame:
         return self.file_handler.get_heating_system_forecast()
 
-    def explode_unique_columns(self, df, unique_columns):
+
+    def explode_unique_columns(self, df: pd.DataFrame, unique_columns: np.ndarray | list[str]) -> pd.DataFrame:
         return explode_unique_columns(df, unique_columns, default_building_code=self.get_building_code_list())
 
-    def explode_building_category_column(self, df, unique_columns):
+
+    def explode_building_category_column(self, df, unique_columns: np.ndarray | list[str]) -> pd.DataFrame:
         return explode_building_category_column(df, unique_columns)
 
-    def explode_building_code_column(self, ff, unique_columns):
+    def explode_building_code_column(self, ff, unique_columns: np.ndarray | list[str]) -> pd.DataFrame:
         return explode_building_code_column(ff, unique_columns, default_building_code=self.get_building_code_list())
 
+
 if __name__ == '__main__':
+    logger.info('Running DatabaseManager.__main__ {cwd}', cwd=os.getcwd())
     db = DatabaseManager()
     building_category = BuildingCategory.HOUSE
 

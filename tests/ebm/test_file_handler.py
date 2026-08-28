@@ -4,7 +4,12 @@ import shutil
 from unittest.mock import Mock
 
 import pandas as pd
-import pandera as pa
+
+# Try to import pandera.pandas for compatibility with newer versions of Pandera. If not available, fall back to importing pandera directly.
+try:
+    import pandera.pandas as pa
+except ModuleNotFoundError:
+    import pandera as pa
 import pytest
 
 from ebm.model.file_handler import FileHandler
@@ -274,6 +279,14 @@ def test_filehandler_get_area_per_person_calls_get_file(tmp_path):
 
     assert fh.get_area_per_person() == 'FROM_FILE'
     fh.get_file.assert_called_with('area_per_person.csv')
+
+
+def test_filehandler_get_energy_need_improvements_include_lineno_column(tmp_file_handler):
+    result = tmp_file_handler.get_energy_need_yearly_improvements()
+
+    assert 'lineno' in result.columns
+    assert result.lineno.to_list() == [i+2 for i in range(len(result))]
+
 
 
 if __name__ == "__main__":

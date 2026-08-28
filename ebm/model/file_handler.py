@@ -9,7 +9,7 @@ import pandas as pd
 from loguru import logger
 from pandera.errors import SchemaError, SchemaErrors
 
-import ebm.validators as validators
+from ebm import validators
 from ebm.model.defaults import default_calibrate_energy_consumption, default_calibrate_heating_rv
 
 
@@ -41,7 +41,7 @@ class FileHandler:
 
     input_directory: pathlib.Path
 
-    def __init__(self, directory: typing.Union[str, pathlib.Path, None] = None):
+    def __init__(self, directory: str | pathlib.Path | None = None):
         """
         Constructor for FileHandler Object. Sets FileHandler.input_directory.
 
@@ -123,7 +123,7 @@ class FileHandler:
             logger.exception(ex)
             logger.error(f'Unable to open {file_path}. Permission denied.')
             raise
-        except IOError as ex:
+        except OSError as ex:
             logger.exception(ex)
             logger.error(f'Unable to open {file_path}. Unable to read file.')
             raise
@@ -243,7 +243,9 @@ class FileHandler:
             Dataframe containing yearly efficiency rates (%) for energy requirement improvements,
             per building category, tek and purpose.
         """
-        return self.get_file(self.ENERGY_NEED_YEARLY_IMPROVEMENTS)
+        energy_need_yearly_improvements = self.get_file(self.ENERGY_NEED_YEARLY_IMPROVEMENTS)
+        energy_need_yearly_improvements['lineno'] = range(2, len(energy_need_yearly_improvements) + 2)
+        return energy_need_yearly_improvements
 
     def get_holiday_home_energy_consumption(self) -> pd.DataFrame:
         return self.get_file(self.HOLIDAY_HOME_ENERGY_CONSUMPTION)
@@ -335,7 +337,7 @@ class FileHandler:
         """
         return (pathlib.Path(self.input_directory) / filename).is_file()
 
-    def check_for_missing_files(self) -> typing.List[str]:
+    def check_for_missing_files(self) -> list[str]:
         """
         Returns a list of required files that are not present in self.input_folder
 
@@ -353,7 +355,7 @@ class FileHandler:
         if not self.input_directory.exists():
             msg=f'{self.input_directory.absolute()} not found'
             logger.error(msg)
-            raise FileNotFoundError(f'Input Directory Not Found')
+            raise FileNotFoundError('Input Directory Not Found')
         if not self.input_directory.is_dir():
             raise NotADirectoryError(f'{self.input_directory} is not a directory')
 

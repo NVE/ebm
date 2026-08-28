@@ -1,6 +1,8 @@
 """EBM start from where when running as a script or module"""
 import os
 
+from ebm.model.data_classes import YearRange
+
 os.environ['DISABLE_PANDERA_IMPORT_WARNING'] = 'True'
 import pathlib
 import platform
@@ -66,7 +68,7 @@ def main() -> tuple[ReturnCode, pd.DataFrame | None]:
     input_directory = arguments.input
     logger.debug('Using platform {os}', os=platform.system())
     logger.info(f'Using data from "{input_directory}"')
-    database_manager = DatabaseManager(file_handler=FileHandler(directory=input_directory))
+    database_manager = DatabaseManager(file_handler=FileHandler(directory=input_directory), years=YearRange(arguments.start_year, arguments.end_year))
 
     # Create input directory if requested (via command or legacy flag)
     if arguments.step == 'create-input' or arguments.create_input:

@@ -11,7 +11,7 @@ from ebm.heating_system_forecast import HeatingSystemsForecast
 from ebm.model.building_category import BuildingCategory
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
-from ebm.model.energy_requirement import calculate_for_building_category
+from ebm.model.energy_requirement import energy_need_improvements
 
 
 def area_forecast_result_to_dataframe(forecast: pd.DataFrame) -> pd.DataFrame:
@@ -118,7 +118,17 @@ def calculate_building_category_energy_requirements(building_category: None,
     pd.DataFrame
 
     """
-    df = calculate_for_building_category(database_manager=database_manager)
+    years = YearRange(start_year, end_year)
+    energy_need_original_condition = database_manager.get_energy_req_original_condition(years)
+    improvement_building_upgrade = database_manager.get_energy_req_reduction_per_condition()
+    energy_need_improvements_policy = database_manager.get_energy_need_policy_improvement()
+    energy_need_yearly_reduction = database_manager.get_energy_need_yearly_improvements()
+
+    df = energy_need_improvements(energy_need_original_condition=energy_need_original_condition,
+                                  improvement_building_upgrade=improvement_building_upgrade,
+                                  energy_need_improvements_policy=energy_need_improvements_policy,
+                                  energy_need_yearly_reduction=energy_need_yearly_reduction,
+                                  years=years)
     df = df.set_index(['building_category', 'building_code', 'purpose', 'building_condition', 'year'])
 
     merged = (area_forecast
@@ -128,7 +138,15 @@ def calculate_building_category_energy_requirements(building_category: None,
 
     merged['energy_requirement'] = merged.kwh_m2 * merged.m2
 
-    return merged
+    return merged.drop(
+        errors='ignore',
+        columns=[
+            'start_year',
+            'end_year',
+            'function',
+            'parameter',
+            'interpolation',],
+    )
 
 
 def write_to_disk(constructed_floor_area, building_category: BuildingCategory):

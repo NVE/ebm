@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 
+from loguru import logger
 import pandas as pd
 
 from ebm import extractors
@@ -16,8 +17,9 @@ from ebm.model.file_handler import FileHandler
 
 def calculate_energy_use_wide(ebm_input):
     fh = FileHandler(directory=ebm_input)
-    database_manager = DatabaseManager(file_handler=fh)
     years = YearRange(2020, 2050)
+    logger.warning('Using default years 2020-2050 for energy use calculation. Consider passing a YearRange object to the function.')
+    database_manager = DatabaseManager(file_handler=fh, years=years)
 
     heating_systems_projection = extractors.extract_heating_systems_forecast(years, database_manager)  # 📍
     heating_systems_parameter = h_s_param.heating_systems_parameter_from_projection(heating_systems_projection)  # 📌
@@ -51,17 +53,15 @@ def calculate_area_forecast(input_directory: Optional[str] = None, file_handler:
                             ) -> pd.DataFrame:
     input_dir = os.environ.get('EBM_INPUT_DIRECTORY', 'input') if input_directory is None else input_directory
 
+    years = years if years is not None else YearRange(int(os.environ.get('EBM_START_YEAR', 2020)), int(os.environ.get('EBM_END_YEAR', 2050)))
+
     fh = file_handler
     if file_handler is None:
         fh = FileHandler(directory=input_dir)
 
     dm = database_manager
     if database_manager is None:
-        dm = DatabaseManager(file_handler=fh)
-
-    years = years if years is not None else YearRange(
-        int(os.environ.get('EBM_START_YEAR', 2020)),
-        int(os.environ.get('EBM_END_YEAR', 2050)))
+        dm = DatabaseManager(file_handler=fh, years=years)
 
     scurve_parameters = dm.get_scurve_params() if scurve_parameters is None else scurve_parameters
     building_code_parameters = dm.file_handler.get_building_code() if building_code_parameters is None else building_code_parameters
@@ -92,7 +92,7 @@ def calculate_energy_need(input_directory: Optional[str] = None, file_handler: O
         fh = FileHandler(directory=input_dir)
 
     if database_manager is None:
-        dm = DatabaseManager(file_handler=fh)
+        dm = DatabaseManager(file_handler=fh, years=years)
 
     energy_need = extractors.extract_energy_need(years, dm)  # 📍
     return energy_need

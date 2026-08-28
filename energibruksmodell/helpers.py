@@ -17,6 +17,12 @@ def filter_electricity(df):
 def filter_dh(df):
     return df.query('energy_product=="DH"')
 
+def filter_by_start_end_year(df):
+    df = df.copy()
+    df = df[(df.year >= df.start_year) & (df.year <= df.end_year)]
+    return df
+
+
 def diff_year(year=2025, col='GWh'):
     def _compare_to_year(df):
         return df.loc[:, col] - df.loc[year, col]

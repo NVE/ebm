@@ -7,7 +7,7 @@ from ebm.holiday_home_energy import calculate_energy_use, transform_holiday_home
 from ebm.model.area import calculate_all_area
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
-from ebm.model.energy_requirement import calculate_for_building_category
+from ebm.model.energy_requirement import calculate_for_building_category, energy_need_improvements
 
 
 def extract_area_forecast(years: YearRange,
@@ -29,7 +29,14 @@ def extract_area_forecast(years: YearRange,
 
 
 def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
-    energy_need = calculate_for_building_category(database_manager=dm, years=years)
+    energy_need_original_condition = dm.get_energy_req_original_condition(years)
+    improvement_building_upgrade = dm.get_energy_req_reduction_per_condition()
+    energy_need_improvements_policy = dm.get_energy_need_policy_improvement()
+    energy_need_yearly_reduction = dm.get_energy_need_yearly_improvements()
+    
+    energy_need = energy_need_improvements(energy_need_original_condition, improvement_building_upgrade,
+                                           energy_need_improvements_policy, energy_need_yearly_reduction,
+                                           years=years)
 
     energy_need = energy_need.set_index(['building_category', 'building_code', 'purpose', 'building_condition', 'year'])
 
@@ -63,8 +70,8 @@ def extract_energy_use_holiday_homes(database_manager: DatabaseManager, years: Y
 def main() -> None:  # noqa: D103
     from ebm.model.file_handler import FileHandler   # noqa: I001, PLC0415
     fh = FileHandler(directory='input')
-    dm = DatabaseManager(fh)
     years = YearRange(2020, 2050)
+    dm = DatabaseManager(fh, years=years)
 
     building_code_parameters = fh.get_building_code()
     scurve_params = dm.get_scurve_params()

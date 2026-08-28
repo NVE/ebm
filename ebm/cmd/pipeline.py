@@ -32,7 +32,7 @@ def main():
     output_path.mkdir(exist_ok=True)
 
     file_handler = FileHandler(directory=input_path)
-    database_manager = DatabaseManager(file_handler=file_handler)
+    database_manager = DatabaseManager(file_handler=file_handler, years=years)
     list(export_energy_model_reports(years, database_manager, output_path))
 
 

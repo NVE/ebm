@@ -323,6 +323,7 @@ def test_energy_use_holiday_home(kalibrert_database_manager):
 
     result = pd.melt(energy_use_holiday_homes, id_vars=['building_group', 'energy_source'], var_name='year',
                      value_name='kwh')
+    result['year'] = result['year'].astype(int)
     result = result.set_index(['building_group', 'energy_source', 'year'])
     result = result.sort_index(level=['building_group', 'energy_source', 'year'])
 

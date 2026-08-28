@@ -85,6 +85,10 @@ def check_building_condition(value: pd.Series) -> pd.Series:
     return value.isin(iter(BuildingCondition))
 
 
+def check_function(value: pd.Series) -> pd.Series:
+    return value.isin(['yearly_reduction', 'improvement_at_end_year'])
+
+
 def check_existing_building_conditions(value: pd.Series) -> pd.Series:
     """
     Makes sure that the series contains values that are corresponding to 'existing' building conditions.
@@ -338,6 +342,16 @@ energy_need_behaviour_factor = pa.DataFrameSchema(
     }
 )
 
+def add_lineno(df):
+    if "lineno" not in df.columns:
+        df["lineno"] = range(2, len(df) + 2)
+    return df
+
+
+def replace_renamed_function_values(df):
+    df['function'] = df['function'].replace({'yearly_improvements': 'yearly_reduction'})
+    return df
+
 
 expanded_energy_need_behaviour_factor = pa.DataFrameSchema(
     parsers=pa.Parser(behaviour_factor_parser),
@@ -457,16 +471,25 @@ improvement_building_upgrade = pa.DataFrameSchema(
 
 energy_need_improvements = pa.DataFrameSchema(
     columns={
-        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category_with_group)),
-        'building_code': pa.Column(str, checks=pa.Check(check_default_building_code, element_wise=True)),
-        'purpose':pa.Column(str, checks=pa.Check(check_default_energy_purpose,
-                                                 title='Expected value in purpose', name='expected_value_in_purpose')),
-        'value': pa.Column(float, coerce=True,
-                                                   checks=[pa.Check.between(min_value=0.0, include_min=True,
-                                                                            max_value=1.0, include_max=True)])
+        'lineno': pa.Column(int, coerce=True),
+        'building_category': pa.Column(str, default='default',
+                                       checks=pa.Check(check_default_building_category_with_group)),
+        'building_code': pa.Column(str, default='default',
+                                   checks=pa.Check(check_default_building_code, element_wise=True)),
+        'purpose':pa.Column(str, required=True,
+                            checks=pa.Check(check_default_energy_purpose, title='Expected value in purpose', name='expected_value_in_purpose')),
+        'function': pa.Column(str, required=True,
+                              checks=pa.Check(check_function, title='Expected value in function', name='expected_value_in_function')),
+        'start_year': pa.Column(int, coerce=True, required=False,
+                                checks=[pa.Check.between(min_value=1900, include_min=True, max_value=2070, include_max=True)]),
+        'end_year': pa.Column(int, coerce=True, required=False,
+                              checks=[pa.Check.between(min_value=1900, include_min=True, max_value=2070, include_max=True)]),
+        'value': pa.Column(float, coerce=True, required=True,
+                           checks=[pa.Check.between(min_value=0.0, include_min=True, max_value=1.0, include_max=True)]),
     },
     unique=['building_category', 'building_code', 'purpose', 'start_year', 'function', 'end_year'],
     report_duplicates='all',
+    parsers=[pa.Parser(add_lineno), pa.Parser(replace_renamed_function_values)],
     name='energy_need_improvements',
 )
 

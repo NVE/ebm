@@ -531,19 +531,32 @@ def test_energy_req_reduction_per_condition_allow_missing_building_conditions(re
 
 @pytest.fixture
 def yearly_improvements_df():
-    return pd.DataFrame(columns=['building_category', 'building_code', 'purpose', 'value'],
+    return pd.DataFrame(columns=['building_category', 'building_code', 'purpose', 'function', 'value'],
                         data=[
-                            ['default', 'default', 'cooling', 0.0],
-                            ['default', 'default', 'electrical_equipment', 0.1],
-                            ['default', 'default', 'fans_and_pumps', 0.0],
-                            ['default', 'default', 'heating_dhw', 0.0],
-                            ['default', 'default', 'lighting', 0.05],
-                            ['house', 'TEK01', 'heating_rv', 0.0],
+                            ['default', 'default', 'cooling', 'yearly_improvements', 0.0],
+                            ['default', 'default', 'electrical_equipment', 'yearly_improvements', 0.1],
+                            ['default', 'default', 'fans_and_pumps', 'yearly_reduction', 0.0],
+                            ['default', 'default', 'heating_dhw', 'yearly_reduction', 0.0],
+                            ['default', 'default', 'lighting', 'yearly_reduction', 0.05],
+                            ['house', 'TEK01', 'heating_rv', 'yearly_reduction', 0.0],
                         ])
 
 
-def test_energy_need_yearly_improvements(yearly_improvements_df):
-    energy_need_improvements.validate(yearly_improvements_df)
+def test_energy_need_yearly_improvements():
+    df = pd.DataFrame(columns=['building_category', 'building_code', 'purpose', 'function', 'value'],
+                        data=[
+                            ['default', 'default', 'cooling', 'yearly_improvements', 0.0],
+                            ['default', 'default', 'electrical_equipment', 'yearly_improvements', 0.1],
+                            ['default', 'default', 'fans_and_pumps', 'yearly_reduction', 0.0],
+                            ['default', 'default', 'heating_dhw', 'yearly_reduction', 0.0],
+                            ['default', 'default', 'lighting', 'yearly_reduction', 0.05],
+                            ['house', 'TEK49+TEK69', 'heating_rv', 'yearly_reduction', 0.0],
+                        ])
+
+    result = energy_need_improvements.validate(df)
+
+    assert 'lineno' in result.columns
+    assert np.array_equal(result['lineno'].to_numpy(), np.array([2, 3, 4, 5, 6, 7]))
 
 
 @pytest.mark.parametrize(('building_group', 'expected_category'), [
@@ -551,7 +564,7 @@ def test_energy_need_yearly_improvements(yearly_improvements_df):
 def test_energy_need_yearly_improvements_allow_building_groups(building_group, expected_category):
     df = pd.DataFrame(columns=['building_category', 'building_code', 'purpose', 'function', 'value'],
                  data=[
-                     [building_group, 'default', 'cooling', 'yearly_improvements', 0.0]])
+                     [building_group, 'default', 'cooling', 'yearly_reduction', 0.0]])
 
     result = energy_need_improvements.validate(df)
     assert (result.building_category == expected_category).all()

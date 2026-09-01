@@ -1,0 +1,396 @@
+import io
+import typing
+
+import pandas as pd
+import pytest
+
+from ebm.validators import add_lineno
+from ebm.transform_energy_need_improvements import (
+    expand_energy_need_improvements,
+    summarize_energy_need_improvement_conflicts
+)
+
+house_tek17_electrical_equipment = """building_category,building_code,purpose,function,start_year,value,end_year
+house,TEK17,electrical_equipment,yearly_reduction,2020,0.02,2022
+    """.strip()
+
+house_2tek_electrical_equipment = """building_category,building_code,purpose,function,start_year,value,end_year
+apartment_block,TEK17,electrical_equipment,yearly_reduction,2020,0.02,2021
+apartment_block,TEK10,electrical_equipment,yearly_reduction,2020,0.03,2021
+""".strip()
+
+university_plus_school = """building_category,building_code,purpose,function,start_year,value,end_year
+university+school,TEK07,electrical_equipment,yearly_reduction,2021,0.04,2022
+    """.strip()
+
+tek87_plus_tek97 = """building_category,building_code,purpose,function,start_year,value,end_year
+office,TEK87+TEK97,cooling,yearly_reduction,2021,0.05,2022
+    """.strip()
+
+lighting_plus_electrical_equipment = """building_category,building_code,purpose,function,start_year,value,end_year
+retail,TEK69,electrical_equipment+lighting,yearly_reduction,2021,0.06,2022
+    """.strip()
+
+house_tek17_electrical_equipment_dupe = """building_category,building_code,purpose,function,start_year,value,end_year
+house,TEK17,electrical_equipment,yearly_reduction,2022,0.071,2023
+house,TEK17,electrical_equipment,yearly_reduction,2022,0.072,2023
+    """.strip()
+
+nursing_home_2_periods = """building_category,building_code,purpose,function,start_year,value,end_year
+nursing_home,TEK49,lighting,yearly_reduction,2022,0.02,2023
+nursing_home,TEK49,lighting,yearly_reduction,2024,0.03,2025"""
+
+dupe_tek_with_clear_winners = """building_category,building_code,purpose,function,start_year,value,end_year
+house,TEK49+TEK69,lighting,yearly_reduction,2022,0.02,2023
+house,TEK49,lighting,yearly_reduction,2022,0.03,2023"""
+
+keep_existing_lineno = """lineno,building_category,building_code,purpose,function,start_year,value,end_year
+42,storage_repair,PRE_TEK49,lighting,yearly_reduction,2023,0.02,2023
+"""
+
+single_year = """building_category,building_code,purpose,function,start_year,value,end_year
+kindergarten,TEK87,lighting,yearly_reduction,2023,0.02,2023
+"""
+
+default_building_category = """building_category,building_code,purpose,function,start_year,value,end_year
+default,TEK87,lighting,yearly_reduction,2030,0.02,2030
+"""
+
+residential_building_category = """building_category,building_code,purpose,function,start_year,value,end_year
+residential,TEK87,lighting,yearly_reduction,2030,0.02,2030
+"""
+
+non_residential_building_category = """building_category,building_code,purpose,function,start_year,value,end_year
+non_residential,TEK97,lighting,yearly_reduction,2030,0.02,2030
+"""
+
+default_building_code = """building_category,building_code,purpose,function,start_year,value,end_year
+hotel,default,lighting,yearly_reduction,2030,0.02,2030
+"""
+
+default_purpose = """building_category,building_code,purpose,function,start_year,value,end_year
+hospital,TEK87,default,yearly_reduction,2030,0.02,2030
+"""
+
+@pytest.mark.parametrize(('input_data', 'column', 'expected'), [
+    pytest.param(house_tek17_electrical_equipment, 'building_category', ('house', 'house', 'house'), id='house_tek17_electrical_equipment_building_category'),
+    pytest.param(house_tek17_electrical_equipment, 'building_code', ('TEK17', 'TEK17', 'TEK17'), id='house_tek17_electrical_equipment_building_code'),
+    pytest.param(house_tek17_electrical_equipment, 'purpose', ('electrical_equipment', 'electrical_equipment', 'electrical_equipment'), id='house_tek17_electrical_equipment_purpose'),
+    pytest.param(house_tek17_electrical_equipment, 'year', (2020, 2021, 2022), id='house_tek17_electrical_equipment_year'),
+    pytest.param(house_tek17_electrical_equipment, 'lineno', (2, 2, 2), id='house_tek17_electrical_equipment_lineno'),
+    pytest.param(house_tek17_electrical_equipment, 'lineno_count', (1, 1, 1), id='house_tek17_electrical_equipment_lineno_count'),
+    pytest.param(house_tek17_electrical_equipment, 'function', ('yearly_reduction', 'yearly_reduction', 'yearly_reduction'), id='house_tek17_electrical_equipment_function'),
+    pytest.param(house_tek17_electrical_equipment, 'value', (0.02, 0.02, 0.02), id='house_tek17_electrical_equipment_value'),
+    pytest.param(house_tek17_electrical_equipment, 'dupe', (False, False, False), id='house_tek17_electrical_equipment_dupe'),
+
+    pytest.param(house_2tek_electrical_equipment, 'building_code', ('TEK10', 'TEK10', 'TEK17', 'TEK17'), id='house_2tek_electrical_equipment_building_code'),
+    pytest.param(house_2tek_electrical_equipment, 'lineno', (3, 3, 2, 2), id='house_2tek_electrical_equipment_lineno'),
+    pytest.param(house_2tek_electrical_equipment, 'lineno_count', (1, 1, 1, 1), id='house_2tek_electrical_equipment_lineno_count'),
+    pytest.param(house_2tek_electrical_equipment, 'year', (2020, 2021, 2020, 2021), id='house_2tek_electrical_equipment_year'),
+    pytest.param(house_2tek_electrical_equipment, 'dupe', (False, False, False, False), id='house_2tek_electrical_equipment_dupe'),
+    pytest.param(house_2tek_electrical_equipment, 'value', (0.03, 0.03, 0.02, 0.02), id='house_2tek_electrical_equipment_value'),
+
+    pytest.param(university_plus_school, 'value', (0.04, 0.04, 0.04, 0.04), id='university_plus_school_value'),
+    pytest.param(university_plus_school, 'year', (2021, 2022, 2021, 2022), id='university_plus_school_year'),
+    pytest.param(university_plus_school, 'dupe', (False, False, False, False), id='university_plus_school_dupe'),
+    pytest.param(university_plus_school, 'building_category', ('school', 'school', 'university', 'university'), id='university_plus_school_building_category'),
+
+    pytest.param(tek87_plus_tek97, 'building_code', ('TEK87', 'TEK87', 'TEK97', 'TEK97'), id='tek87_plus_tek97_building_code'),
+    pytest.param(tek87_plus_tek97, 'year', (2021, 2022, 2021, 2022), id='tek87_plus_tek97_year'),
+
+    pytest.param(lighting_plus_electrical_equipment, 'purpose', ('electrical_equipment', 'electrical_equipment', 'lighting', 'lighting'), id='lighting_plus_electrical_equipment_purpose'),
+    pytest.param(lighting_plus_electrical_equipment, 'year', (2021, 2022, 2021, 2022), id='lighting_plus_electrical_equipment_year'),
+    pytest.param(lighting_plus_electrical_equipment, 'lineno', (2, 2, 2, 2), id='lighting_plus_electrical_equipment_lineno'),
+
+    pytest.param(house_tek17_electrical_equipment_dupe, 'building_category', ('house', 'house', 'house', 'house'), id='house_tek17_electrical_equipment_dupe_building_category'),
+    pytest.param(house_tek17_electrical_equipment_dupe, 'building_code', ('TEK17', 'TEK17', 'TEK17', 'TEK17'), id='house_tek17_electrical_equipment_dupe_building_code'),
+    pytest.param(house_tek17_electrical_equipment_dupe, 'purpose', ('electrical_equipment', 'electrical_equipment', 'electrical_equipment', 'electrical_equipment'), id='house_tek17_electrical_equipment_dupe_purpose'),
+    pytest.param(house_tek17_electrical_equipment_dupe, 'function', ('yearly_reduction', 'yearly_reduction', 'yearly_reduction', 'yearly_reduction'), id='house_tek17_electrical_equipment_dupe_function'),
+    pytest.param(house_tek17_electrical_equipment_dupe, 'dupe', (True, True, True, True), id='house_tek17_electrical_equipment_dupe_dupe'),
+    pytest.param(house_tek17_electrical_equipment_dupe, 'year', (2022, 2023, 2022, 2023), id='house_tek17_electrical_equipment_dupe_year'),
+    pytest.param(house_tek17_electrical_equipment_dupe, 'value', (0.071, 0.071, 0.072, 0.072), id='house_tek17_electrical_equipment_dupe_value'),
+    pytest.param(house_tek17_electrical_equipment_dupe, 'lineno_count', (1, 1, 1, 1), id='house_tek17_electrical_equipment_dupe_lineno_count'),
+
+    pytest.param(nursing_home_2_periods, 'lineno', (2, 2, 3, 3), id='nursing_home_2_periods_lineno'),
+    pytest.param(nursing_home_2_periods, 'dupe', (False, False, False, False), id='nursing_home_2_periods_dupe'),
+
+    pytest.param(single_year, 'year', (2023,), id='single_year_year'),
+
+    pytest.param(dupe_tek_with_clear_winners, 'building_code', ('TEK49', 'TEK49', 'TEK69', 'TEK69'), id='dupe_tek_with_clear_winners_building_code'),
+    pytest.param(dupe_tek_with_clear_winners, 'year', (2022, 2023,2022, 2023), id='dupe_tek_with_clear_winners_year'),
+    pytest.param(dupe_tek_with_clear_winners, 'value', (0.03, 0.03, 0.02, 0.02), id='dupe_tek_with_clear_winners_value'),
+    pytest.param(dupe_tek_with_clear_winners, 'dupe', (False, False, False, False), id='dupe_tek_with_clear_winners_dupe'),
+
+    pytest.param(keep_existing_lineno, 'lineno', (42,), id='keep_existing_lineno'),
+
+    pytest.param(residential_building_category, 'building_category', ('apartment_block', 'house'), id='replace_residential_building_category'),
+    pytest.param(non_residential_building_category, 'building_code', ('TEK97', ) * 11, id='replace_non_residential_building_category'),
+    pytest.param(default_building_category, 'building_category', (
+            'apartment_block',
+            'culture',
+            'hospital',
+            'hotel',
+            'house',
+            'kindergarten',
+            'nursing_home',
+            'office',
+            'retail',
+            'school',
+            'sports',
+            'storage_repairs',
+            'university',), id='replace_default_building_category'),
+    pytest.param(default_building_category, 'building_code', ('TEK87',)*13, id='replace_default_building_category_building_code'),
+    pytest.param(default_building_category, 'lineno', (2,)*13, id='replace_default_building_category_lineno'),
+
+    pytest.param(default_building_code, 'building_code', (
+            'PRE_TEK49',
+            'TEK07',
+            'TEK10',
+            'TEK17',
+            'TEK49',
+            'TEK69',
+            'TEK87',
+            'TEK97',), id='replace_default_building_code'),
+    pytest.param(default_building_code, 'building_category', ('hotel',)*8, id='replace_default_building_code_building_category'),
+
+    pytest.param(default_purpose, 'purpose', (
+            'cooling',
+            'electrical_equipment',
+            'fans_and_pumps',
+            'heating_dhw',
+            'heating_rv',
+            'lighting',), id='replace_default_purpose'),
+    pytest.param(default_purpose, 'building_category', ('hospital',)*6, id='replace_default_purpose_building_category'),
+
+])
+def test_expand_energy_need_improvements(input_data, column, expected):
+    single_csv = io.StringIO(input_data)
+
+    input_data = pd.read_csv(single_csv, dtype={'building_category': str, 'building_code': str, 'purpose': str, 'function': str, 'start_year': int, 'value': float, 'end_year': int})
+
+    result = expand_energy_need_improvements(input_data, drop_helper_columns=False)
+    assert column in result.columns, f"Column '{column}' not found in result DataFrame"
+    actual = result[column].tolist()
+    assert tuple(actual) == expected
+
+
+
+@pytest.mark.parametrize(('selection', 'expected_years', 'expected_lineno'), [
+                         pytest.param(('house', 'TEK49', 'heating_rv', 'yearly_reduction'), (2021, 2022), (2, 2), id='house-t49-hrv'),
+                         pytest.param(('house', 'PRE_TEK49', 'lighting', 'yearly_reduction'), (2021, 2022), (3, 3), id='house-p49-lig'),
+                         pytest.param(('house', 'PRE_TEK49', 'heating_rv', 'yearly_reduction'), (2021, 2022), (4, 4), id='house-p49-hrv'),
+                         pytest.param(('house', 'TEK17', 'heating_rv', 'yearly_reduction'), (2021, 2022), (5, 5), id='house-t17-hrv'),
+                         pytest.param(('house', 'TEK10', 'heating_rv', 'yearly_reduction'), (2021, 2022), (6, 6), id='house-t10-hrv'),
+                         pytest.param(('house', 'TEK07', 'heating_rv', 'yearly_reduction'), (2021, 2022), (7, 7), id='house-t07-hrv'),
+                         pytest.param(('house', 'TEK97', 'heating_rv', 'yearly_reduction'), (2021, 2022), (8, 8), id='house-t97-hrv'),
+                         pytest.param(('house', 'TEK87', 'heating_rv', 'yearly_reduction'), (2021, 2022), (9, 9), id='house-t87-hrv'),
+                         pytest.param(('apartment_block', 'TEK87', 'electrical_equipment', 'yearly_reduction'), (2021, 2022), (10, 10), id='apart-t87-elt'),
+                         pytest.param(('hotel', 'TEK87', 'heating_rv', 'yearly_reduction'), (2030,), (11,), id='hotel-t87-hrv'),
+                         pytest.param(('hotel', 'PRE_TEK49', 'heating_rv', 'yearly_reduction'), (2031, 2033), (12, 13), id='hotel-p49-hrv'),
+                         pytest.param(('house', 'TEK69', 'fans_and_pumps', 'yearly_reduction'), (2022, ), (14, ), id='house-69-fas'),
+                         pytest.param(('house', 'TEK87', 'heating_dhw', 'yearly_reduction'), (2022,), (14, ), id='house-t87-hhw'),
+                         pytest.param(('house', 'TEK10', 'cooling', 'yearly_reduction'), (2023, 2024, 2025, 2026, ), (17, 17, 17, 17) , id='house-t10-cog'),
+                         pytest.param(('house', 'TEK27', 'heating_rv', 'yearly_reduction'), (2027,), (15,), id='house-t27-hrv'),
+                         pytest.param(('house', 'TEK27', 'lighting', 'yearly_reduction'), (2027,), (15,), id='house-t27-lig'),
+                         pytest.param(('sports', 'TEK17', 'cooling', 'yearly_reduction'), (2023,), (16,), id='sports-t17-cog'),
+                         pytest.param(('sports', 'PRE_TEK49', 'cooling', 'yearly_reduction'), (2023,), (18,), id='sports-p49-cog'),
+                         pytest.param(('sports', 'TEK49', 'cooling', 'yearly_reduction'), (2023,), (19,), id='sports-t49-cog'),
+                         pytest.param(('sports', 'TEK10', 'cooling', 'yearly_reduction'), (2023,), (20,), id='sports-t10-cog'),
+                         ])
+
+def test_expand_energy_need_improvements_keeps_expected_definitions(selection, expected_years, expected_lineno):
+    input_csv = io.StringIO("""building_category,building_code,purpose,function,start_year,value,end_year,lineno
+residential,default,heating_rv,yearly_reduction,2021,0.8,2022,2
+default,PRE_TEK49,lighting,yearly_reduction,2021,0.7,2022,3
+default,PRE_TEK49,heating_rv,yearly_reduction,2021,0.6,2022,4
+residential,TEK17,heating_rv,yearly_reduction,2021,0.5,2022,5
+residential,TEK10+TEK17,heating_rv,yearly_reduction,2021,0.4,2022,6
+residential,TEK07,heating_rv,yearly_reduction,2021,0.3,2022,7
+house,TEK97,heating_rv,yearly_reduction,2021,0.2,2022,8
+house,TEK87,heating_rv,yearly_reduction,2021,0.1,2022,9
+default,default,default,yearly_reduction,2021,0.0,2022,10
+hotel,default,default,yearly_reduction,2030,0.11,2030,11
+hotel,PRE_TEK49,default,yearly_reduction,2031,0.031,2031,12
+hotel,PRE_TEK49,default,yearly_reduction,2033,0.033,2033,13
+house,default,default,yearly_reduction,2022,0.022,2022,14
+default,TEK27,default,yearly_reduction,2027,0.027,2027,15
+default,default,cooling,yearly_reduction,2023,0.0,2023,16
+house,default,cooling,yearly_reduction,2023,0.0,2026,17
+default,PRE_TEK49,cooling,yearly_reduction,2023,0.0,2023,18
+default,PRE_TEK49+TEK49,cooling,yearly_reduction,2023,0.0,2023,19
+default,TEK49+TEK69+TEK87+TEK97+TEK07+TEK10,cooling,yearly_reduction,2023,0.0,2023,20
+default,default,cooling,improvement_at_end_year,2023,0.0,2023,21
+""")
+
+    input_data = pd.read_csv(input_csv, dtype={'building_category': str, 'building_code': str, 'purpose': str, 'function': str, 'start_year': int, 'value': float, 'end_year': int})
+
+    building_category, building_code, purpose, function =selection
+
+    result = expand_energy_need_improvements(input_data, drop_helper_columns=False)
+    query = f"building_category == '{building_category}' and building_code == '{building_code}' and purpose == '{purpose}' and function == '{function}'"
+
+    actual_years = tuple(result.query(query).year)
+    actual_lineno = tuple(result.query(query).lineno)
+
+    assert actual_lineno == expected_lineno, f"Expected value for {building_category}, {building_code}, {purpose} not found in result DataFrame"
+    assert actual_years == expected_years, f"Expected row count for {building_category}, {building_code}, {purpose} not found in result DataFrame"
+
+@pytest.mark.parametrize(('selection', 'expected_years', 'expected_lineno'), [
+                         pytest.param(('apartment_block', 'TEK49', 'cooling'), (2020, 2021, 2022,), (2, 2, 2,), id='apartment_block-t49-cog'),
+                         pytest.param(('house', 'TEK49', 'heating_rv'), (2020, 2021, 2022, ), (3, 3, 3,), id='house-t49-hrv'),
+                         pytest.param(('house', 'PRE_TEK49', 'lighting'), (2020, 2021, 2022, ), (3, 3, 3,), id='house-p49-lig'),
+                         pytest.param(('house', 'TEK17', 'lighting'), (2020, 2021, 2022), (4, 4, 4,), id='house-t17-lig'),
+                         pytest.param(('office', 'TEK17', 'lighting'), (2020, 2021, 2022), (5, 5, 5,), id='office-t17-lig'),
+                         pytest.param(('retail', 'TEK17', 'lighting'), (2020, 2021, 2022), (5, 5, 5,), id='retail-t17-lig'),
+                         pytest.param(('retail', 'TEK17', 'electrical_equipment'), (2020, 2021, 2022), (6, 6, 6,), id='retail-t17-elt'),
+])
+def test_expand_energy_need_improvements_keeps_expected_behaviour_factor_definitions(selection, expected_years, expected_lineno):
+    input_csv = io.StringIO("""building_category,building_code,purpose,behaviour_factor
+residential,default,default,1
+house,PRE_TEK49+TEK69+TEK87+TEK49+TEK97,default,0.85
+house,TEK07+TEK10+TEK17,lighting,0.85
+non_residential,default,default,1.15
+retail,default,electrical_equipment,2
+""")
+
+    input_data = pd.read_csv(input_csv, dtype={'building_category': str, 'building_code': str, 'purpose': str, 'behaviour_factor': float,})
+    input_data = input_data.assign(start_year=2020, end_year=2022)
+
+    building_category, building_code, purpose =selection
+
+    result = expand_energy_need_improvements(input_data, drop_helper_columns=False)
+    query = f"building_category == '{building_category}' and building_code == '{building_code}' and purpose == '{purpose}'"
+
+    actual_years = tuple(result.query(query).year)
+    actual_lineno = tuple(result.query(query).lineno)
+
+    assert actual_lineno == expected_lineno, f"Expected value for {building_category}, {building_code}, {purpose} not found in result DataFrame"
+    assert actual_years == expected_years, f"Expected row count for {building_category}, {building_code}, {purpose} not found in result DataFrame"
+
+
+@pytest.mark.parametrize(('selection', 'expected_years', 'expected_lineno'), [
+                         pytest.param(('apartment_block', 'PRE_TEK49', 'cooling'), (2020, 2021,), (2, 2, ), id='apartment_block-p49-cog'),
+                         pytest.param(('apartment_block', 'PRE_TEK49', 'electrical_equipment'), (2020, 2021,), (3, 3, ), id='apartment_block-p49-elt'),
+                         pytest.param(('apartment_block', 'PRE_TEK49', 'fans_and_pumps'), (2020, 2021,), (4, 4, ), id='apartment_block-p49-fas'),
+                         pytest.param(('apartment_block', 'PRE_TEK49', 'heating_dhw'), (2020, 2021,), (5, 5, ), id='apartment_block-p49-hhw'),
+                         pytest.param(('apartment_block', 'PRE_TEK49', 'heating_rv'), (2020, 2021,), (6, 6, ), id='apartment_block-p49-hrv'),
+                         pytest.param(('apartment_block', 'TEK49', 'lighting'), (2020, 2021,), (7, 7, ), id='apartment_block-t49-lig'),
+                         pytest.param(('apartment_block', 'TEK07', 'heating_rv'), (2020, 2021,), (12, 12, ), id='apartment_block-p49-hrv'),
+])
+def test_expand_energy_need_improvements_keeps_expected_energy_need_original_condition_definitions(selection, expected_years, expected_lineno):
+    input_csv = io.StringIO("""building_category,building_code,purpose,kwh_m2
+apartment_block,PRE_TEK49,cooling,0.0
+apartment_block,PRE_TEK49,electrical_equipment,17.52
+apartment_block,PRE_TEK49,fans_and_pumps,0.5788888888888889
+apartment_block,PRE_TEK49,heating_dhw,29.76888888888889
+apartment_block,PRE_TEK49,heating_rv,126.739738913315
+apartment_block,default,lighting,8.196800000000001
+apartment_block,TEK07,cooling,0.0
+apartment_block,TEK07,electrical_equipment,17.52
+apartment_block,TEK07,fans_and_pumps,9.455555555555556
+apartment_block,TEK07,heating_dhw,29.76888888888889
+apartment_block,TEK07,heating_rv,39.52794604570375
+default,default,default,-99
+""")
+
+    input_data = pd.read_csv(input_csv, dtype={'building_category': str, 'building_code': str, 'purpose': str, 'behaviour_factor': float,})
+    input_data = input_data.assign(start_year=2020, end_year=2021)
+
+    building_category, building_code, purpose =selection
+
+    result = expand_energy_need_improvements(input_data, drop_helper_columns=False)
+    query = f"building_category == '{building_category}' and building_code == '{building_code}' and purpose == '{purpose}'"
+
+    actual_years = tuple(result.query(query).year)
+    actual_lineno = tuple(result.query(query).lineno)
+
+    assert actual_lineno == expected_lineno, f"Expected value for {building_category}, {building_code}, {purpose} not found in result DataFrame"
+    assert actual_years == expected_years, f"Expected row count for {building_category}, {building_code}, {purpose} not found in result DataFrame"
+
+
+@pytest.mark.parametrize(('selection', 'expected_years', 'expected_lineno'), [
+                         pytest.param(('retail', 'PRE_TEK49', 'Gas', 'HP Central heating - Electric boiler'), (2024, 2030,), 2, id='retail-p49-g2hpeb'),
+                         pytest.param(('retail', 'PRE_TEK49', 'Gas', 'Electric boiler'), (2024, 2030,), 3, id='retail-p49-g2eb'),
+                         pytest.param(('sports', 'TEK49', 'Electricity', 'HP - Electricity'), (2024, 2040,), 4, id='sports-t49-el2hpel'),
+                         pytest.param(('house', 'TEK49', 'Electricity - Bio', 'HP - Bio - Electricity'), (2024, 2040,), 7, id='house-t49-elbio2hpelbio'),
+                         pytest.param(('house', 'TEK17', 'Electricity - Bio', 'HP - Bio - Electricity'), (2024, 2040,), 7, id='house-t17-elbio2hpelbio'),
+                         pytest.param(('apartment_block', 'TEK17', 'Electricity', 'DH'), (2024, 2050,), 8, id='house-t17-el2dh'),
+                         pytest.param(('apartment_block', 'TEK17', 'Electricity', 'HP Central heating - Electric boiler'), (2024, 2050,), 9, id='house-t17-el2hpceb'),
+])
+def test_expand_energy_need_improvements_keeps_expected_heating_system_forecast_definitions(selection, expected_years, expected_lineno):
+    input_csv = io.StringIO("""building_category,building_code,heating_systems,new_heating_systems,start_year,end_year,start_value,end_value
+non_residential,default,Gas,HP Central heating - Electric boiler,2024,2030,0.1,0.5
+non_residential,default,Gas,Electric boiler,2024,2030,0.1,0.5
+non_residential,default,Electricity,HP - Electricity,2024,2040,0.05,0.5
+non_residential,default,HP Central heating - Gas,HP Central heating - Electric boiler,2024,2030,0.2,1.0
+house,default,HP Central heating - Gas,HP Central heating - Electric boiler,2024,2030,0.2,1.0
+house,default,Electricity - Bio,HP - Bio - Electricity,2024,2040,0.03,0.6
+apartment_block,default,Electricity,DH,2024,2050,0.029,0.161
+apartment_block,default,Electricity,HP Central heating - Electric boiler,2024,2050,0.029,0.161""")
+
+    input_data = pd.read_csv(input_csv, dtype={'building_category': str, 'building_code': str,
+                                               'heating_systems': str, 'new_heating_systems': str,
+                                               'start_year': int, 'end_year': int, 'start_value': float, 'end_value': float})
+
+    building_category, building_code, heating_systems, new_heating_systems =selection
+
+    result = expand_energy_need_improvements(input_data, drop_helper_columns=False, by_grouping=['building_category', 'building_code', 'heating_systems', 'new_heating_systems'])
+    query = f"building_category == '{building_category}' and building_code == '{building_code}' and heating_systems == '{heating_systems}' and new_heating_systems == '{new_heating_systems}'"
+
+    expected_years = tuple(range(expected_years[0], expected_years[1]+1))
+    actual_years = tuple(result.query(query).year)
+    actual_lineno = tuple(result.query(query).lineno)
+
+    assert actual_lineno == tuple(expected_lineno for i in expected_years), f"Expected value for {building_category}, {building_code}, {heating_systems} {new_heating_systems} not found in result DataFrame"
+    assert actual_years == expected_years, f"Expected row count for {building_category}, {building_code}, {heating_systems} {new_heating_systems} not found in result DataFrame"
+
+
+def test_expand_energy_need_improvements_drop_helper_columns_expected_columns():
+    result = expand_energy_need_improvements(pd.read_csv(io.StringIO(nursing_home_2_periods)), drop_helper_columns=True)
+    expected_columns = set(['building_category', 'building_code', 'purpose', 'function', 'start_year', 'value', 'end_year', 'lineno', 'year', 'dupe'])
+    assert set(result.columns) == expected_columns, f"Expected columns {expected_columns}, but got {set(result.columns)}"
+
+
+def test_transform_with_clear_winner():
+    csv_content = """building_category,building_code,purpose,function,start_year,value,end_year
+house+apartment_block,TEK49,lighting,yearly_reduction,2022,0.02,2023
+house,TEK49,lighting,yearly_reduction,2022,0.03,2023
+house+apartment_block,TEK49,lighting,yearly_reduction,2022,0.04,2023"""
+    df = pd.read_csv(io.StringIO(csv_content), dtype={'building_category': str, 'building_code': str, 'purpose': str, 'function': str, 'start_year': int, 'value': float, 'end_year': int})
+
+    actual = expand_energy_need_improvements(df)
+    assert len(actual) == 6, 'Expected 6 rows in result'  # 3 rows expanded to 2 years each
+    assert (actual.query("lineno==3").dupe == False).all()
+
+
+def expanded(energy_need_improvements_csv):
+    single_csv = io.StringIO(energy_need_improvements_csv)
+    input_data = pd.read_csv(single_csv, dtype={'building_category': str, 'building_code': str, 'purpose': str, 'function': str, 'start_year': int, 'value': float, 'end_year': int})
+    return {'input': input_data.pipe(add_lineno).reset_index(drop=True),
+            'expanded': expand_energy_need_improvements(input_data, drop_helper_columns=True)}
+
+
+@pytest.mark.parametrize(('input_data', 'column', 'expected'), [
+    pytest.param(expanded(single_year), 'lineno', tuple(), id='single_year_no_duplicates_lineno'),
+    pytest.param(expanded(single_year), 'duplicate_lineno', tuple(), id='single_year_duplicate_lineno'),
+    pytest.param(expanded(house_tek17_electrical_equipment_dupe), 'lineno', (2, ), id='single_year_lineno'),
+    pytest.param(expanded(house_tek17_electrical_equipment_dupe), 'duplicate_lineno', (3, ), id='house_t17_elt_dupe_lineno'),
+    pytest.param(expanded(house_tek17_electrical_equipment_dupe), 'building_codes', ('TEK17', ), id='house_t17_elt_dupe_building_codes'),
+    pytest.param(expanded(house_tek17_electrical_equipment_dupe), 'building_codes_cnt', (1, ), id='house_t17_elt_dupe_building_codes_cnt'),
+    pytest.param(expanded(house_tek17_electrical_equipment_dupe), 'building_categories', ('house', ), id='house_t17_elt_dupe_building_categories'),
+    pytest.param(expanded(house_tek17_electrical_equipment_dupe), 'building_categories_cnt', (1, ), id='house_t17_elt_dupe_building_categories_cnt'),
+    pytest.param(expanded(house_tek17_electrical_equipment_dupe), 'building_category_original', ('house', ), id='house_t17_building_category_original'),
+    pytest.param(expanded(house_tek17_electrical_equipment_dupe), 'building_code_original', ('TEK17', ), id='house_t17_elt_building_code_original'),
+])
+def test_summarize_energy_need_improvement_conflicts(input_data: pd.DataFrame, column: str, expected: tuple[typing.Any]):
+    conflicts = summarize_energy_need_improvement_conflicts(input_data.get('expanded'), input_data.get('input'))
+
+    assert column in conflicts.columns, f"Column '{column}' not found in conflicts DataFrame"
+    actual = conflicts[column]
+    assert tuple(actual) == expected
+
+
+if __name__ == "__main__":
+    import sys
+
+    pytest.main([sys.argv[0]])

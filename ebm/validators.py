@@ -518,7 +518,6 @@ area_per_person = pa.DataFrameSchema(
     }
 )
 
-
 heating_system_initial_shares = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=pa.Check(check_building_category)),
@@ -530,13 +529,14 @@ heating_system_initial_shares = pa.DataFrameSchema(
         )),
         'heating_system_share': pa.Column(float, coerce=True,
                                 checks=[pa.Check.between(min_value=0.0, include_min=True,
-                                                         max_value=1.0, include_max=True)]) 
+                                                         max_value=1.0, include_max=True)])
     },
     #TODO: better warning messages to see where the issues are
-    checks=[pa.Check(check_sum_of_heating_system_shares_equal_1, raise_warning=True, 
+    checks=[pa.Check(check_sum_of_heating_system_shares_equal_1, raise_warning=True,
                      error="Sum of 'heating_system_share' do not equal 1 for one or more combination of 'building_category' and 'building_code'")],
     name='heating_systems_shares_start_year'
 )
+
 
 
 #TODO: 

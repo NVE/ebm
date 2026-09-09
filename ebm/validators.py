@@ -4,6 +4,11 @@ Pandera validators for ebm input files.
 import itertools
 
 import pandas as pd
+from pandera import pandas as pa
+
+from ebm.definition_expansion import explode_years, mark_duplicates, replace_building_category_default, \
+    replace_building_code_default, replace_purpose_default, explode_building_category, explode_building_code, \
+    explode_purpose
 
 # Try to import pandera.pandas for compatibility with newer versions of Pandera. If not available, fall back to importing pandera directly.
 try:
@@ -591,3 +596,40 @@ __all__ = [area,
            new_buildings_residential,
            improvement_building_upgrade]
 
+energy_need_improvements_yearly_schema = pa.DataFrameSchema(
+    parsers = [
+        pa.Parser(explode_years),
+        pa.Parser(mark_duplicates),
+    ],
+    columns={
+        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category_with_group)),
+        'building_code': pa.Column(str, checks=pa.Check(check_default_building_code, element_wise=True)),
+        'purpose':pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
+        'function': pa.Column(str, checks=pa.Check(lambda x: x.isin(['yearly_reduction', 'improvement_at_end_year']))),
+        'year':pa.Column(int, coerce=True),
+        'value': pa.Column(float, coerce=True, checks=[pa.Check.between(min_value=0.0, include_min=True, max_value=1.0, include_max=True)]),
+        'dupe': pa.Column(bool, coerce=True, default=False),
+    },
+    unique=['lineno', 'building_category', 'building_code', 'purpose', 'function', 'year', 'value'],
+)
+
+
+def expanded_energy_need_improvements_schema() -> pa.DataFrameSchema:
+    return pa.DataFrameSchema(
+        parsers=[
+            pa.Parser(replace_building_category_default),
+            pa.Parser(replace_building_code_default),
+            pa.Parser(replace_purpose_default),
+            pa.Parser(explode_building_category),
+            pa.Parser(explode_building_code),
+            pa.Parser(explode_purpose),
+            pa.Parser(lambda c: c.reset_index(drop=True)),
+    ],
+    columns={
+        'lineno': pa.Column(int, coerce=True),
+        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category_with_group)),
+        'building_code': pa.Column(str, checks=pa.Check(check_default_building_code, element_wise=True)),
+        'purpose':pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
+        'value': pa.Column(float, coerce=True, checks=[pa.Check.between(min_value=0.0, include_min=True, max_value=1.0, include_max=True)],)
+    },
+)

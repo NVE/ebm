@@ -31,6 +31,8 @@ from ebm.validators import (
     new_buildings_residential,
     population_forecast,
     s_curve,
+    expanded_energy_need_improvements_schema,
+    energy_need_improvements_yearly_schema,
 )
 
 
@@ -913,3 +915,240 @@ non_residential,default,default,4.2""".strip()))
 
 if __name__ == "__main__":
     pytest.main()
+
+
+def test_expanded_energy_need_improvements_schema():
+    df = pd.DataFrame({
+        'lineno': [2, 3, 4],
+        'building_category': ['house', 'apartment_block', 'kindergarten'],
+        'building_code': ['TEK17', 'TEK17', 'TEK17'],
+        'purpose': ['lighting', 'lighting', 'lighting'],
+        'value': [0.5, 0.7, 0.9],
+    })
+    schema = expanded_energy_need_improvements_schema().validate(df)
+    assert schema.equals(df)
+
+
+def test_expanded_energy_need_improvements_schema_expand_building_code():
+    df = pd.DataFrame({
+        'lineno': [2,3],
+        'building_category': ['house', 'school'],
+        'building_code': ['default', 'TEK49'],
+        'purpose': ['lighting', 'lighting'],
+        'value': [0.5, 0.5],
+    })
+
+    schema = expanded_energy_need_improvements_schema().validate(df)
+    expected = pd.DataFrame({
+        'lineno': [2]*8+[3],
+        'building_category': ['house']*8+['school'],
+        'building_code': ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17', 'TEK49'],
+        'purpose': ['lighting']*9,
+        'value': [0.5]*9,
+    })
+
+    pd.testing.assert_frame_equal(schema, expected, check_like=True)
+
+
+def test_expanded_energy_need_improvements_schema_expand_explode_plus_in_building_code():
+    df = pd.DataFrame({
+        'lineno': [2, 3],
+        'building_category': ['office', 'office'],
+        'building_code': ['TEK07+TEK10+TEK17', 'TEK87'],
+        'purpose': ['lighting', 'lighting'],
+        'value': [0.5, 0.5],
+    })
+
+    schema = expanded_energy_need_improvements_schema().validate(df)
+    expected = pd.DataFrame({
+        'lineno': [2, 2, 2, 3],
+        'building_category': ['office']*4,
+        'building_code': ['TEK07', 'TEK10', 'TEK17', 'TEK87'],
+        'purpose': ['lighting']*4,
+        'value': [0.5]*4,
+    })
+
+    pd.testing.assert_frame_equal(schema, expected, check_like=True)
+
+
+def test_expanded_energy_need_improvements_schema_expand_building_category():
+    df = pd.DataFrame({
+        'lineno': [2],
+        'building_category': ['default'],
+        'building_code': ['TEK17'],
+        'purpose': ['lighting'],
+        'value': [0.5],
+    })
+
+    schema = expanded_energy_need_improvements_schema().validate(df)
+    expected = pd.DataFrame({
+        'lineno': [2]*13,
+        'building_category': [
+            'house',
+            'apartment_block',
+            'kindergarten',
+            'school',
+            'university',
+            'office',
+            'retail',
+            'hotel',
+            'hospital',
+            'nursing_home',
+            'culture',
+            'sports',
+            'storage_repairs'],
+        'building_code': ['TEK17'] * 13,
+        'purpose': ['lighting']*13,
+        'value': [0.5]*13,
+    })
+
+    pd.testing.assert_frame_equal(schema, expected, check_like=True)
+
+
+def test_expanded_energy_need_improvements_schema_expand_explode_plus_in_building_category():
+    df = pd.DataFrame({
+        'lineno': [2],
+        'building_category': ['kindergarten+school+university'],
+        'building_code': ['TEK87'],
+        'purpose': ['lighting'],
+        'value': [0.5],
+    })
+
+    schema = expanded_energy_need_improvements_schema().validate(df)
+    expected = pd.DataFrame({
+        'lineno': [2]*3,
+        'building_category': [
+            'kindergarten',
+            'school',
+            'university'],
+        'building_code': ['TEK87'] * 3,
+        'purpose': ['lighting']*3,
+        'value': [0.5]*3,
+    })
+
+    pd.testing.assert_frame_equal(schema, expected, check_like=True)
+
+
+def test_expanded_energy_need_improvements_schema_expand_purpose():
+    df = pd.DataFrame({
+        'lineno': [2],
+        'building_category': ['kindergarten'],
+        'building_code': ['TEK07'],
+        'purpose': ['default'],
+        'value': [0.4],
+        'start_year': [2020],
+        'end_year': [2020],
+        'function': ['yearly_reduction'],
+    })
+
+    schema = expanded_energy_need_improvements_schema().validate(df)
+    expected = pd.DataFrame({
+        'lineno': [2]*6,
+        'building_category': ['kindergarten']*6,
+        'building_code': ['TEK07'] * 6,
+        'purpose': ['heating_rv', 'heating_dhw', 'cooling', 'lighting', 'electrical_equipment', 'fans_and_pumps'],
+        'value': [0.4]*6,
+        'start_year': [2020]*6,
+        'end_year': [2020]*6,
+        'function': ['yearly_reduction']*6,
+    })
+
+    pd.testing.assert_frame_equal(schema, expected, check_like=True)
+
+
+def test_expanded_energy_need_improvements_schema_expand_explode_plus_in_purpose():
+    df = pd.DataFrame({
+        'lineno': [2],
+        'building_category': ['kindergarten'],
+        'building_code': ['TEK07'],
+        'purpose': ['lighting+cooling+heating_rv+heating_dhw+electrical_equipment+fans_and_pumps'],
+        'value': [0.1],
+        'start_year': [2020],
+        'end_year': [2030],
+        'function': ['yearly_reduction'],
+    })
+
+    schema = expanded_energy_need_improvements_schema().validate(df)
+    expected = pd.DataFrame({
+        'lineno': [2]*6,
+        'building_category': ['kindergarten']*6,
+        'building_code': ['TEK07'] * 6,
+        'purpose': [
+            'lighting',
+            'cooling',
+            'heating_rv',
+            'heating_dhw',
+            'electrical_equipment',
+            'fans_and_pumps',
+        ],
+        'value': [0.1]*6,
+        'start_year': [2020]*6,
+        'end_year': [2030]*6,
+        'function': ['yearly_reduction']*6,
+    })
+
+    pd.testing.assert_frame_equal(schema, expected, check_like=True)
+
+
+@pytest.mark.parametrize(('category', 'code', 'function', 'start_year', 'duplicate_years'), [
+    pytest.param('retail', 'TEK49', 'yearly_reduction', 2025, frozenset(), id='different building_category and start_year'),
+    pytest.param('retail', 'TEK49', 'yearly_reduction', 2021, frozenset(), id='different building_category, same start_year'),
+    pytest.param('office', 'TEK49', 'improvement_at_end_year', 2021, frozenset(), id='different function'),
+    pytest.param('office', 'TEK69', 'yearly_reduction', 2021, frozenset(), id='different building_code'),
+    pytest.param('office', 'TEK49', 'yearly_reduction', 2024, frozenset(), id='no overlapping years'),
+    pytest.param('office', 'TEK49', 'yearly_reduction', 2023, frozenset({2023}), id='overlapping end_year'),
+    pytest.param('office', 'TEK49', 'yearly_reduction', 2019, frozenset({2021}), id='overlapping start_year'),
+    pytest.param('office', 'TEK49', 'yearly_reduction', 2021, frozenset({2021, 2022, 2023}), id='full overlap'),
+])
+def test_energy_need_improvements_yearly_schema_mark_all_duplicates(category: str, code: str, function: str, start_year: int, duplicate_years: frozenset[int]):
+    purpose = 'lighting'
+
+    preferred_energy_need_improvements = pd.DataFrame(
+        [
+            {
+                'building_category': 'office',
+                'building_code': 'TEK49',
+                'purpose': 'lighting',
+                'function': 'yearly_reduction',
+                'start_year': 2021,
+                'value': 0.02,
+                'end_year': 2023,
+                'lineno': 3,
+            },
+            {
+                'building_category': category,
+                'building_code': code,
+                'purpose': purpose,
+                'function': function,
+                'start_year': start_year,
+                'value': 0.03,
+                'end_year': start_year + 2,
+                'lineno': 4,
+            },
+        ]
+    )
+    result = energy_need_improvements_yearly_schema.validate(preferred_energy_need_improvements)
+
+    assert frozenset(result.loc[result.dupe, 'year']) == duplicate_years
+    assert result.dupe.sum() == 2 * len(duplicate_years), 'Expected duplicate years to be marked in both overlapping rows'
+
+
+def test_energy_need_improvements_yearly_schema_expand_year():
+    preferred_energy_need_improvements = pd.DataFrame({
+            'building_category': ['office', 'house'],
+            'building_code': ['TEK49', 'TEK49'],
+            'purpose': ['lighting', 'lighting'],
+            'function': ['yearly_reduction', 'improvement_at_end_year'],
+            'start_year': [2021, 2019],
+            'value': [0.02, 0.03],
+            'end_year': [2023, 2024],
+            'lineno': [2, 3],
+        })
+
+    result = energy_need_improvements_yearly_schema.validate(preferred_energy_need_improvements)
+
+    expected_lineno = pd.Series([2, 2, 2, 3, 3, 3, 3, 3, 3], name='lineno')
+    pd.testing.assert_series_equal(result.lineno, expected_lineno, check_index=False)
+
+    expected_years = pd.Series([2021, 2022, 2023, 2019, 2020, 2021, 2022, 2023, 2024], name='year')
+    pd.testing.assert_series_equal(result.year, expected_years, check_index=False)

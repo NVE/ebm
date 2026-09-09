@@ -4,11 +4,23 @@ import typing
 import pandas as pd
 import pytest
 
-from ebm.validators import add_lineno
-from ebm.transform_energy_need_improvements import (
-    expand_energy_need_improvements,
-    summarize_energy_need_improvement_conflicts
+from ebm.validators import add_lineno, energy_need_improvements_yearly_schema, expanded_energy_need_improvements_schema
+from ebm.definition_expansion import (
+    expand_grouped_definitions,
+    summarize_energy_need_improvement_conflicts, build_grouping,
+    select_groups_with_lowest_lineno_count,
+    group_dupes_on_dupes, group_duplicated_lineno_summary
 )
+
+ENERGY_NEED_IMPROVEMENT_DTYPES = {
+        'building_category': str,
+        'building_code': str,
+        'purpose': str,
+        'function': str,
+        'start_year': int,
+        'value': float,
+        'end_year': int,
+}
 
 house_tek17_electrical_equipment = """building_category,building_code,purpose,function,start_year,value,end_year
 house,TEK17,electrical_equipment,yearly_reduction,2020,0.02,2022
@@ -163,16 +175,15 @@ hospital,TEK87,default,yearly_reduction,2030,0.02,2030
     pytest.param(default_purpose, 'building_category', ('hospital',)*6, id='replace_default_purpose_building_category'),
 
 ])
-def test_expand_energy_need_improvements(input_data, column, expected):
+def test_expand_grouped_definitions_on_energy_need_improvements(input_data, column, expected):
     single_csv = io.StringIO(input_data)
 
     input_data = pd.read_csv(single_csv, dtype={'building_category': str, 'building_code': str, 'purpose': str, 'function': str, 'start_year': int, 'value': float, 'end_year': int})
 
-    result = expand_energy_need_improvements(input_data, drop_helper_columns=False)
+    result = expand_grouped_definitions(input_data, drop_helper_columns=False)
     assert column in result.columns, f"Column '{column}' not found in result DataFrame"
     actual = result[column].tolist()
     assert tuple(actual) == expected
-
 
 
 @pytest.mark.parametrize(('selection', 'expected_years', 'expected_lineno'), [
@@ -198,7 +209,8 @@ def test_expand_energy_need_improvements(input_data, column, expected):
                          pytest.param(('sports', 'TEK10', 'cooling', 'yearly_reduction'), (2023,), (20,), id='sports-t10-cog'),
                          ])
 
-def test_expand_energy_need_improvements_keeps_expected_definitions(selection, expected_years, expected_lineno):
+
+def test_expand_grouped_definitions_keeps_expected_definitions(selection, expected_years, expected_lineno):
     input_csv = io.StringIO("""building_category,building_code,purpose,function,start_year,value,end_year,lineno
 residential,default,heating_rv,yearly_reduction,2021,0.8,2022,2
 default,PRE_TEK49,lighting,yearly_reduction,2021,0.7,2022,3
@@ -226,7 +238,7 @@ default,default,cooling,improvement_at_end_year,2023,0.0,2023,21
 
     building_category, building_code, purpose, function =selection
 
-    result = expand_energy_need_improvements(input_data, drop_helper_columns=False)
+    result = expand_grouped_definitions(input_data, drop_helper_columns=False)
     query = f"building_category == '{building_category}' and building_code == '{building_code}' and purpose == '{purpose}' and function == '{function}'"
 
     actual_years = tuple(result.query(query).year)
@@ -234,6 +246,7 @@ default,default,cooling,improvement_at_end_year,2023,0.0,2023,21
 
     assert actual_lineno == expected_lineno, f"Expected value for {building_category}, {building_code}, {purpose} not found in result DataFrame"
     assert actual_years == expected_years, f"Expected row count for {building_category}, {building_code}, {purpose} not found in result DataFrame"
+
 
 @pytest.mark.parametrize(('selection', 'expected_years', 'expected_lineno'), [
                          pytest.param(('apartment_block', 'TEK49', 'cooling'), (2020, 2021, 2022,), (2, 2, 2,), id='apartment_block-t49-cog'),
@@ -244,7 +257,7 @@ default,default,cooling,improvement_at_end_year,2023,0.0,2023,21
                          pytest.param(('retail', 'TEK17', 'lighting'), (2020, 2021, 2022), (5, 5, 5,), id='retail-t17-lig'),
                          pytest.param(('retail', 'TEK17', 'electrical_equipment'), (2020, 2021, 2022), (6, 6, 6,), id='retail-t17-elt'),
 ])
-def test_expand_energy_need_improvements_keeps_expected_behaviour_factor_definitions(selection, expected_years, expected_lineno):
+def test_expand_grouped_definitions_keeps_expected_behaviour_factor_definitions(selection, expected_years, expected_lineno):
     input_csv = io.StringIO("""building_category,building_code,purpose,behaviour_factor
 residential,default,default,1
 house,PRE_TEK49+TEK69+TEK87+TEK49+TEK97,default,0.85
@@ -258,7 +271,7 @@ retail,default,electrical_equipment,2
 
     building_category, building_code, purpose =selection
 
-    result = expand_energy_need_improvements(input_data, drop_helper_columns=False)
+    result = expand_grouped_definitions(input_data, drop_helper_columns=False)
     query = f"building_category == '{building_category}' and building_code == '{building_code}' and purpose == '{purpose}'"
 
     actual_years = tuple(result.query(query).year)
@@ -277,7 +290,7 @@ retail,default,electrical_equipment,2
                          pytest.param(('apartment_block', 'TEK49', 'lighting'), (2020, 2021,), (7, 7, ), id='apartment_block-t49-lig'),
                          pytest.param(('apartment_block', 'TEK07', 'heating_rv'), (2020, 2021,), (12, 12, ), id='apartment_block-p49-hrv'),
 ])
-def test_expand_energy_need_improvements_keeps_expected_energy_need_original_condition_definitions(selection, expected_years, expected_lineno):
+def test_expand_grouped_definitions_keeps_expected_energy_need_original_condition_definitions(selection, expected_years, expected_lineno):
     input_csv = io.StringIO("""building_category,building_code,purpose,kwh_m2
 apartment_block,PRE_TEK49,cooling,0.0
 apartment_block,PRE_TEK49,electrical_equipment,17.52
@@ -298,7 +311,7 @@ default,default,default,-99
 
     building_category, building_code, purpose =selection
 
-    result = expand_energy_need_improvements(input_data, drop_helper_columns=False)
+    result = expand_grouped_definitions(input_data, drop_helper_columns=False)
     query = f"building_category == '{building_category}' and building_code == '{building_code}' and purpose == '{purpose}'"
 
     actual_years = tuple(result.query(query).year)
@@ -317,7 +330,7 @@ default,default,default,-99
                          pytest.param(('apartment_block', 'TEK17', 'Electricity', 'DH'), (2024, 2050,), 8, id='house-t17-el2dh'),
                          pytest.param(('apartment_block', 'TEK17', 'Electricity', 'HP Central heating - Electric boiler'), (2024, 2050,), 9, id='house-t17-el2hpceb'),
 ])
-def test_expand_energy_need_improvements_keeps_expected_heating_system_forecast_definitions(selection, expected_years, expected_lineno):
+def test_expand_grouped_definitions_keeps_expected_heating_system_forecast_definitions(selection, expected_years, expected_lineno):
     input_csv = io.StringIO("""building_category,building_code,heating_systems,new_heating_systems,start_year,end_year,start_value,end_value
 non_residential,default,Gas,HP Central heating - Electric boiler,2024,2030,0.1,0.5
 non_residential,default,Gas,Electric boiler,2024,2030,0.1,0.5
@@ -334,7 +347,7 @@ apartment_block,default,Electricity,HP Central heating - Electric boiler,2024,20
 
     building_category, building_code, heating_systems, new_heating_systems =selection
 
-    result = expand_energy_need_improvements(input_data, drop_helper_columns=False, by_grouping=['building_category', 'building_code', 'heating_systems', 'new_heating_systems'])
+    result = expand_grouped_definitions(input_data, drop_helper_columns=False, grouping_columns=['building_category', 'building_code', 'heating_systems', 'new_heating_systems'])
     query = f"building_category == '{building_category}' and building_code == '{building_code}' and heating_systems == '{heating_systems}' and new_heating_systems == '{new_heating_systems}'"
 
     expected_years = tuple(range(expected_years[0], expected_years[1]+1))
@@ -345,9 +358,10 @@ apartment_block,default,Electricity,HP Central heating - Electric boiler,2024,20
     assert actual_years == expected_years, f"Expected row count for {building_category}, {building_code}, {heating_systems} {new_heating_systems} not found in result DataFrame"
 
 
-def test_expand_energy_need_improvements_drop_helper_columns_expected_columns():
-    result = expand_energy_need_improvements(pd.read_csv(io.StringIO(nursing_home_2_periods)), drop_helper_columns=True)
-    expected_columns = set(['building_category', 'building_code', 'purpose', 'function', 'start_year', 'value', 'end_year', 'lineno', 'year', 'dupe'])
+def test_expand_grouped_definitions_drop_helper_columns_expected_columns():
+    result = expand_grouped_definitions(pd.read_csv(io.StringIO(nursing_home_2_periods)), drop_helper_columns=True)
+    expected_columns = {'building_category', 'building_code', 'purpose', 'function', 'start_year', 'value', 'end_year',
+                        'lineno', 'year', 'dupe'}
     assert set(result.columns) == expected_columns, f"Expected columns {expected_columns}, but got {set(result.columns)}"
 
 
@@ -356,18 +370,20 @@ def test_transform_with_clear_winner():
 house+apartment_block,TEK49,lighting,yearly_reduction,2022,0.02,2023
 house,TEK49,lighting,yearly_reduction,2022,0.03,2023
 house+apartment_block,TEK49,lighting,yearly_reduction,2022,0.04,2023"""
-    df = pd.read_csv(io.StringIO(csv_content), dtype={'building_category': str, 'building_code': str, 'purpose': str, 'function': str, 'start_year': int, 'value': float, 'end_year': int})
 
-    actual = expand_energy_need_improvements(df)
+    df = pd.read_csv(io.StringIO(csv_content), dtype=ENERGY_NEED_IMPROVEMENT_DTYPES)
+
+    actual = expand_grouped_definitions(df)
     assert len(actual) == 6, 'Expected 6 rows in result'  # 3 rows expanded to 2 years each
-    assert (actual.query("lineno==3").dupe == False).all()
+    assert not actual.query("lineno==3").dupe.all()
 
 
 def expanded(energy_need_improvements_csv):
     single_csv = io.StringIO(energy_need_improvements_csv)
-    input_data = pd.read_csv(single_csv, dtype={'building_category': str, 'building_code': str, 'purpose': str, 'function': str, 'start_year': int, 'value': float, 'end_year': int})
+    input_data = pd.read_csv(single_csv, dtype=ENERGY_NEED_IMPROVEMENT_DTYPES)
+
     return {'input': input_data.pipe(add_lineno).reset_index(drop=True),
-            'expanded': expand_energy_need_improvements(input_data, drop_helper_columns=True)}
+            'expanded': expand_grouped_definitions(input_data, drop_helper_columns=True)}
 
 
 @pytest.mark.parametrize(('input_data', 'column', 'expected'), [
@@ -394,3 +410,247 @@ if __name__ == "__main__":
     import sys
 
     pytest.main([sys.argv[0]])
+
+
+def test_build_grouping_prefers_available_group_columns():
+    df = pd.DataFrame(
+        {
+            "lineno": [2],
+            "building_category": ["house"],
+            "building_code": ["TEK17"],
+            "purpose": ["lighting"],
+        },
+    )
+
+    assert build_grouping(df) == ["building_category", "building_code", "purpose"]
+
+
+def test_build_grouping_includes_building_group_when_present():
+    df = pd.DataFrame(
+        {
+            "lineno": [2],
+            "building_group": ["residential"],
+            "building_category": ["house"],
+            "building_code": ["TEK17"],
+            "purpose": ["lighting"],
+        },
+    )
+
+    assert build_grouping(df) == ["building_category", "building_code", "purpose"]
+
+
+def test_select_groups_with_lowest_lineno_count_require_lineno():
+    df = pd.DataFrame({
+        'building_category': ['house'],
+        'building_code': ['TEK17'],
+        'purpose': ['lighting'],
+        'function': ['yearly_reduction'],
+        'value': [0.2],
+        'start_year': [2010],
+        'end_year': [2030],
+    })
+
+    with pytest.raises(KeyError, match=r'Dataframe must contain a "lineno" column \(building_category, building_code, purpose, function\)'):
+        df.pipe(select_groups_with_lowest_lineno_count)
+
+
+@pytest.mark.parametrize(('lineno', 'lineno_count', 'building_categories', 'value'),
+[
+        (2, 11, {'culture', 'hospital', 'hotel', 'kindergarten', 'nursing_home', 'office', 'retail', 'school', 'sports', 'storage_repairs', 'university'}, 0.2),
+        (3, 1, {'apartment_block'}, 0.3),
+        (4, 1, {'house'}, 0.4),
+    ])
+def test_select_groups_with_lowest_lineno_count(lineno, lineno_count, building_categories, value):
+    df = pd.DataFrame({
+        'lineno': [2, 3, 4],
+        'building_category': ['default', 'residential', 'house'],
+        'building_code': ['TEK17', 'TEK17', 'TEK17'],
+        'purpose': ['lighting', 'lighting', 'lighting'],
+        'function': ['yearly_reduction', 'yearly_reduction', 'yearly_reduction'],
+        'value': [0.2, 0.3, 0.4],
+        'start_year': [2010, 2010, 2010],
+        'end_year': [2030, 2030, 2030],
+    })
+
+    expanded = expanded_energy_need_improvements_schema().validate(df)
+    result = expanded.pipe(select_groups_with_lowest_lineno_count, filter_columns=False)
+
+    query_line = f'lineno=={lineno}'
+    assert list(result.query(query_line).value) == [value]  * lineno_count
+    assert set(result.query(query_line).building_category) == building_categories
+
+
+def test_select_groups_with_lowest_lineno_count_return_dataframe_with_expected_columns():
+    df = pd.DataFrame(
+        {
+            'lineno': [2],
+            'building_category': ['kindergarten'],
+            'building_code': ['TEK17'],
+            'purpose': ['lighting'],
+            'function': ['yearly_reduction'],
+            'value': [0.2],
+            'start_year': [2010],
+            'end_year': [2030],
+        },
+    )
+
+    expected = pd.DataFrame(
+        {
+            'lineno': [2],
+            'building_category': ['kindergarten'],
+            'building_code': ['TEK17'],
+            'purpose': ['lighting'],
+            'function': ['yearly_reduction'],
+            'value': [0.2],
+            'start_year': [2010],
+            'end_year': [2030],
+        },
+    )
+    result = df.pipe(select_groups_with_lowest_lineno_count) # , filter_columns=True)
+
+    pd.testing.assert_frame_equal(result.reset_index(drop=True), expected.reset_index(drop=True))
+
+
+def test_group_dupes_on_dupes():
+    df = pd.DataFrame(
+        [
+            {'building_category': 'office', 'lineno': 2, 'year': 2021, 'value': 0.02, 'dupe': False},
+            {'building_category': 'office', 'lineno': 2, 'year': 2022, 'value': 0.02, 'dupe': False},
+            {'building_category': 'retail', 'lineno': 3, 'year': 2021, 'value': 0.03, 'dupe': True},
+            {'building_category': 'retail', 'lineno': 3, 'year': 2022, 'value': 0.03, 'dupe': True},
+            {'building_category': 'retail', 'lineno': 4, 'year': 2021, 'value': 0.04, 'dupe': True},
+            {'building_category': 'retail', 'lineno': 4, 'year': 2022, 'value': 0.04, 'dupe': True},
+            {'building_category': 'house', 'lineno':5, 'year': 2021, 'value': 0.05, 'dupe': True},
+            {'building_category': 'house', 'lineno': 6, 'year': 2021, 'value': 0.06, 'dupe': True},
+        ]
+    )
+    result = df.pipe(group_dupes_on_dupes)
+
+    expected = pd.DataFrame(
+        [
+            {'building_category': 'retail', 'lineno_x': 3, 'lineno_y': 4, 'year_x': 2021, 'year_y': 2021, 'value_x': 0.03, 'value_y': 0.04},
+            {'building_category': 'retail', 'lineno_x': 3, 'lineno_y': 4, 'year_x': 2022, 'year_y': 2022, 'value_x': 0.03, 'value_y': 0.04},
+            {'building_category': 'retail', 'lineno_x': 4, 'lineno_y': 3, 'year_x': 2021, 'year_y': 2021, 'value_x': 0.04, 'value_y': 0.03},
+            {'building_category': 'retail', 'lineno_x': 4, 'lineno_y': 3, 'year_x': 2022, 'year_y': 2022, 'value_x': 0.04, 'value_y': 0.03},
+            {'building_category': 'house', 'lineno_x': 5, 'lineno_y': 6, 'year_x': 2021, 'year_y': 2021, 'value_x': 0.05, 'value_y': 0.06},
+            {'building_category': 'house', 'lineno_x': 6, 'lineno_y': 5, 'year_x': 2021, 'year_y': 2021, 'value_x': 0.06, 'value_y': 0.05},
+        ]
+    )
+
+    pd.testing.assert_frame_equal(result.reset_index(drop=True), expected.reset_index(drop=True))
+
+
+def test_group_duplicated_lineno_summary_accepts_lineno_y_and_lineno_x():
+    df = pd.DataFrame([
+        {'building_category': 'retail', 'building_code': 'TEK07', 'purpose': 'electrical_equipment', 'function': 'yearly_reduction', 'year_x': 2021, 'year_y': 2021, 'lineno_x': 3, 'lineno_y': 4},
+        {'building_category': 'retail', 'building_code': 'TEK07', 'purpose': 'electrical_equipment', 'function': 'yearly_reduction', 'year_x': 2022, 'year_y': 2022, 'lineno_x': 3, 'lineno_y': 4},
+        {'building_category': 'retail', 'building_code': 'TEK07', 'purpose': 'electrical_equipment', 'function': 'yearly_reduction', 'year_x': 2023, 'year_y': 2023, 'lineno_x': 3, 'lineno_y': 4},
+        {'building_category': 'retail', 'building_code': 'TEK10', 'purpose': 'electrical_equipment', 'function': 'yearly_reduction', 'year_x': 2021, 'year_y': 2021, 'lineno_x': 3, 'lineno_y': 4},
+        {'building_category': 'retail', 'building_code': 'TEK10', 'purpose': 'electrical_equipment', 'function': 'yearly_reduction', 'year_x': 2022, 'year_y': 2022, 'lineno_x': 3, 'lineno_y': 4},
+        {'building_category': 'retail', 'building_code': 'TEK10', 'purpose': 'electrical_equipment', 'function': 'yearly_reduction', 'year_x': 2023, 'year_y': 2023, 'lineno_x': 3, 'lineno_y': 4},
+        {'building_category': 'retail', 'building_code': 'TEK17', 'purpose': 'electrical_equipment', 'function': 'yearly_reduction', 'year_x': 2021, 'year_y': 2021, 'lineno_x': 3, 'lineno_y': 4},
+        {'building_category': 'retail', 'building_code': 'TEK17', 'purpose': 'electrical_equipment', 'function': 'yearly_reduction', 'year_x': 2022, 'year_y': 2022, 'lineno_x': 3, 'lineno_y': 4},
+        {'building_category': 'retail', 'building_code': 'TEK17', 'purpose': 'electrical_equipment', 'function': 'yearly_reduction', 'year_x': 2023, 'year_y': 2023, 'lineno_x': 3, 'lineno_y': 4}]
+)
+
+    result = df.pipe(group_duplicated_lineno_summary)
+    expected = pd.DataFrame(
+        [{
+            'lineno': 3, 'duplicate_lineno': 4,
+            'building_categories': 'retail',
+            'building_categories_cnt': 1,
+            'building_codes': 'TEK07+TEK10+TEK17',
+            'building_codes_cnt': 3,
+            'purposes': 'electrical_equipment',
+            'purposes_cnt': 1,
+            'functions': 'yearly_reduction',
+            'functions_cnt': 1,
+            'all_cnt': 6,
+        },
+        ],
+    )
+
+    pd.testing.assert_frame_equal(result.reset_index(drop=True), expected.reset_index(drop=True))
+
+
+def test_group_duplicated_lineno_summary_merge_and_summarize_duplicates_on_building_code():
+    df = pd.DataFrame([
+        {'building_category': 'retail', 'building_code': 'TEK07', 'purpose': 'electrical_equipment', 'function': 'yearly_reduction', 'lineno': 3, 'duplicate_lineno': 4},
+        {'building_category': 'retail', 'building_code': 'TEK10', 'purpose': 'electrical_equipment', 'function': 'yearly_reduction', 'lineno': 3, 'duplicate_lineno': 4},
+    ])
+
+    result = df.pipe(group_duplicated_lineno_summary)
+
+    expected = pd.DataFrame([
+        {
+            'lineno': 3,
+            'duplicate_lineno': 4,
+            'building_categories': 'retail',
+            'building_categories_cnt': 1,
+            'building_codes': 'TEK07+TEK10',
+            'building_codes_cnt': 2,
+            'purposes': 'electrical_equipment',
+            'purposes_cnt': 1,
+            'functions': 'yearly_reduction',
+            'functions_cnt': 1,
+            'all_cnt': 5,
+        },
+    ])
+
+    pd.testing.assert_frame_equal(result.reset_index(drop=True), expected.reset_index(drop=True))
+
+
+def test_group_duplicated_lineno_summary_merge_and_summarize_duplicates_on_building_category():
+    df = pd.DataFrame([
+        {'building_category': 'retail', 'building_code': 'TEK07', 'purpose': 'lighting', 'function': 'yearly_reduction', 'lineno': 3, 'duplicate_lineno': 4},
+        {'building_category': 'office', 'building_code': 'TEK07', 'purpose': 'lighting', 'function': 'yearly_reduction', 'lineno': 3, 'duplicate_lineno': 4},
+        {'building_category': 'hotel', 'building_code': 'TEK07', 'purpose': 'lighting', 'function': 'yearly_reduction', 'lineno': 3, 'duplicate_lineno': 4},
+
+    ])
+
+    result = df.pipe(group_duplicated_lineno_summary)
+
+    expected = pd.DataFrame([
+        {
+            'lineno': 3,
+            'duplicate_lineno': 4,
+            'building_categories': 'retail+office+hotel',
+            'building_categories_cnt': 3,
+            'building_codes': 'TEK07',
+            'building_codes_cnt': 1,
+            'purposes': 'lighting',
+            'purposes_cnt': 1,
+            'functions': 'yearly_reduction',
+            'functions_cnt': 1,
+            'all_cnt': 6,
+        },
+    ])
+
+    pd.testing.assert_frame_equal(result.reset_index(drop=True), expected.reset_index(drop=True))
+
+
+def test_group_duplicated_lineno_summary_merge_and_summarize_basic_line():
+    df = pd.DataFrame([
+        {'building_category': 'apartment_block', 'building_code': 'TEK69', 'purpose': 'lighting', 'function': 'improvement_and_end_year', 'lineno': 2, 'duplicate_lineno': 5},
+
+    ])
+
+    result = group_duplicated_lineno_summary(df)
+
+    expected = pd.DataFrame([
+        {
+            'lineno': 2,
+            'duplicate_lineno': 5,
+            'building_categories': 'apartment_block',
+            'building_categories_cnt': 1,
+            'building_codes': 'TEK69',
+            'building_codes_cnt': 1,
+            'purposes': 'lighting',
+            'purposes_cnt': 1,
+            'functions': 'improvement_and_end_year',
+            'functions_cnt': 1,
+            'all_cnt': 4,
+        },
+    ])
+
+    pd.testing.assert_frame_equal(result.reset_index(drop=True), expected.reset_index(drop=True))

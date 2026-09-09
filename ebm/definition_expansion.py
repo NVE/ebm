@@ -1,13 +1,76 @@
-from pandas import DataFrame
+import pandas as pd
 
 try:
     import pandera.pandas as pa
 except ImportError:
     import pandera as pa
 
-import pandas as pd
-from ebm.validators import check_default_building_category_with_group, check_default_building_code, check_default_energy_purpose
+from loguru import logger
 
+
+def add_lineno(df: pd.DataFrame) -> pd.DataFrame:
+    if "lineno" not in df.columns:
+        df["lineno"] = range(2, len(df) + 2)
+    return df
+
+
+def expand_grouped_definitions(definitions: pd.DataFrame, *, grouping_columns: list[str]=None, drop_helper_columns :bool=True) -> pd.DataFrame:
+    stages = [
+        (add_lineno, ),
+        (replace_building_category_default, ),
+        (replace_building_code_default, ),
+        (replace_purpose_default, ),
+        (explode_building_category, ),
+        (explode_building_code, ),
+        (explode_purpose, ),
+        (lambda d: d.reset_index(drop=True), ),
+        (select_groups_with_lowest_lineno_count, {'by_grouping': grouping_columns, 'filter_columns': drop_helper_columns}),
+        (explode_years, ),
+        (mark_duplicates, {'by_grouping': grouping_columns}),
+    ]
+    results = {}
+    for i, stage in enumerate(stages):
+        stage_name = stage[0].__name__
+        logger.debug(f'Stage {i}: {stage_name}')
+        func, *parameters = stage
+        if parameters:
+            result = definitions.pipe(func, **parameters[0])
+        else:
+            result = definitions.pipe(func)
+
+        results[stage_name] = result
+        definitions = result
+
+    return definitions
+
+
+def transform_expanded_energy_need_improvements(expanded_energy_need_improvements) -> pa.DataFrameSchema:
+    yearly = expanded_energy_need_improvements.pipe(explode_years)
+    marked_duplicated = yearly.pipe(mark_duplicates)
+    return marked_duplicated
+
+
+def summarize_energy_need_improvement_conflicts(energy_need_improvements_yearly: pd.DataFrame, energy_need_improvements: pd.DataFrame) -> pd.DataFrame:
+    dedeuped_dupes_on_dupes = group_dupes_on_dupes(energy_need_improvements_yearly)
+    _df = dedeuped_dupes_on_dupes[
+        [
+            "building_category",
+            "building_code",
+            "purpose",
+            "function",
+            "year_x",
+            "year_y",
+            "lineno_x",
+            "lineno_y",
+        ]
+    ][dedeuped_dupes_on_dupes["lineno_y"] > dedeuped_dupes_on_dupes["lineno_x"]]
+
+    grouped_duplicated_lineno_summary = _df.pipe(group_duplicated_lineno_summary)
+    conflicts = grouped_duplicated_lineno_summary.pipe(
+        merge_duplicate_lineno_summary_with_definitions,
+        energy_need_improvements=energy_need_improvements,
+    )
+    return conflicts
 
 
 def build_grouping(df: pd.DataFrame) -> list:
@@ -37,7 +100,7 @@ def explode_purpose(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def explode_on_plus(df: DataFrame, column_name: str) -> DataFrame:
+def explode_on_plus(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
     if df[column_name].isnull().any():
         raise ValueError(f"Dataframe '{column_name}' cannot be empty")
     df[column_name] = df[column_name].str.strip('+')
@@ -105,7 +168,7 @@ def replace_purpose_default(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def add_lineno_count(df: pd.DataFrame, by_grouping=None) -> pd.DataFrame:
+def add_lineno_count(df: pd.DataFrame, by_grouping: list[str]=None) -> pd.DataFrame:
     by_group = build_grouping(df) if not by_grouping else by_grouping
     df["lineno_count"] = df.groupby("lineno")["lineno"].transform("size")
     return df.sort_values(by=["lineno_count"] + by_group)
@@ -116,6 +179,7 @@ def filter_fewest_lineno_matches(df: pd.DataFrame) -> pd.DataFrame:
     scored = df.assign(score=-df['lineno_count'])
     q= scored.groupby(by=by_grouping, as_index=False).agg(score=('score', 'max')).merge(scored, on=by_grouping + ['score'])
     return q
+
 
 def select_groups_with_lowest_lineno_count(df: pd.DataFrame, by_grouping=None, filter_columns=True) -> pd.DataFrame:
     if 'lineno' not in df.columns:
@@ -147,22 +211,6 @@ def group_dupes_on_dupes(dupes: pd.DataFrame) -> pd.DataFrame:
 
     return dedeuped_dupes_on_dupes
 
-energy_need_improvements_yearly_schema = pa.DataFrameSchema(
-    parsers = [
-        pa.Parser(explode_years),
-        pa.Parser(mark_duplicates),
-    ],
-    columns={
-        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category_with_group)),
-        'building_code': pa.Column(str, checks=pa.Check(check_default_building_code, element_wise=True)),
-        'purpose':pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
-        'function': pa.Column(str, checks=pa.Check(lambda x: x.isin(['yearly_reduction', 'improvement_at_end_year']))),
-        'year':pa.Column(int, coerce=True),
-        'value': pa.Column(float, coerce=True, checks=[pa.Check.between(min_value=0.0, include_min=True, max_value=1.0, include_max=True)]),
-        'dupe': pa.Column(bool, coerce=True, default=False),
-    },
-    unique=['lineno', 'building_category', 'building_code', 'purpose', 'function', 'year', 'value'],
-)
 
 def group_duplicated_lineno_summary(df: pd.DataFrame) -> pd.DataFrame:
     _df = df.copy()
@@ -197,24 +245,3 @@ def merge_duplicate_lineno_summary_with_definitions(merged_original: pd.DataFram
     merged_duplicate = merged_original.merge(df_duplicate, left_on='duplicate_lineno', right_on='lineno_duplicate', how='left', suffixes=('_original', '_duplicate'))
 
     return merged_duplicate.reset_index(drop=True).sort_values(by=['lineno_original', 'duplicate_lineno'])
-
-
-def expanded_energy_need_improvements_schema() -> pa.DataFrameSchema:
-    return pa.DataFrameSchema(
-        parsers=[
-            pa.Parser(replace_building_category_default),
-            pa.Parser(replace_building_code_default),
-            pa.Parser(replace_purpose_default),
-            pa.Parser(explode_building_category),
-            pa.Parser(explode_building_code),
-            pa.Parser(explode_purpose),
-            pa.Parser(lambda c: c.reset_index(drop=True)),
-    ],
-    columns={
-        'lineno': pa.Column(int, coerce=True),
-        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category_with_group)),
-        'building_code': pa.Column(str, checks=pa.Check(check_default_building_code, element_wise=True)),
-        'purpose':pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
-        'value': pa.Column(float, coerce=True, checks=[pa.Check.between(min_value=0.0, include_min=True, max_value=1.0, include_max=True)],)
-    },
-)

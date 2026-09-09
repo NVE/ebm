@@ -6,6 +6,7 @@ import pytest
 
 from ebm.definition_expansion import (
     build_grouping,
+    collapse_years,
     expand_grouped_definitions,
     group_dupes_on_dupes,
     group_duplicated_lineno_summary,
@@ -693,5 +694,95 @@ def test_group_duplicated_lineno_summary_merge_and_summarize_basic_line():
             'all_cnt': 4,
         },
     ])
+
+    pd.testing.assert_frame_equal(result.reset_index(drop=True), expected.reset_index(drop=True))
+
+def test_collapse_years():
+    df = pd.DataFrame({
+        'building_category': ['house', 'house', 'house', 'apartment_block'],
+        'building_code': ['TEK07', 'TEK07', 'TEK07', 'TEK07'],
+        'purpose': ['heating_rv', 'heating_rv', 'heating_rv', 'heating_rv'],
+        "start_year": [2020, 2020, 2020, 2020],
+        "end_year": [2022, 2022, 2022, 2020],
+        'function': ['yearly_reduction', 'yearly_reduction', 'yearly_reduction', 'yearly_reduction'],
+        "year": [2020, 2021, 2022, 2020],
+        "value": [0.5, 0.5, 0.5, 0.3],
+        "lineno": [2, 2, 2, 3],
+    })
+    result = collapse_years(df)
+    expected = pd.DataFrame({
+        'building_category': ['house', 'apartment_block'],
+        'building_code': ['TEK07', 'TEK07'],
+        'purpose': ['heating_rv', 'heating_rv'],
+        "start_year": [2020, 2020],
+        "end_year": [2022, 2020],
+        'function': ['yearly_reduction', 'yearly_reduction'],
+        "value": [0.5, 0.3],
+        "lineno": [2, 3],
+    })
+    pd.testing.assert_frame_equal(result.reset_index(drop=True), expected.reset_index(drop=True))
+
+
+def test_collapse_years_raise_value_error_on_duplicates():
+    df = pd.DataFrame({
+        'building_category': ['house', 'house', ],
+        'building_code': ['TEK07', 'TEK07', ],
+        'purpose': ['heating_rv', 'heating_rv', ],
+        "start_year": [2020, 2020 ],
+        "end_year": [2020, 2020 ],
+        'function': ['yearly_reduction', 'yearly_reduction'],
+        "year": [2020, 2020],
+        "value": [0.5, 0.6],
+        "lineno": [2, 3],
+    })
+    with pytest.raises(ValueError, match=r'Duplicate values found for the same group'):
+        collapse_years(df)
+    with pytest.raises(ValueError, match=r'Duplicate values found for the same group'):
+        collapse_years(df.drop(columns=['start_year']))
+    with pytest.raises(ValueError, match=r'Duplicate values found for the same group'):
+        collapse_years(df.drop(columns=['end_year']))
+
+
+@pytest.mark.parametrize('year', [
+    pytest.param(2019, id='less_than_start_year'),
+    pytest.param(2022, id='greater_than_end_year'),
+])
+def test_collapse_years_drop_years_outside_start_end_year(year):
+    df = pd.DataFrame({
+        'building_category': ['house', 'house', 'house', 'house', 'house'],
+        "start_year": [2020, 2020, 2020, 2020, 2020],
+        "end_year": [2023, 2023, 2023, 2021, 2021],
+        'function': ['yearly_reduction', 'yearly_reduction', 'yearly_reduction', 'yearly_reduction', 'yearly_reduction'],
+        "year": [2020, 2021, 2022, year , 0],
+        "value": [0.2, 0.2, 0.2, 0.3, 0.3],
+        "lineno": [2, 2, 2, 3, 3],
+    })
+    result = collapse_years(df)
+    assert result.lineno.to_list() == [2]
+    assert result.value.to_list() == [0.2]
+
+@pytest.mark.parametrize('missing_column', [
+    ('start_year',),
+    ('end_year',),
+    ('start_year', 'end_year')])
+def test_collapse_years_accept_missing_start_or_end_year(missing_column):
+    df = pd.DataFrame({
+        'building_category': ['house', 'apartment_block'],
+        "start_year": [2020, 2020],
+        "end_year": [2022, 2020],
+        'function': ['noop', 'noop'],
+        "year": [2020, 2020],
+        "value": [0.5, 0.3],
+        "lineno": [2, 3],
+    })
+    result = collapse_years(df.drop(columns=list(missing_column)))
+    expected = pd.DataFrame({
+        'building_category': ['house', 'apartment_block'],
+        "start_year": [2020, 2020],
+        "end_year": [2022, 2020],
+        'function': ['noop', 'noop'],
+        "value": [0.5, 0.3],
+        "lineno": [2, 3],
+    }).drop(columns=list(missing_column))
 
     pd.testing.assert_frame_equal(result.reset_index(drop=True), expected.reset_index(drop=True))

@@ -231,3 +231,16 @@ def merge_duplicate_lineno_summary_with_definitions(merged_original: pd.DataFram
     merged_duplicate = merged_original.merge(df_duplicate, left_on='duplicate_lineno', right_on='lineno_duplicate', how='left', suffixes=('_original', '_duplicate'))
 
     return merged_duplicate.reset_index(drop=True).sort_values(by=['lineno_original', 'duplicate_lineno'])
+
+
+def collapse_years(expanded: pd.DataFrame) -> pd.DataFrame:
+    if 'start_year' in expanded.columns and 'end_year' in expanded.columns:
+        df = expanded[(expanded.year >= expanded.start_year) & (expanded.year <= expanded.end_year)]
+    else:
+        df = expanded.copy()
+    grouping = build_grouping(df) + ['year']
+    dupes = df.duplicated(subset=grouping)
+    if dupes.any():
+        raise ValueError('Duplicate values found for the same group')
+    deduped = df.drop(columns=['year']).drop_duplicates()
+    return deduped

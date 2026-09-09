@@ -2,8 +2,16 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from ebm.definition_expansion import explode_on_plus, explode_building_category, explode_building_code, explode_purpose, \
-    explode_years, replace_building_code_default, replace_building_category_default, replace_purpose_default
+from ebm.definition_expansion import (
+    explode_building_category,
+    explode_building_code,
+    explode_on_plus,
+    explode_purpose,
+    explode_years,
+    replace_building_category_default,
+    replace_building_code_default,
+    replace_purpose_default,
+)
 
 
 def test_explode_on_plus_splits_and_deduplicates_values():
@@ -31,7 +39,8 @@ def test_explode_on_plus_handles_missing_values_in_existing_column(value, messag
         explode_on_plus(df.copy(), column_name="column_b")
 
 
-@pytest.mark.parametrize(('building_categories', 'expected_building_categories'),[    pytest.param('kindergarten+school+university', ['kindergarten', 'school', 'university'], id='explode_on_plus'),
+@pytest.mark.parametrize(('building_categories', 'expected_building_categories'),[
+    pytest.param('kindergarten+school+university', ['kindergarten', 'school', 'university'], id='explode_on_plus'),
     pytest.param('kindergarten', ['kindergarten'], id='single'),
     pytest.param('hospital+hospital', ['hospital'], id='duplicate'),
     pytest.param('hospital++hospital', ['hospital'], id='explode_on_double_plus'),
@@ -70,8 +79,6 @@ def test_explode_building_category_raise_value_error_on_missing_building_categor
     pytest.param('TEK07+TEK10+TEK17', ['TEK07', 'TEK10','TEK17'], id='explode_on_plus'),
     pytest.param('TEK07++TEK10+TEK17', ['TEK07', 'TEK10','TEK17'], id='explode_on_double_plus'),
     pytest.param('default', ['default'], id='default_no_replace'),
-    #pytest.param('TEK17+default', ['TEK17', 'PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10'], id='single+default'),
-    #pytest.param('default', ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17'], id='default'),
 ])
 def test_explode_building_code(building_code, expected_building_codes):
     df = pd.DataFrame({
@@ -86,7 +93,7 @@ def test_explode_building_code(building_code, expected_building_codes):
     })
     result = explode_building_code(df)
 
-    pd.testing.assert_frame_equal(result.reset_index(drop=True), expected.reset_index(drop=True))# f'Expected {expected_building_codes} rows, got {result.building_code.to_list()}'
+    pd.testing.assert_frame_equal(result.reset_index(drop=True), expected.reset_index(drop=True))
 
 
 def test_explode_building_code_when_missing_building_code_column():
@@ -108,7 +115,8 @@ def test_explode_building_code_when_missing_building_code_column():
     pytest.param('+++cooling', ['cooling'], id='leading_plus'),
     pytest.param('cooling++', ['cooling'], id='trailing_plus'),
     pytest.param('default', ['default'], id='default_no_replace'),
-    #pytest.param('lighting+default+cooling', ['lighting', 'heating_rv', 'heating_dhw', 'cooling', 'electrical_equipment', 'fans_and_pumps'], id='default_with_additional'),
+    #pytest.param('lighting+default+cooling', ['lighting', 'heating_rv', 'heating_dhw', 'cooling', 'electrical_equipment', 'fans_and_pumps'],
+    # id='default_with_additional'),
     #pytest.param('default', ['heating_rv', 'heating_dhw', 'cooling', 'lighting', 'electrical_equipment', 'fans_and_pumps'], id='default'),
                         ])
 def test_explode_purpose(purpose, expected_purpose):

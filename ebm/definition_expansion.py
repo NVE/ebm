@@ -1,10 +1,4 @@
 import pandas as pd
-
-try:
-    import pandera.pandas as pa
-except ImportError:
-    import pandera as pa
-
 from loguru import logger
 
 
@@ -14,7 +8,7 @@ def add_lineno(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def expand_grouped_definitions(definitions: pd.DataFrame, *, grouping_columns: list[str]=None, drop_helper_columns :bool=True) -> pd.DataFrame:
+def expand_grouped_definitions(definitions: pd.DataFrame, *, grouping_columns: list[str] | None=None, drop_helper_columns :bool=True) -> pd.DataFrame:
     stages = [
         (add_lineno, ),
         (replace_building_category_default, ),
@@ -42,12 +36,6 @@ def expand_grouped_definitions(definitions: pd.DataFrame, *, grouping_columns: l
         definitions = result
 
     return definitions
-
-
-def transform_expanded_energy_need_improvements(expanded_energy_need_improvements) -> pa.DataFrameSchema:
-    yearly = expanded_energy_need_improvements.pipe(explode_years)
-    marked_duplicated = yearly.pipe(mark_duplicates)
-    return marked_duplicated
 
 
 def summarize_energy_need_improvement_conflicts(energy_need_improvements_yearly: pd.DataFrame, energy_need_improvements: pd.DataFrame) -> pd.DataFrame:
@@ -86,7 +74,6 @@ def explode_building_category(df: pd.DataFrame) -> pd.DataFrame:
 def explode_building_code(df: pd.DataFrame) -> pd.DataFrame:
     if 'building_code' not in df.columns:
         return df
-    # df['building_code'] = df['building_code'].str.replace("default", 'PRE_TEK49+TEK49+TEK69+TEK87+TEK97+TEK07+TEK10+TEK17')
 
     return explode_on_plus(df, column_name='building_code')
 
@@ -94,14 +81,13 @@ def explode_building_code(df: pd.DataFrame) -> pd.DataFrame:
 def explode_purpose(df: pd.DataFrame) -> pd.DataFrame:
     if 'purpose' not in df.columns:
         return df
-    # df['purpose'] = df['purpose'].str.replace( "default", 'heating_rv+heating_dhw+cooling+lighting+electrical_equipment+fans_and_pumps' )
     df = explode_on_plus(df, column_name='purpose')
 
     return df
 
 
 def explode_on_plus(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
-    if df[column_name].isnull().any():
+    if df[column_name].isna().any():
         raise ValueError(f"Dataframe '{column_name}' cannot be empty")
     df[column_name] = df[column_name].str.strip('+')
     df = df.assign(**{column_name: df[column_name].str.split(r"\++", regex=True)})

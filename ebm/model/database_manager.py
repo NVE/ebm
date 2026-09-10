@@ -8,12 +8,11 @@ import pandas as pd
 from loguru import logger
 
 from ebm import validators
+from ebm.definition_expansion import expand_grouped_definitions, collapse_years
 from ebm.energy_consumption import calibrate_heating_systems
-from ebm.input_filter import load_energy_need_improvements
 from ebm.model.building_category import BuildingCategory, expand_building_categories
 from ebm.model.column_operations import explode_building_category_column, explode_building_code_column, explode_unique_columns
 from ebm.model.data_classes import TEKParameters, YearRange
-from ebm.model.dataframemodels import EnergyNeedYearlyImprovements, PolicyImprovement, YearlyReduction
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.file_handler import FileHandler
 
@@ -375,22 +374,10 @@ class DatabaseManager:
             Dataframe containing yearly efficiency rates (%) for energy need improvements,
             per building category, tek and purpose.        
         """
-
-        year_range = YearRange(2020, 2050)
-
-        energy_need_original_condition_csv = self.file_handler.get_energy_req_original_condition()
-        building_code_parameters_csv = self.file_handler.get_building_code()
-        
-        building_categories = pd.DataFrame({'building_category': energy_need_original_condition_csv.building_category.unique()})
-        building_codes = building_code_parameters_csv[['building_code']]
         yearly_improvements = self.file_handler.get_energy_need_yearly_improvements()
-        improvements = EnergyNeedYearlyImprovements.validate(yearly_improvements)
 
-        df = load_energy_need_improvements(
-            building_categories=building_categories, building_codes=building_codes, yearly_improvements=improvements, year_range=year_range
-        ).rename(columns={'value': 'yearly_efficiency_improvement'})
+        df = expand_grouped_definitions(definitions=yearly_improvements).rename(columns={'value': 'yearly_efficiency_improvement'}).pipe(collapse_years)
 
-        # Move or remove function filter bellow
         return df.reset_index(drop=True)
 
 
@@ -405,9 +392,8 @@ class DatabaseManager:
             Dataframe containing total energy need improvement (%) in a policy period,
             per building category, tek and purpose.        
         """
-        en_improvements = self.file_handler.get_energy_need_yearly_improvements()
-        improvements = EnergyNeedYearlyImprovements.validate(en_improvements)
-        enp = PolicyImprovement.from_energy_need_yearly_improvements(improvements)
+        improvements = self.get_energy_need_yearly_improvements()
+        enp = improvements.assign(improvement_at_end_year=improvements['yearly_efficiency_improvement'])[improvements['function']=='improvement_at_end_year'].copy()
         return enp
 
     def get_holiday_home_fuelwood_consumption(self) -> pd.Series:

@@ -1,4 +1,5 @@
 import io
+import re
 import typing
 
 import pandas as pd
@@ -259,6 +260,16 @@ default,default,cooling,improvement_at_end_year,2023,0.0,2023,21
     assert actual_years == expected_years, f"Expected row count for {building_category}, {building_code}, {purpose} not found in result DataFrame"
 
 
+def test_expand_grouped_definitions_does_not_change_the_definitions_parameter():
+    input_data = pd.read_csv(io.StringIO(house_2tek_electrical_equipment), dtype=ENERGY_NEED_IMPROVEMENT_DTYPES)
+
+    original_copy = input_data.copy()
+
+    expand_grouped_definitions(input_data, drop_helper_columns=False)
+
+    pd.testing.assert_frame_equal(input_data, original_copy)
+
+
 @pytest.mark.parametrize(('selection', 'expected_years', 'expected_lineno'), [
     pytest.param(('apartment_block', 'TEK49', 'cooling'), (2020, 2021, 2022,), (2, 2, 2,), id='apartment_block-t49-cog'),
     pytest.param(('house', 'TEK49', 'heating_rv'), (2020, 2021, 2022, ), (3, 3, 3,), id='house-t49-hrv'),
@@ -383,6 +394,46 @@ def test_expand_grouped_definitions_drop_helper_columns_expected_columns():
     assert set(result.columns) == expected_columns, f"Expected columns {expected_columns}, but got {set(result.columns)}"
 
 
+def test_expand_grouped_definitions_raise_value_error_on_empty_definitions():
+    with pytest.raises(ValueError, match=f'Dataframe `definitions` is empty. Cannot expand grouped definitions.'):
+        expand_grouped_definitions(pd.DataFrame(), drop_helper_columns=True)
+
+@pytest.mark.parametrize(('columns', ), [
+    pytest.param(('building_category',), ),
+    pytest.param(('start_year',), ),
+    pytest.param(('end_year',), ),
+    pytest.param(('start_year', 'end_year'), ),
+])
+def test_expand_grouped_definitions_raise_value_error_when_missing_required_columns(columns: tuple[str]):
+    definitions = pd.read_csv(io.StringIO(nursing_home_2_periods))
+
+    expected_message = f'DataFrame `definitions` does not contain all required columns. Missing column: {columns[0]}'
+    if len(columns) > 1:
+        expected_message = f'DataFrame `definitions` does not contain all required columns. Missing columns: {", ".join(columns)}'
+    with pytest.raises(ValueError, match=expected_message):
+        expand_grouped_definitions(definitions.drop(columns=list(columns)), drop_helper_columns=True)
+
+
+def test_expand_grouped_definitions_raise_value_error_when_missing_grouping_columns():
+    definitions = pd.DataFrame({
+        'building_category': ['house', 'apartment_block'],
+        'column_a': ['a', 'a'],
+        'start_year': [2020, 2020],
+        'end_year': [2020, 2020],
+        'value': [1, 2],
+        'lineno': [2, 3],
+    })
+
+    expected_singular = 'DataFrame `definitions` does not contain all columns specified in `grouping_columns`. Missing columns: column_b.'
+    with pytest.raises(ValueError, match=expected_singular):
+        expand_grouped_definitions(definitions, grouping_columns=['building_category', 'column_a', 'column_b'])
+
+    expected_plural = re.escape('DataFrame `definitions` does not contain all columns specified in `grouping_columns`. Missing columns: column_a, column_b.')
+
+    with pytest.raises(ValueError, match=expected_plural):
+        expand_grouped_definitions(definitions.drop(columns=['column_a']), grouping_columns=['building_category', 'column_a', 'column_b'])
+
+
 def test_transform_with_clear_winner():
     csv_content = """building_category,building_code,purpose,function,start_year,value,end_year
 house+apartment_block,TEK49,lighting,yearly_reduction,2022,0.02,2023
@@ -424,10 +475,39 @@ def test_summarize_energy_need_improvement_conflicts(input_data: pd.DataFrame, c
     assert tuple(actual) == expected
 
 
-if __name__ == "__main__":
-    import sys
+@pytest.mark.parametrize(('input_data', 'columns', 'expected_message'), [
+    pytest.param(expanded(single_year), ('lineno', ),
+                 'Dataframe exploded_definition is missing lineno column(s)', id='single_year_no_duplicates_lineno'),
+    pytest.param(expanded(single_year), ( 'building_category', 'lineno'),
+                 'Dataframe exploded_definition is missing building_category, lineno column(s)', id='missing_building_category'),
+    pytest.param(expanded(single_year), ( 'building_code', 'purpose', 'function','year'),
+                 'Dataframe exploded_definition is missing building_code, purpose, function, year column(s)', id='missing_multiple_columns'),
+    pytest.param(expanded(house_tek17_electrical_equipment_dupe), ('lineno', ), 'Dataframe exploded_definition is missing lineno column(s)',
+                 id='house_tek17_electrical_equipment_dupe_lineno'),
+])
+def test_summarize_energy_need_improvement_raise_value_error_on_missing_columns_in_exploded_definition(
+        input_data: dict[str, pd.DataFrame], columns: tuple[str], expected_message: str):
+    expanded_definition = input_data.get('expanded').drop(columns=list(columns))
+    with pytest.raises(ValueError, match=re.escape(expected_message)):
+        summarize_energy_need_improvement_conflicts(expanded_definition, input_data.get('input'))
 
-    pytest.main([sys.argv[0]])
+
+@pytest.mark.parametrize(('input_data', 'columns', 'expected_message'), [
+    pytest.param(expanded(single_year), ('lineno', ), 'Dataframe original_definition is missing lineno column(s)', id='input_missing_lineno'),
+    pytest.param(expanded(single_year), ('purpose', ), 'Dataframe original_definition is missing purpose column(s)', id='input_missing_purpose'),
+    pytest.param(expanded(single_year), ('function', ), 'Dataframe original_definition is missing function column(s)', id='input_missing_function'),
+    pytest.param(expanded(single_year), ('building_category', 'lineno', ),
+                'Dataframe original_definition is missing building_category, lineno column(s)', id='input_missing_multiple'),
+    pytest.param(expanded(single_year), ('building_code', 'lineno', ),
+                 'Dataframe original_definition is missing building_code, lineno column(s)', id='input_missing_building_code'),
+    pytest.param(expanded(house_tek17_electrical_equipment_dupe), ('lineno', ),
+                 'Dataframe original_definition is missing lineno column(s)', id='house_tek17_electrical_equipment_dupe'),
+])
+def test_summarize_energy_need_improvement_raise_value_error_on_missing_columns_in_original_definition(
+        input_data: dict[str, pd.DataFrame], columns: tuple[str], expected_message: str):
+    original = input_data.get('input').drop(columns=list(columns))
+    with pytest.raises(ValueError, match=re.escape(expected_message)):
+        summarize_energy_need_improvement_conflicts(input_data.get('expanded'), original)
 
 
 def test_build_grouping_prefers_available_group_columns():
@@ -527,6 +607,31 @@ def test_select_groups_with_lowest_lineno_count_return_dataframe_with_expected_c
     result = df.pipe(select_groups_with_lowest_lineno_count)
 
     pd.testing.assert_frame_equal(result.reset_index(drop=True), expected.reset_index(drop=True))
+
+
+def test_select_groups_with_lowest_lineno_count_honours_by_grouping():
+    grouping = ['building_category', 'building_code', 'heating_systems', 'new_heating_systems']
+    df = pd.DataFrame(
+        [
+            ('office', 'TEK17', 'Gas', 'X', 2, 0.1),
+            ('hotel', 'TEK17', 'Gas', 'X', 2, 0.1),
+            ('office', 'TEK17', 'Gas', 'X', 3, 0.2),
+            ('office', 'TEK17', 'Electricity', 'Y', 4, 0.3),
+            ('hotel', 'TEK17', 'Electricity', 'Y', 4, 0.3),
+        ],
+        columns=[*grouping, 'lineno', 'value'],
+    )
+
+    result = select_groups_with_lowest_lineno_count(df, grouping_columns=grouping, filter_columns=False)
+
+    office_gas = result.query("building_category == 'office' and heating_systems == 'Gas'")
+    assert tuple(office_gas.lineno) == (3,), 'the most specific line must win its own group'
+
+    hotel_electricity = result.query("building_category == 'hotel' and heating_systems == 'Electricity'")
+    assert tuple(hotel_electricity.lineno) == (4,)
+
+    office_electricity = result.query("building_category == 'office' and heating_systems == 'Electricity'")
+    assert tuple(office_electricity.lineno) == (4,), 'office lost its Electricity -> Y definition'
 
 
 def test_group_dupes_on_dupes():
@@ -697,6 +802,7 @@ def test_group_duplicated_lineno_summary_merge_and_summarize_basic_line():
 
     pd.testing.assert_frame_equal(result.reset_index(drop=True), expected.reset_index(drop=True))
 
+
 def test_collapse_years():
     df = pd.DataFrame({
         'building_category': ['house', 'house', 'house', 'apartment_block'],
@@ -786,3 +892,9 @@ def test_collapse_years_accept_missing_start_or_end_year(missing_column):
     }).drop(columns=list(missing_column))
 
     pd.testing.assert_frame_equal(result.reset_index(drop=True), expected.reset_index(drop=True))
+
+
+if __name__ == "__main__":
+    import sys
+
+    pytest.main([sys.argv[0]])

@@ -37,8 +37,10 @@ def calculate_for_building_category(database_manager: DatabaseManager = None, ye
                                     energy_need_yearly_reduction=energy_need_yearly_reduction,
                                     years=YearRange(2020, 2050))
 
-def energy_need_improvements(energy_need_original_condition: pd.DataFrame, improvement_building_upgrade: pd.DataFrame,
-                             energy_need_improvements_policy: pd.DataFrame, energy_need_yearly_reduction: pd.DataFrame,
+def energy_need_improvements(energy_need_original_condition: pd.DataFrame,
+                             improvement_building_upgrade: pd.DataFrame,
+                             energy_need_improvements_policy: pd.DataFrame,
+                             energy_need_yearly_reduction: pd.DataFrame,
                              years) -> pd.DataFrame:
     """
     Calculates energy requirements for a single building category

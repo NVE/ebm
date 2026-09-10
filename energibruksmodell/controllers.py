@@ -7,11 +7,11 @@ from functools import wraps
 import pandas as pd
 
 from ebm.areaforecast.s_curve import calculate_s_curves
+from ebm.cmd.helpers import load_environment_from_dotenv, configure_loglevel
 from ebm.holiday_home_energy import HolidayHomeEnergy
 from ebm.model.area import calculate_all_area
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
-from ebm.model.dataframemodels import PolicyImprovement, YearlyReduction
 from ebm.model.energy_requirement import energy_need_improvements
 from ebm.model.file_handler import FileHandler
 
@@ -374,12 +374,15 @@ def calculate_energy_need(
     improvement_building_upgrade_csv = improvement_building_upgrade if improvement_building_upgrade is not None else dm.get_energy_req_reduction_per_condition()
 
     if improvements is not None:
-        energy_need_improvements_policy = PolicyImprovement.from_energy_need_yearly_improvements(improvements)
+        energy_need_improvements_policy = improvements[improvements['function']=='improvement_at_end_year']
+        energy_need_improvements_policy = energy_need_improvements_policy.assign(improvement_at_end_year=energy_need_improvements_policy.value)
     else:
         energy_need_improvements_policy = dm.get_energy_need_policy_improvement()
 
     if improvements is not None:
-        energy_need_yearly_reduction = YearlyReduction.from_energy_need_yearly_improvements(improvements)
+        energy_need_yearly_reduction = improvements[improvements['function'] == 'yearly_reduction']
+        energy_need_yearly_reduction = energy_need_yearly_reduction.assign(yearly_efficiency_improvement=energy_need_yearly_reduction.value)
+
     else:
         energy_need_yearly_reduction = dm.get_energy_need_yearly_improvements()
 
@@ -495,8 +498,14 @@ def run_model(input_directory: pathlib.Path | str | None=None, model_years: Year
 
 
 def main() -> None:
-    af = calculate_area_forecast(input_directory='kalibrert')
-    er: EbmResult = run_model(model_years=YearRange(2020, 2050), input_directory=pathlib.Path('kalibrert'))
+    load_environment_from_dotenv()
+    configure_loglevel()
+    input_directory = pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'kalibrert'))
+    start_year = int(os.environ.get('EBM_START_YEAR', 2020))
+    end_year = int(os.environ.get('EBM_END_YEAR', 2050))
+    af = calculate_area_forecast(input_directory=input_directory, years=YearRange(start_year, end_year))
+    
+    er: EbmResult = run_model(model_years=YearRange(start_year, end_year), input_directory=input_directory)
     print(
         af,
         er.energy_use_kwh,

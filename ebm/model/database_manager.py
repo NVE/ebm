@@ -8,7 +8,7 @@ import pandas as pd
 from loguru import logger
 
 from ebm import validators
-from ebm.definition_expansion import expand_grouped_definitions, collapse_years
+from ebm.definition_expansion import expand_definitions, collapse_years
 from ebm.energy_consumption import calibrate_heating_systems
 from ebm.model.building_category import BuildingCategory, expand_building_categories
 from ebm.model.column_operations import explode_building_category_column, explode_building_code_column, explode_unique_columns
@@ -376,7 +376,7 @@ class DatabaseManager:
         """
         yearly_improvements = self.file_handler.get_energy_need_yearly_improvements()
 
-        df = expand_grouped_definitions(definitions=yearly_improvements).rename(columns={'value': 'yearly_efficiency_improvement'}).pipe(collapse_years)
+        df = expand_definitions(definitions=yearly_improvements).rename(columns={'value': 'yearly_efficiency_improvement'}).pipe(collapse_years)
 
         return df.reset_index(drop=True)
 

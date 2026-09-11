@@ -8,7 +8,7 @@ import pytest
 from ebm.definition_expansion import (
     build_grouping,
     collapse_years,
-    expand_grouped_definitions,
+    expand_definitions,
     group_dupes_on_dupes,
     group_duplicated_lineno_summary,
     select_groups_with_lowest_lineno_count,
@@ -112,6 +112,10 @@ residential_building_category = """building_category,building_code,purpose,funct
 residential,TEK87,lighting,yearly_reduction,2030,0.02,2030
 """.strip()
 
+residential_office = """building_category,building_code,purpose,function,start_year,value,end_year
+office+residential+office,TEK87,lighting,yearly_reduction,2022,0.02,2022
+""".strip()
+
 non_residential_building_category = """building_category,building_code,purpose,function,start_year,value,end_year
 non_residential,TEK97,lighting,yearly_reduction,2030,0.02,2030
 """.strip()
@@ -188,13 +192,14 @@ hospital,TEK87,default,yearly_reduction,2030,0.02,2030
 
     pytest.param(default_purpose, 'purpose', DEFAULT_PURPOSE, id='replace_default_purpose'),
     pytest.param(default_purpose, 'building_category', ('hospital',)*6, id='replace_default_purpose_building_category'),
+    pytest.param(residential_office, 'building_category', ('apartment_block', 'house', 'office',), id='combine_residential_and_building_category'),
 ])
-def test_expand_grouped_definitions_on_energy_need_improvements_columns_have_expected_values(input_data, column, expected):
+def test_expand_definitions_on_energy_need_improvements_columns_have_expected_values(input_data, column, expected):
     single_csv = io.StringIO(input_data)
 
     input_data = pd.read_csv(single_csv, dtype=ENERGY_NEED_IMPROVEMENT_DTYPES)
 
-    result = expand_grouped_definitions(input_data, drop_helper_columns=False)
+    result = expand_definitions(input_data, drop_helper_columns=False)
     assert column in result.columns, f"Column '{column}' not found in result DataFrame"
     actual = result[column].tolist()
     assert tuple(actual) == expected
@@ -222,7 +227,7 @@ def test_expand_grouped_definitions_on_energy_need_improvements_columns_have_exp
     pytest.param(('sports', 'TEK49', 'cooling', 'yearly_reduction'), (2023,), (19,), id='sports-t49-cog'),
     pytest.param(('sports', 'TEK10', 'cooling', 'yearly_reduction'), (2023,), (20,), id='sports-t10-cog'),
 ])
-def test_expand_grouped_definitions_keeps_expected_definitions(selection, expected_years, expected_lineno):
+def test_expand_definitions_keeps_expected_definitions(selection, expected_years, expected_lineno):
     input_csv = io.StringIO("""building_category,building_code,purpose,function,start_year,value,end_year,lineno
 residential,default,heating_rv,yearly_reduction,2021,0.8,2022,2
 default,PRE_TEK49,lighting,yearly_reduction,2021,0.7,2022,3
@@ -250,7 +255,7 @@ default,default,cooling,improvement_at_end_year,2023,0.0,2023,21
 
     building_category, building_code, purpose, function =selection
 
-    result = expand_grouped_definitions(input_data, drop_helper_columns=False)
+    result = expand_definitions(input_data, drop_helper_columns=False)
     query = f"building_category == '{building_category}' and building_code == '{building_code}' and purpose == '{purpose}' and function == '{function}'"
 
     actual_years = tuple(result.query(query).year)
@@ -260,12 +265,12 @@ default,default,cooling,improvement_at_end_year,2023,0.0,2023,21
     assert actual_years == expected_years, f"Expected row count for {building_category}, {building_code}, {purpose} not found in result DataFrame"
 
 
-def test_expand_grouped_definitions_does_not_change_the_definitions_parameter():
+def test_expand_definitions_does_not_change_the_definitions_parameter():
     input_data = pd.read_csv(io.StringIO(house_2tek_electrical_equipment), dtype=ENERGY_NEED_IMPROVEMENT_DTYPES)
 
     original_copy = input_data.copy()
 
-    expand_grouped_definitions(input_data, drop_helper_columns=False)
+    expand_definitions(input_data, drop_helper_columns=False)
 
     pd.testing.assert_frame_equal(input_data, original_copy)
 
@@ -279,7 +284,7 @@ def test_expand_grouped_definitions_does_not_change_the_definitions_parameter():
     pytest.param(('retail', 'TEK17', 'lighting'), (2020, 2021, 2022), (5, 5, 5,), id='retail-t17-lig'),
     pytest.param(('retail', 'TEK17', 'electrical_equipment'), (2020, 2021, 2022), (6, 6, 6,), id='retail-t17-elt'),
 ])
-def test_expand_grouped_definitions_keeps_expected_behaviour_factor_definitions(selection, expected_years, expected_lineno):
+def test_expand_definitions_keeps_expected_behaviour_factor_definitions(selection, expected_years, expected_lineno):
     input_csv = io.StringIO("""building_category,building_code,purpose,behaviour_factor
 residential,default,default,1
 house,PRE_TEK49+TEK69+TEK87+TEK49+TEK97,default,0.85
@@ -293,7 +298,7 @@ retail,default,electrical_equipment,2
 
     building_category, building_code, purpose =selection
 
-    result = expand_grouped_definitions(input_data, drop_helper_columns=False)
+    result = expand_definitions(input_data, drop_helper_columns=False)
     query = f"building_category == '{building_category}' and building_code == '{building_code}' and purpose == '{purpose}'"
 
     actual_years = tuple(result.query(query).year)
@@ -312,7 +317,7 @@ retail,default,electrical_equipment,2
     pytest.param(('apartment_block', 'TEK49', 'lighting'), (2020, 2021,), (7, 7, ), id='apartment_block-t49-lig'),
     pytest.param(('apartment_block', 'TEK07', 'heating_rv'), (2020, 2021,), (12, 12, ), id='apartment_block-p49-hrv'),
 ])
-def test_expand_grouped_definitions_keeps_expected_energy_need_original_condition_definitions(selection, expected_years, expected_lineno):
+def test_expand_definitions_keeps_expected_energy_need_original_condition_definitions(selection, expected_years, expected_lineno):
     input_csv = io.StringIO("""building_category,building_code,purpose,kwh_m2
 apartment_block,PRE_TEK49,cooling,0.0
 apartment_block,PRE_TEK49,electrical_equipment,17.52
@@ -333,7 +338,7 @@ default,default,default,-99
 
     building_category, building_code, purpose =selection
 
-    result = expand_grouped_definitions(input_data, drop_helper_columns=False)
+    result = expand_definitions(input_data, drop_helper_columns=False)
     query = f"building_category == '{building_category}' and building_code == '{building_code}' and purpose == '{purpose}'"
 
     actual_years = tuple(result.query(query).year)
@@ -352,7 +357,7 @@ default,default,default,-99
     pytest.param(('apartment_block', 'TEK17', 'Electricity', 'DH'), (2024, 2050,), 8, id='house-t17-el2dh'),
     pytest.param(('apartment_block', 'TEK17', 'Electricity', 'HP Central heating - Electric boiler'), (2024, 2050,), 9, id='house-t17-el2hpceb'),
 ])
-def test_expand_grouped_definitions_keeps_expected_heating_system_forecast_definitions(selection, expected_years, expected_lineno):
+def test_expand_definitions_keeps_expected_heating_system_forecast_definitions(selection, expected_years, expected_lineno):
     input_csv = io.StringIO("""building_category,building_code,heating_systems,new_heating_systems,start_year,end_year,start_value,end_value
 non_residential,default,Gas,HP Central heating - Electric boiler,2024,2030,0.1,0.5
 non_residential,default,Gas,Electric boiler,2024,2030,0.1,0.5
@@ -369,8 +374,8 @@ apartment_block,default,Electricity,HP Central heating - Electric boiler,2024,20
 
     building_category, building_code, heating_systems, new_heating_systems =selection
 
-    result = expand_grouped_definitions(input_data, drop_helper_columns=False,
-                                        grouping_columns=['building_category', 'building_code', 'heating_systems', 'new_heating_systems'])
+    result = expand_definitions(input_data, drop_helper_columns=False,
+                                grouping_columns=['building_category', 'building_code', 'heating_systems', 'new_heating_systems'])
     selection_query = f"""
     building_category == '{building_category}'
     and building_code == '{building_code}'
@@ -387,16 +392,16 @@ apartment_block,default,Electricity,HP Central heating - Electric boiler,2024,20
         f"Expected row count for {building_category}, {building_code}, {heating_systems} {new_heating_systems} not found in result DataFrame"
 
 
-def test_expand_grouped_definitions_drop_helper_columns_expected_columns():
-    result = expand_grouped_definitions(pd.read_csv(io.StringIO(nursing_home_2_periods)), drop_helper_columns=True)
+def test_expand_definitions_drop_helper_columns_expected_columns():
+    result = expand_definitions(pd.read_csv(io.StringIO(nursing_home_2_periods)), drop_helper_columns=True)
     expected_columns = {'building_category', 'building_code', 'purpose', 'function', 'start_year', 'value', 'end_year',
                         'lineno', 'year', 'dupe'}
     assert set(result.columns) == expected_columns, f"Expected columns {expected_columns}, but got {set(result.columns)}"
 
 
-def test_expand_grouped_definitions_raise_value_error_on_empty_definitions():
+def test_expand_definitions_raise_value_error_on_empty_definitions():
     with pytest.raises(ValueError, match=f'Dataframe `definitions` is empty. Cannot expand grouped definitions.'):
-        expand_grouped_definitions(pd.DataFrame(), drop_helper_columns=True)
+        expand_definitions(pd.DataFrame(), drop_helper_columns=True)
 
 @pytest.mark.parametrize(('columns', ), [
     pytest.param(('building_category',), ),
@@ -404,17 +409,17 @@ def test_expand_grouped_definitions_raise_value_error_on_empty_definitions():
     pytest.param(('end_year',), ),
     pytest.param(('start_year', 'end_year'), ),
 ])
-def test_expand_grouped_definitions_raise_value_error_when_missing_required_columns(columns: tuple[str]):
+def test_expand_definitions_raise_value_error_when_missing_required_columns(columns: tuple[str]):
     definitions = pd.read_csv(io.StringIO(nursing_home_2_periods))
 
     expected_message = f'DataFrame `definitions` does not contain all required columns. Missing column: {columns[0]}'
     if len(columns) > 1:
         expected_message = f'DataFrame `definitions` does not contain all required columns. Missing columns: {", ".join(columns)}'
     with pytest.raises(ValueError, match=expected_message):
-        expand_grouped_definitions(definitions.drop(columns=list(columns)), drop_helper_columns=True)
+        expand_definitions(definitions.drop(columns=list(columns)), drop_helper_columns=True)
 
 
-def test_expand_grouped_definitions_raise_value_error_when_missing_grouping_columns():
+def test_expand_definitions_raise_value_error_when_missing_grouping_columns():
     definitions = pd.DataFrame({
         'building_category': ['house', 'apartment_block'],
         'column_a': ['a', 'a'],
@@ -426,12 +431,77 @@ def test_expand_grouped_definitions_raise_value_error_when_missing_grouping_colu
 
     expected_singular = 'DataFrame `definitions` does not contain all columns specified in `grouping_columns`. Missing columns: column_b.'
     with pytest.raises(ValueError, match=expected_singular):
-        expand_grouped_definitions(definitions, grouping_columns=['building_category', 'column_a', 'column_b'])
+        expand_definitions(definitions, grouping_columns=['building_category', 'column_a', 'column_b'])
 
     expected_plural = re.escape('DataFrame `definitions` does not contain all columns specified in `grouping_columns`. Missing columns: column_a, column_b.')
 
     with pytest.raises(ValueError, match=expected_plural):
-        expand_grouped_definitions(definitions.drop(columns=['column_a']), grouping_columns=['building_category', 'column_a', 'column_b'])
+        expand_definitions(definitions.drop(columns=['column_a']), grouping_columns=['building_category', 'column_a', 'column_b'])
+
+
+nan_building_category = """building_category,building_code,purpose,function,start_year,value,end_year
+,TEK87,lighting,yearly_reduction,2022,0.02,2022
+""".strip()
+
+nan_and_valid_building_category = """building_category,building_code,purpose,function,start_year,value,end_year
+,TEK87,lighting,yearly_reduction,2022,0.02,2022
+house,TEK87,lighting,yearly_reduction,2022,0.03,2022
+""".strip()
+
+
+@pytest.mark.parametrize(('input_data', 'expected_dtype', 'expected_message'), [
+    pytest.param(nan_building_category, 'float64',
+                 re.escape('DataFrame `definitions` column `building_category`(float64). Expected dtype string.'),
+                 id='all_values_nan_column_is_float'),
+    pytest.param(nan_and_valid_building_category, 'str', re.escape("Dataframe 'building_category' cannot be empty"),
+                 id='some_values_nan_column_is_str'),
+])
+def test_expand_definitions_raises_on_nan_building_category(
+        input_data: str, expected_dtype: str, expected_message: str):
+    """A missing building_category always raises ValueError, with a message that depends on dtype.
+
+    When every value is missing pandas types the column as float64, which is
+    rejected by the dtype check. A mix of missing and present values gives a
+    string column, which reaches the emptiness guard in `explode_on_plus`.
+    """
+    definitions = pd.read_csv(io.StringIO(input_data))
+    assert definitions['building_category'].dtype == expected_dtype
+    assert definitions['building_category'].isna().any()
+
+    with pytest.raises(ValueError, match=expected_message):
+        expand_definitions(definitions)
+
+
+nan_function = """building_category,building_code,purpose,function,start_year,value,end_year
+house,TEK87,lighting,,2022,0.02,2022
+""".strip()
+
+nan_and_valid_function = """building_category,building_code,purpose,function,start_year,value,end_year
+house,TEK87,lighting,,2022,0.02,2022
+apartment_block,TEK87,lighting,yearly_reduction,2022,0.03,2022
+""".strip()
+
+
+def test_expand_definitions_raises_when_all_function_values_are_nan():
+    """An all NaN `function` column is typed float64 and rejected by the dtype check."""
+    definitions = pd.read_csv(io.StringIO(nan_function))
+    assert definitions['function'].dtype == 'float64'
+
+    expected_message = re.escape('DataFrame `definitions` column `function`(float64). Expected dtype string.')
+    with pytest.raises(ValueError, match=expected_message):
+        expand_definitions(definitions)
+
+
+def test_expand_definitions_keep_rows_with_nan_function():
+    definitions = pd.read_csv(io.StringIO(nan_and_valid_function))
+    assert definitions['function'].dtype == 'str'
+    assert definitions['function'].isna().sum() == 1
+
+    result = expand_definitions(definitions)
+
+    assert result['building_category'].tolist() == ['apartment_block', 'house']
+
+    assert result['value'].tolist() == [0.03, 0.02]
 
 
 def test_transform_with_clear_winner():
@@ -442,7 +512,7 @@ house+apartment_block,TEK49,lighting,yearly_reduction,2022,0.04,2023"""
 
     df = pd.read_csv(io.StringIO(csv_content), dtype=ENERGY_NEED_IMPROVEMENT_DTYPES)
 
-    actual = expand_grouped_definitions(df)
+    actual = expand_definitions(df)
     assert len(actual) == 6, 'Expected 6 rows in result'  # 3 rows expanded to 2 years each
     assert not actual.query("lineno==3").dupe.all()
 
@@ -452,7 +522,7 @@ def expanded(energy_need_improvements_csv):
     input_data = pd.read_csv(single_csv, dtype=ENERGY_NEED_IMPROVEMENT_DTYPES)
 
     return {'input': input_data.pipe(add_lineno).reset_index(drop=True),
-            'expanded': expand_grouped_definitions(input_data, drop_helper_columns=True)}
+            'expanded': expand_definitions(input_data, drop_helper_columns=True)}
 
 
 @pytest.mark.parametrize(('input_data', 'column', 'expected'), [

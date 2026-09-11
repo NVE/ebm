@@ -203,6 +203,71 @@ def test_replace_building_category_default_returns_df_if_column_missing():
     pd.testing.assert_frame_equal(result, df)
 
 
+@pytest.mark.parametrize(('building_category', 'expected_building_categories'),
+    [
+    pytest.param('house',
+                     ['house'],
+                     id='not_replacing_house'),
+    pytest.param('residential',
+                     ['house+apartment_block'],
+                     id='replace_residential'),
+    pytest.param('non_residential',
+                     ['kindergarten+school+university+office+retail+hotel+hospital+nursing_home+culture+sports+storage_repairs'],
+                     id='replace_non_residential'),
+    pytest.param('non_residential+residential',
+                     ['kindergarten+school+university+office+retail+hotel+hospital+nursing_home+culture+sports+storage_repairs+house+apartment_block'],
+                     id='replace_non_residential_and_residential'),
+    pytest.param('default',
+                     ['house+apartment_block+kindergarten+school+university+office+retail+hotel+hospital+nursing_home+culture+sports+storage_repairs'],
+                     id='replace_default'),
+    pytest.param('default+other',
+                     ['house+apartment_block+kindergarten+school+university+office+retail+hotel+hospital+nursing_home+culture+sports+storage_repairs+other'],
+                     id='replace_default_and_other'),
+    pytest.param('residential+office',
+                     ['house+apartment_block+office'],
+                     id='replace_residential_and_keep_office'),
+    pytest.param('retail+residential+school',
+                     ['retail+house+apartment_block+school'],
+                     id='replace_residential_and_keep_retail_and_school'),
+    ])
+def test_replace_building_category_replace_residential(building_category, expected_building_categories):
+    df = pd.DataFrame({'building_category': building_category, 'lineno': [2], 'value': [0.5]})
+    result = replace_building_category_default(df.copy())
+
+    assert result.building_category.to_list() == expected_building_categories
+
+@pytest.mark.parametrize(('building_code', 'expected_building_codes'),[
+    pytest.param('TEK17', ['TEK17'], id='not_replacing_tek17'),
+    pytest.param('TEK10', ['TEK10'], id='not_replacing_tek10'),
+    pytest.param('PRE_TEK49', ['PRE_TEK49'], id='not_replacing_pretek49'),
+    pytest.param('default', ['PRE_TEK49+TEK49+TEK69+TEK87+TEK97+TEK07+TEK10+TEK17'], id='replace_default'),
+    pytest.param('TEK00+default+TEK27', ['TEK00+PRE_TEK49+TEK49+TEK69+TEK87+TEK97+TEK07+TEK10+TEK17+TEK27'], id='replace_default_when_surrounded'),
+])
+def test_replace_building_category_replace_default(building_code, expected_building_codes):
+    df = pd.DataFrame({'building_category': ['house'], 'building_code': [building_code], 'lineno': [2], 'value': [0.5]})
+    result = replace_building_code_default(df.copy())
+
+    assert result['building_code'].to_list() == expected_building_codes
+
+
+@pytest.mark.parametrize(('purpose', 'expected_purpose'),[
+    pytest.param('heating_rv', ['heating_rv'], id='not_replacing_heating_rv'),
+    pytest.param('heating_dhw', ['heating_dhw'], id='not_replacing_heating_dhw'),
+    pytest.param('cooling', ['cooling'], id='not_replacing_cooling'),
+    pytest.param('lighting', ['lighting'], id='not_replacing_lighting'),
+    pytest.param('electrical_equipment', ['electrical_equipment'], id='not_replacing_electrical_equipment'),
+    pytest.param('fans_and_pumps', ['fans_and_pumps'], id='not_replacing_fans_and_pumps'),
+    pytest.param('default', ['heating_rv+heating_dhw+cooling+lighting+electrical_equipment+fans_and_pumps'], id='replace_default'),
+    pytest.param('FOO+default+BAR', ['FOO+heating_rv+heating_dhw+cooling+lighting+electrical_equipment+fans_and_pumps+BAR'],
+                 id='replace_default_when_surrounded'),
+])
+def test_replace_purpose_replace_default(purpose, expected_purpose):
+    df = pd.DataFrame({'building_category': ['house'], 'purpose': [purpose], 'lineno': [2], 'value': [0.5]})
+    result = replace_purpose_default(df.copy())
+
+    assert result['purpose'].to_list() == expected_purpose
+
+
 def test_replace_purpose_default_returns_df_if_column_missing():
     df = pd.DataFrame({"lineno": [2], "value": [0.5]})
     result = replace_purpose_default(df.copy())

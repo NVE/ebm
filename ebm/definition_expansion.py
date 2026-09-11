@@ -8,7 +8,99 @@ def add_lineno(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def expand_grouped_definitions(definitions: pd.DataFrame, *, grouping_columns: list[str] | None=None, drop_helper_columns :bool=True) -> pd.DataFrame:
+def expand_definitions(definitions: pd.DataFrame, *, grouping_columns: list[str] | None=None, drop_helper_columns :bool=True) -> pd.DataFrame:
+    """
+    Expand compact, grouped definitions into one row per group and year.
+
+    Definitions are authored compactly: a single line may target several building
+    categories, building codes or purposes at once by joining them with ``+``
+    (``'house+apartment_block'``) or by using an alias (``'default'``,
+    ``'residential'``, ``'non_residential'``), and it covers a year range rather
+    than a single year. This function resolves aliases, explodes the grouped
+    columns and the year range, and applies the precedence rule that decides
+    which line wins when several lines target the same group.
+
+    Parameters
+    ----------
+    definitions : pd.DataFrame
+        Grouped definitions, typically one row per line of a user maintained CSV.
+        Must contain ``building_category`` and the columns named by
+        `grouping_columns`, plus ``start_year`` and ``end_year``. If a ``lineno``
+        column is absent it is added, numbering rows from 2 so the values match
+        the line numbers of the source file (line 1 being the header).
+    grouping_columns : list[str], optional
+        Columns that together identify what a definition applies to. Defaults to
+        whichever of ``building_category``, ``building_code``, ``purpose`` and
+        ``function`` are present. Pass an explicit list for definitions keyed on
+        other columns, for example
+        ``['building_category', 'building_code', 'heating_systems', 'new_heating_systems']``.
+    drop_helper_columns : bool, default True
+        If True, drop the intermediate scoring columns ``score`` and
+        ``lineno_count`` from the result. The ``lineno``, ``year`` and ``dupe``
+        columns are returned in both cases.
+
+    Returns
+    -------
+    pd.DataFrame
+        One row per combination of `grouping_columns` and year, with a fresh
+        ``RangeIndex``. Adds ``lineno`` (source line the row came from), ``year``
+        (a single year taken from the ``start_year``..``end_year`` range, which
+        are both retained) and ``dupe`` (True when several source lines remain in
+        conflict for the same group and year). All other input columns are
+        carried through unchanged.
+
+    Raises
+    ------
+    ValueError
+        If `definitions` is empty, if ``building_category`` is missing, if any
+        column in `grouping_columns` is missing, if ``start_year`` or
+        ``end_year`` is missing, if any ``start_year`` exceeds its ``end_year``,
+        or if a column being exploded contains missing values.
+
+    See Also
+    --------
+    collapse_years : Inverse operation, collapsing the per year rows back into ranges.
+    summarize_energy_need_improvement_conflicts : Report the lines behind rows flagged by ``dupe``.
+
+    Notes
+    -----
+    Precedence is "most specific wins": after exploding, each source line is
+    scored by how many rows it produced, and for every group only the rows from
+    the line with the fewest matches are kept. A line listing a single building
+    category therefore overrides a ``default`` line for that category, while
+    leaving every other category untouched. Lines that tie on specificity both
+    survive and are flagged with ``dupe``.
+
+    `definitions` is not modified.
+
+    Examples
+    --------
+    A ``residential`` default covering all purposes, overridden for house lighting:
+
+    >>> import pandas as pd
+    >>> definitions = pd.DataFrame({
+    ...     'building_category': ['residential', 'house'],
+    ...     'building_code': ['TEK17', 'TEK17'],
+    ...     'purpose': ['default', 'lighting'],
+    ...     'start_year': [2020, 2020],
+    ...     'end_year': [2021, 2021],
+    ...     'value': [1.0, 0.85],
+    ... })
+    >>> expanded = expand_definitions(definitions)
+    >>> expanded.shape
+    (24, 9)
+
+    The house lighting rows come from line 3 and carry its value, while the
+    remaining 22 rows come from the ``residential`` default on line 2:
+
+    >>> expanded.query("building_category == 'house' and purpose == 'lighting'")[
+    ...     ['building_category', 'building_code', 'purpose', 'year', 'value', 'lineno']
+    ... ]
+       building_category building_code   purpose  year  value  lineno
+    22             house         TEK17  lighting  2020   0.85       3
+    23             house         TEK17  lighting  2021   0.85       3
+
+    """
     if definitions.empty:
         raise ValueError('Dataframe `definitions` is empty. Cannot expand grouped definitions.')
     missing_columns = [c for c in ['building_category', 'start_year', 'end_year'] if c not in definitions.columns]
@@ -26,6 +118,13 @@ def expand_grouped_definitions(definitions: pd.DataFrame, *, grouping_columns: l
                         f'Missing columns: {", ".join(missing_grouping_columns)}.')
         raise ValueError(error_message)
 
+    wrong_dtype = [(c, definitions[c].dtype) for c in group_by if not pd.api.types.is_string_dtype(definitions[c])]
+    if wrong_dtype:
+        plural = "columns" if len(wrong_dtype)!=1 else "column"
+        columns = ", ".join(f"`{c}`({dtype})" for c, dtype in wrong_dtype)
+        error_message = f'DataFrame `definitions` {plural} {columns}. Expected dtype string.'
+        raise ValueError(error_message)
+
     stages = [
         (add_lineno, ),
         (replace_building_category_default, ),
@@ -34,12 +133,12 @@ def expand_grouped_definitions(definitions: pd.DataFrame, *, grouping_columns: l
         (explode_building_category, ),
         (explode_building_code, ),
         (explode_purpose, ),
-        #(lambda d: d.reset_index(drop=True), ),
         (select_groups_with_lowest_lineno_count, {'grouping_columns': group_by, 'filter_columns': drop_helper_columns}),
         (explode_years, ),
         (mark_duplicates, {'grouping_columns': group_by}),
     ]
-    result = definitions
+    result = definitions.copy() # work on copy (pandas before 3)
+
     for i, stage in enumerate(stages):
         stage_function, *parameters = stage
         result = result.pipe(stage_function, **parameters[0]) if parameters else result.pipe(stage_function)
@@ -107,6 +206,8 @@ def explode_purpose(df: pd.DataFrame) -> pd.DataFrame:
 
 def explode_on_plus(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
     if df[column_name].isna().any():
+        warning_msg = f"Dataframe '{column_name}' contains {df[column_name].isna().sum()} NaN values"
+        logger.warning(warning_msg)
         msg = f"Dataframe '{column_name}' cannot be empty"
         raise ValueError(msg)
     df[column_name] = df[column_name].str.strip('+')
@@ -141,15 +242,15 @@ def explode_years(df: pd.DataFrame) -> pd.DataFrame:
 def replace_building_category_default(df: pd.DataFrame) -> pd.DataFrame:
     if 'building_category' not in df.columns:
         return df
-    df["building_category"] = df["building_category"].replace(
+    df["building_category"] = df["building_category"].str.replace(
         "default",
         "house+apartment_block+kindergarten+school+university+office+retail+hotel+hospital+nursing_home+culture+sports+storage_repairs",
     )
-    df["building_category"] = df["building_category"].replace(
+    df["building_category"] = df["building_category"].str.replace(
         "non_residential",
         "kindergarten+school+university+office+retail+hotel+hospital+nursing_home+culture+sports+storage_repairs",
     )
-    df["building_category"] = df["building_category"].replace(
+    df["building_category"] = df["building_category"].str.replace(
         "residential", "house+apartment_block",
     )
     return df
@@ -158,7 +259,7 @@ def replace_building_category_default(df: pd.DataFrame) -> pd.DataFrame:
 def replace_building_code_default(df: pd.DataFrame) -> pd.DataFrame:
     if "building_code" not in df.columns:
         return df
-    df["building_code"] = df["building_code"].replace(
+    df["building_code"] = df["building_code"].str.replace(
         "default", "PRE_TEK49+TEK49+TEK69+TEK87+TEK97+TEK07+TEK10+TEK17",
     )
     return df
@@ -167,7 +268,7 @@ def replace_building_code_default(df: pd.DataFrame) -> pd.DataFrame:
 def replace_purpose_default(df: pd.DataFrame) -> pd.DataFrame:
     if "purpose" not in df.columns:
         return df
-    df["purpose"] = df["purpose"].replace(
+    df["purpose"] = df["purpose"].str.replace(
         "default",
         "heating_rv+heating_dhw+cooling+lighting+electrical_equipment+fans_and_pumps",
     )
@@ -183,7 +284,7 @@ def add_lineno_count(df: pd.DataFrame, grouping_columns: list[str] | None=None) 
 def filter_fewest_lineno_matches(df: pd.DataFrame, grouping_columns: list[str] | None=None) -> pd.DataFrame:
     by_grouping = grouping_columns if grouping_columns else build_grouping(df)
     scored = df.assign(score=-df['lineno_count'])
-    q= scored.groupby(by=by_grouping, as_index=False).agg(score=('score', 'max')).merge(scored, on=[*by_grouping, 'score'])
+    q= scored.groupby(by=by_grouping, as_index=False, dropna=False).agg(score=('score', 'max')).merge(scored, on=[*by_grouping, 'score'])
     return q
 
 

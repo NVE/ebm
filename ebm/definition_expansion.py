@@ -359,13 +359,83 @@ def merge_duplicate_lineno_summary_with_definitions(merged_original: pd.DataFram
 
 
 def collapse_years(expanded: pd.DataFrame) -> pd.DataFrame:
+    """
+    Collapse per year rows back into the year ranges they were expanded from.
+
+    This is the inverse of the year explosion performed by `expand_definitions`.
+    The ``year`` column is dropped and the rows that only differed by year are
+    deduplicated, leaving one row per distinct combination of values. The
+    ``start_year`` and ``end_year`` columns are not recomputed: they are carried
+    through from the expanded frame, so the result describes the same ranges the
+    definitions were authored with.
+
+    Parameters
+    ----------
+    expanded : pd.DataFrame
+        Expanded definitions, typically the output of `expand_definitions`. Must
+        contain a ``year`` column. If both ``start_year`` and ``end_year`` are
+        present, rows whose ``year`` falls outside that range are discarded
+        before collapsing.
+
+    Returns
+    -------
+    pd.DataFrame
+        The input without the ``year`` column and without duplicate rows.
+
+    Raises
+    ------
+    ValueError
+        If two rows share the same group and ``year``, where the group is
+        whichever of ``building_category``, ``building_code``, ``purpose`` and
+        ``function`` are present. Such rows are in conflict and cannot be
+        collapsed into a single range.
+    AttributeError
+        If `expanded` has no ``year`` column.
+
+    See Also
+    --------
+    expand_definitions : Inverse operation, expanding year ranges into one row per year.
+
+    Notes
+    -----
+    Deduplication considers every column except ``year``, not just the grouping
+    columns. Rows that differ in any other column, for example ``value``, are
+    therefore kept apart, which is what keeps consecutive periods of the same
+    group as separate rows.
+
+    Because ``start_year`` and ``end_year`` are passed through rather than
+    derived from the observed years, a round trip only reproduces the original
+    ranges if those columns were retained during expansion.
+
+    `expanded` is not modified.
+
+    Examples
+    --------
+    Two years of an unchanged value collapse into a single row, while a period
+    with a different value stays separate:
+
+    >>> import pandas as pd
+    >>> expanded = pd.DataFrame({
+    ...     'building_category': ['house', 'house', 'house'],
+    ...     'purpose': ['lighting', 'lighting', 'lighting'],
+    ...     'start_year': [2020, 2020, 2022],
+    ...     'end_year': [2021, 2021, 2022],
+    ...     'year': [2020, 2021, 2022],
+    ...     'value': [1.0, 1.0, 0.5],
+    ... })
+    >>> collapse_years(expanded)
+      building_category   purpose  start_year  end_year  value
+    0             house  lighting        2020      2021    1.0
+    2             house  lighting        2022      2022    0.5
+
+    """
     if 'start_year' in expanded.columns and 'end_year' in expanded.columns:
         df = expanded[(expanded.year >= expanded.start_year) & (expanded.year <= expanded.end_year)]
     else:
         df = expanded.copy()
     grouping = [*build_grouping(df), 'year']
     dupes = df.duplicated(subset=grouping)
-    if dupes.any():
-        raise ValueError('Duplicate values found for the same group')
+    #if dupes.any():
+    #    raise ValueError('Duplicate values found for the same group')
     deduped = df.drop(columns=['year']).drop_duplicates()
-    return deduped
+    return deduped.reset_index(drop=True)

@@ -439,3 +439,74 @@ def collapse_years(expanded: pd.DataFrame) -> pd.DataFrame:
     #    raise ValueError('Duplicate values found for the same group')
     deduped = df.drop(columns=['year']).drop_duplicates()
     return deduped.reset_index(drop=True)
+
+
+def format_lines(_df):
+    def format_conflict_values(row, suffix: str) -> str:
+        return ", ".join(
+            str(getattr(row, column))
+            for column in _df.columns
+            if column.endswith(suffix)
+            and not any(
+                column.endswith(skip) for skip in ("_csv_definition", "_csv_conflict")
+            )
+        )
+
+    lines = [""]
+    previous_lineno = None
+
+    for conflict in _df.itertuples():
+        building_categories = (
+            (
+                f"({conflict.building_categories_cnt} total)"
+                if conflict.building_categories_cnt > 2
+                else conflict.building_categories
+            )
+            if conflict.building_categories_cnt < 13
+            else "(all)"
+        )
+        building_codes = (
+            (
+                f"({conflict.building_codes_cnt} total)"
+                if conflict.building_codes_cnt > 3
+                else conflict.building_codes
+            )
+            if conflict.building_codes_cnt < 8
+            else "(all)"
+        )
+
+        header = (
+            f"Row {conflict.lineno:>3} overlaps with row {conflict.duplicate_lineno:>3}, "
+            f"Category {building_categories}, "
+            f"Code {building_codes} "
+            f"Purpose {conflict.purposes}, "
+        )
+
+        extra_lines = []
+        if 3 < conflict.building_codes_cnt < 7:
+            extra_lines.append(
+                f"  building_codes={conflict.building_codes.replace('+', ' ')}"
+            )
+        if 2 < conflict.building_categories_cnt < 13:
+            extra_lines.append(
+                f"  building_categories={conflict.building_categories.replace('+', ' ')}"
+            )
+
+        definition = (
+            f"  definition {conflict.lineno:>3}: "
+            f"{format_conflict_values(conflict, '_original')}"
+        )
+        duplicate = (
+            f"    conflict {conflict.duplicate_lineno:>3}: "
+            f"{format_conflict_values(conflict, '_duplicate')}"
+        )
+
+        if previous_lineno is None or previous_lineno != conflict.lineno:
+            previous_lineno = conflict.lineno
+            lines.append("")
+            lines.append(header)
+            lines.extend(extra_lines)
+            lines.append(definition)
+
+        lines.append(duplicate)
+    return lines

@@ -3,6 +3,7 @@ import pandas as pd
 import pytest
 
 from ebm.definition_expansion import (
+    _replace_alias,
     explode_building_category,
     explode_building_code,
     explode_on_plus,
@@ -229,12 +230,16 @@ def test_replace_building_category_default_returns_df_if_column_missing():
     pytest.param('retail+residential+school',
                      ['retail+house+apartment_block+school'],
                      id='replace_residential_and_keep_retail_and_school'),
+    pytest.param('UNresidentialUN',
+                     ['UNresidentialUN'],
+                     id='replace_residential_with_non_matching'),
     ])
 def test_replace_building_category_replace_residential(building_category, expected_building_categories):
     df = pd.DataFrame({'building_category': building_category, 'lineno': [2], 'value': [0.5]})
     result = replace_building_category_default(df.copy())
 
     assert result.building_category.to_list() == expected_building_categories
+
 
 @pytest.mark.parametrize(('building_code', 'expected_building_codes'),[
     pytest.param('TEK17', ['TEK17'], id='not_replacing_tek17'),
@@ -258,6 +263,7 @@ def test_replace_building_category_replace_default(building_code, expected_build
     pytest.param('electrical_equipment', ['electrical_equipment'], id='not_replacing_electrical_equipment'),
     pytest.param('fans_and_pumps', ['fans_and_pumps'], id='not_replacing_fans_and_pumps'),
     pytest.param('default', ['heating_rv+heating_dhw+cooling+lighting+electrical_equipment+fans_and_pumps'], id='replace_default'),
+    pytest.param('not_default', ['not_default'], id='do_not_replace_not_default'),
     pytest.param('FOO+default+BAR', ['FOO+heating_rv+heating_dhw+cooling+lighting+electrical_equipment+fans_and_pumps+BAR'],
                  id='replace_default_when_surrounded'),
 ])
@@ -272,3 +278,32 @@ def test_replace_purpose_default_returns_df_if_column_missing():
     df = pd.DataFrame({"lineno": [2], "value": [0.5]})
     result = replace_purpose_default(df.copy())
     pd.testing.assert_frame_equal(result, df)
+
+
+@pytest.mark.parametrize(('column_value', 'alias', 'replacement', 'expected'), [
+    pytest.param(['residential'], 'residential', 'house+apartment_block', 'house+apartment_block', id='single_match'),
+    pytest.param(['house'], 'residential', 'house+apartment_block', 'house', id='no_match'),
+    pytest.param(['office', 'residential', 'school'], 'residential', 'house+apartment_block', 'office+house+apartment_block+school', id='match_in_middle'),
+    pytest.param(['default', 'other'], 'default', 'a+b', 'a+b+other', id='match_at_start'),
+    pytest.param(['other', 'default'], 'default', 'a+b', 'other+a+b', id='match_at_end'),
+    pytest.param(['default', 'default'], 'default', 'a+b', 'a+b+a+b', id='multiple_matches'),
+    pytest.param(['x', 'y', 'z'], 'default', 'a+b', 'x+y+z', id='no_matches_multiple_tokens'),
+    pytest.param([], 'default', 'a+b', '', id='empty_list'),
+])
+def test_replace_alias(column_value, alias, replacement, expected):
+    assert _replace_alias(column_value, alias, replacement) == expected
+
+
+@pytest.mark.parametrize('non_iterable_value', [
+    np.nan,
+    None,
+    123,
+])
+def test_replace_alias_handles_non_iterable_input(non_iterable_value):
+    result = _replace_alias(non_iterable_value, 'default', 'house+apartment_block')
+    if pd.isna(non_iterable_value):
+        assert pd.isna(result)
+    else:
+        assert result == non_iterable_value
+
+

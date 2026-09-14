@@ -8,7 +8,9 @@ def add_lineno(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def expand_definitions(definitions: pd.DataFrame, *, grouping_columns: list[str] | None=None, drop_helper_columns :bool=True) -> pd.DataFrame:
+def expand_definitions(definitions: pd.DataFrame, *,
+                       grouping_columns: list[str] | None=None,
+                       drop_helper_columns :bool=True) -> pd.DataFrame:
     """
     Expand compact, grouped definitions into one row per group and year.
 
@@ -70,6 +72,12 @@ def expand_definitions(definitions: pd.DataFrame, *, grouping_columns: list[str]
     category therefore overrides a ``default`` line for that category, while
     leaving every other category untouched. Lines that tie on specificity both
     survive and are flagged with ``dupe``.
+
+    Precedence is resolved before the year range is expanded, so the grouping used
+    for scoring does not include year.
+
+    Presently, only the grouping columns building_category, building_code, purpose
+    supports expansion on `+`.
 
     `definitions` is not modified.
 
@@ -238,40 +246,69 @@ def explode_years(df: pd.DataFrame) -> pd.DataFrame:
     df["year"] = df["year"].astype(int)
     return df
 
+def _replace_alias(column_value: str, alias: str, replacement:list[str]) -> str:
+    try:
+        return "+".join(replacement if token==alias else token for token in column_value)
+    except TypeError:
+        return column_value
 
 def replace_building_category_default(df: pd.DataFrame) -> pd.DataFrame:
     if 'building_category' not in df.columns:
         return df
-    df["building_category"] = df["building_category"].str.replace(
-        "default",
-        "house+apartment_block+kindergarten+school+university+office+retail+hotel+hospital+nursing_home+culture+sports+storage_repairs",
-    )
-    df["building_category"] = df["building_category"].str.replace(
-        "non_residential",
-        "kindergarten+school+university+office+retail+hotel+hospital+nursing_home+culture+sports+storage_repairs",
-    )
-    df["building_category"] = df["building_category"].str.replace(
-        "residential", "house+apartment_block",
-    )
+
+    residential_replacement = [
+        'house',
+        'apartment_block',
+    ]
+    non_residential_replacement = [
+        "kindergarten",
+        "school",
+        "university",
+        "office",
+        "retail",
+        "hotel",
+        "hospital",
+        "nursing_home",
+        "culture",
+        "sports",
+        "storage_repairs",
+    ]
+    default_replacement = residential_replacement + non_residential_replacement
+
+    df = df.assign(
+        building_category=df.building_category.str.split('+').apply(
+            lambda s: _replace_alias(s, 'default', '+'.join(default_replacement))))
+    df = df.assign(
+        building_category=df.building_category.str.split('+').apply(
+            lambda s: _replace_alias(s, 'residential', '+'.join(residential_replacement))))
+    df = df.assign(
+        building_category=df.building_category.str.split('+').apply(
+            lambda s: _replace_alias(s, 'non_residential', '+'.join(non_residential_replacement))))
+
     return df
+
 
 
 def replace_building_code_default(df: pd.DataFrame) -> pd.DataFrame:
     if "building_code" not in df.columns:
         return df
-    df["building_code"] = df["building_code"].str.replace(
-        "default", "PRE_TEK49+TEK49+TEK69+TEK87+TEK97+TEK07+TEK10+TEK17",
-    )
+    default_replacement = ['PRE_TEK49', 'TEK49', 'TEK69', 'TEK87', 'TEK97', 'TEK07', 'TEK10', 'TEK17']
+    df = df.assign(building_code=df['building_code'].str.split('+').apply(lambda s: _replace_alias(s, 'default', '+'.join(default_replacement))))
     return df
 
 
 def replace_purpose_default(df: pd.DataFrame) -> pd.DataFrame:
     if "purpose" not in df.columns:
         return df
-    df["purpose"] = df["purpose"].str.replace(
-        "default",
-        "heating_rv+heating_dhw+cooling+lighting+electrical_equipment+fans_and_pumps",
-    )
+    default_replacement = [
+        'heating_rv',
+        'heating_dhw',
+        'cooling',
+        'lighting',
+        'electrical_equipment',
+        'fans_and_pumps',
+    ]
+    df = df.assign(purpose=df['purpose'].str.split('+').apply(lambda s: _replace_alias(s, 'default', '+'.join(default_replacement))))
     return df
 
 
@@ -289,8 +326,10 @@ def filter_fewest_lineno_matches(df: pd.DataFrame, grouping_columns: list[str] |
 
 
 def select_groups_with_lowest_lineno_count(df: pd.DataFrame, grouping_columns: list[str] | None=None, filter_columns:bool=True) -> pd.DataFrame:
+    grouping_columns = grouping_columns if grouping_columns else build_grouping(df)
     if 'lineno' not in df.columns:
-        raise KeyError('Dataframe must contain a "lineno" column (building_category, building_code, purpose, function)')
+        msg = f'Dataframe must contain a "lineno" column {grouping_columns}'
+        raise KeyError(msg)
     original_columns = df.columns
     fewest_lineno_matches = df.pipe(add_lineno_count, grouping_columns=grouping_columns).pipe(filter_fewest_lineno_matches, grouping_columns=grouping_columns)
     by_group = grouping_columns if grouping_columns else build_grouping(fewest_lineno_matches)
@@ -309,8 +348,8 @@ def mark_duplicates(df: pd.DataFrame, grouping_columns: list[str] | None=None) -
     return _df.reset_index(drop=True)
 
 
-def group_dupes_on_dupes(dupes: pd.DataFrame) -> pd.DataFrame:
-    grouping = build_grouping(dupes)
+def group_dupes_on_dupes(dupes: pd.DataFrame, grouping_columns: list[str] | None=None) -> pd.DataFrame:
+    grouping = grouping_columns if grouping_columns else build_grouping(dupes)
     dupes_on_dupe = dupes.merge(dupes, on=grouping)
     deduped_dupes_on_dupes = dupes_on_dupe[(dupes_on_dupe['year_x'] == dupes_on_dupe['year_y']) & (dupes_on_dupe['lineno_x'] != dupes_on_dupe['lineno_y'])][
         [*grouping, 'lineno_x', 'lineno_y', 'year_x', 'year_y', 'value_x', 'value_y']
@@ -433,16 +472,12 @@ def collapse_years(expanded: pd.DataFrame) -> pd.DataFrame:
         df = expanded[(expanded.year >= expanded.start_year) & (expanded.year <= expanded.end_year)]
     else:
         df = expanded.copy()
-    grouping = [*build_grouping(df), 'year']
-    dupes = df.duplicated(subset=grouping)
-    #if dupes.any():
-    #    raise ValueError('Duplicate values found for the same group')
     deduped = df.drop(columns=['year']).drop_duplicates()
     return deduped.reset_index(drop=True)
 
 
-def format_lines(_df):
-    def format_conflict_values(row, suffix: str) -> str:
+def format_lines(_df: pd.DataFrame) -> list[str]:
+    def format_conflict_values(row: pd.DataFrame, suffix: str) -> str:
         return ", ".join(
             str(getattr(row, column))
             for column in _df.columns
@@ -456,22 +491,27 @@ def format_lines(_df):
     previous_lineno = None
 
     for conflict in _df.itertuples():
+        max_length_building_categories_list = 2
+        all_building_categories_count = 13
+        max_length_building_codes_list = 3
+        all_building_codes_count = 8
+
         building_categories = (
             (
                 f"({conflict.building_categories_cnt} total)"
-                if conflict.building_categories_cnt > 2
+                if conflict.building_categories_cnt > max_length_building_categories_list
                 else conflict.building_categories
             )
-            if conflict.building_categories_cnt < 13
+            if conflict.building_categories_cnt < all_building_categories_count
             else "(all)"
         )
         building_codes = (
             (
                 f"({conflict.building_codes_cnt} total)"
-                if conflict.building_codes_cnt > 3
+                if conflict.building_codes_cnt > max_length_building_codes_list
                 else conflict.building_codes
             )
-            if conflict.building_codes_cnt < 8
+            if conflict.building_codes_cnt < all_building_codes_count
             else "(all)"
         )
 
@@ -483,13 +523,13 @@ def format_lines(_df):
         )
 
         extra_lines = []
-        if 3 < conflict.building_codes_cnt < 7:
+        if max_length_building_codes_list < conflict.building_codes_cnt < all_building_codes_count:
             extra_lines.append(
-                f"  building_codes={conflict.building_codes.replace('+', ' ')}"
+                f"  building_codes={conflict.building_codes.replace('+', ' ')}",
             )
-        if 2 < conflict.building_categories_cnt < 13:
+        if max_length_building_categories_list < conflict.building_categories_cnt < all_building_categories_count:
             extra_lines.append(
-                f"  building_categories={conflict.building_categories.replace('+', ' ')}"
+                f"  building_categories={conflict.building_categories.replace('+', ' ')}",
             )
 
         definition = (

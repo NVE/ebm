@@ -618,7 +618,7 @@ def test_select_groups_with_lowest_lineno_count_require_lineno():
         'end_year': [2030],
     })
 
-    with pytest.raises(KeyError, match=r'Dataframe must contain a "lineno" column \(building_category, building_code, purpose, function\)'):
+    with pytest.raises(KeyError, match=r'Dataframe must contain a "lineno" column \[\\\'building_category\\\', \\\'building_code\\\', \\\'purpose\\\', \\\'function\\\']'):
         df.pipe(select_groups_with_lowest_lineno_count)
 
 
@@ -704,20 +704,20 @@ def test_select_groups_with_lowest_lineno_count_honours_by_grouping():
     assert tuple(office_electricity.lineno) == (4,), 'office lost its Electricity -> Y definition'
 
 
-def test_group_dupes_on_dupes():
+def test_group_dupes_on_dupes_on_building_category():
     df = pd.DataFrame(
         [
-            {'building_category': 'office', 'lineno': 2, 'year': 2021, 'value': 0.02, 'dupe': False},
-            {'building_category': 'office', 'lineno': 2, 'year': 2022, 'value': 0.02, 'dupe': False},
-            {'building_category': 'retail', 'lineno': 3, 'year': 2021, 'value': 0.03, 'dupe': True},
-            {'building_category': 'retail', 'lineno': 3, 'year': 2022, 'value': 0.03, 'dupe': True},
-            {'building_category': 'retail', 'lineno': 4, 'year': 2021, 'value': 0.04, 'dupe': True},
-            {'building_category': 'retail', 'lineno': 4, 'year': 2022, 'value': 0.04, 'dupe': True},
-            {'building_category': 'house', 'lineno':5, 'year': 2021, 'value': 0.05, 'dupe': True},
-            {'building_category': 'house', 'lineno': 6, 'year': 2021, 'value': 0.06, 'dupe': True},
+            {'building_category': 'office', 'purpose': 'a', 'lineno': 2, 'year': 2021, 'value': 0.02, 'dupe': False},
+            {'building_category': 'office', 'purpose': 'b', 'lineno': 2, 'year': 2022, 'value': 0.02, 'dupe': False},
+            {'building_category': 'retail', 'purpose': 'c', 'lineno': 3, 'year': 2021, 'value': 0.03, 'dupe': True},
+            {'building_category': 'retail', 'purpose': 'd','lineno': 3, 'year': 2022, 'value': 0.03, 'dupe': True},
+            {'building_category': 'retail', 'purpose': 'e','lineno': 4, 'year': 2021, 'value': 0.04, 'dupe': True},
+            {'building_category': 'retail', 'purpose': 'f','lineno': 4, 'year': 2022, 'value': 0.04, 'dupe': True},
+            {'building_category': 'house', 'purpose': 'g','lineno':5, 'year': 2021, 'value': 0.05, 'dupe': True},
+            {'building_category': 'house', 'purpose': 'h','lineno': 6, 'year': 2021, 'value': 0.06, 'dupe': True},
         ],
     )
-    result = df.pipe(group_dupes_on_dupes)
+    result = group_dupes_on_dupes(df, grouping_columns=['building_category'])
 
     expected = pd.DataFrame(
         [

@@ -7,7 +7,7 @@ import pandas as pd
 # Try to import pandera.pandas for compatibility with newer versions of Pandera. If not available, fall back to importing pandera directly.
 try:
     import pandera.pandas as pa
-except ModuleNotFoundError:
+except (ImportError, ModuleNotFoundError):
     import pandera as pa
 import pytest
 

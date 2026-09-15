@@ -4,7 +4,6 @@ Pandera validators for ebm input files.
 import itertools
 
 import pandas as pd
-from pandera import pandas as pa
 
 from ebm.definition_expansion import explode_years, mark_duplicates, replace_building_category_default, \
     replace_building_code_default, replace_purpose_default, explode_building_category, explode_building_code, \
@@ -13,7 +12,7 @@ from ebm.definition_expansion import explode_years, mark_duplicates, replace_bui
 # Try to import pandera.pandas for compatibility with newer versions of Pandera. If not available, fall back to importing pandera directly.
 try:
     import pandera.pandas as pa
-except ModuleNotFoundError:
+except (ImportError, ModuleNotFoundError):
     import pandera as pa
 
 from ebm.model.building_category import NON_RESIDENTIAL, RESIDENTIAL, BuildingCategory

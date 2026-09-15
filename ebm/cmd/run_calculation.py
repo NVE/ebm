@@ -124,6 +124,11 @@ def calculate_building_category_energy_requirements(building_category: None,
     energy_need_improvements_policy = database_manager.get_energy_need_policy_improvement()
     energy_need_yearly_reduction = database_manager.get_energy_need_yearly_improvements()
 
+    if energy_need_yearly_reduction['dupe'].any():
+        logger.warning('Detected duplicate rows in {filename}', filename=database_manager.file_handler.IMPROVEMENT_BUILDING_UPGRADE)
+        msg = f'Unresolvable duplicate rows detected in {database_manager.file_handler.IMPROVEMENT_BUILDING_UPGRADE}. Please check the data for duplicates.'
+        raise ValueError(msg)
+
     df = energy_need_improvements(energy_need_original_condition=energy_need_original_condition,
                                   improvement_building_upgrade=improvement_building_upgrade,
                                   energy_need_improvements_policy=energy_need_improvements_policy,

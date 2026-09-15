@@ -33,7 +33,12 @@ def extract_energy_need(years: YearRange, dm: DatabaseManager) -> pd.DataFrame:
     improvement_building_upgrade = dm.get_energy_req_reduction_per_condition()
     energy_need_improvements_policy = dm.get_energy_need_policy_improvement()
     energy_need_yearly_reduction = dm.get_energy_need_yearly_improvements()
-    
+
+    if energy_need_yearly_reduction['dupe'].any():
+        logger.warning('Detected duplicate rows in {filename}', filename=dm.file_handler.IMPROVEMENT_BUILDING_UPGRADE)
+        msg = f'Unresolvable duplicate rows detected in {dm.file_handler.IMPROVEMENT_BUILDING_UPGRADE}. Please check the data for duplicates.'
+        raise ValueError(msg)
+
     energy_need = energy_need_improvements(
         energy_need_original_condition=energy_need_original_condition,
         improvement_building_upgrade=improvement_building_upgrade,

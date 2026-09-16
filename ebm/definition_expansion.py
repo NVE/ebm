@@ -126,7 +126,7 @@ def expand_definitions(definitions: pd.DataFrame, *,
                         f'Missing columns: {", ".join(missing_grouping_columns)}.')
         raise ValueError(error_message)
 
-    wrong_dtype = [(c, definitions[c].dtype) for c in group_by if not pd.api.types.is_string_dtype(definitions[c])]
+    wrong_dtype = [(c, definitions[c].dtype) for c in group_by if not pd.api.types.is_string_dtype(definitions[c]) and definitions[c].dtypes!='object']
     if wrong_dtype:
         plural = "columns" if len(wrong_dtype)!=1 else "column"
         columns = ", ".join(f"`{c}`({dtype})" for c, dtype in wrong_dtype)
@@ -149,7 +149,7 @@ def expand_definitions(definitions: pd.DataFrame, *,
 
     for i, stage in enumerate(stages):
         stage_function, *parameters = stage
-        result = result.pipe(stage_function, **parameters[0]) if parameters else result.pipe(stage_function)
+        result = stage_function(result, **parameters[0]) if parameters else stage_function(result)
 
     return result
 
@@ -331,7 +331,11 @@ def select_groups_with_lowest_lineno_count(df: pd.DataFrame, grouping_columns: l
         msg = f'Dataframe must contain a "lineno" column {grouping_columns}'
         raise KeyError(msg)
     original_columns = df.columns
-    fewest_lineno_matches = df.pipe(add_lineno_count, grouping_columns=grouping_columns).pipe(filter_fewest_lineno_matches, grouping_columns=grouping_columns)
+    fewest_lineno_matches = (df
+                             .copy()
+                             .pipe(add_lineno_count, grouping_columns=grouping_columns)
+                             .pipe(filter_fewest_lineno_matches, grouping_columns=grouping_columns)
+    )
     by_group = grouping_columns if grouping_columns else build_grouping(fewest_lineno_matches)
     columns_to_use_from_matches = [*by_group, 'score', 'lineno', 'lineno_count']
     columns_to_merge_matches = [*by_group, 'lineno']

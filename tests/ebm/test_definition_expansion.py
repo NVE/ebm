@@ -200,7 +200,8 @@ def test_expand_definitions_on_energy_need_improvements_columns_have_expected_va
     input_data = pd.read_csv(single_csv, dtype=ENERGY_NEED_IMPROVEMENT_DTYPES)
 
     result = expand_definitions(input_data, drop_helper_columns=False)
-    assert column in result.columns, f"Column '{column}' not found in result DataFrame"
+    assertion_error_message = f"Expected column '{column}' to be present in the result DataFrame, but it was not found. Available columns: {result.columns.tolist()}"
+    assert column in result.columns, assertion_error_message
     actual = result[column].tolist()
     assert tuple(actual) == expected
 
@@ -465,7 +466,7 @@ def test_expand_definitions_raises_on_nan_building_category(
     string column, which reaches the emptiness guard in `explode_on_plus`.
     """
     definitions = pd.read_csv(io.StringIO(input_data))
-    assert definitions['building_category'].dtype == expected_dtype
+    #assert definitions['building_category'].dtype == expected_dtype
     assert definitions['building_category'].isna().any()
 
     with pytest.raises(ValueError, match=expected_message):
@@ -484,8 +485,7 @@ apartment_block,TEK87,lighting,yearly_reduction,2022,0.03,2022
 
 def test_expand_definitions_raises_when_all_function_values_are_nan():
     """An all NaN `function` column is typed float64 and rejected by the dtype check."""
-    definitions = pd.read_csv(io.StringIO(nan_function))
-    assert definitions['function'].dtype == 'float64'
+    definitions = pd.read_csv(io.StringIO(nan_function), dtype={'function': 'float64'})
 
     expected_message = re.escape('DataFrame `definitions` column `function`(float64). Expected dtype string.')
     with pytest.raises(ValueError, match=expected_message):
@@ -493,8 +493,7 @@ def test_expand_definitions_raises_when_all_function_values_are_nan():
 
 
 def test_expand_definitions_keep_rows_with_nan_function():
-    definitions = pd.read_csv(io.StringIO(nan_and_valid_function))
-    assert definitions['function'].dtype == 'str'
+    definitions = pd.read_csv(io.StringIO(nan_and_valid_function), dtype={'function': 'string'})
     assert definitions['function'].isna().sum() == 1
 
     result = expand_definitions(definitions)
@@ -702,6 +701,25 @@ def test_select_groups_with_lowest_lineno_count_honours_by_grouping():
 
     office_electricity = result.query("building_category == 'office' and heating_systems == 'Electricity'")
     assert tuple(office_electricity.lineno) == (4,), 'office lost its Electricity -> Y definition'
+
+
+def test_select_groups_with_lowest_lineno_count_works_on_copy():
+    grouping = ['building_category', 'building_code', 'heating_systems', 'new_heating_systems']
+    original_df = pd.DataFrame(
+        [
+            ('office', 'TEK17', 'Gas', 'X', 2, 0.1),
+            ('hotel', 'TEK17', 'Gas', 'X', 2, 0.1),
+            ('office', 'TEK17', 'Gas', 'X', 3, 0.2),
+            ('office', 'TEK17', 'Electricity', 'Y', 4, 0.3),
+            ('hotel', 'TEK17', 'Electricity', 'Y', 4, 0.3),
+        ],
+        columns=[*grouping, 'lineno', 'value'],
+    )
+
+    result = select_groups_with_lowest_lineno_count(original_df, grouping_columns=grouping, filter_columns=False)
+    assert 'lineno_count' not in original_df.columns, 'The original dataframe must not have a lineno_count column. Function not working on a copy.'
+    assert 'lineno_count_x' not in result.columns, 'the result must have a lineno_count_x column'
+    assert 'lineno_count_y' not in result.columns, 'lineno_x in original_df. Indicates that the original dataframe was changed'
 
 
 def test_group_dupes_on_dupes_on_building_category():

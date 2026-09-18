@@ -1,3 +1,4 @@
+import os
 import pathlib
 from typing import NoReturn
 
@@ -43,12 +44,18 @@ def run_calibration(database_manager: DatabaseManager,  # noqa: D417
 
     logger.info(f'Using input directory "{input_directory}"')
     logger.debug('Extract area forecast')
-    area_forecast = load_area_forecast(database_manager) if area_forecast is None else area_forecast
+    model_period = load_model_period(database_manager)
+
+    if model_period.start > calibration_year > model_period.end:
+        msg = f'Calibration year {calibration_year} is outside model years {model_period.start}-{model_period.end}'
+        raise ValueError(msg)
+
+    area_forecast = load_area_forecast(database_manager, model_period) if area_forecast is None else area_forecast
     if write_to_output:
         write_dataframe(area_forecast[area_forecast.year == calibration_year], 'area_forecast')
 
     logger.debug('Extract energy requirements')
-    energy_requirements = load_energy_need(area_forecast, database_manager)
+    energy_requirements = load_energy_need(area_forecast, database_manager, model_period)
     if write_to_output:
         en_req = energy_requirements.xs(calibration_year, level='year').reset_index().sort_values(
             by='building_category', key=lambda x: x.map(map_sort_order))
@@ -59,11 +66,25 @@ def run_calibration(database_manager: DatabaseManager,  # noqa: D417
         write_dataframe(grouped, 'energy_requirements_sum', sheet_name='sum')
 
     logger.debug('Extract heating systems')
-    heating_systems = load_heating_systems(energy_requirements, database_manager)
+    heating_systems = load_heating_systems(energy_requirements, database_manager, model_period)
     if write_to_output:
         write_dataframe(heating_systems.xs(calibration_year, level='year'), 'heating_systems')
 
     return heating_systems
+
+
+def load_model_period(database_manager: DatabaseManager) -> YearRange:
+    def load_ebm_year(key: str, default) -> int:
+        start_year = int(os.environ.get(key, default))
+        return start_year
+
+    start_year = load_ebm_year('EBM_START_YEAR', 2020) or 2020
+    end_year = load_ebm_year('EBM_END_YEAR', database_manager.get_population_forecast_end_year()) or 2050
+    model_period = YearRange(start_year, end_year)
+    return model_period
+
+
+
 
 
 def write_dataframe(df: pd.DataFrame, name: str='dataframe', sheet_name: str='Sheet1') -> None:

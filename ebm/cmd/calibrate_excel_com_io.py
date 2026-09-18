@@ -1,5 +1,6 @@
 import argparse
 import os
+os.environ['DISABLE_PANDERA_IMPORT_WARNING'] = 'True'
 import pathlib
 import time
 from dataclasses import dataclass

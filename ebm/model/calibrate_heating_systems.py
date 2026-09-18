@@ -33,18 +33,14 @@ HEATPUMP_WATER_SOUCE = 'Heat pump central heating'
 
 CALIBRATION_YEAR = 2023
 
-model_period = YearRange(2020, 2050)
-start_year = model_period.start
-end_year = model_period.end
 
 
-def load_area_forecast(database_manager: DatabaseManager) -> pd.DataFrame:
+def load_area_forecast(database_manager: DatabaseManager, model_period: YearRange) -> pd.DataFrame:
     building_code_parameters = database_manager.file_handler.get_building_code()
-    years = YearRange(start_year, end_year)
     scurve_params = database_manager.get_scurve_params()
-    s_curves_by_condition = calculate_s_curves(scurve_params, building_code_parameters, years)
+    s_curves_by_condition = calculate_s_curves(scurve_params, building_code_parameters, model_period)
 
-    area_forecast = ex.extract_area_forecast(years,
+    area_forecast = ex.extract_area_forecast(model_period,
                                           building_code_parameters=building_code_parameters,
                                           area_parameters=database_manager.get_area_parameters(),
                                           s_curves_by_condition=s_curves_by_condition,
@@ -52,20 +48,20 @@ def load_area_forecast(database_manager: DatabaseManager) -> pd.DataFrame:
     return area_forecast
 
 
-def load_energy_need(area_forecast: pd.DataFrame, database_manager: DatabaseManager) -> pd.DataFrame:
+def load_energy_need(area_forecast: pd.DataFrame, database_manager: DatabaseManager, model_period: YearRange) -> pd.DataFrame:
     en_req = calculate_building_category_energy_requirements(
         building_category=None,
         area_forecast=area_forecast,
         database_manager=database_manager,
-        start_year=start_year,
-        end_year=end_year)
+        start_year=model_period.start,
+        end_year=model_period.end)
 
     return en_req
 
 
-def load_heating_systems(energy_requirements: pd.DataFrame, database_manager: DatabaseManager) -> pd.DataFrame:
+def load_heating_systems(energy_requirements: pd.DataFrame, database_manager: DatabaseManager, model_period: YearRange) -> pd.DataFrame:
     heating_systems = calculate_heating_systems(energy_requirements=energy_requirements,
-                                                database_manager=database_manager, period=YearRange(2020, 2050))
+                                                database_manager=database_manager, period=model_period)
 
     return heating_systems
 

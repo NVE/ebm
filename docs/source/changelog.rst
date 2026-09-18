@@ -3,6 +3,15 @@ Changelog
 =========
 
 
+Version 1.1.1 - 2026-09-18
+--------------------------
+
+Fixed
+^^^^^
+
+* Fixes crash when running ebm-calibrate with a calibration year that is not present in the calibration spreadsheet.
+
+
 Version 1.1.0 - 2026-06-29
 ---------------------------
 

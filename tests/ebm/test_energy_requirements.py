@@ -28,10 +28,10 @@ def test_calculate_reduction_policy():
 
     p_i_df = pd.DataFrame(
         data=[
-            ['house', 'TEK01', 'lighting', 2011, 0.6, 2015],
-            ['kindergarten', 'TEK01', 'lighting', 2012, 0.6, 2016]
+            ['house', 'TEK01', 'lighting', 'improvement_at_end_year', 2011, 0.6, 2015],
+            ['kindergarten', 'TEK01', 'lighting', 'improvement_at_end_year', 2012, 0.6, 2016]
         ],
-        columns=['building_category', 'building_code', 'purpose', 'start_year', 'improvement_at_end_year', 'end_year'])
+        columns=['building_category', 'building_code', 'purpose', 'function', 'start_year', 'value', 'end_year'])
 
     df = calculate_reduction_policy(policy_improvement=p_i_df, all_things=all_things)
     df = df.set_index(['building_category', 'building_code', 'purpose', 'year'])
@@ -49,6 +49,36 @@ def test_calculate_reduction_policy():
     pd.testing.assert_series_equal(df['reduction_policy'], expected_reduction_policy)
 
 
+@pytest.mark.parametrize(('column_to_drop', 'expected_error_message'), [
+    pytest.param(('function', ), 'DataFrame `policy_improvement` does not contain all required columns. Missing column: function', id='missing_function'),
+    pytest.param(('start_year',), 'DataFrame `policy_improvement` does not contain all required columns. Missing column: start_year', id='missing_start_year'),
+    pytest.param(('start_year', 'end_year', ), 'DataFrame `policy_improvement` does not contain all required columns. Missing columns: start_year, end_year', id='missing_end_year'),
+    pytest.param(('building_category',), 'DataFrame `policy_improvement` does not contain all required columns. Missing column: building_category', id='missing_building_category'),
+    pytest.param(('building_code',), 'DataFrame `policy_improvement` does not contain all required columns. Missing column: building_code', id='missing_building_code'),
+    pytest.param(('purpose',), 'DataFrame `policy_improvement` does not contain all required columns. Missing column: purpose', id='missing_purpose'),
+]
+)
+def test_calculate_reduction_policy_require_function_column(column_to_drop: tuple[str], expected_error_message: str):
+    period = YearRange(2011, 2017)
+
+    all_things = pd.DataFrame(
+        data=[['house', 'TEK01', 'lighting', y] for y in period]
+             + [['kindergarten', 'TEK01', 'lighting', y] for y in period],
+        columns=['building_category', 'building_code', 'purpose', 'year'])
+
+    p_i_df = pd.DataFrame(
+        data=[
+            ['house', 'TEK01', 'lighting', 'improvement_at_end_year', 2011, 0.6, 2015],
+            ['kindergarten', 'TEK01', 'lighting', 'improvement_at_end_year', 2012, 0.6, 2016]
+        ],
+        columns=['building_category', 'building_code', 'purpose', 'function', 'start_year', 'value', 'end_year'])
+
+    df = p_i_df.drop(columns=list(column_to_drop))
+
+    with pytest.raises(ValueError, match=expected_error_message):
+        calculate_reduction_policy(policy_improvement=df, all_things=all_things)
+
+
 def test_calculate_reduction_policy_with_start_year_in_all_things():
     period = YearRange(2011, 2017)
     dm = DatabaseManager()
@@ -60,12 +90,16 @@ def test_calculate_reduction_policy_with_start_year_in_all_things():
 
     p_i_df = pd.DataFrame(
         data=[
-            ['house', 'TEK01', 'lighting', 2011, 0.6, 2015],
-            ['kindergarten', 'TEK01', 'lighting', 2012, 0.6, 2016]
+            ['house', 'TEK01', 'lighting', 'yearly_reduction', 2011, 0.6, 2015],
+            ['kindergarten', 'TEK01', 'lighting', 'noop', 2012, 0.6, 2016]
         ],
-        columns=['building_category', 'building_code', 'purpose', 'start_year', 'improvement_at_end_year', 'end_year'])
+        columns=['building_category', 'building_code', 'purpose', 'function', 'start_year', 'value', 'end_year'])
 
-    calculate_reduction_policy(policy_improvement=p_i_df, all_things=all_things)
+    result = calculate_reduction_policy(policy_improvement=p_i_df, all_things=all_things)
+
+    assert result is not None
+    assert 'reduction_policy' in result.columns
+    assert (result.reduction_policy == 1.0).all()
 
 
 def test_calculate_reduction_policy_handle_missing_policy_improvement():
@@ -78,9 +112,9 @@ def test_calculate_reduction_policy_handle_missing_policy_improvement():
 
     p_i_df = pd.DataFrame(
         data=[
-            ['kindergarten', 'TEK01', 'lighting', 2012, 0.6, 2016]
+            ['kindergarten', 'TEK01', 'lighting', 'improvement_at_end_year', 2012, 0.6, 2016]
         ],
-        columns=['building_category', 'building_code', 'purpose', 'start_year', 'improvement_at_end_year', 'end_year'])
+        columns=['building_category', 'building_code', 'purpose', 'function', 'start_year', 'improvement_at_end_year', 'end_year'])
 
     df = calculate_reduction_policy(policy_improvement=p_i_df, all_things=all_things)
     df = df.set_index(['building_category', 'building_code', 'purpose', 'year'])
@@ -106,9 +140,9 @@ def test_calculate_reduction_policy_return_expected_columns():
 
     p_i_df = pd.DataFrame(
         data=[
-            ['house', 'TEK01', 'lighting', 2011, 0.6, 2015]
+            ['house', 'TEK01', 'lighting', 'improvement_at_end_year', 2011, 0.6, 2015]
         ],
-        columns=['building_category', 'building_code', 'purpose', 'start_year', 'improvement_at_end_year', 'end_year'])
+        columns=['building_category', 'building_code', 'purpose', 'start_year', 'function', 'improvement_at_end_year', 'end_year'])
 
     df = calculate_reduction_policy(policy_improvement=p_i_df, all_things=all_things)
 
@@ -125,10 +159,10 @@ def test_calculate_reduction_policy_works_with_multiple_periods():
 
     p_i_df = pd.DataFrame(
         data=[
-            ['house', 'TEK01', 'lighting', 2011, 0.6, 2015],
-            ['house', 'TEK01', 'lighting', 2017, 0.8, 2020]
+            ['house', 'TEK01', 'lighting', 'improvement_at_end_year', 2011, 0.6, 2015],
+            ['house', 'TEK01', 'lighting', 'improvement_at_end_year', 2017, 0.8, 2020]
         ],
-        columns=['building_category', 'building_code', 'purpose', 'start_year', 'improvement_at_end_year', 'end_year'])
+        columns=['building_category', 'building_code', 'purpose', 'function', 'start_year', 'improvement_at_end_year', 'end_year'])
 
     df = calculate_reduction_policy(policy_improvement=p_i_df, all_things=all_things)
     df = df.set_index(['building_category', 'building_code', 'purpose', 'year'])
@@ -152,18 +186,24 @@ def test_calculate_reduction_with_policy_improvement():
 
     dm.get_energy_need_yearly_improvements = Mock(return_value=pd.DataFrame(
         data=[['house', 'TEK01', 'heating_rv', 'yearly_reduction', 0.1, period.start, period.end]],
-        columns=['building_category', 'building_code', 'purpose', 'function', 'yearly_efficiency_improvement', 'start_year',
+        columns=['building_category', 'building_code', 'purpose', 'function', 'value', 'start_year',
                  'end_year']))
 
     policy_improvement = pd.DataFrame(
-        data=[
-            ['house', 'TEK01', 'lighting', 2011, 0.9, 2014],
-        ],
-        columns=['building_category', 'building_code', 'purpose', 'start_year', 'improvement_at_end_year', 'end_year'])
+        data=[[
+            'house', 'TEK01', 'lighting', 'improvement_at_end_year', 2011, 0.9, 2014
+        ],],
+        columns=[
+            'building_category',
+            'building_code',
+            'purpose',
+            'function',
+            'start_year',
+            'value',
+            'end_year',
+    ])
 
     dm.get_energy_need_policy_improvement = Mock(return_value=policy_improvement)
-
-    # pd.DataFrame( data=[['house', 'TEK01', 'lighting', y, factor] for y, factor in zip(range(2011, 2015), [1., .7, .4, .1])], columns=['building_category', 'building_code', 'purpose', 'year', 'policy_improvement_factor'])
 
     dm.get_energy_req_reduction_per_condition = Mock(return_value=pd.DataFrame(
         data=[['house', 'TEK01', 'heating_rv', 'original_condition', 0.0]],
@@ -387,8 +427,8 @@ def test_calculate_reduction_with_yearly_reduction():
                  'end_year']))
 
     dm.get_energy_need_policy_improvement = Mock(return_value=pd.DataFrame(
-        data=[['house', 'TEK01', 'lighting', 2011, 0.6, 2014]],
-        columns=['building_category', 'building_code', 'purpose', 'start_year', 'improvement_at_end_year', 'end_year']))
+        data=[['house', 'TEK01', 'lighting', 'improvement_at_end_year', 2011, 0.6, 2014]],
+        columns=['building_category', 'building_code', 'purpose', 'function', 'start_year', 'improvement_at_end_year', 'end_year']))
 
     dm.get_energy_req_reduction_per_condition = Mock(return_value=pd.DataFrame(
         data=[['house', 'TEK01', 'heating_rv', 'original_condition', 0.0]],
@@ -452,8 +492,8 @@ def test_calculate_reduction_with_yearly_reduction_with_year():
                  'end_year']))
 
     dm.get_energy_need_policy_improvement = Mock(return_value=pd.DataFrame(
-        data=[['house', 'TEK01', 'lighting', 2010, 2020, 0.6]],
-        columns=['building_category', 'building_code', 'purpose', 'start_year', 'end_year',
+        data=[['house', 'TEK01', 'lighting', 'improvement_at_end_year', 2010, 2020, 0.6]],
+        columns=['building_category', 'building_code', 'purpose', 'function', 'start_year', 'end_year',
                  'improvement_at_end_year']))
 
     dm.get_energy_req_reduction_per_condition = Mock(return_value=pd.DataFrame(
@@ -575,8 +615,8 @@ def test_calculate_reduction_by_behavior():
                                            ]))
 
     dm.get_energy_need_policy_improvement = Mock(
-        return_value=pd.DataFrame(data=[['house', 'TEK01', 'lighting', 2020, 2024, 0.1]],
-                                  columns=['building_category', 'building_code', 'purpose', 'start_year', 'end_year',
+        return_value=pd.DataFrame(data=[['house', 'TEK01', 'lighting', 'improvement_at_end_year', 2020, 2024, 0.1]],
+                                  columns=['building_category', 'building_code', 'purpose', 'function', 'start_year', 'end_year',
                                            'improvement_at_end_year']))
 
     building_code_list = ['TEK01']
@@ -642,8 +682,8 @@ def test_calculate_energy_requirements():
     dm.get_energy_need_yearly_improvements = Mock(return_value=yearly_improvement)
 
     dm.get_energy_need_policy_improvement = Mock(
-        return_value=pd.DataFrame(data=[['house', 'TEK01', 'lighting', 2021, 2023, 0.5]],
-                                  columns=['building_category', 'building_code', 'purpose', 'start_year', 'end_year',
+        return_value=pd.DataFrame(data=[['house', 'TEK01', 'lighting', 'improvement_at_end_year',  2021, 2023, 0.5]],
+                                  columns=['building_category', 'building_code', 'purpose', 'function', 'start_year', 'end_year',
                                            'improvement_at_end_year']))
 
     building_code_list = ['TEK01']
@@ -744,10 +784,10 @@ def test_calculate_energy_requirements_with_multiple_building_codes():
 
     dm.get_energy_need_policy_improvement = Mock(
         return_value=pd.DataFrame(data=[
-            ['house', 'TEK01', 'lighting', 2021, 2023, 0.5],
-            ['house', 'TEK02', 'lighting', 2021, 2023, 0.5]
+            ['house', 'TEK01', 'lighting', 'improvement_at_end_year', 2021, 2023, 0.5],
+            ['house', 'TEK02', 'lighting', 'improvement_at_end_year', 2021, 2023, 0.5]
         ],
-            columns=['building_category', 'building_code', 'purpose', 'start_year', 'end_year',
+            columns=['building_category', 'building_code', 'purpose', 'function', 'start_year', 'end_year',
                      'improvement_at_end_year']))
 
     building_code_list = ['TEK01', 'TEK02']

@@ -263,6 +263,21 @@ def calculate_reduction_policy( policy_improvement: pd.DataFrame, all_things: pd
     pd.DataFrame
         DataFrame with the calculated 'reduction_policy' column and updated entries.
     """
+    # Preserve backwards compatibility with old column name
+    if 'improvement_at_end_year' in policy_improvement.columns:
+        policy_improvement = policy_improvement.rename(columns={'improvement_at_end_year': 'value'})
+    required_columns_policy_improvements = ('building_category', 'building_code', 'purpose', 'function', 'start_year', 'end_year',)
+    missing_columns = [c for c in required_columns_policy_improvements if c not in policy_improvement.columns]
+    if missing_columns:
+        logger_msg = f'reduction_policy columns: {policy_improvement.columns}'
+        logger.debug(logger_msg)
+        error_msg = (
+            f'DataFrame `policy_improvement` does not contain all required columns. '
+            f'Missing column{"s" if len(missing_columns) != 1 else ""}: {", ".join(missing_columns)}'
+        )
+        raise ValueError(error_msg)
+    policy_improvement = policy_improvement.query('function == "improvement_at_end_year"')
+
     policy_improvement = policy_improvement.sort_values(
         by=['building_category', 'building_code', 'purpose', 'start_year', 'end_year'])
 
@@ -276,7 +291,7 @@ def calculate_reduction_policy( policy_improvement: pd.DataFrame, all_things: pd
     shifted = policy_improvement.shift(1).reset_index()
 
     shifted = shifted.query('building_category==building_category_s & building_code==TEK_s & purpose==purpose_s')
-    shifted['improvement_at_start_year'] = shifted['improvement_at_end_year']
+    shifted['improvement_at_start_year'] = shifted['value']
     shifted = shifted[['building_category', 'building_code', 'purpose', 'start_year', 'end_year', 'improvement_at_start_year']]
 
     start_year_from_previous = shifted
@@ -292,7 +307,7 @@ def calculate_reduction_policy( policy_improvement: pd.DataFrame, all_things: pd
         ['building_category', 'building_code', 'purpose', 'start_year', 'end_year'], drop=True)
     policy_improvement['improvement_at_start_year'] = 1.0-policy_improvement['improvement_at_start_year'].fillna(0.0)
 
-    policy_improvement = policy_improvement[['improvement_at_start_year', 'improvement_at_end_year']].reset_index()
+    policy_improvement = policy_improvement[['improvement_at_start_year', 'value']].reset_index()
 
     df = all_things[['building_category', 'building_code', 'purpose', 'year']].merge(
         right=policy_improvement,
@@ -301,7 +316,7 @@ def calculate_reduction_policy( policy_improvement: pd.DataFrame, all_things: pd
     df['num_values'] = df['end_year'] - df['start_year'] + 1.0
     df['n'] = (df.year - df.start_year).clip(upper=df.num_values-1, lower=0)
 
-    df['step'] = ((1.0-df['improvement_at_end_year']) - df['improvement_at_start_year']) / (df['num_values']-1.0)
+    df['step'] = ((1.0-df['value']) - df['improvement_at_start_year']) / (df['num_values']-1.0)
 
     df['reduction_policy'] = df['improvement_at_start_year'] + (df['n']) * df['step']
     df['reduction_policy'] = df['reduction_policy'].fillna(1.0)

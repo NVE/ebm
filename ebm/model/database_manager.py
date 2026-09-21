@@ -372,7 +372,7 @@ class DatabaseManager:
         -------
         pd.DataFrame
             Dataframe containing yearly efficiency rates (%) for energy need improvements,
-            per building category, tek and purpose.        
+            per building category, tek and purpose.
         """
         yearly_improvements = self.file_handler.get_energy_need_yearly_improvements()
 
@@ -390,10 +390,12 @@ class DatabaseManager:
         -------
         pd.DataFrame
             Dataframe containing total energy need improvement (%) in a policy period,
-            per building category, tek and purpose.        
+            per building category, tek and purpose.
         """
         improvements = self.get_energy_need_yearly_improvements()
-        enp = improvements.assign(improvement_at_end_year=improvements['yearly_efficiency_improvement'])[improvements['function']=='improvement_at_end_year'].copy()
+        if 'value' not in improvements.columns:
+            improvements = improvements.rename(columns={'yearly_efficiency_improvement': 'value'}, errors='ignore')
+        enp = improvements[improvements['function']=='improvement_at_end_year'].copy()
         return enp
 
     def get_holiday_home_fuelwood_consumption(self) -> pd.Series:

@@ -386,6 +386,36 @@ TEK69,1977,1969,1986""".strip()))
     assert (result == ['PRE_TEK49', 'TEK49', 'TEK69']).all()
 
 
+def test_get_energy_need_policy_improvement():
+    mock_fh = MagicMock(spec=FileHandler)
+
+    energy_need_improvements_csv = pd.read_csv(StringIO("""building_category,building_code,purpose,function,start_year,value,end_year,lineno
+house,TEK69,lighting,yearly_reduction,2022,0.02,2023,3
+house,PRE_TEK49+TEK49,lighting,improvement_at_end_year,2022,0.3,2023,4""".strip()))
+
+    mock_fh.get_energy_need_yearly_improvements.return_value = energy_need_improvements_csv
+
+    dm = DatabaseManager(file_handler=mock_fh)
+    actual = dm.get_energy_need_policy_improvement().reset_index(drop=True)
+
+    expected = pd.DataFrame({
+        'building_category': ['house'] * 2,
+        'building_code': ['PRE_TEK49','TEK49'],
+        'purpose': ['lighting'] * 2,
+        'function': ['improvement_at_end_year'] * 2,
+        'start_year': [2022] * 2,
+        'value': [0.3] * 2,
+        'end_year': [2023] * 2,
+        'lineno': [4] * 2,
+        'dupe': [False] * 2,
+    })
+
+    assert 'improvement_at_end_year' not in actual.columns
+    assert 'value' in actual.columns
+    pd.testing.assert_frame_equal(actual, expected)
+
+
+
 def test_get_population_forecast_end_year():
     """Test that get_population_forecast_end_year return the actual end_year
 

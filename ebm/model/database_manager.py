@@ -376,7 +376,7 @@ class DatabaseManager:
         """
         yearly_improvements = self.file_handler.get_energy_need_yearly_improvements()
 
-        df = expand_definitions(definitions=yearly_improvements).rename(columns={'value': 'yearly_efficiency_improvement'}).pipe(collapse_years)
+        df = expand_definitions(definitions=yearly_improvements).pipe(collapse_years)
 
         return df.reset_index(drop=True)
 

@@ -38,6 +38,42 @@ def test_get_area_per_person():
     assert retail == expected
 
 
+def test_get_energy_need_yearly_improvements():
+    mock_fh = MagicMock(spec=FileHandler)
+
+    energy_need_improvements_csv = pd.read_csv(
+        StringIO(
+            """building_category,building_code,purpose,function,start_year,value,end_year,lineno
+house,TEK69,lighting,yearly_reduction,2022,0.02,2023,2
+office,PRE_TEK49,lighting,improvement_at_end_year,2022,0.3,2023,3""".strip()
+        )
+    )
+
+    mock_fh.get_energy_need_yearly_improvements.return_value = energy_need_improvements_csv
+
+    dm = DatabaseManager(file_handler=mock_fh)
+    actual = dm.get_energy_need_yearly_improvements().reset_index(drop=True)
+
+    expected = pd.DataFrame(
+        {
+            'building_category': ['house', 'office'],
+            'building_code': ['TEK69', 'PRE_TEK49'],
+            'purpose': ['lighting'] * 2,
+            'function': ['yearly_reduction', 'improvement_at_end_year'],
+            'start_year': [2022] * 2,
+            'value': [0.02, 0.3],
+            'end_year': [2023] * 2,
+            'lineno': [2, 3],
+            'dupe': [False] * 2,
+        }
+    )
+
+    assert 'improvement_at_end_year' not in actual.columns, 'improvement_at_end_year should be merged into value'
+    assert 'yearly_efficiency_improvement' not in actual.columns, 'yearly_efficiency_improvement should be renamed to value'
+    assert 'value' in actual.columns
+    pd.testing.assert_frame_equal(actual, expected)
+
+
 def test_get_energy_req_original_condition():
     fh = FileHandler(directory=pathlib.Path(__file__).parent / 'data' / 'ebm')
     dm = DatabaseManager(fh)

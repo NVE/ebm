@@ -216,13 +216,13 @@ def test_calculate_yearly_reduction_raise_value_error_on_missing_columns(energy_
     calculate_reduction_yearly should check validity of its parameters.
     """
     yearly_efficiency_improvement = pd.DataFrame(
-        data=[['house', 'TEK01', 'lighting', energy_need.period.start, 0.1, energy_need.period.end],
-              ['house', 'TEK01', 'electrical_equipment', energy_need.period.start + 1, 0.05,
+        data=[['house', 'TEK01', 'lighting', 'yearly_reduction', energy_need.period.start, 0.1, energy_need.period.end],
+              ['house', 'TEK01', 'electrical_equipment', 'yearly_reduction', energy_need.period.start + 1, 0.05,
                energy_need.period.end - 1], ],
-        columns=['building_category', 'building_code', 'purpose', 'start_year', 'yearly_efficiency_improvement',
+        columns=['building_category', 'building_code', 'purpose', 'function', 'start_year', 'value',
                  'end_year'])
 
-    for column in ['yearly_efficiency_improvement', 'start_year', 'end_year']:
+    for column in ['value', 'start_year', 'end_year']:
         with pytest.raises(ValueError):
             calculate_reduction_yearly(df_years=energy_need.period.to_dataframe(),
                                        yearly_improvement=yearly_efficiency_improvement.drop(columns=[column]))
@@ -271,6 +271,26 @@ def test_calculate_yearly_reduction_adds_column_reduction_yearly(energy_need):
     expected_columns = ['building_category', 'building_code', 'purpose', 'year', 'factor_yearly_reduction_1', 'reduction_yearly']
 
     assert df.columns.tolist() == expected_columns
+
+
+def test_calculate_yearly_reduction_with_value():
+    """
+    reduction_yearly starts on start_year and ends in end_year
+    reduction_yearly replace nan values with 1.0 before start_year and by ffill after end_year
+
+    """
+    period = YearRange(2010, 2022)
+    yearly_efficiency_improvement = pd.DataFrame(
+        data=[
+            ['house', 'TEK01', 'electrical_equipment', 'yearly_reduction', 2012, 2020, 0.05, 0.1],
+        ],
+        columns=['building_category', 'building_code', 'purpose', 'function', 'start_year', 'end_year', 'value', 'yearly_efficiency_improvement'],
+    )
+    expected_error_message = 'The columns "value" and "yearly_efficiency_improvement" are mutually exclusive. Please provide only value.'
+    with pytest.raises(ValueError, match=expected_error_message):
+        calculate_reduction_yearly(df_years=period.to_dataframe(), yearly_improvement=yearly_efficiency_improvement)
+
+
 
 
 def test_calculate_yearly_reduction():
@@ -363,7 +383,7 @@ def test_calculate_reduction_with_yearly_reduction():
             ['house', 'TEK01', 'lighting', 'yearly_reduction', period.start, 0.1, period.end],
             ['house', 'TEK01', 'electrical_equipment', 'yearly_reduction', period.start, 0.05, period.end]
         ],
-        columns=['building_category', 'building_code', 'purpose', 'function', 'start_year', 'yearly_efficiency_improvement',
+        columns=['building_category', 'building_code', 'purpose', 'function', 'start_year', 'value',
                  'end_year']))
 
     dm.get_energy_need_policy_improvement = Mock(return_value=pd.DataFrame(

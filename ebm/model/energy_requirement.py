@@ -205,16 +205,19 @@ def calculate_reduction_yearly( df_years: pd.DataFrame, yearly_improvement: pd.D
     df_years : pd.DataFrame
         DataFrame containing all years for which to calculate factors. Must include column 'year'.
     yearly_improvement : pd.DataFrame
-        DataFrame containing yearly improvement information. Must include columns 'yearly_efficiency_improvement', and 'efficiency_start_year'.
+        DataFrame containing yearly improvement information. Must include columns 'value', 'start_year', and 'end_year'.
 
     Returns
     -------
     pd.DataFrame
         DataFrame with the calculated 'reduction_yearly' column and updated entries.
     """
+    if 'yearly_efficiency_improvement' in yearly_improvement.columns:
+        if 'value' in yearly_improvement.columns:
+            raise ValueError('The columns "value" and "yearly_efficiency_improvement" are mutually exclusive. Please provide only value.')
+        yearly_improvement = yearly_improvement.rename(columns={'yearly_efficiency_improvement': 'value'})
 
-
-    required_in_yearly_improvement = {'function', 'yearly_efficiency_improvement', 'start_year', 'end_year'}
+    required_in_yearly_improvement = {'function', 'value', 'start_year', 'end_year'}
     if not required_in_yearly_improvement.issubset(yearly_improvement.columns):
         logger.debug(f'Got columns {", ".join(yearly_improvement.columns)}')
         missing = required_in_yearly_improvement.difference(yearly_improvement.columns)
@@ -229,7 +232,7 @@ def calculate_reduction_yearly( df_years: pd.DataFrame, yearly_improvement: pd.D
     df = yearly_improvement.merge(right=years, how='cross')
     rows_in_range = df[(df.year >= df.start_year) & (df.year <= df.end_year)].index
 
-    df.loc[rows_in_range, 'yearly_change'] = (1.0 - df.loc[rows_in_range, 'yearly_efficiency_improvement'])
+    df.loc[rows_in_range, 'yearly_change'] = (1.0 - df.loc[rows_in_range, 'value'])
     df.loc[rows_in_range, 'pow'] = (df.loc[rows_in_range, 'year'] - df.loc[rows_in_range, 'start_year']) + 1
     df.loc[rows_in_range, 'reduction_yearly'] =  df.loc[rows_in_range, 'yearly_change'] ** df.loc[rows_in_range, 'pow']
 

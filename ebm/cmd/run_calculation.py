@@ -121,7 +121,6 @@ def calculate_building_category_energy_requirements(building_category: None,
     years = YearRange(start_year, end_year)
     energy_need_original_condition = database_manager.get_energy_req_original_condition(years)
     improvement_building_upgrade = database_manager.get_energy_req_reduction_per_condition()
-    energy_need_improvements_policy = database_manager.get_energy_need_policy_improvement()
     energy_need_yearly_reduction = database_manager.get_energy_need_yearly_improvements()
 
     if energy_need_yearly_reduction['dupe'].any():
@@ -131,9 +130,7 @@ def calculate_building_category_energy_requirements(building_category: None,
 
     df = energy_need_improvements(energy_need_original_condition=energy_need_original_condition,
                                   improvement_building_upgrade=improvement_building_upgrade,
-                                  energy_need_improvements_policy=energy_need_improvements_policy,
-                                  energy_need_yearly_reduction=energy_need_yearly_reduction,
-                                  years=years)
+                                  improvements=energy_need_yearly_reduction, years=years)
     df = df.set_index(['building_category', 'building_code', 'purpose', 'building_condition', 'year'])
 
     merged = (area_forecast

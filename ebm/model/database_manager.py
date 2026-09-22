@@ -386,12 +386,18 @@ class DatabaseManager:
         Get dataframe with total energy need improvement in a period related to a policy. This
         function calls explode_unique_columns to expand building_category and TEK as necessary.
 
+        Deprecated: Use get_energy_need_yearly_improvements instead.
+
         Returns
         -------
         pd.DataFrame
             Dataframe containing total energy need improvement (%) in a policy period,
             per building category, tek and purpose.
         """
+        import warnings  # noqa: PLC0415
+        warning_msg = 'get_energy_need_policy_improvement is deprecated. Use get_energy_need_yearly_improvements instead.'
+        warnings.warn(warning_msg, DeprecationWarning)
+        logger.warning(warning_msg)
         improvements = self.get_energy_need_yearly_improvements()
         if 'value' not in improvements.columns:
             improvements = improvements.rename(columns={'yearly_efficiency_improvement': 'value'}, errors='ignore')

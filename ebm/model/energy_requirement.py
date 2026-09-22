@@ -28,20 +28,14 @@ def calculate_for_building_category(database_manager: DatabaseManager = None, ye
     logger.warning('energy_requirements::calculate_for_building_category is deprecated, use calculate_energy_need instead')
     energy_need_original_condition = database_manager.get_energy_req_original_condition(years)
     improvement_building_upgrade = database_manager.get_energy_req_reduction_per_condition()
-    energy_need_improvements_policy = database_manager.get_energy_need_policy_improvement()
     energy_need_yearly_reduction = database_manager.get_energy_need_yearly_improvements()
 
     return energy_need_improvements(energy_need_original_condition=energy_need_original_condition,
                                     improvement_building_upgrade=improvement_building_upgrade,
-                                    energy_need_improvements_policy=energy_need_improvements_policy,
-                                    energy_need_yearly_reduction=energy_need_yearly_reduction,
-                                    years=YearRange(2020, 2050))
+                                    improvements=energy_need_yearly_reduction, years=YearRange(2020, 2050))
 
-def energy_need_improvements(energy_need_original_condition: pd.DataFrame,
-                             improvement_building_upgrade: pd.DataFrame,
-                             energy_need_improvements_policy: pd.DataFrame,
-                             energy_need_yearly_reduction: pd.DataFrame,
-                             years) -> pd.DataFrame:
+def energy_need_improvements(energy_need_original_condition: pd.DataFrame, improvement_building_upgrade: pd.DataFrame,
+                             improvements: pd.DataFrame, years) -> pd.DataFrame:
     """
     Calculates energy requirements for a single building category
 
@@ -50,8 +44,7 @@ def energy_need_improvements(energy_need_original_condition: pd.DataFrame,
     years :
     energy_need_original_condition : pd.DataFrame
     improvement_building_upgrade : pd.DataFrame
-    energy_need_improvements_policy : pd.DataFrame
-    energy_need_yearly_reduction : pd.DataFrame
+    improvements : pd.DataFrame
 
     Returns
     -------
@@ -62,17 +55,14 @@ def energy_need_improvements(energy_need_original_condition: pd.DataFrame,
     """
     most_conditions = list(BuildingCondition.existing_conditions())
 
-    building_codes = gather_building_codes(energy_need_improvements_policy, energy_need_original_condition,
-                                           energy_need_yearly_reduction, improvement_building_upgrade)
+    building_codes = gather_building_codes(energy_need_original_condition,
+                                           improvements, improvement_building_upgrade)
 
     df_years = make_df_building_category_code_purpose_yearly(years, building_condition=most_conditions,
                                                            building_code=building_codes)
-    merged = energy_need_improvements_kwh_m2(
-        energy_need_original_condition=energy_need_original_condition,
-        reduction_per_condition=improvement_building_upgrade,
-        policy_improvement=energy_need_improvements_policy,
-        yearly_improvement=energy_need_yearly_reduction,
-        df_years=df_years)
+    merged = energy_need_improvements_kwh_m2(energy_need_original_condition=energy_need_original_condition,
+                                             reduction_per_condition=improvement_building_upgrade,
+                                             improvements=improvements, df_years=df_years)
 
     merged = merged.drop_duplicates(['building_category', 'building_code', 'building_condition', 'year', 'purpose'], keep='first')
 
@@ -84,9 +74,15 @@ def gather_building_codes(*dataframes):
     return building_codes
 
 
-def energy_need_improvements_kwh_m2(energy_need_original_condition: pd.DataFrame,
-                                    reduction_per_condition: pd.DataFrame, policy_improvement: pd.DataFrame,
-                                    yearly_improvement: pd.DataFrame, df_years: pd.DataFrame) -> pd.DataFrame:
+def energy_need_improvements_kwh_m2(energy_need_original_condition: pd.DataFrame, reduction_per_condition: pd.DataFrame,
+                                    improvements: pd.DataFrame, df_years: pd.DataFrame) -> pd.DataFrame:
+    for param in ['improvements', 'df_years', 'energy_need_original_condition', 'reduction_per_condition']:
+        if param not in locals():
+            error_msg = f'Missing required parameter: {param}'
+            raise ValueError(error_msg)
+        if not isinstance(locals()[param], pd.DataFrame):
+            error_message = f'{param} must be a DataFrame. Was {type(locals()[param]).__name__}.'
+            raise ValueError(error_message)
 
     energy_need_original_condition = energy_need_original_condition.copy()
 
@@ -100,21 +96,23 @@ def energy_need_improvements_kwh_m2(energy_need_original_condition: pd.DataFrame
     erq_all_years = df_years.merge(right=energy_need_original_condition, how='left')
     energy_requirements = erq_all_years.drop(columns=['index', 'level_0'], errors='ignore')
 
-    return calculate_energy_reduction(energy_requirements, policy_improvement, reduction_per_condition,
-                                           yearly_improvement)
+    reduction = calculate_energy_reduction(energy_requirements=energy_requirements,
+                                           reduction_per_condition=reduction_per_condition,
+                                           improvements=improvements)
+
+    return reduction
 
 
-def calculate_energy_reduction( energy_requirements: pd.DataFrame, policy_improvement: pd.DataFrame,
-                               reduction_per_condition: pd.DataFrame, yearly_improvement: pd.DataFrame) -> pd.DataFrame:
+def calculate_energy_reduction(energy_requirements: pd.DataFrame, reduction_per_condition: pd.DataFrame,
+                               improvements: pd.DataFrame) -> pd.DataFrame:
     """
     Calculate and combine all reduction factors for energy needs into a single Dataframe.
 
     Parameters
     ----------
     energy_requirements : pd.DataFrame
-    policy_improvement : pd.DataFrame
     reduction_per_condition : pd.DataFrame
-    yearly_improvement : pd.DataFrame
+    improvements : pd.DataFrame
 
     Returns
     -------
@@ -124,8 +122,8 @@ def calculate_energy_reduction( energy_requirements: pd.DataFrame, policy_improv
     condition_factor = energy_requirements.merge(
         right=reduction_condition, on=['building_category', 'building_code', 'building_condition', 'purpose'], how='left')
 
-    reduction_policy = calculate_reduction_policy(policy_improvement, energy_requirements)
-    reduction_yearly = calculate_reduction_yearly(energy_requirements, yearly_improvement)
+    reduction_policy = calculate_reduction_policy(improvements, energy_requirements)
+    reduction_yearly = calculate_reduction_yearly(energy_requirements, improvements)
 
     merged = merge_energy_requirement_reductions(condition_factor, reduction_yearly, reduction_policy)
 
@@ -449,10 +447,12 @@ def main() -> None:
     logger.remove()
     logger.add(sys.stderr, format=log_format, level='WARNING')
 
-    dm = DatabaseManager(FileHandler(directory='kalibrering'))
+    input_directory = pathlib.Path('input')
+
+    dm = DatabaseManager(FileHandler(directory=input_directory))
 
     logger.error('Calculating')
-    df = calculate_for_building_category(dm, None, None, None, None)
+    df = calculate_for_building_category(dm, None)
     logger.error('Writing to file')
 
     xlsx_filename = make_unique_path(pathlib.Path('output/er.xlsx'))

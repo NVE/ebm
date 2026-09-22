@@ -373,30 +373,18 @@ def calculate_energy_need(
     energy_need_original_condition = original_condition if original_condition is not None else dm.get_energy_req_original_condition(year_range=years)
     improvement_building_upgrade_csv = improvement_building_upgrade if improvement_building_upgrade is not None else dm.get_energy_req_reduction_per_condition()
 
-    if improvements is not None:
-        energy_need_improvements_policy = improvements[improvements['function']=='improvement_at_end_year']
-        energy_need_improvements_policy = energy_need_improvements_policy.assign(improvement_at_end_year=energy_need_improvements_policy.value)
-    else:
-        energy_need_improvements_policy = dm.get_energy_need_policy_improvement()
-
-    if improvements is not None:
-        energy_need_yearly_reduction = improvements[improvements['function'] == 'yearly_reduction']
-        energy_need_yearly_reduction = energy_need_yearly_reduction.assign(yearly_efficiency_improvement=energy_need_yearly_reduction.value)
-
-    else:
-        energy_need_yearly_reduction = dm.get_energy_need_yearly_improvements()
+    if improvements is None:
+        improvements = dm.get_energy_need_yearly_improvements()
 
 
-    if energy_need_yearly_reduction['dupe'].any():
+    if energy_need_improvements['dupe'].any():
         #logger.warning('Detected duplicate rows in {filename}', filename=database_manager.file_handler.IMPROVEMENT_BUILDING_UPGRADE)
         msg = f'Unresolvable duplicate rows detected in {dm.file_handler.IMPROVEMENT_BUILDING_UPGRADE}. Please check the data for duplicates.'
         raise ValueError(msg)
 
     energy_need_kwh_m2 = energy_need_improvements(energy_need_original_condition=energy_need_original_condition,
                                                   improvement_building_upgrade=improvement_building_upgrade_csv,
-                                                  energy_need_improvements_policy=energy_need_improvements_policy,
-                                                  energy_need_yearly_reduction=energy_need_yearly_reduction,
-                                                  years=years)
+                                                  improvements=improvements, years=years)
 
     return energy_need_kwh_m2.set_index(['building_category', 'building_code', 'purpose', 'building_condition', 'year'])
 

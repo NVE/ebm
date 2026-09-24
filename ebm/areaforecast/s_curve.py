@@ -317,14 +317,18 @@ def pad_s_curve_age(s_curves: pd.DataFrame, scurve_parameters: pd.DataFrame) -> 
 
     """
     max_age = s_curves.index.get_level_values(level='age').max()
-    df_never_share = pd.DataFrame(
-        # noinspection PyTypeChecker
-        [(row.building_category, idx, row.condition + '_never_share', row.never_share) for idx in range(-max_age, max_age + 1)
-         for row in
-         scurve_parameters.itertuples()],
-        columns=['building_category', 'age', 'building_condition', 'scurve']).sort_values(
-        ['building_category', 'building_condition', 'age']).set_index(
-        ['building_category', 'age', 'building_condition'])
+    ages = pd.DataFrame(
+        {"age": range(-max_age, max_age + 1)}
+    )
+
+    df_never_share = (
+        scurve_parameters
+        .merge(ages, how="cross")
+        .assign(building_condition=lambda df: (df["condition"].astype(str) + "_never_share"), scurve=lambda df: df["never_share"],)
+        [["building_category", "age", "building_condition", "scurve"]]
+        .sort_values(["building_category", "building_condition", "age"])
+        .set_index(["building_category", "age", "building_condition"])
+    )
     return df_never_share
 
 
@@ -615,7 +619,7 @@ def scurve_rates_to_long(scurve_rates: pd.DataFrame) -> pd.DataFrame:
     share = share.rename(columns={'rate': 'scurve'})
 
     share_acc = scurve_rates.rate_acc.to_frame().reset_index()
-    share_acc.building_condition = share_acc.building_condition + '_acc'
+    share_acc.building_condition = share_acc.building_condition.astype(str) + '_acc'
     share_acc = share_acc.rename(columns={'rate_acc': 'scurve'})
 
     df = pd.concat([share, share_acc]).set_index(['building_category', 'age', 'building_condition'])

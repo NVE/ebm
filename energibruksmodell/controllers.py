@@ -376,8 +376,7 @@ def calculate_energy_need(
     if improvements is None:
         improvements = dm.get_energy_need_yearly_improvements()
 
-
-    if energy_need_improvements['dupe'].any():
+    if improvements['dupe'].any():
         #logger.warning('Detected duplicate rows in {filename}', filename=database_manager.file_handler.IMPROVEMENT_BUILDING_UPGRADE)
         msg = f'Unresolvable duplicate rows detected in {dm.file_handler.IMPROVEMENT_BUILDING_UPGRADE}. Please check the data for duplicates.'
         raise ValueError(msg)

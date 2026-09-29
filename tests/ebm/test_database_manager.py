@@ -386,6 +386,40 @@ TEK69,1977,1969,1986""".strip()))
     assert (result == ['PRE_TEK49', 'TEK49', 'TEK69']).all()
 
 
+def test_get_building_category():
+    """Test that get_building_category returns the expected dataframe with building categories and descriptions.
+    building_group is deliberately uses non-standard values residentials and non_residentials.
+    """
+    mock_fh = MagicMock(spec=FileHandler)
+
+    all_building_categories = pd.read_csv(StringIO("""building_category,building_group
+house,residentials
+retail,non_residentials
+småhus,residentials
+""".strip()))
+
+    mock_fh.get_building_category.return_value = all_building_categories
+
+    dm = DatabaseManager(file_handler=mock_fh)
+    result = dm.get_building_category()
+
+    expected_building_category = pd.DataFrame(
+        {
+            'building_category': [
+                'house',
+                'retail',
+                'småhus',
+            ],
+            'building_group': [
+                'residentials',
+                'non_residentials',
+                'residentials',
+            ],
+        },
+    )
+    pd.testing.assert_frame_equal(result, expected_building_category)
+
+
 def test_get_energy_need_policy_improvement():
     mock_fh = MagicMock(spec=FileHandler)
 

@@ -1,0 +1,15 @@
+building_category,building_group
+house,residential
+apartment_block,residential
+kindergarten,non_residential
+school,non_residential
+university,non_residential
+office,non_residential
+retail,non_residential
+hotel,non_residential
+hospital,non_residential
+nursing_home,non_residential
+culture,non_residential
+sports,non_residential
+storage_repairs,non_residential
+holiday_home,holiday_homes

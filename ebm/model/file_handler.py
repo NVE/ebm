@@ -21,6 +21,7 @@ class FileHandler:
     # Filenames
     BUILDING_CONDITIONS = 'building_conditions.csv'
     BUILDING_CODE_PARAMS = 'building_code_parameters.csv'
+    BUILDING_CATEGORY = 'building_category.csv'
     S_CURVE = 's_curve.csv'
     POPULATION_FORECAST = 'population_forecast.csv'
     NEW_BUILDINGS_RESIDENTIAL = 'new_buildings_residential.csv'
@@ -61,7 +62,8 @@ class FileHandler:
                                self.AREA, self.BEHAVIOUR_FACTOR, self.ENERGY_NEED_ORIGINAL_CONDITION,
                                self.IMPROVEMENT_BUILDING_UPGRADE, self.ENERGY_NEED_YEARLY_IMPROVEMENTS,
                                self.HOLIDAY_HOME_ENERGY_CONSUMPTION, self.HOLIDAY_HOME_STOCK,
-                               self.AREA_PER_PERSON, self.HEATING_SYSTEM_INITIAL_SHARES, self.HEATING_SYSTEM_EFFICIENCIES, self.HEATING_SYSTEM_FORECAST]
+                               self.AREA_PER_PERSON, self.HEATING_SYSTEM_INITIAL_SHARES, self.HEATING_SYSTEM_EFFICIENCIES, self.HEATING_SYSTEM_FORECAST,
+                               self.BUILDING_CATEGORY]
 
     def __repr__(self):
         return f'FileHandler(input_directory="{self.input_directory}")'
@@ -137,6 +139,17 @@ class FileHandler:
         """
         building_code_params = self.get_file(self.BUILDING_CODE_PARAMS)
         return building_code_params
+
+    def get_building_category(self) -> pd.DataFrame:
+        """
+        Get building category DataFrame.
+
+        Returns:
+        - building_category (pd.DataFrame): DataFrame containing building category data.
+        """
+        building_category = self.get_file(self.BUILDING_CATEGORY)
+        return building_category
+
     
     def get_s_curve(self) -> pd.DataFrame:
         """

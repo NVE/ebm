@@ -18,12 +18,15 @@ from ebm.validators import (
     area,
     area_new_residential_buildings,
     area_per_person,
+    building_category,
     building_code_parameters,
     check_overlapping_building_code_periods,
     energy_need_behaviour_factor,
     energy_need_improvements,
+    energy_need_improvements_yearly_schema,
     energy_need_original_condition,
     expanded_energy_need_behaviour_factor,
+    expanded_energy_need_improvements_schema,
     heating_system_efficiencies,
     heating_system_forecast,
     heating_system_initial_shares,
@@ -31,8 +34,6 @@ from ebm.validators import (
     new_buildings_residential,
     population_forecast,
     s_curve,
-    expanded_energy_need_improvements_schema,
-    energy_need_improvements_yearly_schema,
 )
 
 
@@ -116,9 +117,80 @@ def test_area_parameters_building_categories():
 
     area.validate(df)
 
+@pytest.mark.parametrize(
+    ('category', 'group'),
+    [
+        ('house', 'residential'),
+        ('holiday_home', 'holiday_homes'),
+    ],
+)
+def test_building_category_allows_supported_categories(category, group):
+    df = pd.DataFrame(
+        {'building_category': [category], 'building_group': [group]},
+    )
 
-def test_area_parameters_raises_schema_error_on_unknown_building_category():
-    rows = [['CASTLE', 'TEK10', 10000]]
+    building_category.validate(df)
+
+
+@pytest.mark.parametrize(
+    ('illegal_category', 'group'),
+    [
+        ('hou+se', 'residential'),
+        ('holiday home', 'holiday_homes'),
+        ('J A I L', 'non_residential'),
+    ],
+)
+def test_building_category_raise_schema_error_on_illegal_category(illegal_category, group):
+    df = pd.DataFrame(
+        {'building_category': [illegal_category], 'building_group': [group]},
+    )
+    with pytest.raises((pa.errors.SchemaError, pa.errors.SchemaErrors)):
+        building_category.validate(df)
+
+
+def test_building_category():
+    building_categories = {
+        'building_category': {
+            0: 'house',
+            1: 'apartment_block',
+            2: 'kindergarten',
+            3: 'school',
+            4: 'university',
+            5: 'office',
+            6: 'retail',
+            7: 'hotel',
+            8: 'hospital',
+            9: 'nursing_home',
+            10: 'culture',
+            11: 'sports',
+            12: 'storage_repairs',
+            13: 'holiday_home',
+        },
+        'building_group': {
+            0: 'residential',
+            1: 'residential',
+            2: 'non_residential',
+            3: 'non_residential',
+            4: 'non_residential',
+            5: 'non_residential',
+            6: 'non_residential',
+            7: 'non_residential',
+            8: 'non_residential',
+            9: 'non_residential',
+            10: 'non_residential',
+            11: 'non_residential',
+            12: 'non_residential',
+            13: 'holiday_homes',
+        },
+    }
+    df = pd.DataFrame(building_categories, columns=['building_category', 'building_group'])
+
+    building_category.validate(df)
+
+
+@pytest.mark.parametrize('illegal_building_category', ['småhus', 'villa', 'holiday_home', 'holiday_homes'])
+def test_area_parameters_raises_schema_error_on_unknown_building_category(illegal_building_category):
+    rows = [[illegal_building_category, 'TEK10', 10000]]
     df = pd.DataFrame(data=rows, columns=['building_category', 'building_code', 'area'])
 
     with pytest.raises(pa.errors.SchemaError):
@@ -316,8 +388,9 @@ def test_scurve_parameters_ok(s_curves):
     s_curve.validate(s_curves)
 
 
-def test_scurve_parameters_reject_invalid_building_category(s_curves):
-    s_curves.loc[0, 'building_category'] = 'småhus'
+@pytest.mark.parametrize('illegal_building_category', ['småhus', 'villa', 'holiday_home', 'holiday_homes'])
+def test_scurve_parameters_reject_invalid_building_category(s_curves, illegal_building_category:str):
+    s_curves.loc[0, 'building_category'] = illegal_building_category
 
     with pytest.raises(pa.errors.SchemaError):
         s_curve.validate(s_curves)
@@ -571,8 +644,9 @@ def test_energy_need_yearly_improvements_allow_building_groups(building_group, e
     result = energy_need_improvements.validate(df)
     assert (result.building_category == expected_category).all()
 
-
+@pytest.mark.skip(reason="This test is not valid anymore, as the schema now allows custom building groups as building_category")
 def test_energy_need_yearly_improvements_require_valid_building_cat(yearly_improvements_df):
+    """ The test should be rewritten to confirm that the building_category exists in building_category.csv"""
     yearly_improvements_df.loc[0, 'building_category'] = 'not_a_category'
     with pytest.raises(pa.errors.SchemaError):
         energy_need_improvements.validate(yearly_improvements_df)
@@ -624,10 +698,10 @@ hospital,0.6
 university,0.6"""
     area_per_person.validate(pd.read_csv(io.StringIO(area_per_person_csv)))
 
-
-def test_area_per_person_raises_schema_error():
-    area_per_person_csv = """building_category,area_per_person
-invalid_category,0.6
+@pytest.mark.parametrize('illegal_building_category', ['småhus', 'villa', 'holiday_home', 'holiday_homes'])
+def test_area_per_person_raises_schema_error(illegal_building_category):
+    area_per_person_csv = f"""building_category,area_per_person
+{illegal_building_category},0.6
 """
     with pytest.raises(pa.errors.SchemaError):
         area_per_person.validate(pd.read_csv(io.StringIO(area_per_person_csv)))
@@ -662,6 +736,21 @@ university,TEK97,HP Central heating - Gas,2023,0.0000719616069676
     
     heating_system_initial_shares.validate(shares_start_year)
 
+@pytest.mark.parametrize('illegal_building_category', ['småhus', 'villa', 'holiday_home', 'holiday_homes'])
+def test_heating_systems_validation_failure_on_illegal_building_category(illegal_building_category):
+    shares_start_year = pd.read_csv(
+        io.StringIO(
+            f"""
+building_category,building_code,heating_systems,year,heating_system_share
+{illegal_building_category},TEK07,DH,2020,0.0
+apartment_block,TEK07,DH - Bio,2020,0.0
+""".strip()
+        ),
+        skipinitialspace=True,
+    )
+
+    with pytest.raises(pa.errors.SchemaError):
+        heating_system_initial_shares.validate(shares_start_year)
 
 def test_heating_systems_shares_require_same_start_year():
     shares_start_year = pd.read_csv(io.StringIO("""

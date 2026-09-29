@@ -100,6 +100,18 @@ class DatabaseManager:
 
         return pd.DataFrame(data=data, columns=column_headers)
 
+    def get_building_category(self) -> pd.DataFrame:
+        """
+        Retrieve building_category
+
+        Returns
+        -------
+        pd.DataFrame
+            Pandas Dataframe containing building_category with parameters
+        """
+        building_category = self.file_handler.get_building_category()
+        return building_category
+
     def get_building_codes(self) -> pd.DataFrame:
         """
         Retrieve building_code_parameters

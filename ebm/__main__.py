@@ -68,21 +68,16 @@ def main() -> tuple[ReturnCode, pd.DataFrame | None]:
     input_directory = arguments.input
     logger.debug('Using platform {os}', os=platform.system())
     logger.info(f'Using data from "{input_directory}"')
-    database_manager = DatabaseManager(file_handler=FileHandler(directory=input_directory), years=YearRange(arguments.start_year, arguments.end_year))
 
-    # Create input directory if requested (via command or legacy flag)
     if arguments.step == 'create-input' or arguments.create_input:
         if arguments.create_input:
             logger.warning('The --create-input flag is deprecated. Use "ebm create-input" command instead.')
-        # When used as a command, dataset and input dir can be passed positionally:
-        #   ebm create-input <dataset> <input_dir>
-        # argparse captures them as output_file and create_input_dir respectively.
         dataset = arguments.dataset
         if dataset is None and arguments.step == 'create-input' and arguments.output_file != default_path:
             dataset = arguments.output_file.name
         if arguments.create_input_dir is not None:
             input_directory = arguments.create_input_dir
-            database_manager = DatabaseManager(file_handler=FileHandler(directory=input_directory))
+        file_handler = FileHandler(directory=input_directory)
         source_directory = None
         if dataset:
             data_directory = files('ebm.data')
@@ -94,12 +89,15 @@ def main() -> tuple[ReturnCode, pd.DataFrame | None]:
                 )
                 logger.error(f'Dataset "{dataset}" not found. Available datasets: {", ".join(available)}')
                 return ReturnCode.FILE_NOT_ACCESSIBLE, None
-        if init(database_manager.file_handler, source_directory=source_directory):
+        if init(file_handler, source_directory=source_directory):
             logger.success('Finished creating input files in {input_directory}',
-                           input_directory=database_manager.file_handler.input_directory)
+                           input_directory=file_handler.input_directory)
             return ReturnCode.OK, None
         # Exit with 0 for success. The assumption is that the user would like to review the input before proceeding.
         return ReturnCode.MISSING_INPUT_FILES, None
+
+    database_manager = DatabaseManager(file_handler=FileHandler(directory=input_directory), years=YearRange(arguments.start_year, arguments.end_year))
+
     if arguments.migrate:
         migrate_directories([database_manager.file_handler.input_directory])
         logger.success('Finished migration')

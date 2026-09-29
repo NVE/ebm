@@ -8,6 +8,11 @@ from dataclasses import dataclass
 
 import numpy as np
 from loguru import logger
+from pandas.api.types import (
+is_float_dtype,
+is_integer_dtype,
+)
+
 from openpyxl import load_workbook
 from openpyxl.cell import Cell
 from openpyxl.formatting.rule import FormulaRule
@@ -178,13 +183,14 @@ def iter_cells(first_column: str = 'E', left_padding: str = '') -> typing.Genera
 
 def detect_format_from_values(col_name, col_values, model):
     cell_format = ''
-    if np.issubdtype(model[col_name].dtype, np.floating):
+    dtype = model[col_name].dtype
+    if is_float_dtype(dtype):
         cell_format = '#,##0.00'
         if col_values.max() > 1000.0:
             cell_format = '# ##0'
         elif 1.0 >= col_values.mean() >= -1.0:
             cell_format = '0.00%'
-    elif np.issubdtype(model[col_name].dtype, np.integer):
+    elif is_integer_dtype(dtype):
         cell_format = '#,##0'
 
     return cell_format

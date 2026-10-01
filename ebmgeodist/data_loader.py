@@ -15,14 +15,17 @@ def _log_elhub_container_and_storage_account_once(container: str, storage_accoun
     logger.warning(f"Elhub container: {container}, Elhub storage Account: {storage_account}")
 # Function to load Elhub data from Azure Data Lake Storage using Polars
 def load_elhub_data(
-    dataset="forbruk_per_time_prisomraade_kommune_naeringshovedgruppe",
+    dataset=None,
     year_filter=None,
     month_filter=None,
     columns=None,
 ):
     # Azure storage configuration
     storage_options = {'use_azure_cli': "True"}
-    azure_adls_path = os.environ.get('EBM_GEODIST_ELHUB_CREDENTIALS')
+    storage_account = os.environ.get('EBM_STORAGE_ACCOUNT')
+    container = os.environ.get('EBM_STORAGE_CONTAINER')
+    if dataset is None:
+        dataset = os.environ.get('EBM_ELHUB_DATASET', 'forbruk_per_time_prisomraade_kommune_naeringshovedgruppe')
 
     # Define default column selection if none is provided
     if columns is None:
@@ -55,13 +58,13 @@ def load_elhub_data(
     full_path = f"{dataset}/{year_path}/{month_path}/*.snappy.parquet"
 
     # Compose full Azure ABFSS path
-    if not azure_adls_path:
-        raise ValueError("Environment variable 'EBM_GEODIST_ELHUB_LOCATION' is not set.")
-    
-    # Split into container and storage_account
-    container, storage_account = azure_adls_path.split('/')
+    if not storage_account:
+        raise ValueError("Environment variable 'EBM_STORAGE_ACCOUNT' is not set.")
+    if not container:
+        raise ValueError("Environment variable 'EBM_STORAGE_CONTAINER' is not set.")
+
     _log_elhub_container_and_storage_account_once(container, storage_account)
-    
+
     abfss_path = f"abfss://{container}@{storage_account}.dfs.core.windows.net/{full_path}"
     # print(f"📌 Selected columns: {columns}")
 

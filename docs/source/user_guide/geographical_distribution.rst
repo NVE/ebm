@@ -33,6 +33,13 @@ By default and without using any option, the distribution keys for electricity a
 If the file does not exist, the module will generate the distribution keys using Elhub API inside the module, assuming that you have
 access to Elhub data via Azure Blob Storage. 
 
+.. important::
+
+   To use Elhub data from Azure, you must set the ``EBM_STORAGE_ACCOUNT`` and
+   ``EBM_STORAGE_CONTAINER`` environment variables and be signed in via ``az login``
+   with read access to the storage account.
+   See :doc:`configuration` for details.
+
 The results are saved in four Excel files named |output_ebmgeodist_ref| under |output_directory|, where ``{energy-product}`` is replaced by the name of the energy product being distributed (e.g., ``electricity``, ``fuelwood``, ``dh``, etc.).
 
 Additional arguments

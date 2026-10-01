@@ -1,2 +1,4 @@
 Variable, Description, Type, Default
-``EBM_GEODIST_ELHUB_CREDENTIALS``, Specifies the location of the ELHUB API credentials for the ``ebmgeodist`` module., string, None
+``EBM_STORAGE_ACCOUNT``, Azure Data Lake Storage account name hosting the ELHUB dataset., string, None
+``EBM_STORAGE_CONTAINER``, Azure Data Lake Storage container name within the storage account where the ELHUB dataset is stored., string, None
+``EBM_ELHUB_DATASET``, Name of the ELHUB dataset (top-level folder) within the container., string, ``forbruk_per_time_prisomraade_kommune_naeringshovedgruppe``

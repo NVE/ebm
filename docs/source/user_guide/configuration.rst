@@ -20,11 +20,15 @@ EBM geographical distribution specific environment variables
 ---------------------------------------------------------------
 
 The ``ebmgeodist`` extends the ``ebm`` module by adding functionality for distributing energy use forecasts at the municipality level.
-It requires one additional configuration variable related to the container and storage account parameters of the ELhub API.
+It requires additional configuration variables that identify the Azure Data Lake Storage location of the ELHUB dataset.
 
 .. csv-table:: EBM geographical distribution specific environment variables
    :file: ../tables/ebmgeodist_env_vars.csv
    :header-rows: 1
+
+Authentication is performed via the Azure CLI. Before running ``ebmgeodist`` with ``--source azure``, run ``az login`` and
+make sure the signed-in account has read access to the storage account above (e.g. the ``Storage Blob Data Reader`` role
+or equivalent ACL/group membership). Contact your Azure administrator if unsure.
 
 Example of a .env file
 --------------------------
@@ -41,11 +45,14 @@ An example of a ``.env`` configuration file is shown below:
       EBM_ALWAYS_OPEN=false
 
       # EBMGeoDist module
-      EBM_GEODIST_ELHUB_LOCATION=/data/elhub/elhub_data.parquet      
+      EBM_STORAGE_ACCOUNT=mystorageaccount
+      EBM_STORAGE_CONTAINER=elhub
+      EBM_ELHUB_DATASET=forbruk_per_time_prisomraade_kommune_naeringshovedgruppe
 
 .. note::
       
       - The variables are case-sensitive and should be defined in uppercase letters as shown.
+      - The ``.env`` file may contain environment-specific values (e.g. your Azure storage account name) and should never be committed to version control.
       - If a variable is not set, the model will use the default value specified in the tables above.
       - Ensure that the paths provided for input and output directories exist and are accessible by the model.
       - The Elhub dataset path must point to a valid Parquet file containing the necessary data for calculating distribution keys.

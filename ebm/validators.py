@@ -37,7 +37,7 @@ def check_building_category(value: pd.Series) -> pd.Series:
     pd.Series of bool values
 
     """
-    return value.isin(list(BuildingCategory) + ['holiday_home'])
+    return value.isin(list(BuildingCategory) + ['holiday_home'] + ['prison'])
 
 def check_not_holiday_home(value: pd.Series) -> pd.Series:
     """
@@ -87,7 +87,7 @@ def check_default_building_category(value: pd.Series) -> pd.Series:
     pd.Series of bool values
 
     """
-    return value.isin(list(BuildingCategory) + ['default'])
+    return value.isin(list(BuildingCategory) + ['holiday_home'] + ['prison'] + ['default'])
 
 def check_default_building_category_with_group(value: pd.Series) -> pd.Series:
     """
@@ -103,7 +103,7 @@ def check_default_building_category_with_group(value: pd.Series) -> pd.Series:
     -------
     pd.Series of bool values
     """
-    return value.isin([*list(BuildingCategory), 'default', RESIDENTIAL, NON_RESIDENTIAL])
+    return value.isin([*list(BuildingCategory), 'default', RESIDENTIAL, NON_RESIDENTIAL, 'holiday_homes', 'prison'])
 
 
 def check_building_condition(value: pd.Series) -> pd.Series:

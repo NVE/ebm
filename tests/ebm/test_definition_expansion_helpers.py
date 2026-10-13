@@ -147,14 +147,14 @@ def test_explode_purpose_ignore_missing_purpose():
 
 
 def test_explode_years_raise_value_error_when_missing_start_year():
-    with pytest.raises(ValueError, match=r"Dataframe must contain a 'start_year' column"):
+    with pytest.raises(ValueError, match=r"Dataframe must contain start and end columns \(start_year, end_year\)"):
         explode_years(pd.DataFrame({
         "lineno": [2],
         "end_year": [2010],
         "value": [0.5],
     }))
 
-    with pytest.raises(ValueError, match=r"Dataframe must contain a 'end_year' column"):
+    with pytest.raises(ValueError, match=r"Dataframe must contain start and end columns \(start_year, end_year\)"):
         explode_years(pd.DataFrame({
         "lineno": [2],
         "start_year": [2010],
@@ -186,6 +186,23 @@ def test_explode_years():
         "lineno": [2, 2, 2],
         "start_year": [2020, 2020, 2020],
         "end_year": [2022, 2022, 2022],
+        "value": [0.5, 0.5, 0.5],
+        "year": [2020, 2021, 2022],
+    })
+    pd.testing.assert_frame_equal(result.reset_index(drop=True), expected.reset_index(drop=True))
+
+def test_explode_years_use_alternate_columns():
+    df = pd.DataFrame({
+        "lineno": [2],
+        "model_start_year": [2020],
+        "model_end_year": [2022],
+        "value": [0.5],
+    })
+    result = explode_years(df, start_column='model_start_year', end_column='model_end_year')
+    expected = pd.DataFrame({
+        "lineno": [2, 2, 2],
+        "model_start_year": [2020, 2020, 2020],
+        "model_end_year": [2022, 2022, 2022],
         "value": [0.5, 0.5, 0.5],
         "year": [2020, 2021, 2022],
     })

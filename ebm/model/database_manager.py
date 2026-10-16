@@ -1,9 +1,7 @@
 import itertools
 import os
 import sys
-import typing
 
-import numpy as np
 import pandas as pd
 from loguru import logger
 
@@ -11,14 +9,10 @@ from ebm.definition_expansion import add_lineno, collapse_years, explode_on_plus
 from ebm.energy_consumption import calibrate_heating_systems
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
-from ebm.model.column_operations import explode_building_category_column, explode_building_code_column, explode_unique_columns
-from ebm.model.data_classes import TEKParameters, YearRange
+from ebm.model.column_operations import explode_unique_columns
+from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.file_handler import FileHandler
-
-# TODO:
-# - add method to change all strings to lower case and underscore instead of space
-# - change column strings used in methods to constants
 
 
 class DatabaseManager:
@@ -125,49 +119,6 @@ class DatabaseManager:
         return building_code_params_df
 
 
-    def get_building_code_params(self, building_code_list: typing.List[str]=None):
-        """
-        Retrieve building_codeparameters for a list of building_code.
-
-        This method fetches building_codeparameters for each building_codeID in the provided list,
-        converts the relevant data to a dictionary, and maps these values to the 
-        corresponding attributes of the TEKParameters dataclass. The resulting 
-        dataclass instances are stored in a dictionary with building_code as keys.
-
-        Parameters:
-        - building_code_list (list of str): List of building_code.
-
-        Returns:
-        - building_code_params (dict): Dictionary where each key is a building_codeID and each value
-                            is a TEKParameters dataclass instance containing the 
-                            parameters for that building_codeID.
-        """
-        building_code_params = {}
-        building_code_params_df = self.file_handler.get_building_code()
-        if not building_code_list:
-            return building_code_params_df
-        for tek in building_code_list:
-            # Filter on building_code
-            building_code_params_filtered = building_code_params_df[building_code_params_df[self.COL_TEK] == tek]
-
-            # Assuming there is only one row in the filtered DataFrame
-            building_code_params_row = building_code_params_filtered.iloc[0]
-
-            # Convert the single row to a dictionary
-            building_code_params_dict = building_code_params_row.to_dict()
-
-            # Map the dictionary values to the dataclass attributes
-            building_code_params_per_id = TEKParameters(
-                tek = building_code_params_dict[self.COL_TEK],
-                building_year = building_code_params_dict[self.COL_TEK_BUILDING_YEAR],
-                start_year = building_code_params_dict[self.COL_TEK_START_YEAR],
-                end_year = building_code_params_dict[self.COL_TEK_END_YEAR],
-                )
-
-            building_code_params[tek] = building_code_params_per_id    
-
-        return building_code_params
-
     def get_scurve_params(self):
         """
         Get input dataframe with S-curve parameters/assumptions.
@@ -270,31 +221,7 @@ class DatabaseManager:
         """
         area_params = self.file_handler.get_area_parameters()
         return area_params
-    
-    def get_area_start_year(self) -> typing.Dict[BuildingCategory, pd.Series]:
-        """
-        Retrieve total floor area in the model start year for each TEK within a building category.
 
-        Returns
-        -------
-        dict
-            A dictionary where:
-            - keys are `BuildingCategory` objects derived from the building category string.
-            - values are `pandas.Series` with the 'tek' column as the index and the corresponding
-              'area' column as the values.
-        """
-        area_data = self.file_handler.get_area_parameters()
-        
-        area_dict = {}
-        for building_category in area_data[self.COL_BUILDING_CATEGORY].unique():
-            area_building_category = area_data[area_data[self.COL_BUILDING_CATEGORY] == building_category]
-            area_series = area_building_category.set_index(self.COL_TEK)[self.COL_AREA]
-            area_series.index.name = "tek"
-            area_series.rename(f"{BuildingCategory.from_string(building_category)}_area", inplace=True)
-            
-            area_dict[BuildingCategory.from_string(building_category)] = area_series
-
-        return area_dict
 
     def get_behaviour_factor(self) -> pd.DataFrame:
         f = self.file_handler.get_file(self.file_handler.BEHAVIOUR_FACTOR)
@@ -357,7 +284,7 @@ class DatabaseManager:
         building_purpose = years.cross_join(building_code_purpose)
 
         ff = self.file_handler.get_energy_req_original_condition()[['building_category', 'building_code', 'purpose', 'kwh_m2']]
-        df = self.explode_unique_columns(ff, ['building_category', 'building_code', 'purpose'])
+        df = explode_unique_columns(ff, ['building_category', 'building_code', 'purpose'], default_building_code=self.get_building_code_list())
         if len(df[df.building_code=='TEK21']) > 0:
             logger.warning('Detected TEK21 in {filename}', filename=self.file_handler.ENERGY_NEED_ORIGINAL_CONDITION)
         df = df.set_index(['building_category', 'purpose', 'building_code']).sort_index()
@@ -582,9 +509,6 @@ class DatabaseManager:
             return df.area_per_person.loc[building_category]
         return df.area_per_person
 
-    def validate_database(self) -> bool:
-        missing_files = self.file_handler.check_for_missing_files()
-        return True
 
     def get_heating_systems_shares_start_year(self) -> pd.DataFrame:
         df = self.file_handler.get_heating_systems_shares_start_year()
@@ -623,17 +547,7 @@ class DatabaseManager:
             'dupe',
         ], errors='ignore').reset_index(drop=True)
 
-
-    def explode_unique_columns(self, df: pd.DataFrame, unique_columns: np.ndarray | list[str]) -> pd.DataFrame:
-        return explode_unique_columns(df, unique_columns, default_building_code=self.get_building_code_list())
-
-
-    def explode_building_category_column(self, df, unique_columns: np.ndarray | list[str]) -> pd.DataFrame:
-        return explode_building_category_column(df, unique_columns)
-
-    def explode_building_code_column(self, ff, unique_columns: np.ndarray | list[str]) -> pd.DataFrame:
-        return explode_building_code_column(ff, unique_columns, default_building_code=self.get_building_code_list())
-
+    
     def get_building_category_alias(self) -> pd.DataFrame:
         """Return every building category with category, group, and default aliases."""
         building_categories = self.get_building_category()

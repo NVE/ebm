@@ -539,69 +539,6 @@ def test_behaviour_factor_explode_on_plus(simple_file_handler):
     assert actual_24.behaviour_factor.tolist() == [0.24] * len(actual_24)
 
 
-def test_expand_unique_columns_building_category_and_building_code():
-    residential = pd.DataFrame(data=[
-        ['residential', 'default', 'lighting', 'residential-default-lighting'],
-        ['house', 'TEK03', 'lighting', 'house-tek03-lighting'],
-        ['house', 'TEK01+TEK02', 'lighting', 'house-tek01+tek02-lighting'],
-        ['apartment_block', 'TEK01', 'lighting', 'apartment_block-tek01-lighting'],
-        ['residential', 'default', 'lighting', 'residential-default-lighting-2'],
-    ],
-        columns=['building_category', 'building_code', 'purpose', 'v'])
-    dm = DatabaseManager(Mock())
-    dm.get_building_code_list = Mock(return_value=pd.DataFrame(['TEK01', 'TEK02', 'TEK03'], columns=['building_code']).building_code.unique())
-
-    result = dm.explode_unique_columns(residential, unique_columns=['building_category', 'building_code', 'purpose'])
-    r = result.set_index(['building_category', 'building_code', 'purpose'])
-
-    assert r.loc[('house', 'TEK01', 'lighting'), 'v'] == 'house-tek01+tek02-lighting'
-    assert r.loc[('house', 'TEK02', 'lighting'), 'v'] == 'house-tek01+tek02-lighting'
-    assert r.loc[('house', 'TEK03', 'lighting'), 'v'] == 'house-tek03-lighting'
-    assert r.loc[('apartment_block', 'TEK01', 'lighting'), 'v'] == 'apartment_block-tek01-lighting'
-    assert r.loc[('apartment_block', 'TEK02', 'lighting'), 'v'] == 'residential-default-lighting'
-    assert r.loc[('apartment_block', 'TEK03', 'lighting'), 'v'] == 'residential-default-lighting'
-    assert len(r) == 6
-
-
-def test_expand_building_category_column_default_and_groups():
-    residential = pd.DataFrame(data=[
-        ['residential', 'TEK01', 'residential-tek01'],
-        ['non_residential', 'TEK01', 'non_residential-tek01'],
-        ['default', 'TEK02', 'default-tek02'],
-        ['house+hotel', 'TEK03', 'house+hotel-tek03']
-    ],
-        columns=['building_category', 'building_code', 'v'])
-    dm = DatabaseManager(Mock())
-
-    dm.get_building_code_list = Mock(return_value=['TEK01', 'TEK02', 'TEK03'])
-    # explode_building_code_column does not change the dataframe
-    dm.explode_building_code_column = lambda df,c: df
-    result = dm.explode_unique_columns(residential, unique_columns=['building_category', 'building_code'])
-    r = result.set_index(['building_category', 'building_code'])
-
-    assert r.loc[(BuildingCategory.HOUSE, 'TEK01'), 'v'] == 'residential-tek01'
-    assert r.loc[(BuildingCategory.APARTMENT_BLOCK, 'TEK01'), 'v'] == 'residential-tek01'
-    assert r.loc[(BuildingCategory.KINDERGARTEN, 'TEK01'), 'v'] == 'non_residential-tek01'
-    assert r.loc[(BuildingCategory.SCHOOL, 'TEK01'), 'v'] == 'non_residential-tek01'
-    assert r.loc[(BuildingCategory.UNIVERSITY, 'TEK01'), 'v'] == 'non_residential-tek01'
-    assert r.loc[(BuildingCategory.OFFICE, 'TEK01'), 'v'] == 'non_residential-tek01'
-    assert r.loc[(BuildingCategory.RETAIL, 'TEK01'), 'v'] == 'non_residential-tek01'
-    assert r.loc[(BuildingCategory.HOTEL, 'TEK01'), 'v'] == 'non_residential-tek01'
-    assert r.loc[(BuildingCategory.HOSPITAL, 'TEK01'), 'v'] == 'non_residential-tek01'
-    assert r.loc[(BuildingCategory.NURSING_HOME, 'TEK01'), 'v'] == 'non_residential-tek01'
-    assert r.loc[(BuildingCategory.CULTURE, 'TEK01'), 'v'] == 'non_residential-tek01'
-    assert r.loc[(BuildingCategory.SPORTS, 'TEK01'), 'v'] == 'non_residential-tek01'
-    assert r.loc[(BuildingCategory.STORAGE, 'TEK01'), 'v'] == 'non_residential-tek01'
-
-    for bc in BuildingCategory:
-        assert r.loc[(bc, 'TEK02'), 'v'] == 'default-tek02'
-
-    assert r.loc[(BuildingCategory.HOUSE, 'TEK03'), 'v'] == 'house+hotel-tek03'
-    assert r.loc[(BuildingCategory.HOTEL, 'TEK03'), 'v'] == 'house+hotel-tek03'
-
-    assert len(r) == 28
-
-
 def test_make_building_purpose_with_year():
     mock_fh = MagicMock(spec=FileHandler)
 

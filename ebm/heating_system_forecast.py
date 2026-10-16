@@ -51,8 +51,9 @@ class HeatingSystemsForecast: # noqa: D101
         if start_year != self.period.start:
             raise ValueError("Start year in dataframe doesn't match start year for given period.")
 
-        projection = self.forecast.melt(id_vars = [BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS],
-                                        var_name = YEAR, value_name = "Andel_utskiftning")
+        heating_system_forecast = self.forecast.drop(columns=['lineno'], errors='ignore')
+        projection = heating_system_forecast.melt(id_vars = [BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS],
+                                   var_name = YEAR, value_name = "Andel_utskiftning")
         projection[YEAR] = projection[YEAR].astype(int)
         min_df = projection.groupby([BUILDING_CATEGORY, BUILDING_CODE]).agg(min_year=(YEAR, 'min')).reset_index()
         min_mismatch = min_df[min_df['min_year'] != (start_year + 1)]
@@ -87,7 +88,8 @@ class HeatingSystemsForecast: # noqa: D101
         shares_all_heating_systems = add_missing_heating_systems(self.shares_start_year,
                                                                  HeatingSystems,
                                                                  self.period.start)
-        projected_shares = expand_building_category_building_code(self.forecast, self.building_code_list)
+        projected_shares = self.forecast.drop(columns=['lineno'], errors='ignore').copy()
+
         new_shares = project_heating_systems(shares_all_heating_systems, projected_shares, self.period)
         heating_systems_projection = add_existing_heating_system_shares_to_projection(new_shares,
                                                                            self.shares_start_year,
@@ -250,39 +252,6 @@ def aggregere_lik_oppvarming_fjern_0(df:pd.DataFrame) -> pd.DataFrame:
     df_aggregert = df_fjern_null.groupby([BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, YEAR],
                                          as_index = False)[TEK_SHARES].sum()
     return df_aggregert
-
-
-def expand_building_category_building_code(projection: pd.DataFrame,
-                                 building_code_list: list[str]) -> pd.DataFrame:
-    """Add necessary building categories and building_code to the heating_systems_forecast dataframe."""
-    score = '_score'
-    original_building_category = '_original_bc'
-    original_building_code = '_original_building_code'
-    projection[original_building_category] = projection['building_category']
-    projection[original_building_code] = projection['building_code']
-
-    alle_bygningskategorier = '+'.join(BuildingCategory)
-    alle_building_code = '+'.join(tek for tek in building_code_list)
-    husholdning = '+'.join(bc for bc in BuildingCategory if bc.is_residential())
-    yrkesbygg = '+'.join(bc for bc in BuildingCategory if bc.is_non_residential())
-
-    df = projection.copy()
-    df.loc[df[BUILDING_CODE] == "default", BUILDING_CODE] = alle_building_code
-    df.loc[df[BUILDING_CATEGORY] == "default", BUILDING_CATEGORY] = alle_bygningskategorier
-    df.loc[df[BUILDING_CATEGORY] == RESIDENTIAL, BUILDING_CATEGORY] = husholdning
-    df.loc[df[BUILDING_CATEGORY] == NON_RESIDENTIAL, BUILDING_CATEGORY] = yrkesbygg
-
-    df = df.assign(**{BUILDING_CATEGORY: df[BUILDING_CATEGORY].str.split('+')}).explode(BUILDING_CATEGORY)
-    df2 = df.assign(**{BUILDING_CODE: df[BUILDING_CODE].str.split('+')}).explode(BUILDING_CODE)
-    df2 = df2.reset_index(drop=True)
-    df2[score] = (df2[original_building_category] != 'default') * 1 + \
-                 (~df2[original_building_category].isin(['default', NON_RESIDENTIAL, RESIDENTIAL])) * 1 + \
-                 (df2[original_building_code] != 'default') * 1
-
-    df2 = df2.sort_values(by=[score])
-    de_duped = df2.drop_duplicates(subset=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS], keep='last')
-
-    return de_duped.drop(columns=[score, original_building_category, original_building_code])
 
 
 def project_heating_systems(shares_start_year_all_systems: pd.DataFrame,

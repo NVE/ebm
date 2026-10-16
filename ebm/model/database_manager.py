@@ -588,7 +588,30 @@ class DatabaseManager:
 
 
     def get_heating_system_forecast(self) -> pd.DataFrame:
-        return self.file_handler.get_heating_system_forecast()
+        heating_system_forecast_csv = self.file_handler.get_heating_system_forecast().pipe(add_lineno)
+        exploded_heating_system_forecast = explode_on_plus(heating_system_forecast_csv, 'building_category').pipe(explode_on_plus, 'building_code')
+        building_category_codes = self.get_building_category_alias().merge(self.get_building_code_alias(), how='cross')
+        df = building_category_codes.merge(exploded_heating_system_forecast,
+                                       how='inner',
+                                       left_on=['building_category_alias', 'building_code_alias'],
+                                       right_on=['building_category', 'building_code'],
+                                       suffixes=['', '_definition'])
+
+        scored = select_groups_with_lowest_lineno_count(
+            df,
+            grouping_columns=['building_category', 'building_code', 'heating_systems', 'new_heating_systems'],
+            filter_columns=True
+        )
+        marked = scored.assign(dupe=scored.duplicated(subset=['building_category', 'building_code', 'heating_systems', 'new_heating_systems'], keep='last'))
+        deduped = marked.drop_duplicates(subset=['building_category', 'building_code', 'heating_systems', 'new_heating_systems'], keep='last')
+
+        return deduped.dropna().drop(columns=[
+            'building_category_alias',
+            'building_category_definition',
+            'building_code_alias',
+            'building_code_definition',
+            'dupe',
+        ], errors='ignore').reset_index(drop=True)
 
 
     def explode_unique_columns(self, df: pd.DataFrame, unique_columns: np.ndarray | list[str]) -> pd.DataFrame:

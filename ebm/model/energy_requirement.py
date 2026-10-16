@@ -419,7 +419,7 @@ def make_df_building_category_code_purpose_yearly(period: YearRange | None,
     ... )
     """
 
-    def ensure_iterable(value: list[str]|pd.DataFrame|None, default: list[str], column_name: str) -> list[str]:
+    def ensure_iterable(value: list[str], default: list[str], column_name: str) -> list[str]:
         """Normalize lists/enums/defaults to a list."""
         if isinstance(value, pd.DataFrame):
             return value[column_name]

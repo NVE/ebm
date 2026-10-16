@@ -413,6 +413,70 @@ def test_behaviour_factor(simple_file_handler):
     pd.testing.assert_frame_equal(heating_rv_actual, expected_df, check_like=True)
 
 
+def test_get_heating_system_forecast(simple_file_handler):
+    heating_system_forecast_csv = pd.DataFrame(
+        [
+            ['residential', 'TEK01', 'DH', 'Electricity', 0.1, 0.2, 0.3,],
+            ['residential', 'TEK02', 'DH', 'Electricity', 0.2, 0.2, 0.2,],
+            ['kindergarten', 'default', 'DH', 'Electricity', 0.3, 0.3, 0.3,],
+            ['jail', 'TEK01+TEK02', 'DH', 'Electricity', 0.4, 0.4, 0.4,],
+
+        ],
+        columns=['building_category', 'building_code', 'heating_systems', 'new_heating_systems', 2024, 2025, 2026],
+    )
+    simple_file_handler.get_heating_system_forecast.return_value = heating_system_forecast_csv
+    dm = DatabaseManager(simple_file_handler, years=YearRange(2021, 2026))
+
+    actual = dm.get_heating_system_forecast()
+    assert isinstance(actual, pd.DataFrame)
+
+    expected_columns = ['building_category', 'building_code', 'heating_systems', 'new_heating_systems', 2024, 2025, 2026, 'lineno']
+    assert set(expected_columns).symmetric_difference(actual.columns) == set()
+    expected_df = pd.DataFrame(
+        data=[
+            ['big_house', 'TEK01', 'DH', 'Electricity', 0.1, 0.2, 0.3,2,],
+            ['big_house', 'TEK02', 'DH', 'Electricity', 0.2, 0.2, 0.2,3,],
+            ['house', 'TEK01', 'DH', 'Electricity', 0.1, 0.2, 0.3,2,],
+            ['house', 'TEK02', 'DH', 'Electricity', 0.2, 0.2, 0.2,3,],
+            ['jail', 'TEK01', 'DH', 'Electricity', 0.4, 0.4, 0.4,5,],
+            ['jail', 'TEK02', 'DH', 'Electricity', 0.4, 0.4, 0.4,5,],
+            ['kindergarten', 'TEK01', 'DH', 'Electricity', 0.3, 0.3, 0.3,4,],
+            ['kindergarten', 'TEK02', 'DH', 'Electricity', 0.3, 0.3, 0.3,4,],
+        ],
+        columns=expected_columns,
+    )
+    pd.testing.assert_frame_equal(actual, expected_df, check_like=True)
+
+
+def test_get_heating_system_forecast_drop_duplicates_when_heating_systems_are_different(simple_file_handler):
+    """
+    There can be multiple unique combinations of heating_systems and new_heating_systems.
+
+    This test makes sure expand_building_category_building_code does not drop unique combinations.
+    """
+
+    heating_system_forecast_csv = pd.read_csv(io.StringIO("""
+kindergarten,TEK01,DH,Gas,0.2,0.1
+kindergarten,TEK01,Gas,DH,1.0,1.0
+kindergarten,TEK01,Gas,Electric boiler,0.05,0.075
+kindergarten,TEK01,Gas,DH,0.05,0.075
+""".strip()), names=['building_category', 'building_code', 'heating_systems', 'new_heating_systems', 2021, 2022], skipinitialspace=True)
+
+    simple_file_handler.get_heating_system_forecast.return_value = heating_system_forecast_csv
+    dm = DatabaseManager(simple_file_handler, years=YearRange(2021, 2026))
+    actual = dm.get_heating_system_forecast()
+
+    expected = pd.DataFrame(
+        data=[
+            ['kindergarten', 'TEK01', 'DH', 'Gas', 0.2, 0.1, 2],
+            ['kindergarten', 'TEK01', 'Gas', 'DH', 0.05, 0.075, 5],
+            ['kindergarten', 'TEK01', 'Gas', 'Electric boiler', 0.05, 0.075, 4],
+        ],
+        columns=['building_category', 'building_code', 'heating_systems', 'new_heating_systems', 2021, 2022, 'lineno'])
+
+    pd.testing.assert_frame_equal(actual.reset_index(drop=True), expected)
+
+
 def test_behaviour_factor_explode_on_plus(simple_file_handler):
     behaviour_factor_df = pd.DataFrame(
         [

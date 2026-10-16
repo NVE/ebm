@@ -10,7 +10,6 @@ from ebm.heating_system_forecast import (
     add_existing_heating_system_shares_to_projection,
     add_missing_heating_systems,
     check_sum_of_shares,
-    expand_building_category_building_code,
     project_heating_systems,
 )
 from ebm.model.data_classes import YearRange
@@ -149,143 +148,6 @@ kindergarten,TEK97,DH,2020,0.5
 
     with pytest.raises(ValueError): # noqa: PT011
         add_missing_heating_systems(shares, start_year=2023)
-
-
-def test_expand_building_categoy_building_code_all_categories(building_code_list):
-    """Checks if all categories are added if building_category value == default."""
-    forecast = pd.read_csv(io.StringIO("""
-default,default,gas,DH,0.05,0.075
-""".strip()),
-                           names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021, 2022], skipinitialspace=True)
-    result = expand_building_category_building_code(forecast, building_code_list)
-    result_categories = result[BUILDING_CATEGORY].unique()
-    expected_categories = ['house', 'apartment_block', 'kindergarten', 'school', 'university', 'office', 'retail',
-                           'hotel', 'hospital', 'nursing_home', 'culture', 'sports', 'storage_repairs']
-    invalid_categories = [bc for bc in result_categories if bc not in expected_categories]
-    assert not invalid_categories
-
-
-def test_expand_building_category_prioritize_specific_building_category(building_code_list):
-    """
-    Function should be able to prioritize the most specific building value, and not produce duplicate values.
-
-    The prioritzation should be: a valid BuildingCategory (e.g. 'house'), then 'residential'/'non-residential',
-    then 'default'. The same goes for TEK, where valid TEK (present in TEK list) is prioritized over 'default'.
-    There should be no duplicates.
-    """
-    projection = pd.read_csv(io.StringIO("""
-default,TEK07,Gas,DH,0.05
-house,TEK07,Gas,DH,0.06
-residential,TEK07,Gas,DH,0.07
-""".strip()),
-                             names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021],
-                             skipinitialspace=True)
-    result = expand_building_category_building_code(projection, building_code_list)
-
-    expected = pd.read_csv(io.StringIO("""
-house,TEK07,Gas,DH,0.06
-apartment_block,TEK07,Gas,DH,0.07
-kindergarten,TEK07,Gas,DH,0.05
-school,TEK07,Gas,DH,0.05
-university,TEK07,Gas,DH,0.05
-office,TEK07,Gas,DH,0.05
-retail,TEK07,Gas,DH,0.05
-hotel,TEK07,Gas,DH,0.05
-hospital,TEK07,Gas,DH,0.05
-nursing_home,TEK07,Gas,DH,0.05
-culture,TEK07,Gas,DH,0.05
-sports,TEK07,Gas,DH,0.05
-storage_repairs,TEK07,Gas,DH,0.05
-""".strip()),
-                           names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021],
-                           skipinitialspace=True)
-
-    expected_sorted = expected.sort_values(by=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS])
-    result = result.sort_values(by=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS])
-    expected_sorted.reset_index(drop=True, inplace=True) # noqa: PD002
-    result.reset_index(drop=True, inplace=True) # noqa: PD002
-
-    pd.testing.assert_frame_equal(result, expected_sorted)
-
-
-def test_expand_building_category_prioritize_specific_building_code():
-    """
-    Function should be able to prioritize the most specific tek value, and not produce duplicate values.
-
-    The prioritzation should be: a specified TEK (e.g. 'TEK01') and finally 'default'.
-    """
-    projection = pd.read_csv(
-        names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021],
-        skipinitialspace=True,
-        filepath_or_buffer=io.StringIO("""
-house,default,Gas,DH,0.19
-house,TEK01,Gas,DH,0.21
-residential,default,Gas,DH,0.39
-""".strip()))
-
-    result = expand_building_category_building_code(projection, ['TEK01', 'TEK02']).reset_index(drop=True)
-
-    expected = pd.read_csv(names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021],
-                           skipinitialspace=True,
-                           filepath_or_buffer=io.StringIO("""
-apartment_block,TEK02,Gas,DH,0.39
-apartment_block,TEK01,Gas,DH,0.39
-house,TEK02,Gas,DH,0.19
-house,TEK01,Gas,DH,0.21
-""".strip()))
-
-    pd.testing.assert_frame_equal(result, expected, check_like=True)
-
-
-def test_expand_building_categoy_building_code_residential_categories(building_code_list):
-    """Checks if correct categories are added if building_category value == residential."""
-    forecast = pd.read_csv(io.StringIO("""
-residential,default,gas,DH,0.05,0.075
-""".strip()),
-                           names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021, 2022], skipinitialspace=True)
-    result = expand_building_category_building_code(forecast, building_code_list)
-    result_categories = result[BUILDING_CATEGORY].unique()
-    residential_categories = ['house', 'apartment_block']
-    invalid_categories = [bc for bc in result_categories if bc not in residential_categories]
-    assert not invalid_categories
-
-
-def test_expand_building_categoy_building_code_non_residential_categories(building_code_list):
-    """Checks if correct categories are added if building_category value == non_residential."""
-    forecast = pd.read_csv(io.StringIO("""
-non_residential,default,gas,DH,0.05,0.075
-""".strip()),
-                           names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021, 2022], skipinitialspace=True)
-    result = expand_building_category_building_code(forecast, building_code_list)
-    result_categories = result[BUILDING_CATEGORY].unique()
-    non_residential_categories = ['kindergarten', 'school', 'university', 'office', 'retail', 'hotel',
-                                  'hospital', 'nursing_home', 'culture', 'sports', 'storage_repairs']
-    invalid_categories = [bc for bc in result_categories if bc not in non_residential_categories]
-    assert not invalid_categories
-
-
-def test_expand_drop_duplicates_when_heating_systems_are_different(building_code_list):
-    """
-    There can be multiple unique combinations of heating_systems and new_heating_systems.
-
-    This test makes sure expand_building_category_building_code does not drop unique combinations.
-    """
-    forecast = pd.read_csv(io.StringIO("""
-kindergarten,TEK97,DH,Gas,0.2,0.1
-kindergarten,TEK97,Gas,DH,1.0,1.0
-kindergarten,TEK97,Gas,Electric boiler,0.05,0.075
-kindergarten,TEK97,Gas,DH,0.05,0.075
-""".strip()), names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021, 2022], skipinitialspace=True)
-    result = expand_building_category_building_code(forecast, building_code_list)
-
-    expected = pd.DataFrame(
-        data=[['kindergarten', 'TEK97', 'DH', 'Gas', 0.2, 0.1],
-              ['kindergarten', 'TEK97', 'Gas', 'Electric boiler', 0.05, 0.075],
-              ['kindergarten', 'TEK97', 'Gas', 'DH', 0.05, 0.075]],
-        columns=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021, 2022])
-
-    pd.testing.assert_frame_equal(result.reset_index(drop=True), expected)
-
 
 
 def test_project_heating_systems_ok():
@@ -462,9 +324,9 @@ HP Central heating - Bio,0
 names=[HEATING_SYSTEMS, 'Value'], skipinitialspace=True)
 
     projection = pd.read_csv(io.StringIO("""
-kindergarten,TEK97,Electricity,DH,0.25,0.5,0.5,0.5
+kindergarten,TEK97,Electricity,DH,0.25,0.5,0.5,0.5,1
 """.strip()),
-                             names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021, 2022, 2023, 2024], skipinitialspace=True)
+                             names=[BUILDING_CATEGORY, BUILDING_CODE, HEATING_SYSTEMS, NEW_HEATING_SYSTEMS, 2021, 2022, 2023, 2024, 'lineno'], skipinitialspace=True)
 
     hsp = HeatingSystemsForecast(shares_start_year=shares_start_year,
                                  efficiencies=efficiencies,

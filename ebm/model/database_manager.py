@@ -7,11 +7,9 @@ import numpy as np
 import pandas as pd
 from loguru import logger
 
-from ebm import validators
-from ebm.definition_expansion import expand_definitions, collapse_years, explode_on_plus, add_lineno, select_groups_with_lowest_lineno_count, mark_duplicates, \
-    explode_years
+from ebm.definition_expansion import add_lineno, collapse_years, explode_on_plus, explode_years, mark_duplicates, select_groups_with_lowest_lineno_count
 from ebm.energy_consumption import calibrate_heating_systems
-from ebm.model.building_category import BuildingCategory, expand_building_categories
+from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.column_operations import explode_building_category_column, explode_building_code_column, explode_unique_columns
 from ebm.model.data_classes import TEKParameters, YearRange
@@ -548,8 +546,20 @@ class DatabaseManager:
 
     def get_calibrate_heating_systems(self) -> pd.DataFrame:
         df = self.file_handler.get_calibrate_heating_systems()
-        df = expand_building_categories(df, unique_columns=['building_category', 'to', 'from'])
-        return df
+        split_df = explode_on_plus(add_lineno(df), 'building_category')
+
+        building_categories = self.get_building_category_alias()
+        merged = building_categories.merge(split_df,
+                                           left_on='building_category_alias',
+                                           right_on='building_category', suffixes=['', '_definition'])
+
+        scored = select_groups_with_lowest_lineno_count(
+            merged, grouping_columns=['building_category', 'to', 'from'], filter_columns=True
+        )
+        marked = scored.assign(dupe=scored.duplicated(subset=['building_category', 'to', 'from'], keep='last'))
+        deduped = marked.drop_duplicates(subset=['building_category', 'to', 'from'], keep='last')
+
+        return deduped[['building_category', 'to', 'from', 'factor', 'lineno']].reset_index(drop=True)
 
     def get_area_per_person(self,
                             building_category: BuildingCategory = None) -> pd.Series:

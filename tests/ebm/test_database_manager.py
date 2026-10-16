@@ -448,6 +448,47 @@ def test_get_heating_system_forecast(simple_file_handler):
     pd.testing.assert_frame_equal(actual, expected_df, check_like=True)
 
 
+def test_get_calibrate_heating_systems(simple_file_handler):
+    heating_system_forecast_csv = pd.DataFrame(
+        [
+            ['residential', 'DH', 'Electricity', 0.1, ],
+            ['non_residential', 'DH', 'Electricity', 0.2, ],
+            ['big_house+house+non_residential', 'Electric boiler', 'Electricity', 0.3, ],
+            ['default', 'Electricity - Bio', 'Electricity', 0.4, ],
+            ['default', 'Electricity - Bio', 'Electricity', 0.4, ],
+        ],
+        columns=['building_category', 'to', 'from', 'factor'],
+    )
+    simple_file_handler.get_calibrate_heating_systems.return_value = heating_system_forecast_csv
+    dm = DatabaseManager(simple_file_handler, years=YearRange(2021, 2026))
+
+    actual = dm.get_calibrate_heating_systems()
+    assert 'lineno' in actual.columns
+    assert 'building_category' in actual.columns
+    assert isinstance(actual, pd.DataFrame)
+
+    expected_columns = ['building_category', 'to', 'from', 'factor', 'lineno']
+    assert set(expected_columns).symmetric_difference(actual.columns) == set()
+    expected_df = pd.DataFrame(
+        data=[
+            [2, 'big_house'],
+            [4, 'big_house'],
+            [6, 'big_house'],
+            [2, 'house'],
+            [4, 'house'],
+            [6, 'house'],
+            [3, 'jail'],
+            [4, 'jail'],
+            [6, 'jail'],
+            [3, 'kindergarten'],
+            [4, 'kindergarten'],
+            [6, 'kindergarten'],
+        ],
+        columns=['lineno', 'building_category'],
+    )
+    pd.testing.assert_frame_equal(actual[['lineno', 'building_category']], expected_df[['lineno', 'building_category']], check_like=True)
+
+
 def test_get_heating_system_forecast_drop_duplicates_when_heating_systems_are_different(simple_file_handler):
     """
     There can be multiple unique combinations of heating_systems and new_heating_systems.

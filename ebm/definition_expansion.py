@@ -213,6 +213,9 @@ def explode_purpose(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def explode_on_plus(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
+    if column_name not in df.columns:
+        msg = f"Dataframe must contain a '{column_name}' column"
+        raise ValueError(msg)
     if df[column_name].isna().any():
         warning_msg = f"Dataframe '{column_name}' contains {df[column_name].isna().sum()} NaN values"
         logger.warning(warning_msg)

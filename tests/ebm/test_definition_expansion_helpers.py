@@ -25,6 +25,15 @@ def test_explode_on_plus_splits_and_deduplicates_values():
     assert result["column_b"].tolist() == ["kindergarten", "school", "university", "office"]
 
 
+def test_explode_on_plus_raise_value_error_on_missing_column():
+    df = pd.DataFrame({
+        "column_a": ["kindergarten+school+university", "office++office+"],
+    })
+
+    with pytest.raises(ValueError, match=r"Dataframe must contain a 'column_b' column"):
+        explode_on_plus(df.copy(), column_name="column_b")
+
+
 @pytest.mark.parametrize(('value', 'message'), [
     (np.nan, r"Dataframe 'column_b' cannot be empty"),
     (None, r"Dataframe 'column_b' cannot be empty"),

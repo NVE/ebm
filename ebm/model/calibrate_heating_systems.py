@@ -17,6 +17,7 @@ from ebm.energy_consumption import (
     OTHER_TOTAL,
     PEAK_LOAD_ENERGY_PRODUCT,
     TERTIARY_LOAD_ENERGY_PRODUCT,
+    calibrate_heating_systems,
 )
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
@@ -168,7 +169,11 @@ def sort_heating_systems_by_energy_source(transformed):
 class DistributionOfHeatingSystems:
     @staticmethod
     def extract(database_manager):
-        return database_manager.get_heating_systems_shares_start_year()
+        shares_start_year = database_manager.get_heating_systems_shares_start_year()
+        heating_systems_calibration_factor = database_manager.get_calibrate_heating_systems()
+        calibrated_heating_systems_shares_start_year = calibrate_heating_systems(shares_start_year, heating_systems_calibration_factor)
+
+        return calibrated_heating_systems_shares_start_year
 
     @staticmethod
     def transform(df):

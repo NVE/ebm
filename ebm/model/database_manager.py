@@ -6,7 +6,6 @@ import pandas as pd
 from loguru import logger
 
 from ebm.definition_expansion import add_lineno, collapse_years, explode_on_plus, explode_years, mark_duplicates, select_groups_with_lowest_lineno_count
-from ebm.energy_consumption import calibrate_heating_systems
 from ebm.model.building_category import BuildingCategory
 from ebm.model.building_condition import BuildingCondition
 from ebm.model.column_operations import explode_unique_columns
@@ -509,13 +508,9 @@ class DatabaseManager:
             return df.area_per_person.loc[building_category]
         return df.area_per_person
 
-
     def get_heating_systems_shares_start_year(self) -> pd.DataFrame:
-        df = self.file_handler.get_heating_systems_shares_start_year()
-        heating_systems_factor = self.get_calibrate_heating_systems()
-        calibrated = calibrate_heating_systems(df, heating_systems_factor)
-
-        return calibrated
+        shares_start_year = self.file_handler.get_heating_systems_shares_start_year()
+        return shares_start_year
 
     def get_heating_system_efficiencies(self) -> pd.DataFrame:
         return self.file_handler.get_heating_system_efficiencies()

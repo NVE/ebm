@@ -394,12 +394,14 @@ def calculate_heating_systems(
     heating_system_initial_shares: pd.DataFrame | pathlib.Path | None = None,
     heating_system_initial_forecast: pd.DataFrame | pathlib.Path | None = None,
     heating_system_efficiencies: pd.DataFrame | pathlib.Path | None = None,
+    heating_systems_calibration_factor: pd.DataFrame | pathlib.Path | None = None,
     building_code_parameters: pd.DataFrame | pathlib.Path | None = None,
     input_directory: pathlib.Path | str | None = None,
     **kwargs: pd.DataFrame|pd.Series,
 ) -> pd.DataFrame:
     from ebm.model import heating_systems_parameter as h_s_param  # noqa: PLC0415
     from ebm.heating_system_forecast import HeatingSystemsForecast  # noqa: PLC0415 (lazy import to break circular dependency)
+    from ebm.energy_consumption import calibrate_heating_systems # noqa: PLC0415
 
     if not isinstance(years, YearRange) and not isinstance(years, tuple):
         raise TypeError('Expected type YearRange or tuple[int, int] for years')
@@ -408,12 +410,14 @@ def calculate_heating_systems(
     dm = DatabaseManager(FileHandler(directory=input_directory), years=years)
 
     shares_start_year = dm.get_heating_systems_shares_start_year() if heating_system_initial_shares is None else heating_system_initial_shares
+    heating_systems_calibration_factor = dm.get_calibrate_heating_systems() if heating_systems_calibration_factor is None else heating_systems_calibration_factor
     efficiencies = heating_system_efficiencies if heating_system_efficiencies is not None else dm.get_heating_system_efficiencies()
     projection = heating_system_initial_forecast if heating_system_initial_forecast is not None else dm.get_heating_system_forecast()
     building_code_list = building_code_parameters if building_code_parameters is not None else dm.get_building_code_list()
 
+    calibrated_heating_systems_shares_start_year = calibrate_heating_systems(shares_start_year, heating_systems_calibration_factor)
     hsf = HeatingSystemsForecast(
-        shares_start_year=shares_start_year,
+        shares_start_year=calibrated_heating_systems_shares_start_year,
         efficiencies=efficiencies,
         forecast=projection,
         building_code_list=building_code_list,

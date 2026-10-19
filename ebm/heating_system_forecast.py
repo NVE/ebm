@@ -2,6 +2,7 @@
 import pandas as pd
 from loguru import logger
 
+from ebm.energy_consumption import calibrate_heating_systems
 from ebm.model.building_category import NON_RESIDENTIAL, RESIDENTIAL, BuildingCategory
 from ebm.model.data_classes import YearRange
 from ebm.model.database_manager import DatabaseManager
@@ -121,10 +122,12 @@ class HeatingSystemsForecast: # noqa: D101
         """
         dm = database_manager if isinstance(database_manager, DatabaseManager) else DatabaseManager()
         shares_start_year = dm.get_heating_systems_shares_start_year()
+        heating_systems_calibration_factor = dm.get_calibrate_heating_systems()
+        calibrated_heating_systems_shares_start_year = calibrate_heating_systems(shares_start_year, heating_systems_calibration_factor)
         efficiencies = dm.get_heating_system_efficiencies()
         projection = dm.get_heating_system_forecast()
         building_code_list = dm.get_building_code_list()
-        return HeatingSystemsForecast(shares_start_year=shares_start_year,
+        return HeatingSystemsForecast(shares_start_year=calibrated_heating_systems_shares_start_year,
                                       efficiencies=efficiencies,
                                       forecast=projection,
                                       building_code_list=building_code_list,

@@ -212,6 +212,12 @@ def explode_purpose(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def explode_building_condition(df: pd.DataFrame) -> pd.DataFrame:
+    if 'building_condition' not in df.columns:
+        return df
+    return explode_on_plus(df, column_name='building_condition')
+
+
 def explode_on_plus(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
     if column_name not in df.columns:
         msg = f"Dataframe must contain a '{column_name}' column"

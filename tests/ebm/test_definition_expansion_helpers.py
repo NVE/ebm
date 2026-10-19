@@ -12,6 +12,7 @@ from ebm.definition_expansion import (
     replace_building_category_default,
     replace_building_code_default,
     replace_purpose_default,
+    explode_building_condition,
 )
 
 
@@ -141,6 +142,32 @@ def test_explode_purpose(purpose, expected_purpose):
     actual_purpose = result.purpose.to_list()
     assert len(result) == len(expected_purpose), f'Expected {expected_purpose} rows, got {actual_purpose}'
     assert actual_purpose == expected_purpose
+
+
+
+def test_explode_building_condition():
+    df = pd.DataFrame({
+        "lineno": [2],
+        "building_condition": ["good+bad+average"],
+        "value": [0.5],
+    })
+
+    result = explode_building_condition(df)
+
+    assert result.lineno.tolist() == [2, 2, 2]
+    assert result.building_condition.tolist() == ["good", "bad", "average"]
+    assert result.value.tolist() == [0.5, 0.5, 0.5]
+
+
+def test_explode_building_condition_ignore_missing_building_condition():
+    df = pd.DataFrame({
+        "lineno": [2],
+        "value": [0.5],
+    })
+
+    result = explode_building_condition(df)
+
+    assert df is result
 
 
 def test_explode_purpose_ignore_missing_purpose():

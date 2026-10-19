@@ -509,8 +509,52 @@ class DatabaseManager:
         return df.area_per_person
 
     def get_heating_system_initial_shares(self) -> pd.DataFrame:
+        """
+        Get initial heating-system shares resolved for each building combination.
+
+        Expands building-category, building-code, and heating-system aliases in
+        the source definitions. For each resolved
+        ``(building_category, building_code, heating_systems)`` combination,
+        keeps definitions associated with the lowest source line number and
+        marks remaining duplicate definitions.
+
+        Returns
+        -------
+        pd.DataFrame
+            Resolved initial shares with the source columns, ``lineno`` for
+            source-line provenance, and ``dupe`` indicating duplicate resolved
+            heating-system definitions.
+        """
         shares_start_year = self.file_handler.get_heating_systems_shares_start_year().pipe(add_lineno)
-        return shares_start_year
+        definitions = (
+            shares_start_year
+            .pipe(explode_on_plus, 'building_category')
+            .pipe(explode_on_plus, 'building_code')
+            .pipe(explode_on_plus, 'heating_systems')
+        )
+        aliases = self.get_building_category_alias().merge(
+            self.get_building_code_alias(),
+            how='cross',
+        )
+        expanded = aliases.merge(
+            definitions,
+            how='inner',
+            left_on=['building_category_alias', 'building_code_alias'],
+            right_on=['building_category', 'building_code'],
+            suffixes=['', '_definition'],
+        )
+        deduped_on_lineno = expanded.drop_duplicates(subset=['building_category', 'building_code', 'heating_systems', 'lineno'], keep='last')
+        df = deduped_on_lineno[shares_start_year.columns].sort_values(
+            by=['building_category', 'building_code', 'heating_systems', 'lineno'],
+            ascending=True,
+        )
+
+        scored = select_groups_with_lowest_lineno_count(
+            df, grouping_columns=['building_category', 'building_code', 'heating_systems'], filter_columns=True
+        )
+        marked = scored.assign(dupe=scored.duplicated(subset=['building_category', 'building_code', 'heating_systems', ], keep=False))
+        return marked
+
 
     def get_heating_system_efficiencies(self) -> pd.DataFrame:
         return self.file_handler.get_heating_system_efficiencies()

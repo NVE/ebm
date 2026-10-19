@@ -493,6 +493,9 @@ def test_get_heating_system_initial_shares(simple_file_handler):
     heating_system_initial_shares_csv = pd.DataFrame(
         [
             ['house', 'TEK01', 'DH', 2021, 0.1, ],
+            ['house', 'TEK01', 'Electricity', 2021, 0.2, ],
+            ['house', 'TEK01', 'Electricity - Bio', 2021, 0.3, ],
+            ['house', 'TEK01', 'DH - Bio', 2021, 0.4, ],
         ],
         columns=['building_category',  'building_code', 'heating_systems', 'year', 'heating_system_share', ],
     )
@@ -504,17 +507,128 @@ def test_get_heating_system_initial_shares(simple_file_handler):
     assert 'building_category' in actual.columns
     assert isinstance(actual, pd.DataFrame)
 
-    expected_columns = {'building_category', 'building_code', 'heating_systems', 'year', 'heating_system_share', 'lineno'}
+    expected_columns = {'building_category', 'building_code', 'heating_systems', 'year', 'heating_system_share', 'lineno', 'dupe'}
     assert expected_columns.symmetric_difference(actual.columns) == set()
     expected_df = pd.DataFrame(
         data=[
-            ['house', 'TEK01', 'DH', 2021, 0.1, 2],
-
+            ['house', 'TEK01', 'DH', 2021, 0.1, 2, False],
+            ['house', 'TEK01', 'DH - Bio', 2021, 0.4, 5, False],
+            ['house', 'TEK01', 'Electricity', 2021, 0.2, 3, False],
+            ['house', 'TEK01', 'Electricity - Bio', 2021, 0.3, 4, False],
         ],
-        columns=['building_category', 'building_code', 'heating_systems', 'year', 'heating_system_share', 'lineno']
+        columns=['building_category', 'building_code', 'heating_systems', 'year', 'heating_system_share', 'lineno', 'dupe'],
     )
     pd.testing.assert_frame_equal(actual, expected_df, check_like=True)
 
+
+@pytest.mark.parametrize(
+    ('column', 'column_value', 'expected_values',),
+    [
+        pytest.param('building_category',
+                     'residential',
+                     ['big_house', 'big_house', 'big_house', 'big_house', 'house', 'house', 'house', 'house', ],
+                     id='building_category_residential'),
+        pytest.param('building_category',
+                     'house+kindergarten',
+                     ['house', 'house', 'house', 'house', 'kindergarten', 'kindergarten', 'kindergarten', 'kindergarten',],
+                     id='building_category_house_kindergarten'),
+        pytest.param('building_category',
+                     'non_residential',
+                     ['jail', 'jail', 'jail', 'jail', 'kindergarten', 'kindergarten', 'kindergarten', 'kindergarten', ],
+                     id='building_category_non_residential'),
+        pytest.param('building_code',
+                     'TEK01+TEK02',
+                     ['TEK01', 'TEK01', 'TEK01', 'TEK01', 'TEK02', 'TEK02', 'TEK02', 'TEK02'],
+                     id='building_code_TEK01_TEK02'),
+        pytest.param('building_code',
+                     'default',
+                     ['TEK01', 'TEK01', 'TEK01', 'TEK01', 'TEK02', 'TEK02', 'TEK02', 'TEK02'],
+                     id='building_code_default'),
+        pytest.param('building_category',
+                     'residential+house+big_house',
+                     ['big_house', 'big_house', 'big_house', 'big_house', 'house', 'house', 'house', 'house', ],
+                     id='building_category_residential_house_big_house'),
+    ]
+)
+def test_get_heating_system_initial_shares_expand_columns(simple_file_handler, column, column_value, expected_values):
+    heating_system_initial_shares_csv = pd.DataFrame(
+        [
+            ['house', 'TEK01', 'DH', 2021, 0.1, 2],
+            ['house', 'TEK01', 'DH - Bio', 2021, 0.4, 3],
+            ['house', 'TEK01', 'Electricity', 2021, 0.2, 4],
+            ['house', 'TEK01', 'Electricity - Bio', 2021, 0.3, 5],
+        ],
+        columns=['building_category',  'building_code', 'heating_systems', 'year', 'heating_system_share', 'lineno'],
+    )
+
+    heating_system_initial_shares_csv[column] = column_value
+
+    simple_file_handler.get_heating_systems_shares_start_year.return_value = heating_system_initial_shares_csv
+    dm = DatabaseManager(simple_file_handler, years=YearRange(2021, 2026))
+
+    actual = dm.get_heating_system_initial_shares()[[column, 'lineno']]
+
+    expected_df = pd.DataFrame(
+        data={
+            column: expected_values,
+            'lineno': [2, 3, 4, 5, 2, 3, 4, 5],
+        },
+        columns=[column, 'lineno'],
+    )
+    pd.testing.assert_frame_equal(actual, expected_df, check_like=True)
+
+
+def test_get_heating_system_initial_shares_split_heating_systems_on_plus(simple_file_handler):
+    heating_system_initial_shares_csv = pd.DataFrame(
+        [
+            ['kindergarten', 'TEK01', 'DH+Electricity', 2021, 0.1, 2],
+        ],
+        columns=['building_category',  'building_code', 'heating_systems', 'year', 'heating_system_share', 'lineno'],
+    )
+
+    simple_file_handler.get_heating_systems_shares_start_year.return_value = heating_system_initial_shares_csv
+    dm = DatabaseManager(simple_file_handler, years=YearRange(2021, 2026))
+
+    actual = dm.get_heating_system_initial_shares()[['building_category', 'building_code', 'heating_systems', 'lineno']]
+
+    expected_df = pd.DataFrame(
+        data={
+            'building_category': ['kindergarten', 'kindergarten'],
+            'building_code': ['TEK01', 'TEK01'],
+            'heating_systems': ['DH', 'Electricity'],
+            'lineno': [2, 2],
+        },
+    )
+    pd.testing.assert_frame_equal(actual, expected_df, check_like=True)
+
+
+def test_get_heating_system_initial_shares_dedupes_and_score_by_lineno(simple_file_handler):
+    heating_system_initial_shares_csv = pd.DataFrame(
+        [
+            ['residential', 'TEK01', 'DH', 2021, 1.0, 2],
+            ['residential', 'default', 'DH', 2021, 1.0, 3],
+            ['house', 'TEK01', 'DH', 2021, 1.0, 4],
+            ['jail', 'TEK01', 'DH', 2021, 1.0, 5],
+            ['jail', 'TEK01', 'DH', 2021, 1.0, 6],
+        ],
+        columns=['building_category',  'building_code', 'heating_systems', 'year', 'heating_system_share', 'lineno'],
+    )
+
+    simple_file_handler.get_heating_systems_shares_start_year.return_value = heating_system_initial_shares_csv
+    dm = DatabaseManager(simple_file_handler, years=YearRange(2021, 2026))
+
+    actual = dm.get_heating_system_initial_shares()[['building_category', 'building_code', 'lineno', 'dupe']]
+    expected_df = pd.DataFrame(
+        data=[
+            {'building_category': 'big_house', 'building_code': 'TEK01', 'lineno': 2, 'dupe': False, },
+            {'building_category': 'big_house', 'building_code': 'TEK02', 'lineno': 3, 'dupe': False,},
+            {'building_category': 'house', 'building_code': 'TEK01', 'lineno': 4, 'dupe': False,},
+            {'building_category': 'house', 'building_code': 'TEK02', 'lineno': 3, 'dupe': False,},
+            {'building_category': 'jail', 'building_code': 'TEK01', 'lineno': 5, 'dupe': True,},
+            {'building_category': 'jail', 'building_code': 'TEK01', 'lineno': 6, 'dupe': True,},
+        ]
+    )
+    pd.testing.assert_frame_equal(actual.reset_index(drop=True), expected_df, check_like=True)
 
 
 def test_get_heating_system_forecast_drop_duplicates_when_heating_systems_are_different(simple_file_handler):

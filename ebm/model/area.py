@@ -730,7 +730,8 @@ def calculate_yearly_constructed_floor_area(build_area_sum: pd.Series, yearly_fl
                         np.isnan(build_area_sum.loc[y])]
 
     if bas_missing_year:
-        msg = f'missing constructed floor area for {", ".join(bas_missing_year)}'
+        msg = (f'missing constructed floor area for {", ".join(bas_missing_year)}. '
+               'area_new_residential_buildings.csv must contain values for the first two model years.')
         raise ValueError(msg)
 
     yearly_new_building_floor_area_house = yearly_floor_area_change

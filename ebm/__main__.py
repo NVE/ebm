@@ -96,7 +96,9 @@ def main() -> tuple[ReturnCode, pd.DataFrame | None]:
         # Exit with 0 for success. The assumption is that the user would like to review the input before proceeding.
         return ReturnCode.MISSING_INPUT_FILES, None
 
-    database_manager = DatabaseManager(file_handler=FileHandler(directory=input_directory), years=YearRange(arguments.start_year, arguments.end_year))
+    # The end year is not known until the population forecast has been read, so start with a minimal valid range.
+    database_manager = DatabaseManager(file_handler=FileHandler(directory=input_directory),
+                                       years=YearRange(arguments.start_year, arguments.start_year))
 
     if arguments.migrate:
         migrate_directories([database_manager.file_handler.input_directory])
@@ -127,6 +129,8 @@ Use `<program name> create-input --input={input_directory}` to create an input d
 
     end_year = arguments.end_year if arguments.end_year else database_manager.get_population_forecast_end_year()
     model_years = validate_years(start_year=arguments.start_year, end_year=end_year)
+    database_manager.years = model_years
+    logger.info(f'Using {model_years}')
 
     step_choice = arguments.step
     output_file = arguments.output_file

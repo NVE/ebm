@@ -225,19 +225,24 @@ def explode_on_plus(df: pd.DataFrame, column_name: str) -> pd.DataFrame:
     return df
 
 
-def explode_years(df: pd.DataFrame) -> pd.DataFrame:
-    if 'start_year' not in df.columns:
-        raise ValueError("Dataframe must contain a 'start_year' column")
-    if 'end_year' not in df.columns:
-        raise ValueError("Dataframe must contain a 'end_year' column")
-    if (df.start_year > df.end_year).any():
+def explode_years(df: pd.DataFrame, start_column: str = 'start_year', end_column: str = 'end_year') -> pd.DataFrame:
+    if not start_column:
+        raise ValueError("start_column must be specified")
+    if not end_column:
+        raise ValueError("end_column must be specified")
+    if 'year' in df.columns:
+        logger.warning("Dataframe already contains a 'year' column. It will be overwritten.")
+    if start_column not in df.columns or end_column not in df.columns:
+        msg = f"Dataframe must contain start and end columns ({start_column}, {end_column})"
+        raise ValueError(msg)
+    if (df[start_column] > df[end_column]).any():
         raise ValueError("start_year must be less than or equal to end_year")
 
     df = df.assign(
         **{
             "year": df.apply(
                 lambda row: list(
-                    range(int(row["start_year"]), int(row["end_year"]) + 1),
+                    range(int(row[start_column]), int(row[end_column]) + 1),
                 ),
                 axis=1,
             ),

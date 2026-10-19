@@ -226,16 +226,16 @@ def test_energy_use(kalibrert_database_manager):
     expected.index.names = expect_columns
 
     df = pd.merge(left=result, right=expected, suffixes=('_result', '_expected'), on=expect_columns, how='outer')
-
     df_diff = df[df['kwh_result'] != df['kwh_expected']]
 
     # Log readable error messages for every different value
     max_difference = 0
     for i, r in df_diff.iterrows():
-        difference = abs(r[1] - r[0])
+        difference = abs(r.iloc[1] - r.iloc[0])
         max_difference = max(max_difference, difference)
-        logger.error(f'Error in row {i} expected: {r[1]} was: {r[0]} diff:({difference})')
+        logger.error(f'Error in row {i} expected: {r.iloc[1]} was: {r.iloc[0]} diff:({difference})')
     logger.error(f'{max_difference=}')
+
     assert df_diff.empty, 'Expected no differences between the dataframes result and expected'
 
 

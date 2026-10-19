@@ -57,7 +57,8 @@ def test_check_for_missing_files_return_list(tmp_path):
     assert 'heating_system_initial_shares.csv' in missing_files
     assert 'heating_system_efficiencies.csv' in missing_files
     assert 'heating_system_forecast.csv' in missing_files
-    assert len(missing_files) == 16, 'Unexpected list length returned from check_for_missing_files'
+    assert 'building_category.csv' in missing_files
+    assert len(missing_files) == 17, 'Unexpected list length returned from check_for_missing_files'
 
 
 def test_check_for_missing_files_raises_file_not_found_error(tmp_path):
@@ -153,6 +154,7 @@ def test_filehandler_create_missing_input_files(tmp_path):
     assert (input_directory / 'heating_system_initial_shares.csv').is_file()
     assert (input_directory / 'heating_system_efficiencies.csv').is_file()
     assert (input_directory / 'heating_system_forecast.csv').is_file()
+    assert (input_directory / 'building_category.csv').is_file()
 
 
 def test_filehandler_create_missing_input_files_from_source_directory(tmp_path):
@@ -240,7 +242,8 @@ def test_filehandler_validate_created_input_file(tmp_file_handler):
                                              FileHandler.AREA_NEW_RESIDENTIAL_BUILDINGS,
                                              FileHandler.NEW_BUILDINGS_RESIDENTIAL,
                                              FileHandler.POPULATION_FORECAST,
-                                             FileHandler.S_CURVE])
+                                             FileHandler.S_CURVE,
+                                             FileHandler.BUILDING_CATEGORY])
 def test_validate_input_file_validates_expected_files(tmp_file_handler, input_file_name):
     """
     Ensure all files are validated in validate_input_files()
@@ -271,6 +274,14 @@ def test_filehandler_validate_created_input_file_raises_schemaerrors_on_fail(tmp
 
     with pytest.raises(pa.errors.SchemaErrors):
         tmp_file_handler.validate_input_files()
+
+
+def test_filehandler_get_building_category(tmp_path):
+    fh = FileHandler(directory=tmp_path)
+    fh.get_file = Mock(return_value='FROM_FILE')
+
+    assert fh.get_building_category() == 'FROM_FILE'
+    fh.get_file.assert_called_with('building_category.csv')
 
 
 def test_filehandler_get_area_per_person_calls_get_file(tmp_path):

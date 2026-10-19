@@ -8,9 +8,11 @@ import pandas as pd
 from loguru import logger
 
 from ebm import validators
-from ebm.definition_expansion import expand_definitions, collapse_years
+from ebm.definition_expansion import expand_definitions, collapse_years, explode_on_plus, add_lineno, select_groups_with_lowest_lineno_count, mark_duplicates, \
+    explode_years
 from ebm.energy_consumption import calibrate_heating_systems
 from ebm.model.building_category import BuildingCategory, expand_building_categories
+from ebm.model.building_condition import BuildingCondition
 from ebm.model.column_operations import explode_building_category_column, explode_building_code_column, explode_unique_columns
 from ebm.model.data_classes import TEKParameters, YearRange
 from ebm.model.energy_purpose import EnergyPurpose
@@ -99,6 +101,18 @@ class DatabaseManager:
             data.append(row)
 
         return pd.DataFrame(data=data, columns=column_headers)
+
+    def get_building_category(self) -> pd.DataFrame:
+        """
+        Retrieve building_category
+
+        Returns
+        -------
+        pd.DataFrame
+            Pandas Dataframe containing building_category with parameters
+        """
+        building_category = self.file_handler.get_building_category()
+        return building_category
 
     def get_building_codes(self) -> pd.DataFrame:
         """
@@ -286,10 +300,30 @@ class DatabaseManager:
 
     def get_behaviour_factor(self) -> pd.DataFrame:
         f = self.file_handler.get_file(self.file_handler.BEHAVIOUR_FACTOR)
-        f['model_start_year'] = self.years.start
-        f['model_end_year'] = self.years.end
-        behaviour_factor = validators.expanded_energy_need_behaviour_factor.validate(f)
-        return behaviour_factor
+        building_category_code_purpose = self.get_building_category_code_purpose()
+        building_category_code_purpose['model_start_year'] = self.years.start
+        building_category_code_purpose['model_end_year'] = self.years.end
+
+        behaviour_factor = f.pipe(add_lineno).pipe(explode_on_plus, 'building_category').pipe(explode_on_plus, 'building_code').pipe(explode_on_plus, 'purpose').assign(
+            function='behaviour_factor',
+
+        ).merge(building_category_code_purpose, how='right',
+                left_on=['building_category', 'building_code', 'purpose'],
+                right_on=['building_category_alias', 'building_code_alias', 'purpose_alias'], suffixes=['_definition', ''])
+        behaviour_factor = behaviour_factor.assign(start_year = behaviour_factor['model_start_year'].astype(int),
+                                                   end_year = behaviour_factor['model_end_year'].astype(int))
+        yearly_behaviour_factor = explode_years(behaviour_factor, start_column='model_start_year', end_column='model_end_year')
+
+        scored = select_groups_with_lowest_lineno_count(
+            yearly_behaviour_factor, grouping_columns=['building_category', 'building_code', 'purpose'], filter_columns=True
+        )
+        marked = scored.assign(dupe=scored.duplicated(subset=['building_category', 'building_code', 'purpose', 'year'], keep='first'))
+        deduped = marked.drop_duplicates(subset=['building_category', 'building_code', 'purpose', 'year'], keep='first')
+        deduped['behaviour_factor'] = deduped['behaviour_factor'].fillna(1.0)
+
+        return deduped.reset_index(drop=True).assign(function='behaviour_factor').drop(
+            columns=['building_category_alias', 'building_code_alias', 'purpose_alias', 'building_category_definition',
+                     'building_code_definition', 'purpose_definition', 'dupe', 'lineno'], errors='ignore')
 
 
     def get_energy_req_original_condition(self, year_range: YearRange|None=None) -> pd.DataFrame:
@@ -314,26 +348,32 @@ class DatabaseManager:
             logger.warning('Using default year 2020 -> 2050')
 
         years = YearRange(2020, 2050) if year_range is None else year_range
+        bp2 = self.make_building_purpose(years=years)
 
-        building_purpose = self.make_building_purpose(years=years).set_index(
-            ['building_category', 'purpose', 'building_code', 'year'], drop=True
-        )
-        building_purpose = building_purpose.drop(columns=['building_condition'])
+        building_code_purpose = self.get_building_category_code_purpose()
+        building_code_purpose = building_code_purpose[
+            (building_code_purpose.building_category == building_code_purpose.building_category_alias)
+            & (building_code_purpose.building_code == building_code_purpose.building_code_alias)
+            & (building_code_purpose.purpose == building_code_purpose.purpose_alias)
+        ]
+        building_purpose = years.cross_join(building_code_purpose)
+
         ff = self.file_handler.get_energy_req_original_condition()[['building_category', 'building_code', 'purpose', 'kwh_m2']]
         df = self.explode_unique_columns(ff, ['building_category', 'building_code', 'purpose'])
         if len(df[df.building_code=='TEK21']) > 0:
             logger.warning('Detected TEK21 in {filename}', filename=self.file_handler.ENERGY_NEED_ORIGINAL_CONDITION)
         df = df.set_index(['building_category', 'purpose', 'building_code']).sort_index()
 
-        df = building_purpose.join(df, how='left')
+        #df = building_purpose.set_index(['building_category', 'building_code', 'purpose', 'year']).join(df, how='left')
+        df = df.join(building_purpose.set_index(['building_category', 'building_code', 'purpose', 'year']), how='left')
 
         behaviour_factor = self.get_behaviour_factor().set_index(['building_category', 'building_code', 'purpose', 'year'])
 
-        df = df.join(behaviour_factor, how='left')
+        df = df.join(behaviour_factor)
 
         heating_rv_factor = self.get_calibrate_heating_rv().set_index(['building_category', 'purpose']).heating_rv_factor
+        df = df.join(heating_rv_factor, how='left')
 
-        df['heating_rv_factor'] = heating_rv_factor
         df['heating_rv_factor'] = df['heating_rv_factor'].astype(float).fillna(1.0)
         df['uncalibrated_kwh_m2'] = df['kwh_m2']
         df['calibrated_kwh_m2'] = df.heating_rv_factor * df.kwh_m2
@@ -353,12 +393,45 @@ class DatabaseManager:
             Dataframe containing energy requirement reduction shares for the different building conditions, 
             per building category, TEK and purpose.        
         """
-        reduction_per_condition = self.file_handler.get_energy_req_reduction_per_condition()
-        if len(reduction_per_condition[reduction_per_condition.building_code=='TEK21']) > 0:
+        improvement_building_upgrade = self.file_handler.get_energy_req_reduction_per_condition()
+        improvement_building_upgrade = (improvement_building_upgrade
+                                        .pipe(add_lineno)
+                                        .pipe(explode_on_plus, column_name='building_category')
+                                        .pipe(explode_on_plus, column_name='building_code')
+                                        .pipe(explode_on_plus, column_name='building_condition')
+                                        .pipe(explode_on_plus, column_name='purpose')
+        )
+        
+        if len(improvement_building_upgrade[improvement_building_upgrade.building_code=='TEK21']) > 0:
             logger.warning('Detected TEK21 in {filename}', filename=self.file_handler.IMPROVEMENT_BUILDING_UPGRADE)
 
-        return self.explode_unique_columns(reduction_per_condition,
-                                           ['building_category', 'building_code', 'purpose', 'building_condition'])
+        building_categories = self.get_building_category_alias()
+        building_codes = self.get_building_code_alias()
+        purposes = self.get_purpose_alias()
+        building_conditions = self.get_building_condition_alias()
+        existing_building_conditions = building_conditions[building_conditions.building_condition!='demolition'].reset_index()
+        building_category_code_condition = (building_categories
+                                            .merge(building_codes, how='cross')
+                                            .merge(purposes, how='cross')
+                                            .merge(existing_building_conditions, how='cross')
+        )
+
+        all_improvement_building_upgrade = improvement_building_upgrade.merge(
+            building_category_code_condition,
+            how='right',
+            left_on=['building_category', 'building_code', 'purpose', 'building_condition'],
+            right_on=['building_category_alias', 'building_code_alias', 'purpose_alias', 'building_condition_alias'],
+            suffixes=['_definition', ''],
+        )
+        all_definitions = all_improvement_building_upgrade.dropna()
+        scored = select_groups_with_lowest_lineno_count(
+            all_definitions, grouping_columns=['building_category', 'building_code', 'purpose', 'building_condition'], filter_columns=True
+        )
+        marked = scored.assign(dupe=scored.duplicated(subset=['building_category', 'building_code', 'purpose', 'building_condition'], keep='first'))
+        deduped = marked.drop_duplicates(subset=['building_category', 'building_code', 'purpose', 'building_condition'], keep='first')
+
+        return deduped[['building_category', 'building_code', 'purpose', 'building_condition', 'reduction_share',]]
+
     
     def get_energy_need_yearly_improvements(self) -> pd.DataFrame:
         """
@@ -374,11 +447,38 @@ class DatabaseManager:
             Dataframe containing yearly efficiency rates (%) for energy need improvements,
             per building category, tek and purpose.
         """
+
+
         yearly_improvements = self.file_handler.get_energy_need_yearly_improvements()
+        split_yearly_improvements = (yearly_improvements
+                                     .pipe(add_lineno)
+                                     .pipe(explode_on_plus, column_name='building_category')
+                                     .pipe(explode_on_plus, column_name='building_code')
+                                     .pipe(explode_on_plus, column_name='purpose')
+        )
+        building_category_code_purpose = self.get_building_category_code_purpose()
+        all_energy_need_improvements = split_yearly_improvements.merge(
+            building_category_code_purpose.drop(columns=['lineno'], errors='ignore'),
+            how='right',
+            left_on=['building_category', 'building_code', 'purpose'],
+            right_on=['building_category_alias', 'building_code_alias', 'purpose_alias'],
+            suffixes=['_definition', ''],
+        ).drop(columns=['building_category_alias'])
 
-        df = expand_definitions(definitions=yearly_improvements).pipe(collapse_years)
+        all_definitions = all_energy_need_improvements.dropna()
+        all_definitions = all_definitions.assign(
+            start_year=all_definitions.start_year.astype('int'),
+            end_year=all_definitions.end_year.astype('int'),
+            lineno=all_definitions.lineno.astype('int'),
+        )
+        scored_energy_need_improvements = select_groups_with_lowest_lineno_count(
+            all_definitions, grouping_columns=['building_category', 'building_code', 'purpose', 'function'], filter_columns=True)
+        scored_yearly = explode_years(scored_energy_need_improvements)
+        marked_energy_need_improvements = mark_duplicates(scored_yearly,
+                                                          grouping_columns=['building_category', 'building_code', 'purpose', 'function'])
 
-        return df.reset_index(drop=True)
+
+        return marked_energy_need_improvements.reset_index(drop=True).pipe(collapse_years)
 
 
     def get_energy_need_policy_improvement(self) -> pd.DataFrame:
@@ -421,8 +521,30 @@ class DatabaseManager:
 
     def get_calibrate_heating_rv(self) -> pd.Series:
         df = self.file_handler.get_calibrate_heating_rv()
-        df = expand_building_categories(df, unique_columns=['building_category', 'purpose'])
-        return df[['building_category', 'purpose', 'heating_rv_factor']]
+
+        split_df = (
+            df.pipe(add_lineno)
+            .pipe(explode_on_plus, column_name='building_category')
+            .pipe(explode_on_plus, column_name='purpose')
+        )
+        building_categories = self.get_building_category_alias()
+        purposes = self.get_purpose_alias()
+        heating_rv = purposes[purposes.purpose == 'heating_rv'].copy()
+        building_category_purpose = building_categories.merge(heating_rv, how='cross')
+        all_calibrate_heating_rv = split_df.merge(
+            building_category_purpose.drop(columns=['lineno'], errors='ignore'),
+            how='right',
+            left_on=['building_category', 'purpose'],
+            right_on=['building_category_alias', 'purpose_alias'],
+            suffixes=['_definition', ''],
+        )
+        scored = select_groups_with_lowest_lineno_count(
+            all_calibrate_heating_rv, grouping_columns=['building_category', 'purpose', ], filter_columns=True
+        )
+        marked = scored.assign(dupe=scored.duplicated(subset=['building_category', 'purpose',], keep='first'))
+        deduped = marked.drop_duplicates(subset=['building_category', 'purpose',], keep='first')[['building_category', 'purpose', 'heating_rv_factor']]
+        return deduped.dropna().reset_index(drop=True)
+
 
     def get_calibrate_heating_systems(self) -> pd.DataFrame:
         df = self.file_handler.get_calibrate_heating_systems()
@@ -478,6 +600,49 @@ class DatabaseManager:
 
     def explode_building_code_column(self, ff, unique_columns: np.ndarray | list[str]) -> pd.DataFrame:
         return explode_building_code_column(ff, unique_columns, default_building_code=self.get_building_code_list())
+
+    def get_building_category_alias(self) -> pd.DataFrame:
+        """Return every building category with category, group, and default aliases."""
+        building_categories = self.get_building_category()
+        categories = building_categories[[self.COL_BUILDING_CATEGORY]].assign(
+            building_category_alias=building_categories[self.COL_BUILDING_CATEGORY],
+        )
+        groups = building_categories[
+            [self.COL_BUILDING_CATEGORY, 'building_group']
+        ].rename(columns={'building_group': 'building_category_alias'})
+        defaults = building_categories[[self.COL_BUILDING_CATEGORY]].assign(
+            building_category_alias=self.DEFAULT_VALUE,
+        )
+
+        return pd.concat([categories, groups, defaults], ignore_index=True)
+
+    def get_building_code_alias(self) -> pd.DataFrame:
+        building_codes = self.get_building_code_list()
+        codes = pd.DataFrame({'building_code': building_codes, 'building_code_alias': building_codes})
+        defaults = pd.DataFrame({'building_code': building_codes, 'building_code_alias': [self.DEFAULT_VALUE] * len(building_codes)})
+        return pd.concat([codes, defaults], ignore_index=True)
+
+    def get_building_condition_alias(self) -> pd.DataFrame:
+        building_conditions = [c for c in BuildingCondition]
+        conditions = pd.DataFrame({'building_condition': building_conditions, 'building_condition_alias': building_conditions})
+        defaults = pd.DataFrame({'building_condition': building_conditions, 'building_condition_alias': [self.DEFAULT_VALUE] * len(building_conditions)})
+        return pd.concat([conditions, defaults], ignore_index=True)
+
+    def get_purpose_alias(self) -> pd.DataFrame:
+        purposes = pd.DataFrame({'purpose': list(EnergyPurpose), 'purpose_alias': list(EnergyPurpose)})
+        defaults = pd.DataFrame({'purpose': list(EnergyPurpose), 'purpose_alias': [self.DEFAULT_VALUE] * len(EnergyPurpose)})
+        return pd.concat([purposes, defaults], ignore_index=True)
+
+    def get_building_category_code_purpose(self) -> pd.DataFrame:
+        building_category_alias = self.get_building_category_alias()
+        building_code_alias = self.get_building_code_alias()
+        purpose_alias = self.get_purpose_alias()
+
+        return (
+            building_category_alias
+            .merge(building_code_alias, how='cross')
+            .merge(purpose_alias, how='cross')
+        )
 
 
 if __name__ == '__main__':

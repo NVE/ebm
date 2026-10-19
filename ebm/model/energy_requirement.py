@@ -58,8 +58,11 @@ def energy_need_improvements(energy_need_original_condition: pd.DataFrame, impro
     building_codes = gather_building_codes(energy_need_original_condition,
                                            improvements, improvement_building_upgrade)
 
-    df_years = make_df_building_category_code_purpose_yearly(years, building_condition=most_conditions,
-                                                           building_code=building_codes)
+    df_years = make_df_building_category_code_purpose_yearly(years,
+                                                             building_category=energy_need_original_condition.building_category.unique().tolist(),
+                                                             building_condition=most_conditions,
+                                                             building_code=building_codes)
+
     merged = energy_need_improvements_kwh_m2(energy_need_original_condition=energy_need_original_condition,
                                              reduction_per_condition=improvement_building_upgrade,
                                              improvements=improvements, df_years=df_years)
@@ -416,11 +419,12 @@ def make_df_building_category_code_purpose_yearly(period: YearRange | None,
     ... )
     """
 
-    def ensure_iterable(value: list[str], default: list[str], column_name: str) -> list[str]:
+    def ensure_iterable(value: list[str]|pd.DataFrame|None, default: list[str], column_name: str) -> list[str]:
         """Normalize lists/enums/defaults to a list."""
         if isinstance(value, pd.DataFrame):
             return value[column_name]
         if value is None:
+            logger.warning(f'No {column_name} provided, using default values: {default}')
             return default
         return value
 

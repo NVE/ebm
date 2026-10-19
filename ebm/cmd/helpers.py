@@ -130,8 +130,10 @@ def configure_loglevel(log_format: str | None = None, level: str = 'INFO') -> No
     if '--debug' in sys.argv or os.environ.get('DEBUG', '').upper() == 'TRUE':
         options['level'] = 'DEBUG'
 
+    suppress_file_handler = os.environ.get('EBM_DEBUG_SUPPRESS_FILE_HANDLER', 'TRUE').upper() == 'TRUE'
+    log_filter = lambda f: not (os.environ.get('EBM_DEBUG_SUPPRESS_FILE_HANDLER', 'TRUE').upper() == 'TRUE' and suppress_file_handler and f['name'] == 'ebm.model.file_handler' and f['level'].name == 'DEBUG')
     logger.add(sys.stderr,
-               filter=lambda f: not (f['name'] == 'ebm.model.file_handler' and f['level'].name == 'DEBUG'),
+               filter=log_filter,
                **options)
 
 

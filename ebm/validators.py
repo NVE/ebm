@@ -37,7 +37,41 @@ def check_building_category(value: pd.Series) -> pd.Series:
     pd.Series of bool values
 
     """
-    return value.isin(iter(BuildingCategory))
+    return value.isin(list(BuildingCategory) + ['holiday_home'] + ['prison'])
+
+def check_not_holiday_home(value: pd.Series) -> pd.Series:
+    """
+    Makes sure that the series value does not contain values that are corresponding to a BuildingCategory 'holiday_home'
+
+    Parameters
+    ----------
+    value: pd.Series
+        A series of str that will be checked against BuildingCategory
+
+    Returns
+    -------
+    pd.Series of bool values
+
+    """
+    return ~value.isin(['holiday_home'])
+
+
+def check_building_group(value: pd.Series) -> pd.Series:
+    """
+    Makes sure that the series value contains values that are corresponding to a BuildingCategory group (RESIDENTIAL or NON_RESIDENTIAL)
+
+    Parameters
+    ----------
+    value: pd.Series
+        A series of str that will be checked against BuildingCategory group
+
+    Returns
+    -------
+    pd.Series of bool values
+
+    """
+    return value.isin(['non_residential', 'residential', 'holiday_homes'])
+
 
 def check_default_building_category(value: pd.Series) -> pd.Series:
     """
@@ -53,7 +87,7 @@ def check_default_building_category(value: pd.Series) -> pd.Series:
     pd.Series of bool values
 
     """
-    return value.isin(list(BuildingCategory) + ['default'])
+    return value.isin(list(BuildingCategory) + ['holiday_home'] + ['prison'] + ['default'])
 
 def check_default_building_category_with_group(value: pd.Series) -> pd.Series:
     """
@@ -69,7 +103,7 @@ def check_default_building_category_with_group(value: pd.Series) -> pd.Series:
     -------
     pd.Series of bool values
     """
-    return value.isin(list(BuildingCategory) + ['default'] + [RESIDENTIAL, NON_RESIDENTIAL])
+    return value.isin([*list(BuildingCategory), 'default', RESIDENTIAL, NON_RESIDENTIAL, 'holiday_homes', 'prison'])
 
 
 def check_building_condition(value: pd.Series) -> pd.Series:
@@ -295,6 +329,7 @@ def behaviour_factor_parser(df: pd.DataFrame) -> pd.DataFrame:
         raise ValueError('Missing model years in behaviour factor data. Please provide model_start_year and model_end_year.')
     model_years = YearRange(df['model_start_year'].astype(int).min(), df['model_end_year'].astype(int).max())
 
+    # all_combinations = make_building_purpose(years=model_years).drop(columns=['building_condition'])
     all_combinations = make_building_purpose(years=model_years)
     if 'function' not in df.columns:
         df=df.assign(function='behaviour_factor')
@@ -369,14 +404,30 @@ expanded_energy_need_behaviour_factor = pa.DataFrameSchema(
 )
 
 
-
 area = pa.DataFrameSchema(
     columns={
-        "building_category": pa.Column(str, checks=[pa.Check(check_building_category)]),
+        "building_category": pa.Column(str, checks=[
+            pa.Check(check_building_category),
+            pa.Check(check_not_holiday_home),
+        ]),
         'building_code': pa.Column(str, checks=[pa.Check(check_building_code, element_wise=True)]),
         "area": pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0)], coerce=True)},
-    name='area_parameters'
+    name='area_parameters',
 )
+
+
+
+building_category = pa.DataFrameSchema(
+    columns={
+        "building_category": pa.Column(str, checks=[
+            pa.Check(check_building_category),
+            pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$"),
+        ]),
+        'building_group': pa.Column(str, checks=[pa.Check(check_building_group)]),
+    },
+    name='area_parameters',
+)
+
 
 building_code_parameters = pa.DataFrameSchema(columns={
         'building_code': pa.Column(str, unique=True, checks=[pa.Check(check_building_code, element_wise=True)]),
@@ -434,7 +485,10 @@ population_forecast = pa.DataFrameSchema(
 #TODO: evaluete if restrictions on rush and never share make sense (if the program crashes unless they are there)
 s_curve = pa.DataFrameSchema(
     columns={
-        'building_category': pa.Column(str, checks=[pa.Check(check_building_category)]),
+        'building_category': pa.Column(str, checks=[
+            pa.Check(check_building_category),
+            pa.Check(check_not_holiday_home),
+        ]),
         'condition': pa.Column(str, checks=[pa.Check(check_building_condition)]),
         'earliest_age_for_measure': pa.Column(int, checks=[pa.Check.greater_than(0)]),
         'average_age_for_measure': pa.Column(int, checks=[pa.Check.greater_than(0)]),
@@ -465,19 +519,20 @@ improvement_building_upgrade = pa.DataFrameSchema(
         'building_code': pa.Column(str, checks=pa.Check(check_default_building_code, element_wise=True)),
         'purpose': pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
         'building_condition': pa.Column(str, checks=[pa.Check(check_existing_building_conditions)]),
-        'reduction_share': pa.Column(float, coerce=True, checks=[pa.Check.between(min_value=0.0, include_min=True,
-                                                                                  max_value=1.0, include_max=True)])
+        'reduction_share': pa.Column(float, coerce=True, checks=[
+            pa.Check.between(min_value=0.0, include_min=True,
+                             max_value=1.0, include_max=True),
+        ]),
     },
     unique=['building_category', 'building_code', 'purpose', 'building_condition'],
-    report_duplicates='all'
+    report_duplicates='all',
 )
 
 
 energy_need_improvements = pa.DataFrameSchema(
     columns={
         'lineno': pa.Column(int, coerce=True),
-        'building_category': pa.Column(str, default='default',
-                                       checks=pa.Check(check_default_building_category_with_group)),
+        'building_category': pa.Column(str, default='default'),
         'building_code': pa.Column(str, default='default',
                                    checks=pa.Check(check_default_building_code, element_wise=True)),
         'purpose':pa.Column(str, required=True,
@@ -502,7 +557,7 @@ holiday_home_stock = pa.DataFrameSchema(
     columns={
         'year': pa.Column(int),
         'Existing buildings Chalet, summerhouses and other holiday houses': pa.Column(int),
-        'Existing buildings Detached houses and farmhouses used as holiday houses': pa.Column(int)
+        'Existing buildings Detached houses and farmhouses used as holiday houses': pa.Column(int),
     }
 )
 
@@ -517,23 +572,29 @@ holiday_home_energy_consumption = pa.DataFrameSchema(
 
 area_per_person = pa.DataFrameSchema(
     columns={
-        'building_category': pa.Column(str, checks=pa.Check(check_building_category)),
-        'area_per_person': pa.Column(float, nullable=True)
-    }
+        'building_category': pa.Column(str, checks=[
+            pa.Check(check_building_category),
+            pa.Check(check_not_holiday_home),
+        ]),
+        'area_per_person': pa.Column(float, nullable=True),
+    },
 )
 
 heating_system_initial_shares = pa.DataFrameSchema(
     columns={
-        'building_category': pa.Column(str, checks=pa.Check(check_building_category)),
+        'building_category': pa.Column(str, checks=[
+            pa.Check(check_building_category),
+            pa.Check(check_not_holiday_home)
+        ]),
         'building_code': pa.Column(str, checks=pa.Check(check_default_building_code, element_wise=True)),
         'heating_systems': pa.Column(str, checks=pa.Check(check_heating_systems)),
-        'year': pa.Column(int, pa.Check(
-            lambda year: len(year.unique()) == 1,
-            error="All values in the 'year' column must be identical."
-        )),
+        'year': pa.Column(int, [
+            pa.Check(lambda year: len(year.unique()) == 1, error="All values in the 'year' column must be identical."),
+        ]),
         'heating_system_share': pa.Column(float, coerce=True,
-                                checks=[pa.Check.between(min_value=0.0, include_min=True,
-                                                         max_value=1.0, include_max=True)])
+                                checks=[
+                                    pa.Check.between(min_value=0.0, include_min=True, max_value=1.0, include_max=True),
+                                ])
     },
     #TODO: better warning messages to see where the issues are
     checks=[pa.Check(check_sum_of_heating_system_shares_equal_1, raise_warning=True,

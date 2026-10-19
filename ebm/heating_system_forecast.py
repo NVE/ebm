@@ -121,7 +121,7 @@ class HeatingSystemsForecast: # noqa: D101
 
         """
         dm = database_manager if isinstance(database_manager, DatabaseManager) else DatabaseManager()
-        shares_start_year = dm.get_heating_systems_shares_start_year()
+        shares_start_year = dm.get_heating_system_initial_shares()
         heating_systems_calibration_factor = dm.get_calibrate_heating_systems()
         calibrated_heating_systems_shares_start_year = calibrate_heating_systems(shares_start_year, heating_systems_calibration_factor)
         efficiencies = dm.get_heating_system_efficiencies()

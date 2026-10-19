@@ -409,7 +409,7 @@ def calculate_heating_systems(
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
     dm = DatabaseManager(FileHandler(directory=input_directory), years=years)
 
-    shares_start_year = dm.get_heating_systems_shares_start_year() if heating_system_initial_shares is None else heating_system_initial_shares
+    shares_start_year = dm.get_heating_system_initial_shares() if heating_system_initial_shares is None else heating_system_initial_shares
     heating_systems_calibration_factor = dm.get_calibrate_heating_systems() if heating_systems_calibration_factor is None else heating_systems_calibration_factor
     efficiencies = heating_system_efficiencies if heating_system_efficiencies is not None else dm.get_heating_system_efficiencies()
     projection = heating_system_initial_forecast if heating_system_initial_forecast is not None else dm.get_heating_system_forecast()

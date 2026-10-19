@@ -508,8 +508,8 @@ class DatabaseManager:
             return df.area_per_person.loc[building_category]
         return df.area_per_person
 
-    def get_heating_systems_shares_start_year(self) -> pd.DataFrame:
-        shares_start_year = self.file_handler.get_heating_systems_shares_start_year()
+    def get_heating_system_initial_shares(self) -> pd.DataFrame:
+        shares_start_year = self.file_handler.get_heating_systems_shares_start_year().pipe(add_lineno)
         return shares_start_year
 
     def get_heating_system_efficiencies(self) -> pd.DataFrame:

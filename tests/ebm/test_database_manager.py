@@ -489,6 +489,34 @@ def test_get_calibrate_heating_systems(simple_file_handler):
     pd.testing.assert_frame_equal(actual[['lineno', 'building_category']], expected_df[['lineno', 'building_category']], check_like=True)
 
 
+def test_get_heating_system_initial_shares(simple_file_handler):
+    heating_system_initial_shares_csv = pd.DataFrame(
+        [
+            ['house', 'TEK01', 'DH', 2021, 0.1, ],
+        ],
+        columns=['building_category',  'building_code', 'heating_systems', 'year', 'heating_system_share', ],
+    )
+    simple_file_handler.get_heating_systems_shares_start_year.return_value = heating_system_initial_shares_csv
+    dm = DatabaseManager(simple_file_handler, years=YearRange(2021, 2026))
+
+    actual = dm.get_heating_system_initial_shares()
+    assert 'lineno' in actual.columns
+    assert 'building_category' in actual.columns
+    assert isinstance(actual, pd.DataFrame)
+
+    expected_columns = {'building_category', 'building_code', 'heating_systems', 'year', 'heating_system_share', 'lineno'}
+    assert expected_columns.symmetric_difference(actual.columns) == set()
+    expected_df = pd.DataFrame(
+        data=[
+            ['house', 'TEK01', 'DH', 2021, 0.1, 2],
+
+        ],
+        columns=['building_category', 'building_code', 'heating_systems', 'year', 'heating_system_share', 'lineno']
+    )
+    pd.testing.assert_frame_equal(actual, expected_df, check_like=True)
+
+
+
 def test_get_heating_system_forecast_drop_duplicates_when_heating_systems_are_different(simple_file_handler):
     """
     There can be multiple unique combinations of heating_systems and new_heating_systems.

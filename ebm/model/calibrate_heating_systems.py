@@ -169,7 +169,7 @@ def sort_heating_systems_by_energy_source(transformed):
 class DistributionOfHeatingSystems:
     @staticmethod
     def extract(database_manager):
-        shares_start_year = database_manager.get_heating_systems_shares_start_year()
+        shares_start_year = database_manager.get_heating_system_initial_shares()
         heating_systems_calibration_factor = database_manager.get_calibrate_heating_systems()
         calibrated_heating_systems_shares_start_year = calibrate_heating_systems(shares_start_year, heating_systems_calibration_factor)
 

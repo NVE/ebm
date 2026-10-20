@@ -1,0 +1,14 @@
+building_category,to,from,factor,lineno
+non_residential,Electric boiler,Electricity,1.0,28
+non_residential,DH,Electricity,0.8,29
+non_residential,DH,Electric boiler,0.95,30
+non_residential,Gas,Electric boiler,0.7,31
+non_residential,Electricity - Bio,Electricity,0.2,32
+non_residential,DH - Bio,Electric boiler,1.0,33
+non_residential,HP - Bio - Electricity,Electricity - Bio,1.0,34
+non_residential,HP - Electricity,Electricity,1.0,35
+non_residential,HP Central heating - Electric boiler,HP Central heating - Bio,0.95,36
+non_residential,HP Central heating - Electric boiler,HP - Electricity,0.98,37
+non_residential,HP Central heating - Electric boiler,Electric boiler,0.89,38
+non_residential,HP Central heating - Gas,Electric boiler,1.0,39
+non_residential,Electric boiler - Solar,Electric boiler,1.0,40

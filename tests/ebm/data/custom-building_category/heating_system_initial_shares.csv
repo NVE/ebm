@@ -1,0 +1,177 @@
+building_category,building_code,heating_systems,year,heating_system_share,lineno
+motel,PRE_TEK49,DH,2023,0.318245318,674
+motel,PRE_TEK49,DH - Bio,2023,0.000214225,675
+motel,PRE_TEK49,Electric boiler,2023,0.059684514,676
+motel,PRE_TEK49,Electric boiler - Solar,2023,0.000249379,677
+motel,PRE_TEK49,Electricity,2023,0.07068189,678
+motel,PRE_TEK49,Electricity - Bio,2023,0.021674095,679
+motel,PRE_TEK49,Gas,2023,0.001656504,680
+motel,PRE_TEK49,HP - Electricity,2023,0.163284936,681
+motel,PRE_TEK49,HP Central heating - Bio,2023,0.000193627,682
+motel,PRE_TEK49,HP Central heating - Electric boiler,2023,0.364043512,683
+motel,PRE_TEK49,HP Central heating - Gas,2023,7.20E-05,684
+motel,TEK07,DH,2023,0.318245318,685
+motel,TEK07,DH - Bio,2023,0.000214225,686
+motel,TEK07,Electric boiler,2023,0.059684514,687
+motel,TEK07,Electric boiler - Solar,2023,0.000249379,688
+motel,TEK07,Electricity,2023,0.07068189,689
+motel,TEK07,Electricity - Bio,2023,0.021674095,690
+motel,TEK07,Gas,2023,0.001656504,691
+motel,TEK07,HP - Electricity,2023,0.163284936,692
+motel,TEK07,HP Central heating - Bio,2023,0.000193627,693
+motel,TEK07,HP Central heating - Electric boiler,2023,0.364043512,694
+motel,TEK07,HP Central heating - Gas,2023,7.20E-05,695
+motel,TEK10,DH,2023,0.318245318,696
+motel,TEK10,DH - Bio,2023,0.000214225,697
+motel,TEK10,Electric boiler,2023,0.059684514,698
+motel,TEK10,Electric boiler - Solar,2023,0.000249379,699
+motel,TEK10,Electricity,2023,0.07068189,700
+motel,TEK10,Electricity - Bio,2023,0.021674095,701
+motel,TEK10,Gas,2023,0.001656504,702
+motel,TEK10,HP - Electricity,2023,0.163284936,703
+motel,TEK10,HP Central heating - Bio,2023,0.000193627,704
+motel,TEK10,HP Central heating - Electric boiler,2023,0.364043512,705
+motel,TEK10,HP Central heating - Gas,2023,7.20E-05,706
+motel,TEK17,DH,2023,0.318245318,707
+motel,TEK17,DH - Bio,2023,0.000214225,708
+motel,TEK17,Electric boiler,2023,0.059684514,709
+motel,TEK17,Electric boiler - Solar,2023,0.000249379,710
+motel,TEK17,Electricity,2023,0.07068189,711
+motel,TEK17,Electricity - Bio,2023,0.021674095,712
+motel,TEK17,Gas,2023,0.001656504,713
+motel,TEK17,HP - Electricity,2023,0.163284936,714
+motel,TEK17,HP Central heating - Bio,2023,0.000193627,715
+motel,TEK17,HP Central heating - Electric boiler,2023,0.364043512,716
+motel,TEK17,HP Central heating - Gas,2023,7.20E-05,717
+motel,TEK49,DH,2023,0.318245318,718
+motel,TEK49,DH - Bio,2023,0.000214225,719
+motel,TEK49,Electric boiler,2023,0.059684514,720
+motel,TEK49,Electric boiler - Solar,2023,0.000249379,721
+motel,TEK49,Electricity,2023,0.07068189,722
+motel,TEK49,Electricity - Bio,2023,0.021674095,723
+motel,TEK49,Gas,2023,0.001656504,724
+motel,TEK49,HP - Electricity,2023,0.163284936,725
+motel,TEK49,HP Central heating - Bio,2023,0.000193627,726
+motel,TEK49,HP Central heating - Electric boiler,2023,0.364043512,727
+motel,TEK49,HP Central heating - Gas,2023,7.20E-05,728
+motel,TEK69,DH,2023,0.318245318,729
+motel,TEK69,DH - Bio,2023,0.000214225,730
+motel,TEK69,Electric boiler,2023,0.059684514,731
+motel,TEK69,Electric boiler - Solar,2023,0.000249379,732
+motel,TEK69,Electricity,2023,0.07068189,733
+motel,TEK69,Electricity - Bio,2023,0.021674095,734
+motel,TEK69,Gas,2023,0.001656504,735
+motel,TEK69,HP - Electricity,2023,0.163284936,736
+motel,TEK69,HP Central heating - Bio,2023,0.000193627,737
+motel,TEK69,HP Central heating - Electric boiler,2023,0.364043512,738
+motel,TEK69,HP Central heating - Gas,2023,7.20E-05,739
+motel,TEK87,DH,2023,0.318245318,740
+motel,TEK87,DH - Bio,2023,0.000214225,741
+motel,TEK87,Electric boiler,2023,0.059684514,742
+motel,TEK87,Electric boiler - Solar,2023,0.000249379,743
+motel,TEK87,Electricity,2023,0.07068189,744
+motel,TEK87,Electricity - Bio,2023,0.021674095,745
+motel,TEK87,Gas,2023,0.001656504,746
+motel,TEK87,HP - Electricity,2023,0.163284936,747
+motel,TEK87,HP Central heating - Bio,2023,0.000193627,748
+motel,TEK87,HP Central heating - Electric boiler,2023,0.364043512,749
+motel,TEK87,HP Central heating - Gas,2023,7.20E-05,750
+motel,TEK97,DH,2023,0.318245318,751
+motel,TEK97,DH - Bio,2023,0.000214225,752
+motel,TEK97,Electric boiler,2023,0.059684514,753
+motel,TEK97,Electric boiler - Solar,2023,0.000249379,754
+motel,TEK97,Electricity,2023,0.07068189,755
+motel,TEK97,Electricity - Bio,2023,0.021674095,756
+motel,TEK97,Gas,2023,0.001656504,757
+motel,TEK97,HP - Electricity,2023,0.163284936,758
+motel,TEK97,HP Central heating - Bio,2023,0.000193627,759
+motel,TEK97,HP Central heating - Electric boiler,2023,0.364043512,760
+motel,TEK97,HP Central heating - Gas,2023,7.20E-05,761
+hotel,PRE_TEK49,DH,2023,0.318245318,762
+hotel,PRE_TEK49,DH - Bio,2023,0.000214225,675
+hotel,PRE_TEK49,Electric boiler,2023,0.059684514,676
+hotel,PRE_TEK49,Electric boiler - Solar,2023,0.000249379,677
+hotel,PRE_TEK49,Electricity,2023,0.07068189,678
+hotel,PRE_TEK49,Electricity - Bio,2023,0.021674095,679
+hotel,PRE_TEK49,Gas,2023,0.001656504,680
+hotel,PRE_TEK49,HP - Electricity,2023,0.163284936,681
+hotel,PRE_TEK49,HP Central heating - Bio,2023,0.000193627,682
+hotel,PRE_TEK49,HP Central heating - Electric boiler,2023,0.364043512,683
+hotel,PRE_TEK49,HP Central heating - Gas,2023,7.20E-05,684
+hotel,TEK07,DH,2023,0.318245318,685
+hotel,TEK07,DH - Bio,2023,0.000214225,686
+hotel,TEK07,Electric boiler,2023,0.059684514,687
+hotel,TEK07,Electric boiler - Solar,2023,0.000249379,688
+hotel,TEK07,Electricity,2023,0.07068189,689
+hotel,TEK07,Electricity - Bio,2023,0.021674095,690
+hotel,TEK07,Gas,2023,0.001656504,691
+hotel,TEK07,HP - Electricity,2023,0.163284936,692
+hotel,TEK07,HP Central heating - Bio,2023,0.000193627,693
+hotel,TEK07,HP Central heating - Electric boiler,2023,0.364043512,694
+hotel,TEK07,HP Central heating - Gas,2023,7.20E-05,695
+hotel,TEK10,DH,2023,0.318245318,696
+hotel,TEK10,DH - Bio,2023,0.000214225,697
+hotel,TEK10,Electric boiler,2023,0.059684514,698
+hotel,TEK10,Electric boiler - Solar,2023,0.000249379,699
+hotel,TEK10,Electricity,2023,0.07068189,700
+hotel,TEK10,Electricity - Bio,2023,0.021674095,701
+hotel,TEK10,Gas,2023,0.001656504,702
+hotel,TEK10,HP - Electricity,2023,0.163284936,703
+hotel,TEK10,HP Central heating - Bio,2023,0.000193627,704
+hotel,TEK10,HP Central heating - Electric boiler,2023,0.364043512,705
+hotel,TEK10,HP Central heating - Gas,2023,7.20E-05,706
+hotel,TEK17,DH,2023,0.318245318,707
+hotel,TEK17,DH - Bio,2023,0.000214225,708
+hotel,TEK17,Electric boiler,2023,0.059684514,709
+hotel,TEK17,Electric boiler - Solar,2023,0.000249379,710
+hotel,TEK17,Electricity,2023,0.07068189,711
+hotel,TEK17,Electricity - Bio,2023,0.021674095,712
+hotel,TEK17,Gas,2023,0.001656504,713
+hotel,TEK17,HP - Electricity,2023,0.163284936,714
+hotel,TEK17,HP Central heating - Bio,2023,0.000193627,715
+hotel,TEK17,HP Central heating - Electric boiler,2023,0.364043512,716
+hotel,TEK17,HP Central heating - Gas,2023,7.20E-05,717
+hotel,TEK49,DH,2023,0.318245318,718
+hotel,TEK49,DH - Bio,2023,0.000214225,719
+hotel,TEK49,Electric boiler,2023,0.059684514,720
+hotel,TEK49,Electric boiler - Solar,2023,0.000249379,721
+hotel,TEK49,Electricity,2023,0.07068189,722
+hotel,TEK49,Electricity - Bio,2023,0.021674095,723
+hotel,TEK49,Gas,2023,0.001656504,724
+hotel,TEK49,HP - Electricity,2023,0.163284936,725
+hotel,TEK49,HP Central heating - Bio,2023,0.000193627,726
+hotel,TEK49,HP Central heating - Electric boiler,2023,0.364043512,727
+hotel,TEK49,HP Central heating - Gas,2023,7.20E-05,728
+hotel,TEK69,DH,2023,0.318245318,729
+hotel,TEK69,DH - Bio,2023,0.000214225,730
+hotel,TEK69,Electric boiler,2023,0.059684514,731
+hotel,TEK69,Electric boiler - Solar,2023,0.000249379,732
+hotel,TEK69,Electricity,2023,0.07068189,733
+hotel,TEK69,Electricity - Bio,2023,0.021674095,734
+hotel,TEK69,Gas,2023,0.001656504,735
+hotel,TEK69,HP - Electricity,2023,0.163284936,736
+hotel,TEK69,HP Central heating - Bio,2023,0.000193627,737
+hotel,TEK69,HP Central heating - Electric boiler,2023,0.364043512,738
+hotel,TEK69,HP Central heating - Gas,2023,7.20E-05,739
+hotel,TEK87,DH,2023,0.318245318,740
+hotel,TEK87,DH - Bio,2023,0.000214225,741
+hotel,TEK87,Electric boiler,2023,0.059684514,742
+hotel,TEK87,Electric boiler - Solar,2023,0.000249379,743
+hotel,TEK87,Electricity,2023,0.07068189,744
+hotel,TEK87,Electricity - Bio,2023,0.021674095,745
+hotel,TEK87,Gas,2023,0.001656504,746
+hotel,TEK87,HP - Electricity,2023,0.163284936,747
+hotel,TEK87,HP Central heating - Bio,2023,0.000193627,748
+hotel,TEK87,HP Central heating - Electric boiler,2023,0.364043512,749
+hotel,TEK87,HP Central heating - Gas,2023,7.20E-05,750
+hotel,TEK97,DH,2023,0.318245318,751
+hotel,TEK97,DH - Bio,2023,0.000214225,752
+hotel,TEK97,Electric boiler,2023,0.059684514,753
+hotel,TEK97,Electric boiler - Solar,2023,0.000249379,754
+hotel,TEK97,Electricity,2023,0.07068189,755
+hotel,TEK97,Electricity - Bio,2023,0.021674095,756
+hotel,TEK97,Gas,2023,0.001656504,757
+hotel,TEK97,HP - Electricity,2023,0.163284936,758
+hotel,TEK97,HP Central heating - Bio,2023,0.000193627,759
+hotel,TEK97,HP Central heating - Electric boiler,2023,0.364043512,760
+hotel,TEK97,HP Central heating - Gas,2023,7.20E-05,761

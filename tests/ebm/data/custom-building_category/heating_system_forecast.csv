@@ -1,0 +1,13 @@
+building_category,building_code,heating_systems,new_heating_systems,2024,2025,2026,2027,2028,2029,2030
+hotel,default,Gas,HP Central heating - Electric boiler,0.2,0.333333334,0.466666666,0.6,0.733333334,0.866666666,1.0
+hotel,default,Electricity,DH,0.018,0.023,0.027,0.03,0.033,0.036,0.039
+hotel,default,Electricity,HP Central heating - Electric boiler,0.014,0.018,0.021,0.024,0.026,0.029,0.031
+hotel,default,Electric boiler,DH,0.018,0.023,0.027,0.03,0.033,0.036,0.039
+hotel,default,Electric boiler,HP Central heating - Electric boiler,0.014,0.018,0.021,0.024,0.026,0.029,0.031
+hotel,default,HP Central heating - Gas,HP Central heating - Electric boiler,0.2,0.333333333,0.466666667,0.6,0.733333333,0.866666667,1.0
+motel,default,Gas,HP Central heating - Electric boiler,0.2,0.333333334,0.466666666,0.6,0.733333334,0.866666666,1.0
+motel,default,Electricity,DH,0.018,0.023,0.027,0.03,0.033,0.036,0.039
+motel,default,Electricity,HP Central heating - Electric boiler,0.014,0.018,0.021,0.024,0.026,0.029,0.031
+motel,default,Electric boiler,DH,0.018,0.023,0.027,0.03,0.033,0.036,0.039
+motel,default,Electric boiler,HP Central heating - Electric boiler,0.014,0.018,0.021,0.024,0.026,0.029,0.031
+motel,default,HP Central heating - Gas,HP Central heating - Electric boiler,0.2,0.333333333,0.466666667,0.6,0.733333333,0.866666667,1.0

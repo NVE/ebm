@@ -1,0 +1,7 @@
+building_category,condition,earliest_age_for_measure,average_age_for_measure,rush_period_years,last_age_for_measure,rush_share,never_share,lineno
+motel,small_measure,3,20,20,50,0.8,0.01,20
+motel,renovation,5,48,34,80,0.6,0.1,21
+motel,demolition,50,100,30,130,0.7,0.05,22
+hotel,small_measure,3,20,20,50,0.8,0.01,23
+hotel,renovation,5,48,34,80,0.6,0.1,24
+hotel,demolition,50,100,30,130,0.7,0.05,25

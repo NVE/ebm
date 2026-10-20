@@ -1,0 +1,3 @@
+building_category,building_code,purpose,behaviour_factor,start_year,end_year,lineno
+non_residential,default,default,1.06,2020,,5
+motel,default,electrical_equipment,1.06,2020,,6

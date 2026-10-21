@@ -26,6 +26,13 @@ def write_pretty_excel(target: pathlib.Path, dataframes: list[SheetDefinition], 
     return output_files
 
 
+def write_excel(target: pathlib.Path, dataframes: list[SheetDefinition], **kwargs) -> list[pathlib.Path]:
+    output_files = _write_excel(target, dataframes, **kwargs)
+    for output_file in output_files:
+        logger.success('Wrote {}', output_file)
+    return output_files
+
+
 def _write_excel(target: pathlib.Path, dataframes: list[SheetDefinition], **kwargs) -> list[pathlib.Path]:
     area_output = target.with_suffix('.xlsx')
     if not area_output.parent.is_dir():

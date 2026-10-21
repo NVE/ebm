@@ -103,6 +103,16 @@ create-input: Create input directory containing all required files in the curren
                             help=textwrap.dedent(
                                 '''The location of the input directory to be created. default: current working directory
                                 '''))
+    arg_parser.add_argument(
+        '--output-format',
+        '-F',
+        type=str,
+        default='pretty-xlsx',
+        choices=[
+            'pretty-xlsx',
+            'xlsx',
+        ],
+    )
     arg_parser.add_argument('--categories', '--building-categories', '-c',
                             nargs='*', type=str, default=default_building_categories,
                             help=textwrap.dedent(f"""

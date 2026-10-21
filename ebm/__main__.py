@@ -1,6 +1,8 @@
 """EBM start from where when running as a script or module"""
 import os
 
+from ebm.writers import write_pretty_excel, write_excel
+
 os.environ['DISABLE_PANDERA_IMPORT_WARNING'] = 'True'
 import pathlib
 import platform
@@ -154,7 +156,10 @@ Use `<program name> create-input --input={input_directory}` to create an input d
     files_to_open = [output_file]
 
     if step_choice == 'energy-use':
-        files_to_open = export_energy_model_reports(model_years, database_manager, output_directory)
+        output_writer = write_pretty_excel
+        if arguments.output_format == 'xlsx':
+            output_writer = write_excel
+        files_to_open = export_energy_model_reports(model_years, database_manager, output_directory, file_writer=output_writer)
     else:
         model = default_handler.extract_model(model_years, building_categories, database_manager, step_choice)
 

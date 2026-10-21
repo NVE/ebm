@@ -1,7 +1,11 @@
 """EBM start from where when running as a script or module"""
 import os
+from argparse import Namespace
+from collections.abc import Callable
+from functools import partial
+from pathlib import Path
 
-from ebm.writers import write_pretty_excel, write_excel
+from ebm.writers import write_csv, write_excel, write_pretty_excel
 
 os.environ['DISABLE_PANDERA_IMPORT_WARNING'] = 'True'
 import pathlib
@@ -25,6 +29,7 @@ from ebm.model.file_handler import FileHandler
 
 df = None
 
+TABULAR_DATA_EXTENSIONS = {'.csv', '.tsv', '.txt', '.psv', '.dsv', '.tab'}
 
 def main() -> tuple[ReturnCode, pd.DataFrame | None]:
     """
@@ -156,12 +161,17 @@ Use `<program name> create-input --input={input_directory}` to create an input d
     files_to_open = [output_file]
 
     if step_choice == 'energy-use':
-        output_writer = write_pretty_excel
-        if arguments.output_format == 'xlsx':
-            output_writer = write_excel
+        output_writer = build_writer(arguments)
         files_to_open = export_energy_model_reports(model_years, database_manager, output_directory, file_writer=output_writer)
     else:
         model = default_handler.extract_model(model_years, building_categories, database_manager, step_choice)
+        if arguments.output_format == 'csv' and output_file.suffix not in TABULAR_DATA_EXTENSIONS:
+            msg = f'Output format csv is conflicting with output file extension {output_file.suffix}.'
+            logger.warning(msg)
+            if output_file.with_suffix('.csv').exists() and not arguments.force:
+                logger.error('Output file {outputfile} already exists. Use --force to overwrite.', outputfile=output_file)
+                return ReturnCode.FILE_NOT_ACCESSIBLE, None
+            output_file = output_file.with_suffix('.csv')
 
         if convert_result_to_horizontal and (step_choice in ['area-forecast', 'energy-requirements']) and output_file.suffix=='.xlsx':
             sheet_name_prefix = 'area' if step_choice == 'area-forecast' else 'energy'
@@ -194,6 +204,15 @@ Use `<program name> create-input --input={input_directory}` to create an input d
     return ReturnCode.OK, model
 
 
+def build_writer(arguments: Namespace) -> Callable[..., list[Path]]:
+    output_writer = write_pretty_excel
+    format_selection = arguments.output_format.strip().lstrip('.').lower()
+    if format_selection == 'xlsx':
+        output_writer = write_excel
+    elif format_selection == 'csv':
+        csv_delimiter = arguments.csv_delimiter
+        output_writer = partial(write_csv, delimiter=csv_delimiter)
+    return output_writer
 
 
 if __name__ == '__main__':

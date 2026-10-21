@@ -107,11 +107,19 @@ create-input: Create input directory containing all required files in the curren
         '--output-format',
         '-F',
         type=str,
-        default='pretty-xlsx',
+        default='pretty',
         choices=[
-            'pretty-xlsx',
+            'pretty',
             'xlsx',
+            'csv',
         ],
+        help=textwrap.dedent("""Output file format for step energy-use.
+            Choices: 
+             - pretty: Excel with style and filters 
+             - xlsx: Plain Excel format 
+             - csv: Comma-separated values format (CSV). See also --csv-delimiter
+             default: pretty
+        """)
     )
     arg_parser.add_argument('--categories', '--building-categories', '-c',
                             nargs='*', type=str, default=default_building_categories,

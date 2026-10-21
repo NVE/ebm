@@ -33,6 +33,29 @@ def write_excel(target: pathlib.Path, dataframes: list[SheetDefinition], **kwarg
     return output_files
 
 
+def write_csv(target: pathlib.Path, dataframes: list[SheetDefinition], delimiter: str=',', **kwargs) -> list[pathlib.Path]:
+    area_output = target.with_suffix('.csv')
+    if not area_output.parent.is_dir():
+        raise NotADirectoryError(f'{area_output.parent} is not a directory')
+
+    filenames = []
+    for v in dataframes:
+        sheet_name = v.get("name")
+        filename = area_output.with_name(f'{target.stem}-{sheet_name}.csv')
+        df: pd.DataFrame = v['content']
+        if isinstance(df.index, pd.MultiIndex):
+            msg = f'Dataframe {sheet_name} intended for {area_output.name} has a MultiIndex'
+            logger.warning(msg)
+            logger.debug('Resetting index for dataframe {} intended for {}', sheet_name, area_output.name)
+            df = df.reset_index()
+        logger.debug('Writing {}', filename)
+        df.to_csv(filename, index=False, sep=delimiter)
+        logger.success('Wrote {}', filename)
+        filenames.append(filename)
+
+    return filenames
+
+
 def _write_excel(target: pathlib.Path, dataframes: list[SheetDefinition], **kwargs) -> list[pathlib.Path]:
     area_output = target.with_suffix('.xlsx')
     if not area_output.parent.is_dir():

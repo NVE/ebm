@@ -173,6 +173,13 @@ Use `<program name> create-input --input={input_directory}` to create an input d
                 return ReturnCode.FILE_NOT_ACCESSIBLE, None
             output_file = output_file.with_suffix('.csv')
 
+        if output_file.is_dir():
+            step_msg = f'Unable to write {arguments.step}'
+            logger.error(step_msg)
+            is_dir_msg = f'{output_file} is a directory.'
+            logger.error(is_dir_msg)
+            return ReturnCode.FILE_NOT_ACCESSIBLE, None
+
         if convert_result_to_horizontal and (step_choice in ['area-forecast', 'energy-requirements']) and output_file.suffix=='.xlsx':
             sheet_name_prefix = 'area' if step_choice == 'area-forecast' else 'energy'
             logger.debug(f'Transform heating {step_choice}')

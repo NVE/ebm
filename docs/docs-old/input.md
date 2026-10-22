@@ -67,12 +67,11 @@ is expected for house and apartment_block.
 ## new_buildings_residential.csv
 
 This file contain the share between house and apartment block and square meter floor area for building categories for  
-every year from the third model year until the end. The spelling mistake in flood_area_new_apartment_block must be left
-as is. Please not that new_house_share and new_apartment_block_share is not compared in any way. It is a good idea to 
-make sure the values add up to 1.0.
+every year from the third model year until the end. Please note that new_house_share and new_apartment_block_share is not 
+compared in any way. It is a good idea to make sure the values add up to 1.0.
 
 ```csv 
-"year",new_house_share,new_apartment_block_share,floor_area_new_house,flood_area_new_apartment_block
+"year",new_house_share,new_apartment_block_share,floor_area_new_house,floor_area_new_apartment_block
 "2012","0.5320363954772",0.4679636045228,"175","75"
 "2013","0.4949466591802","0.5050533408198","175","75"
 …
@@ -87,9 +86,9 @@ make sure the values add up to 1.0.
 - new_house_share are decimal numbers (float) between 0 and 1.
 - new_apartment_block_share are decimal numbers (float) between 0 and 1.
 - floor_area_new_house average floor area in square meters. Whole numbers (integer)
-- flood_area_new_apartment_block average floor area in square meters. Whole numbers (integer)
+- floor_area_new_apartment_block average floor area in square meters. Whole numbers (integer)
 
-floor_area_new_house and flood_area_new_apartment_block should work as decimal as well.
+floor_area_new_house and floor_area_new_apartment_block should work as decimal as well.
 
 ## new_buildings_population.csv
 

@@ -1009,7 +1009,7 @@ def calculate_construction(building_category_demolition_by_year: pd.Series, year
             share_name, floor_area_name = 'new_house_share', 'floor_area_new_house'
             if building_category == BuildingCategory.APARTMENT_BLOCK:
                 share_name = 'new_apartment_block_share'
-                floor_area_name = 'flood_area_new_apartment_block'
+                floor_area_name = 'floor_area_new_apartment_block'
             building_category_share = new_buildings_category_shares[share_name]
             average_floor_area = new_buildings_category_shares[floor_area_name]
             household_size = new_buildings_population['household_size']

@@ -186,7 +186,7 @@ class FileHandler:
         logger.debug(f'{file_path=}')
         return pd.read_csv(file_path, dtype={"household_size": "float64"})
 
-    def get_construction_building_category_share(self) -> pd.DataFrame:
+    def get_new_buildings_residential(self) -> pd.DataFrame:
         """
         Get building category share by year DataFrame from a file.
 

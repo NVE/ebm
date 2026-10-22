@@ -19,7 +19,7 @@ def extract_area_forecast(years: YearRange,
     area_per_person = database_manager.get_area_per_person()
     area_new_residential_buildings = database_manager.get_area_new_residential_buildings()
     construction_population = database_manager.get_construction_population()
-    new_buildings_category_share = database_manager.get_new_buildings_category_share()
+    new_buildings_category_share = database_manager.get_new_buildings_residential()
 
     df = calculate_all_area(area_new_residential_buildings, area_parameters, area_per_person,
                             building_code_parameters, construction_population, new_buildings_category_share,

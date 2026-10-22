@@ -311,7 +311,7 @@ def new_buildings_residential_df():
                  'new_house_share',
                  'new_apartment_block_share',
                  'floor_area_new_house',
-                 'flood_area_new_apartment_block'],
+                 'floor_area_new_apartment_block'],
     )
 
 
@@ -319,12 +319,25 @@ def test_new_buildings_residential_ok(new_buildings_residential_df):
     new_buildings_residential.validate(new_buildings_residential_df)
 
 
+def test_new_buildings_residential_renames_flood_area_to_floor_area(new_buildings_residential_df):
+    pd.DataFrame(
+        data=[[2010, 0.6, 0.4, 175, 75],
+              [2011, 0.59, 0.41, 175, 75]],
+        columns=['year', 'new_house_share', 'new_apartment_block_share', 'floor_area_new_house', 'flood_area_new_apartment_block'],
+    )
+    df = new_buildings_residential.validate(new_buildings_residential_df)
+
+    assert 'flood_area_new_apartment_block' not in df.columns
+    assert 'floor_area_new_apartment_block' in df.columns
+    assert df.floor_area_new_apartment_block.tolist() == [75, 75]
+
+
 @pytest.mark.parametrize(('column', 'too_low', 'too_high'),
                          [('year', 2009, 2071),
                           ('new_house_share', -0.01, 1.01),
                           ('new_apartment_block_share', -0.01, 1.01),
                           ('floor_area_new_house', 0, 1001),
-                          ('flood_area_new_apartment_block', 0, 1001)])
+                          ('floor_area_new_apartment_block', 0, 1001)])
 def test_new_buildings_residential_value_ranges(new_buildings_residential_df, column, too_low, too_high):
     new_buildings_residential.validate(new_buildings_residential_df)
 

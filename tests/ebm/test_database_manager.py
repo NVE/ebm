@@ -16,6 +16,34 @@ from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.file_handler import FileHandler
 
 
+@pytest.mark.parametrize('floor_area_column_name',[
+    'flood_area_new_apartment_block',
+    'floor_area_new_apartment_block',
+])
+def test_get_new_buildings_category_share_renames_flood_area_new_apartment_block(floor_area_column_name):
+    new_buildings_residential_csv = pd.DataFrame({
+        'year': {0: 2020, 1: 2021},
+        'new_house_share': {0: 0.44, 1: 0.43},
+        'new_apartment_block_share': {0: 0.56, 1: 0.57},
+        'floor_area_new_house': {0: 154, 1: 154},
+        floor_area_column_name: {0: 69, 1: 69}})
+
+    fh = FileHandler()
+    fh.get_construction_building_category_share = Mock(return_value=new_buildings_residential_csv)
+    dm = DatabaseManager(file_handler=fh)
+
+    actual = dm.get_new_buildings_category_share()
+
+    expected = pd.DataFrame({
+        'new_house_share': {2020: 0.44, 2021: 0.43},
+        'new_apartment_block_share': {2020: 0.56, 2021: 0.57},
+        'floor_area_new_house': {2020: 154, 2021: 154},
+        'floor_area_new_apartment_block': {2020: 69, 2021: 69}},
+    index=pd.Index([2020, 2021], name='year'))
+
+    pd.testing.assert_frame_equal(actual, expected)
+
+
 def test_get_area_per_person():
     area_per_person = pd.DataFrame({
         'building_category': {0: 'kindergarten', 1: 'retail'},

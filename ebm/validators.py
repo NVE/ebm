@@ -461,12 +461,13 @@ area_new_residential_buildings = pa.DataFrameSchema(
 
 
 new_buildings_residential = pa.DataFrameSchema(
+    parsers=[pa.Parser(lambda df: df.rename(columns={'flood_area_new_apartment_block': 'floor_area_new_apartment_block'}))],
     columns={
         'year': pa.Column(int, checks=[pa.Check.between(2010, 2070)]),
         'new_house_share': pa.Column(float, checks=[pa.Check.between(0.0, 1.0)]),
         'new_apartment_block_share': pa.Column(float, checks=[pa.Check.between(0.0, 1.0)]),
         'floor_area_new_house': pa.Column(int, checks=[pa.Check.between(1, 1000)]),
-        'flood_area_new_apartment_block': pa.Column(int, checks=[pa.Check.between(1, 1000)])
+        'floor_area_new_apartment_block': pa.Column(int, checks=[pa.Check.between(1, 1000)])
     },
     checks=[pa.Check(check_building_category_share,
                      error='The sum of new_house_share and new_apartment_block_share should be 1.0 (100%)')],

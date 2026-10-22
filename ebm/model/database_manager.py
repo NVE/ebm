@@ -12,6 +12,7 @@ from ebm.model.column_operations import explode_unique_columns
 from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.file_handler import FileHandler
+import ebm.validators
 
 
 class DatabaseManager:
@@ -175,9 +176,10 @@ class DatabaseManager:
           "year", "Andel nye småhus", "Andel nye leiligheter", "Areal nye småhus", "Areal nye leiligheter"
         """
         df = self.file_handler.get_construction_building_category_share()
-        df['year'] = df['year'].astype(int)
-        df = df.set_index('year')
-        return df
+        validated = ebm.validators.new_buildings_residential.validate(df)
+        validated['year'] = validated['year'].astype(int)
+        validated = validated.set_index('year')
+        return validated
 
     def get_area_new_residential_buildings(self) -> pd.Series:
         """

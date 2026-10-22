@@ -216,7 +216,7 @@ def calculate_area_forecast(
     if not isinstance(population_forecast, pd.DataFrame):
         population_forecast = dm.get_construction_population()
     if not isinstance(new_buildings_residential, pd.DataFrame):
-        new_buildings_residential = dm.get_new_buildings_category_share()
+        new_buildings_residential = dm.get_new_buildings_residential()
 
     df = calculate_all_area(area_new_residential_buildings, area_parameters, area_per_person,
                             building_code_parameters, population_forecast, new_buildings_residential,

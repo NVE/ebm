@@ -20,7 +20,7 @@ from ebm.model.file_handler import FileHandler
     'flood_area_new_apartment_block',
     'floor_area_new_apartment_block',
 ])
-def test_get_new_buildings_category_share_renames_flood_area_new_apartment_block(floor_area_column_name):
+def test_get_new_buildings_residential_rename_flood_area_new_apartment_block(floor_area_column_name):
     new_buildings_residential_csv = pd.DataFrame({
         'year': {0: 2020, 1: 2021},
         'new_house_share': {0: 0.44, 1: 0.43},
@@ -29,10 +29,10 @@ def test_get_new_buildings_category_share_renames_flood_area_new_apartment_block
         floor_area_column_name: {0: 69, 1: 69}})
 
     fh = FileHandler()
-    fh.get_construction_building_category_share = Mock(return_value=new_buildings_residential_csv)
+    fh.get_new_buildings_residential = Mock(return_value=new_buildings_residential_csv)
     dm = DatabaseManager(file_handler=fh)
 
-    actual = dm.get_new_buildings_category_share()
+    actual = dm.get_new_buildings_residential()
 
     expected = pd.DataFrame({
         'new_house_share': {2020: 0.44, 2021: 0.43},

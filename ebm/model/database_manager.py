@@ -164,7 +164,7 @@ class DatabaseManager:
         return construction_population.index.get_level_values(level='year').max()
 
 
-    def get_new_buildings_category_share(self) -> pd.DataFrame:
+    def get_new_buildings_residential(self) -> pd.DataFrame:
         """
         Get building category share by year as a DataFrame.
 
@@ -172,10 +172,10 @@ class DatabaseManager:
         of buildings of category house and apartment block
 
         Returns:
-        - new_buildings_category_share (pd.DataFrame): Dataframe containing population numbers
+        - new_buildings_residential (pd.DataFrame): Dataframe containing population numbers
           "year", "Andel nye småhus", "Andel nye leiligheter", "Areal nye småhus", "Areal nye leiligheter"
         """
-        df = self.file_handler.get_construction_building_category_share()
+        df = self.file_handler.get_new_buildings_residential()
         validated = ebm.validators.new_buildings_residential.validate(df)
         validated['year'] = validated['year'].astype(int)
         validated = validated.set_index('year')

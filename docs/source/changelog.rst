@@ -2,6 +2,19 @@
 Changelog
 =========
 
+Version 1.2.0 - 2026-10-22
+--------------------------
+
+Added
+^^^^^
+
+* Support for writing energy-use output to csv, in addition to Excel.
+
+Fixed
+^^^^^
+
+* Better error message when output file is an existing directory.
+
 
 Version 1.1.1 - 2026-09-18
 --------------------------

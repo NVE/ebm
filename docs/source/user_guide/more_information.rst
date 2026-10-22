@@ -54,40 +54,53 @@ Typing `ebm --help` will give you a list of most parameters:
 
 .. code:: bash
 
-   ebm --help
+   usage: ebm [-h] [--version] [--debug] [--output-format {pretty,xlsx,csv}] [--categories [CATEGORIES ...]] [--input [INPUT]] [--force] [--open] [--csv-delimiter CSV_DELIMITER]
+           [--create-input] [--dataset DATASET] [--horizontal-years]
+           [{area-forecast,energy-requirements,heating-systems,energy-use,list-input,create-input}] [output_file] [create_input_dir]
 
-     usage: ebm [-h] [--version] [--debug] [--categories [CATEGORIES ...]] [--input [INPUT]] [--force] [--open] [--csv-delimiter CSV_DELIMITER] [--create-input] [--horizontal-years] [{area-forecast,energy-requirements,heating-systems,energy-use}] [output_file]
+    Calculate EBM energy use 1.1.1
 
-   Calculate EBM energy use 1.1.10
+    positional arguments:
+      {area-forecast,energy-requirements,heating-systems,energy-use,list-input,create-input}
 
-   positional arguments:
-     {area-forecast,energy-requirements,heating-systems,energy-use}
+                            The calculation step you want to run. The steps are sequential. Any prerequisite to the chosen step will run
+                                automatically.
+                            list-input: List available input datasets bundled with ebm.
+                            create-input: Create input directory containing all required files in the current working directory.
+      output_file           The location of the output to be written. default: output\ebm_output.xlsx
+                                For energy-use, this is treated as an output directory and multiple files will be written there.
+                                For other steps, this is treated as a single output file.
+                                If the file already exists the program will terminate without overwriting.
+                                Use "-" to output to the console instead. This is not supported for energy-use.
+                                For create-input, this is the dataset name (e.g. calibrated).
+      create_input_dir      The location of the input directory to be created. default: current working directory
 
-                           The calculation step you want to run. The steps are sequential. Any prerequisite to the chosen step will run
-                               automatically.
-     output_file           The location of the file you want to be written. default: output\ebm_output.xlsx
-                               If the file already exists the program will terminate without overwriting.
-                               Use "-" to output to the console instead
+    options:
+      -h, --help            show this help message and exit
+      --version, -v         show program's version number and exit
+      --debug               Run in debug mode. (Extra information written to stdout)
+      --output-format {pretty,xlsx,csv}, -F {pretty,xlsx,csv}
+                            Output file format for step energy-use.
+                                        Choices:
+                                         - pretty: Excel with style and filters
+                                         - xlsx: Plain Excel format
+                                         - csv: Comma-separated values format (CSV). See also --csv-delimiter
+                                         default: pretty
 
-   options:
-     -h, --help            show this help message and exit
-     --version, -v         show program version number and exit
-     --debug               Run in debug mode. (Extra information written to stdout)
-     --categories [CATEGORIES ...], --building-categories [CATEGORIES ...], -c [CATEGORIES ...]
-
-                           One or more of the following building categories:
-                               house, apartment_block, kindergarten, school, university, office, retail, hotel, hospital, nursing_home, culture, sports, storage_repairs.
-                               The default is to use all categories.
-     --input [INPUT], --input-directory [INPUT], -i [INPUT]
-                           path to the directory with input files
-     --force, -f           Write to <filename> even if it already exists
-     --open, -o            Open <filename> with default application after writing. (Usually Excel)
-     --csv-delimiter CSV_DELIMITER, --delimiter CSV_DELIMITER, -e CSV_DELIMITER
-                           A single character to be used for separating columns when writing csv. Default: "," Special characters like ; should be quoted ";"
-     --create-input
-                           Create input directory containing all required files in the current working directory
-     --horizontal-years, --horizontal, --horisontal
-                           Show years horizontal (left to right)
+      --input [INPUT], --input-directory [INPUT], -i [INPUT]
+                            path to the directory with input files
+      --force, -f           Write to <filename> even if it already exists
+      --open, -o            Open output file(s) automatically when finished writing. (Usually Excel)
+      --csv-delimiter CSV_DELIMITER, --delimiter CSV_DELIMITER, -e CSV_DELIMITER
+                            A single character to be used for separating columns when writing csv. Default: "," Special characters like ; should be quoted ";"
+      --create-input
+                            Create input directory containing all required files in the current working directory
+      --dataset DATASET     The built-in dataset to use when creating input with --create-input.
+                            Available datasets: __pycache__, long_analysis_2024, original, short_analysis_2025.
+                            Default: calibrated.
+                            Use `list-input` to list available datasets.
+      --horizontal-years, --horizontal, --horisontal
+                            Show years horizontal (left to right)
 
 
 .. _calculate-area-projection:

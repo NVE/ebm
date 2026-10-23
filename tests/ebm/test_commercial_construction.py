@@ -87,3 +87,172 @@ def test_calculate_commercial_construction_require_demolition_years_in_populatio
 
     with pytest.raises(ValueError, match='years in demolition series not present in popolutation series'):
         calculate_commercial_construction(population, area_by_person, demolition)
+
+
+def test_calculate_commercial_construction_with_dataframe():
+    period = YearRange(2020, 2022)
+    population = pd.DataFrame(
+        {'population': [1_000_000, 1_500_000, 2_000_000]},
+        index=period.to_index())
+    area_by_person = 0.6
+    demolition = pd.DataFrame(
+        {'demolition': [10_000, 12_000, 14_000]},
+        index=period.to_index())
+
+    expected_yearly_construction = pd.Series([0.0, 310_000, 312_000], index=period.to_index())
+    expected_accumulated_construction = pd.Series([0.0, 310_000, 622_000], index=period.to_index())
+    expected_demolition = pd.Series([10_000, 12_000, 14_000], index=period.to_index())
+
+    expected = pd.DataFrame({
+            "demolished_floor_area": expected_demolition,
+            "constructed_floor_area": expected_yearly_construction,
+            "accumulated_constructed_floor_area": expected_accumulated_construction,
+        })
+
+    result = calculate_commercial_construction(
+        population,
+        area_by_person,
+        demolition)[['demolished_floor_area', 'constructed_floor_area', 'accumulated_constructed_floor_area']]
+
+    pd.testing.assert_frame_equal(result, expected)
+
+
+
+def test_calculate_commercial_construction_with_building_category():
+    period = YearRange(2020, 2022)
+    population = pd.DataFrame(
+        {
+            'population': [1_000_000, 1_500_000, 2_000_000],
+         },
+        index=period.to_index())
+    area_by_person = 0.6
+    demolition = pd.DataFrame(
+        {
+            'building_category': ['retail', 'retail', 'retail'],
+            'demolition': [10_000, 12_000, 14_000],
+        },
+        index=period.to_index())
+
+    expected_yearly_construction = pd.Series([0.0, 310_000, 312_000], index=period.to_index())
+    expected_accumulated_construction = pd.Series([0.0, 310_000, 622_000], index=period.to_index())
+    expected_demolition = pd.Series([10_000, 12_000, 14_000], index=period.to_index())
+
+    expected = pd.DataFrame({
+            "demolished_floor_area": expected_demolition,
+            "constructed_floor_area": expected_yearly_construction,
+            "accumulated_constructed_floor_area": expected_accumulated_construction,
+        })
+
+    actual = calculate_commercial_construction(population, area_by_person, demolition)
+    assert 'building_category' in actual.columns, "Expected 'building_category' column in the result"
+    pd.testing.assert_frame_equal(actual[['demolished_floor_area', 'constructed_floor_area', 'accumulated_constructed_floor_area']], expected)
+
+
+def test_calculate_commercial_construction_with_building_categories():
+    period = YearRange(2020, 2022)
+    population = pd.DataFrame(
+        {
+            'population': [1_000_000, 1_500_000, 2_000_000],
+         },
+        index=period.to_index())
+    area_by_person = pd.DataFrame([{'building_category': 'retail', 'area_per_person': 0.6},
+                                   {'building_category': 'office', 'area_per_person': 0.6}])
+    index = pd.Series([2020, 2021, 2022, 2020, 2021, 2022], name='year')
+    demolition = pd.DataFrame(
+        {
+            'building_category': ['retail', 'retail', 'retail', 'office', 'office', 'office'],
+            'demolition': [10_000, 12_000, 14_000, 10_000, 12_000, 14_000],
+        },
+        index=index)
+
+    expected_yearly_construction = pd.Series([0.0, 310_000, 312_000, 0.0, 310_000, 312_000], index=index)
+    expected_accumulated_construction = pd.Series([0.0, 310_000, 622_000, 0.0, 310_000, 622_000], index=index)
+    expected_demolition = pd.Series([10_000, 12_000, 14_000, 10_000, 12_000, 14_000], index=index)
+
+    expected = pd.DataFrame({
+            'building_category': ['retail', 'retail', 'retail', 'office', 'office', 'office'],
+            "demolished_floor_area": expected_demolition,
+            "constructed_floor_area": expected_yearly_construction,
+            "accumulated_constructed_floor_area": expected_accumulated_construction,
+        }).reset_index()
+
+    actual = calculate_commercial_construction(population, area_by_person, demolition).reset_index()
+    assert 'building_category' in actual.columns, "Expected 'building_category' column in the result"
+
+    pd.testing.assert_frame_equal(
+        actual[['building_category', 'demolished_floor_area', 'constructed_floor_area', 'accumulated_constructed_floor_area']],
+        expected[['building_category', 'demolished_floor_area', 'constructed_floor_area', 'accumulated_constructed_floor_area']])
+
+
+@pytest.mark.parametrize('area_by_person',[
+    pytest.param(0.6, id='float'),
+    pytest.param(pd.Series([0.6, 0.6, 0.6], index=YearRange(2020, 2022).to_index()), id='series'),
+    pytest.param(pd.DataFrame({
+        "building_category": ["retail"]*3 + ["office"]*3,
+        "area_per_person": [0.6]*6,
+        "year": [2020, 2021, 2022]*2,
+    }), id='building_category_and_year'),
+    pytest.param(pd.DataFrame({
+        "building_category": ["retail", "office"],
+        "area_per_person": [0.6, 0.6],
+    }), id='building_category'),
+    pytest.param(pd.DataFrame({
+        "building_category": ["retail", "office"],
+        "area_by_person": [0.6, 0.6],
+    }), id='area_by_person')
+])
+def test_calculate_commercial_construction_with_different_area_by_person(area_by_person):
+    period = YearRange(2020, 2022)
+    population = pd.DataFrame({'population': [1_000_000, 1_500_000, 2_000_000],}, index=period.to_index())
+
+    index = pd.Series([2020, 2021, 2022, 2020, 2021, 2022], name='year')
+    demolition = pd.DataFrame(
+        {
+            'building_category': ['retail', 'retail', 'retail', 'office', 'office', 'office'],
+            'demolition': [10_000, 12_000, 14_000, 10_000, 12_000, 14_000],
+        },
+        index=index)
+
+    expected_yearly_construction = pd.Series([0.0, 310_000, 312_000, 0.0, 310_000, 312_000], index=index)
+    expected_accumulated_construction = pd.Series([0.0, 310_000, 622_000, 0.0, 310_000, 622_000], index=index)
+    expected_demolition = pd.Series([10_000, 12_000, 14_000, 10_000, 12_000, 14_000], index=index)
+
+    expected = pd.DataFrame({
+            'building_category': ['retail', 'retail', 'retail', 'office', 'office', 'office'],
+            "demolished_floor_area": expected_demolition,
+            "constructed_floor_area": expected_yearly_construction,
+            "accumulated_constructed_floor_area": expected_accumulated_construction,
+        }).reset_index()
+
+    actual = calculate_commercial_construction(population, area_by_person, demolition).reset_index()
+    assert 'building_category' in actual.columns, "Expected 'building_category' column in the result"
+
+    pd.testing.assert_frame_equal(
+        actual[['building_category', 'demolished_floor_area', 'constructed_floor_area', 'accumulated_constructed_floor_area']],
+        expected[['building_category', 'demolished_floor_area', 'constructed_floor_area', 'accumulated_constructed_floor_area']])
+
+
+def test_calculate_commercial_construction_with_unsorted_demolition():
+    period = YearRange(2020, 2022)
+    population = pd.DataFrame(
+        {
+            'population': [1_000_000, 1_500_000, 2_000_000],
+         },
+        index=period.to_index())
+    area_by_person = 0.6
+    demolition = pd.DataFrame(
+        {
+            'building_category': ['retail', 'retail', 'retail'],
+            'demolition': [14_000, 10_000, 12_000],
+        },
+        index=pd.Series([2022, 2020, 2021], name='year'))
+
+    actual = calculate_commercial_construction(population, area_by_person, demolition).sort_values(by=['building_category', 'year'])
+
+    assert actual.demolished_floor_area.tolist() == [10_000, 12_000, 14_000], "Expected demolished_floor_area to match the input demolition values"
+    assert actual.constructed_floor_area.tolist() == [0.0, 310_000, 312_000]
+
+
+if __name__ == "__main__":
+    import sys
+    pytest.main([sys.argv[0]])

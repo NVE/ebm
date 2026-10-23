@@ -566,44 +566,41 @@ def calculate_demolition_floor_area_by_year(
     return demolition_by_year.demolition
 
 
-def calculate_commercial_construction(population: pd.Series,
-                                      area_by_person: float | pd.Series,
-                                      demolition: pd.Series) -> pd.DataFrame:
-    """
-    Calculate a projection of constructed floor area by using population and floor_area_by_person.
+def calculate_commercial_construction(population: pd.Series|pd.DataFrame,
+                                      area_by_person: float | pd.Series|pd.DataFrame,
+                                      demolition: pd.Series|pd.DataFrame) -> pd.DataFrame:
 
-    Parameters
-    ----------
-    population : pd.Series
-        population by year
-    area_by_person : pd.Series
-        float or pd.Series containing the floor area per person for the building_category
-    demolition : pd.Series
-        yearly demolition to be added to the floor area.
-
-    Returns
-    -------
-    pd.Dataframe
-        floor area constructed by year
-        accumulated contracted floor area
-
-    """
     if not demolition.index.isin(population.index).all():
         raise ValueError('years in demolition series not present in popolutation series')
 
-    total_area = area_by_person * population.loc[demolition.index]
-    demolition_prev_year = demolition.shift(periods=1, fill_value=0)
-    yearly_constructed = total_area.diff().fillna(0) + demolition_prev_year
-    yearly_constructed.loc[2020] = 0.0
+    if isinstance(demolition, pd.Series):
+        demolition = demolition.to_frame(name='demolition')
+    if isinstance(population, pd.Series):
+        population = population.to_frame(name='population')
+    if 'building_category' not in demolition.columns:
+        demolition = demolition.assign(building_category='commercial')
 
-    accumulated_constructed = yearly_constructed.cumsum()
-    commercial_construction = pd.DataFrame({
-        'demolished_floor_area': demolition,
-        'net_constructed_floor_area': total_area.diff().fillna(0),
-        "constructed_floor_area": yearly_constructed,
-        "accumulated_constructed_floor_area": accumulated_constructed,
-    })
-    return commercial_construction
+    df = demolition.rename(columns={'demolition': 'demolished_floor_area'})
+    df = df.assign(_input_order=np.arange(len(demolition)))
+
+    df = df.sort_values(by=['building_category', 'year'], kind='stable')
+    df = df.merge(population[['population']], on=['year'])
+    if isinstance(area_by_person, (float, int)):
+        df = df.assign(area_by_person=area_by_person)
+    elif isinstance(area_by_person, pd.Series):
+        df = df.merge(area_by_person.to_frame(name='area_by_person'), on=['year'])
+    else:
+        join_columns = [c for c in['building_category', 'year'] if c in area_by_person.columns]
+        area_by_person = area_by_person.rename(columns={'area_per_person': 'area_by_person'})[join_columns+['area_by_person']]
+        df = df.merge(area_by_person, on=join_columns)
+
+    df = df.assign(demolition_prev_year=df.groupby(by=['building_category']).shift(periods=1, fill_value=0)['demolished_floor_area'])
+    df = df.assign(total_area=lambda x: x['area_by_person'] * x['population'])
+    df = df.assign(net_constructed_floor_area=df.groupby(by=['building_category'])[['total_area']].diff().fillna(0))
+    df = df.assign(constructed_floor_area=df['net_constructed_floor_area'] + df['demolition_prev_year'])
+    df = df.assign(accumulated_constructed_floor_area=df.groupby(by=['building_category'])[['constructed_floor_area']].cumsum())
+
+    return df.sort_values('_input_order').drop(columns=['_input_order'])
 
 
 def _check_index(period: YearRange, values: pd.Series) -> bool:

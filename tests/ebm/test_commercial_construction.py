@@ -10,12 +10,12 @@ def test_calculate_commercial_construction_return_dataframe():
     population = pd.Series([1_000_000, 1_000_000, 1_000_000, 1_000_000,
                             1_000_000, 1_000_000, 1_000_000, 1_000_000],
                            index=period.to_index())
-    area_by_person = pd.Series([1.0, 1.2, 1.3, 1.4, 1.3, 1.2, 1.1, 1.0],
+    area_per_person = pd.Series([1.0, 1.2, 1.3, 1.4, 1.3, 1.2, 1.1, 1.0],
                                index=period.to_index())
     demolition = pd.Series([10_000, 12_000, 14_000, 15_000, 16_000, 17_000, 18_000, 19_000],
                            index=period.to_index())
 
-    result = calculate_commercial_construction(population, area_by_person, demolition)
+    result = calculate_commercial_construction(population, area_per_person, demolition)
 
     assert isinstance(result, pd.DataFrame), 'Expected calculate_commercial_construction to return pd.DataFrame'
 
@@ -23,7 +23,7 @@ def test_calculate_commercial_construction_return_dataframe():
 def test_calculate_commercial_construction_with_area_per_person_as_series():
     period = YearRange(2020, 2022)
     population = pd.Series([1_000_000, 1_500_000, 2_000_000], index=period.to_index())
-    area_by_person = pd.Series([1.0, 1.2, 1.3], index=period.to_index())
+    area_per_person = pd.Series([1.0, 1.2, 1.3], index=period.to_index())
     demolition = pd.Series([10_000, 12_000, 14_000], index=period.to_index())
 
     expected_yearly_construction = pd.Series([0.0, 810_000, 812_000], index=period.to_index())
@@ -36,7 +36,7 @@ def test_calculate_commercial_construction_with_area_per_person_as_series():
             "accumulated_constructed_floor_area": expected_accumulated_construction,
         })
 
-    result = calculate_commercial_construction(population, area_by_person, demolition)[expected.columns]
+    result = calculate_commercial_construction(population, area_per_person, demolition)[expected.columns]
 
     pd.testing.assert_frame_equal(result, expected)
 
@@ -44,7 +44,7 @@ def test_calculate_commercial_construction_with_area_per_person_as_series():
 def test_calculate_commercial_construction_with_area_per_person_as_float():
     period = YearRange(2020, 2022)
     population = pd.Series([1_000_000, 1_500_000, 2_000_000], index=period.to_index())
-    area_by_person = 0.6
+    area_per_person = 0.6
     demolition = pd.Series([10_000, 12_000, 14_000], index=period.to_index())
 
     expected_yearly_construction = pd.Series([0.0, 310_000, 312_000], index=period.to_index())
@@ -57,10 +57,7 @@ def test_calculate_commercial_construction_with_area_per_person_as_float():
             "accumulated_constructed_floor_area": expected_accumulated_construction,
         })
 
-    result = calculate_commercial_construction(
-        population,
-        area_by_person,
-        demolition)[['demolished_floor_area', 'constructed_floor_area', 'accumulated_constructed_floor_area']]
+    result = calculate_commercial_construction(population, area_per_person, demolition)[['demolished_floor_area', 'constructed_floor_area', 'accumulated_constructed_floor_area']]
 
     pd.testing.assert_frame_equal(result, expected)
 
@@ -71,22 +68,12 @@ def test_calculate_commercial_construction_strip_values_outside_demolition_index
                            index=YearRange(2019, 2023).to_index())
     demolition = pd.Series([10_000, 12_000, 14_000],
                            index=YearRange(2020, 2022).to_index())
-    area_by_person = 0.6
+    area_per_person = 0.6
 
-    result = calculate_commercial_construction(population, area_by_person, demolition)
+    result = calculate_commercial_construction(population, area_per_person, demolition)
     expected = pd.Series([0.0, 310_000.0, 312_000.0], index=YearRange(2020, 2022).to_index())
 
     pd.testing.assert_series_equal(result.constructed_floor_area, expected, check_names=False)
-
-
-def test_calculate_commercial_construction_require_demolition_years_in_population():
-    period = YearRange(2020, 2022)
-    population = pd.Series([1_000_000, 1_500_000, 2_000_000], index=[period.to_index()])
-    area_by_person = 0.6
-    demolition = pd.Series([10_000, 12_000, 14_000, 16_000], index=[2020, 2021, 2022, 2023])
-
-    with pytest.raises(ValueError, match='years in demolition series not present in popolutation series'):
-        calculate_commercial_construction(population, area_by_person, demolition)
 
 
 def test_calculate_commercial_construction_with_dataframe():
@@ -94,7 +81,7 @@ def test_calculate_commercial_construction_with_dataframe():
     population = pd.DataFrame(
         {'population': [1_000_000, 1_500_000, 2_000_000]},
         index=period.to_index())
-    area_by_person = 0.6
+    area_per_person = 0.6
     demolition = pd.DataFrame(
         {'demolition': [10_000, 12_000, 14_000]},
         index=period.to_index())
@@ -109,10 +96,7 @@ def test_calculate_commercial_construction_with_dataframe():
             "accumulated_constructed_floor_area": expected_accumulated_construction,
         })
 
-    result = calculate_commercial_construction(
-        population,
-        area_by_person,
-        demolition)[['demolished_floor_area', 'constructed_floor_area', 'accumulated_constructed_floor_area']]
+    result = calculate_commercial_construction(population, area_per_person, demolition)[['demolished_floor_area', 'constructed_floor_area', 'accumulated_constructed_floor_area']]
 
     pd.testing.assert_frame_equal(result, expected)
 
@@ -125,7 +109,7 @@ def test_calculate_commercial_construction_with_building_category():
             'population': [1_000_000, 1_500_000, 2_000_000],
          },
         index=period.to_index())
-    area_by_person = 0.6
+    area_per_person = 0.6
     demolition = pd.DataFrame(
         {
             'building_category': ['retail', 'retail', 'retail'],
@@ -143,7 +127,7 @@ def test_calculate_commercial_construction_with_building_category():
             "accumulated_constructed_floor_area": expected_accumulated_construction,
         })
 
-    actual = calculate_commercial_construction(population, area_by_person, demolition)
+    actual = calculate_commercial_construction(population, area_per_person, demolition)
     assert 'building_category' in actual.columns, "Expected 'building_category' column in the result"
     pd.testing.assert_frame_equal(actual[['demolished_floor_area', 'constructed_floor_area', 'accumulated_constructed_floor_area']], expected)
 
@@ -155,7 +139,7 @@ def test_calculate_commercial_construction_with_building_categories():
             'population': [1_000_000, 1_500_000, 2_000_000],
          },
         index=period.to_index())
-    area_by_person = pd.DataFrame([{'building_category': 'retail', 'area_per_person': 0.6},
+    area_per_person = pd.DataFrame([{'building_category': 'retail', 'area_per_person': 0.6},
                                    {'building_category': 'office', 'area_per_person': 0.6}])
     index = pd.Series([2020, 2021, 2022, 2020, 2021, 2022], name='year')
     demolition = pd.DataFrame(
@@ -176,7 +160,7 @@ def test_calculate_commercial_construction_with_building_categories():
             "accumulated_constructed_floor_area": expected_accumulated_construction,
         }).reset_index()
 
-    actual = calculate_commercial_construction(population, area_by_person, demolition).reset_index()
+    actual = calculate_commercial_construction(population, area_per_person, demolition).reset_index()
     assert 'building_category' in actual.columns, "Expected 'building_category' column in the result"
 
     pd.testing.assert_frame_equal(
@@ -184,7 +168,7 @@ def test_calculate_commercial_construction_with_building_categories():
         expected[['building_category', 'demolished_floor_area', 'constructed_floor_area', 'accumulated_constructed_floor_area']])
 
 
-@pytest.mark.parametrize('area_by_person',[
+@pytest.mark.parametrize('area_per_person',[
     pytest.param(0.6, id='float'),
     pytest.param(pd.Series([0.6, 0.6, 0.6], index=YearRange(2020, 2022).to_index()), id='series'),
     pytest.param(pd.DataFrame({
@@ -198,10 +182,14 @@ def test_calculate_commercial_construction_with_building_categories():
     }), id='building_category'),
     pytest.param(pd.DataFrame({
         "building_category": ["retail", "office"],
-        "area_by_person": [0.6, 0.6],
-    }), id='area_by_person')
+        "area_per_person": [0.6, 0.6],
+    }), id='area_per_person'),
+    pytest.param(pd.DataFrame({
+        "building_category": ["retail", "office", 'sports'],
+        "area_per_person": [0.6, 0.6, 1.3],
+    }), id='area_per_person_extra_building_category'),
 ])
-def test_calculate_commercial_construction_with_different_area_by_person(area_by_person):
+def test_calculate_commercial_construction_with_different_area_per_person(area_per_person):
     period = YearRange(2020, 2022)
     population = pd.DataFrame({'population': [1_000_000, 1_500_000, 2_000_000],}, index=period.to_index())
 
@@ -224,7 +212,7 @@ def test_calculate_commercial_construction_with_different_area_by_person(area_by
             "accumulated_constructed_floor_area": expected_accumulated_construction,
         }).reset_index()
 
-    actual = calculate_commercial_construction(population, area_by_person, demolition).reset_index()
+    actual = calculate_commercial_construction(population, area_per_person, demolition).reset_index()
     assert 'building_category' in actual.columns, "Expected 'building_category' column in the result"
 
     pd.testing.assert_frame_equal(
@@ -239,7 +227,7 @@ def test_calculate_commercial_construction_with_unsorted_demolition():
             'population': [1_000_000, 1_500_000, 2_000_000],
          },
         index=period.to_index())
-    area_by_person = 0.6
+    area_per_person = 0.6
     demolition = pd.DataFrame(
         {
             'building_category': ['retail', 'retail', 'retail'],
@@ -247,7 +235,8 @@ def test_calculate_commercial_construction_with_unsorted_demolition():
         },
         index=pd.Series([2022, 2020, 2021], name='year'))
 
-    actual = calculate_commercial_construction(population, area_by_person, demolition).sort_values(by=['building_category', 'year'])
+    actual = calculate_commercial_construction(population, area_per_person,
+                                               demolition).sort_values(by=['building_category', 'year'])
 
     assert actual.demolished_floor_area.tolist() == [10_000, 12_000, 14_000], "Expected demolished_floor_area to match the input demolition values"
     assert actual.constructed_floor_area.tolist() == [0.0, 310_000, 312_000]

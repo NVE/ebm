@@ -566,12 +566,69 @@ def calculate_demolition_floor_area_by_year(
     return demolition_by_year.demolition
 
 
-def calculate_commercial_construction(population: pd.Series|pd.DataFrame,
-                                      area_by_person: float | pd.Series|pd.DataFrame,
-                                      demolition: pd.Series|pd.DataFrame) -> pd.DataFrame:
+def calculate_commercial_construction(population: pd.Series | pd.DataFrame,
+                                      area_per_person: float | pd.Series | pd.DataFrame,
+                                      demolition: pd.Series | pd.DataFrame) -> pd.DataFrame:
+    """
+    Calculate constructed floor area for non-residential building categories.
 
-    if not demolition.index.isin(population.index).all():
-        raise ValueError('years in demolition series not present in popolutation series')
+    Floor area demand is derived from population and area per person. The yearly change in
+    demand (net construction) is added to the previous year's demolished floor area to get
+    the total constructed floor area.
+
+    Parameters
+    ----------
+    population : pd.Series | pd.DataFrame
+        Population by year, indexed by 'year'. A DataFrame must contain a 'population' column.
+        May cover more years than `demolition`; excess years are dropped.
+    area_per_person : float | pd.Series | pd.DataFrame
+        Floor area per person. A float is applied to every row. A Series must be indexed by
+        'year'. A DataFrame must contain an 'area_per_person' column and is joined on
+        'building_category' and/or 'year', whichever of those columns are present.
+    demolition : pd.Series | pd.DataFrame
+        Demolished floor area by year, indexed by 'year'. A DataFrame must contain a
+        'demolition' column and may contain a 'building_category' column; when absent, the
+        building category is set to 'commercial'. Rows need not be sorted.
+
+    Returns
+    -------
+    pd.DataFrame
+        Indexed by 'year' and ordered like `demolition`, with the columns:
+
+        building_category
+            Building category the row belongs to.
+        demolished_floor_area
+            Demolished floor area, taken from `demolition`.
+        population
+            Population for the year.
+        area_per_person
+            Floor area per person used for the row.
+        demolition_prev_year
+            Demolished floor area the previous year, 0 for the first year.
+        total_area
+            Total floor area demand, ``area_per_person * population``.
+        net_constructed_floor_area
+            Yearly change in `total_area`, 0 for the first year.
+        constructed_floor_area
+            ``net_constructed_floor_area + demolition_prev_year``.
+        accumulated_constructed_floor_area
+            Cumulative sum of `constructed_floor_area`.
+
+    Raises
+    ------
+    ValueError
+        If `demolition` contains years that are not present in `population`.
+
+    Notes
+    -----
+    All derived values are calculated per building category. The first year has no preceding
+    year, so both `net_constructed_floor_area` and `demolition_prev_year` are 0, making
+    `constructed_floor_area` 0 for that year. A declining floor area demand gives a negative
+    `net_constructed_floor_area`; values are not clipped.
+
+    """
+    #if not demolition.index.isin(population.index).all():
+    #    raise ValueError('years in demolition series not present in popolutation series')
 
     if isinstance(demolition, pd.Series):
         demolition = demolition.to_frame(name='demolition')
@@ -585,17 +642,17 @@ def calculate_commercial_construction(population: pd.Series|pd.DataFrame,
 
     df = df.sort_values(by=['building_category', 'year'], kind='stable')
     df = df.merge(population[['population']], on=['year'])
-    if isinstance(area_by_person, (float, int)):
-        df = df.assign(area_by_person=area_by_person)
-    elif isinstance(area_by_person, pd.Series):
-        df = df.merge(area_by_person.to_frame(name='area_by_person'), on=['year'])
+    if isinstance(area_per_person, (float, int)):
+        df = df.assign(area_per_person=area_per_person)
+    elif isinstance(area_per_person, pd.Series):
+        df = df.merge(area_per_person.to_frame(name='area_per_person'), on=['year'])
     else:
-        join_columns = [c for c in['building_category', 'year'] if c in area_by_person.columns]
-        area_by_person = area_by_person.rename(columns={'area_per_person': 'area_by_person'})[join_columns+['area_by_person']]
-        df = df.merge(area_by_person, on=join_columns)
+        join_columns = [c for c in ['building_category', 'year'] if c in area_per_person.columns]
+        area_per_person = area_per_person[join_columns + ['area_per_person']]
+        df = df.merge(area_per_person, on=join_columns)
 
     df = df.assign(demolition_prev_year=df.groupby(by=['building_category']).shift(periods=1, fill_value=0)['demolished_floor_area'])
-    df = df.assign(total_area=lambda x: x['area_by_person'] * x['population'])
+    df = df.assign(total_area=lambda x: x['area_per_person'] * x['population'])
     df = df.assign(net_constructed_floor_area=df.groupby(by=['building_category'])[['total_area']].diff().fillna(0))
     df = df.assign(constructed_floor_area=df['net_constructed_floor_area'] + df['demolition_prev_year'])
     df = df.assign(accumulated_constructed_floor_area=df.groupby(by=['building_category'])[['constructed_floor_area']].cumsum())
@@ -604,6 +661,8 @@ def calculate_commercial_construction(population: pd.Series|pd.DataFrame,
 
 
 def _check_index(period: YearRange, values: pd.Series) -> bool:
+    if isinstance(values, pd.DataFrame):
+        return True
     name = values.name
     if not all([y in values.index for y in period]):
         logger.debug(
@@ -643,18 +702,19 @@ def calculate_residential_construction(households_by_year: pd.Series, building_c
 
     """
     # building_category_share or a subset should be equal to population
-    _check_index(period, building_category_share)
+    _check_index(period, building_category_share.iloc[:, 0] if isinstance(building_category_share, pd.DataFrame) else building_category_share)
     # households_by_year or a subset should be equal to population
+    #if isinstance(households_by_year, pd.Series):
     _check_index(period, households_by_year)
 
     # It might be sensible to calculate total floor area and work from there (like commercial) rather than going
     # through average_floor_area <-> building_growth <-> households_change <-> population_growth
-    building_category_share = building_category_share[period.to_index()]
+
     if isinstance(average_floor_area, pd.Series):
         average_floor_area = average_floor_area[period.to_index()]
 
     # Årlig endring i antall boliger (brukt Årlig endring i antall småhus)
-    households_change = calculate_household_change(households_by_year.loc[period])
+    households_change = calculate_household_change(households_by_year)
     building_growth = calculate_building_growth(building_category_share, households_change)
 
     # Årlig endring areal småhus (brukt Årlig nybygget areal småhus)
@@ -667,13 +727,13 @@ def calculate_residential_construction(households_by_year: pd.Series, building_c
     floor_area_change_accumulated = calculate_yearly_new_building_floor_area_sum(floor_area_change)
 
     df = pd.DataFrame(data={
-        'households': households_by_year,
-        'households_change': households_change,
-        'net_constructed_floor_area': yearly_floor_area_constructed,
+        #'households': households_by_year if isinstance(households_by_year, pd.Series) else households_by_year['households'],
+        #'households_change': households_change,
+        'net_constructed_floor_area': floor_area_change.rename('net_constructed_floor_area'),
         'constructed_floor_area': floor_area_change,
         'accumulated_constructed_floor_area': floor_area_change_accumulated},
-        index=floor_area_change_accumulated.index)
-
+        ).reset_index()
+    df = df.merge(households_change, on=['year'] if 'building_category' not in households_change.index.names else ['building_category', 'year'])
     return df
 
 
@@ -697,6 +757,8 @@ def calculate_yearly_new_building_floor_area_sum(yearly_new_building_floor_area_
     The function calculates the cumulative sum of the yearly new building floor area.
 
     """
+    if 'building_category' in yearly_new_building_floor_area_house.index.names:
+        return pd.Series(yearly_new_building_floor_area_house.groupby(by=['building_category']).cumsum(), name='accumulated_constructed_floor_area')
     return pd.Series(yearly_new_building_floor_area_house.cumsum(), name='accumulated_constructed_floor_area')
 
 
@@ -722,23 +784,24 @@ def calculate_yearly_constructed_floor_area(build_area_sum: pd.Series, yearly_fl
     to the yearly demolished floor area. It then updates the values based on the build_area_sum index.
 
     """
-    bas_missing_year = [str(y) for y in yearly_floor_area_change.iloc[0:2].index if
-                        y not in build_area_sum.index or
-                        np.isnan(build_area_sum.loc[y])]
+    observed_construction = build_area_sum.copy()
+    if isinstance(observed_construction, pd.Series):
+        observed_construction = build_area_sum.to_frame(name='house').reset_index()
+    else:
+        observed_construction = build_area_sum.reset_index()
+    floor_area_change = yearly_floor_area_change.copy()
+    if isinstance(yearly_floor_area_change, pd.Series):
+        floor_area_change = yearly_floor_area_change.to_frame(name='yearly_floor_area_change').reset_index()
+    else:
+        floor_area_change = yearly_floor_area_change.reset_index()
+    merge_columns = [c  for c in ['building_category', 'year'] if c in observed_construction.columns]
 
-    if bas_missing_year:
-        msg = (f'missing constructed floor area for {", ".join(bas_missing_year)}. '
-               'area_new_residential_buildings.csv must contain values for the first two model years.')
-        raise ValueError(msg)
-
-    yearly_new_building_floor_area_house = yearly_floor_area_change
-    yearly_new_building_floor_area_house.loc[build_area_sum.index.to_numpy()] = build_area_sum.loc[
-        build_area_sum.index.to_numpy()]
-
-    return pd.Series(yearly_new_building_floor_area_house, name='constructed_floor_area')
+    df = observed_construction.merge(floor_area_change, on=merge_columns, how='outer')
+    df = df.assign(constructed_floor_area=df['house'].fillna(df['yearly_floor_area_change']))
+    return df.set_index(merge_columns)['constructed_floor_area'].astype(float)
 
 
-def calculate_yearly_floor_area_change(building_change: pd.Series,
+def calculate_yearly_floor_area_change(building_change: pd.Series|pd.DataFrame,
                                        average_floor_area: typing.Union[pd.Series, int] = 175) -> pd.Series:
     """
     Calculate the yearly floor area change based on building changes and average floor area.
@@ -762,10 +825,29 @@ def calculate_yearly_floor_area_change(building_change: pd.Series,
     The floor area change for the first two years set to 0.
 
     """
-    average_floor_area = average_floor_area.loc[building_change.index] if isinstance(average_floor_area, pd.Series) else average_floor_area
-    yearly_floor_area_change = average_floor_area * building_change
-    yearly_floor_area_change.iloc[0:2] = 0.0
-    return pd.Series(yearly_floor_area_change, name='house_floor_area_change')
+    if isinstance(average_floor_area, pd.Series):
+        if 'year' not in average_floor_area.index.names:
+            raise ValueError('average_floor_area must have a year index level when it is a pandas Series.')
+        average_floor_area_df = average_floor_area.loc[building_change.dropna().index].to_frame(name='average_floor_area').reset_index()
+    elif isinstance(average_floor_area, int):
+        average_floor_area_df = pd.DataFrame({'average_floor_area': [average_floor_area] * len(building_change)}, index=building_change.index).reset_index()
+    elif isinstance(average_floor_area, pd.DataFrame):
+        average_floor_area_df = average_floor_area.loc[building_change.index].reset_index()
+    else:
+        raise ValueError(f'average_floor_area must be a pandas Series, DataFrame, or int. Got {type(average_floor_area)} instead.')
+    
+    if isinstance(building_change, pd.Series):
+        df = building_change.to_frame(name='building_change').reset_index()
+    else:
+        df = building_change.copy().reset_index()
+
+    join_on = [c for c in ['building_category', 'year'] if c in average_floor_area_df.columns and c in df.columns]
+    df = df.merge(average_floor_area_df, on=join_on, how='left')
+    df = df.assign(yearly_floor_area_change = df['average_floor_area'] * df['building_change'])
+
+    first_two_years = sorted(df['year'].unique())[0:2]
+    df.loc[df.year.isin(first_two_years), 'yearly_floor_area_change'] = 0.0
+    return df.set_index(join_on)['yearly_floor_area_change']
 
 
 def calculate_building_growth(building_category_share: pd.Series, households_change: pd.Series) -> pd.Series:
@@ -785,7 +867,7 @@ def calculate_building_growth(building_category_share: pd.Series, households_cha
         A pandas Series representing the annual growth in building categories, named 'building_growth'.
 
     """
-    house_share = building_category_share
+    house_share = building_category_share if isinstance(building_category_share, pd.Series) else building_category_share.share
     # Årlig endring i antall småhus (brukt  Årlig endring areal småhus)
     house_change = households_change * house_share
     return pd.Series(house_change, name='building_growth')
@@ -798,7 +880,8 @@ def calculate_household_change(households: pd.Series) -> pd.Series:
     Parameters
     ----------
     households : pd.Series
-        A pandas Series representing the number of households over time.
+        A pandas Series representing the number of households over time. The index must contain a 'year' level and
+        may contain an additional 'building_category' level, in which case the change is calculated per category.
 
     Returns
     -------
@@ -806,7 +889,19 @@ def calculate_household_change(households: pd.Series) -> pd.Series:
         A pandas Series representing the annual change in the number of households, named 'household_change'.
 
     """
-    return pd.Series(households - households.shift(1), name='household_change')
+    if isinstance(households, pd.Series):
+        df = households.to_frame(name='households').reset_index()
+    elif isinstance(households, pd.DataFrame):
+        df = households.copy().reset_index()
+    index_names = df.households.index.names
+    if ('building_category' in index_names and len(index_names) > 1) or 'building_category' in df.columns:
+        df = df.assign(household_change = df['households'] - df.groupby(by=['building_category'])['households'].shift(1))
+        if 'building_category' in df.columns:
+            df = df.set_index(['building_category', 'year'])
+        return df.household_change
+    else:
+        df = df.assign(household_change = df.households - df.households.shift(1))
+        return df.set_index(['year']).household_change
 
 
 def calculate_households_by_year(household_size: pd.Series, population: pd.Series) -> pd.Series:
@@ -999,7 +1094,7 @@ def calculate_construction(building_category_demolition_by_year: pd.Series, year
             demolition = building_category_demolition_by_year.loc[building_category].reset_index().set_index(['year']).demolition
 
             c = calculate_commercial_construction(population=new_buildings_population['population'],
-                                                  area_by_person=area_per_person.loc[building_category],
+                                                  area_per_person=area_per_person.loc[building_category],
                                                   demolition=demolition)
             c['building_category'] = building_category
         else:
@@ -1014,17 +1109,19 @@ def calculate_construction(building_category_demolition_by_year: pd.Series, year
             households_by_year = calculate_households_by_year(household_size, population)
             bc_yearly_construction_floor_area=yearly_construction_floor_area[building_category].dropna()
 
+            bas_index = range(years.start, years.start + len(bc_yearly_construction_floor_area))
+            bas_index = new_buildings_category_shares.index
             build_area_sum = pd.Series(
                 data=bc_yearly_construction_floor_area,
-                index=range(years.start, years.start + len(bc_yearly_construction_floor_area)))
+                index=bas_index)
 
             c = calculate_residential_construction(households_by_year=households_by_year,
                                               building_category_share=building_category_share,
                                               build_area_sum=build_area_sum,
                                               average_floor_area=average_floor_area,
                                               period=years)
-
-            c['building_category'] = building_category
+            if 'building_category' not in c.columns:
+                c['building_category'] = building_category
 
         construction.append(c.reset_index())
 

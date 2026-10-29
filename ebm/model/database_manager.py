@@ -193,6 +193,37 @@ class DatabaseManager:
 
         return df
 
+    def get_observed_construction(self) -> pd.DataFrame:
+        """
+        Get observed construction data by year and building category.
+
+        Loads area_new_residential_buildings and reshapes to long format with columns:
+            'building_category', 'year', and 'observed_floor_area'.
+
+        Warnings
+        --------
+        If any building categories in area_new_residential_buildings are not found in the building category definitions,
+        a warning will be logged.
+
+        Returns
+        -------
+        observed_construction : pd.DataFrame
+            containing observed construction with columns building_category, year, and observed_floor_area.
+        """
+        area_new_residential_buildings = self.get_area_new_residential_buildings()
+        building_categories = self.get_building_category()
+        building_category_columns = [c for c in area_new_residential_buildings if c != 'year']
+        observed_construction = area_new_residential_buildings.reset_index().melt(
+            value_vars=building_category_columns, id_vars=['year'], var_name='building_category', value_name='observed_floor_area'
+        )
+        observed_construction = observed_construction.merge(building_categories, on=['building_category'], how='left', indicator=True)
+        missing_building_categories = observed_construction.query('_merge=="left_only"')
+        missing_building_category = missing_building_categories.building_category.unique().tolist()
+        if missing_building_category:
+            logger.warning('Unknown building category in area_new_residential_buildings: {missing_building_category}', missing_building_category=', '.join(missing_building_category))
+        observed_construction = observed_construction.query('_merge=="both"').drop(columns=['_merge'])
+
+        return observed_construction[['building_category', 'year', 'observed_floor_area']]
 
     def get_building_category_floor_area(self, building_category: BuildingCategory) -> pd.Series:
         """

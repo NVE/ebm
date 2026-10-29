@@ -1119,3 +1119,50 @@ house,TEK10,heating_rv+heating_dhw,renovation_and_small_measure,0.099,9"""))
     ).reduction_share
 
     assert matching_reduction_shares.to_list() == [expected_reduction_share]
+
+
+def test_get_observed_construction():
+    """The wide area file should be melted to one row per building_category and year."""
+    area_new_residential_buildings = pd.DataFrame(
+        {'house': [0.0, 2733711.5], 'apartment_block': [100.0, 1152796.0]},
+        index=pd.Index([2020, 2021], name='year'))
+
+    mock_fh = MagicMock(spec=FileHandler)
+    mock_fh.get_building_category_area.return_value = area_new_residential_buildings
+    mock_fh.get_building_category.return_value = pd.DataFrame({
+        'building_category': ['house', 'apartment_block'],
+        'building_group': ['residential', 'residential'],
+    })
+
+    dm = DatabaseManager(file_handler=mock_fh)
+    result = dm.get_observed_construction()
+
+    expected = pd.DataFrame({
+        'building_category': ['house', 'house', 'apartment_block', 'apartment_block'],
+        'year': [2020, 2021, 2020, 2021],
+        'observed_floor_area': [0.0, 2733711.5, 100.0, 1152796.0],
+    })
+
+    pd.testing.assert_frame_equal(result.reset_index(drop=True), expected)
+
+
+def test_get_observed_construction_drops_unknown_building_category():
+    """Columns that are not a known building_category should not be part of the result."""
+    area_new_residential_buildings = pd.DataFrame(
+        {'house': [1.0, 2.0], 'unknown_category': [3.0, 4.0]},
+        index=pd.Index([2020, 2021], name='year'))
+
+    mock_fh = MagicMock(spec=FileHandler)
+    mock_fh.get_building_category_area.return_value = area_new_residential_buildings
+    mock_fh.get_building_category.return_value = pd.DataFrame({
+        'building_category': ['house', 'apartment_block'],
+        'building_group': ['residential', 'residential'],
+    })
+
+    dm = DatabaseManager(file_handler=mock_fh)
+    result = dm.get_observed_construction()
+
+    assert result.building_category.to_list() == ['house', 'house']
+    assert result.observed_floor_area.to_list() == [1.0, 2.0]
+    assert '_merge' not in result.columns
+

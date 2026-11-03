@@ -77,3 +77,6 @@ def test_year_range_from_series():
     assert YearRange(2010, 2013) == YearRange.from_series(s), 'YearRange not loaded correctly from index.level==year'
 
 
+def test_year_range_as_query():
+    assert YearRange(2001, 2004).as_query() == 'year>=2001 and year<=2004 '
+    assert YearRange(2001, 2004).as_query(name='foo') == 'foo>=2001 and foo<=2004 '

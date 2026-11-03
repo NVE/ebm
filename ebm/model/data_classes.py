@@ -201,6 +201,22 @@ class YearRange:
             return YearRange(s.min(), s.max())
         return YearRange(s.index.get_level_values(level='year').min(), s.index.get_level_values(level='year').max())
 
+    def as_query(self, name='year') -> str:
+        """
+        Returns a query string for use with pandas DataFrame.query() method.
+
+        Parameters
+        ----------
+        name : str, optional
+            name of the column. Default: 'year'
+
+        Returns
+        -------
+        str
+            A query string representing the year range.
+        """
+        return f'{name}>={self.start} and {name}<={self.end} '
+
     def __getitem__(self, key: int | slice) -> pd.Index:
         """
         Returns a pandas Index object for the specified slice of the year range.

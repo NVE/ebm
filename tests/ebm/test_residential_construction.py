@@ -820,7 +820,7 @@ def test_calculate_residential_construction_apartment_block_series(column, expec
     Data from short_analysis_2025.
     """
     year_range = YearRange(2020, 2030)
-    build_area_sum = pd.Series({2020: 0.0, 2021: 1152796.0}, name='apartment_block')
+    build_area_sum = pd.Series({2020: 0.0, 2021: 1152796.0}, name='observed_floor_area')
     build_area_sum.index.name = 'year'
 
     households_by_year = pd.Series(
@@ -871,6 +871,55 @@ def test_calculate_residential_construction_apartment_block_series(column, expec
     )
 
     assert actual[column].tolist() == pytest.approx(expected_values, rel=1e-3, nan_ok=True)
+
+
+@pytest.mark.parametrize(
+    ('column', 'expected_values'),
+    [('household_change', [
+        np.nan, 25_000, 25_250.0, 25_502.0, 25_758.0, 26_015.0, ]),
+     ('constructed_floor_area', [
+         0.0, 0.0, 1749825.0, 1531650.12, 1467690.8399999999, 1802839.5, ]),
+     ],
+)
+def test_calculate_residential_construction_house_dataframe_with_empty_observed_construction(column, expected_values):
+    """
+    Test the calculation of residential construction for house using Dataframe parameters.
+    Use building_category and year as index. Data from short_analysis_2025.
+    """
+    build_area_sum = pd.DataFrame([], columns=['building_category', 'year', 'observed_floor_area']).set_index(['building_category', 'year'])
+
+    households_by_year = pd.DataFrame({
+        'building_category':['house'] * 6,
+        'year': [2020, 2021, 2022, 2023, 2024, 2025],
+        'households':[2500000.0, 2525000.0, 2550250.0, 2575752.0, 2601510.0, 2627525.0]},
+    ).set_index(['building_category', 'year'])
+
+    building_category_share = pd.DataFrame(
+        {
+            'building_category': ['house'] * 6,
+            'year': [2020, 2021, 2022, 2023, 2024, 2025],
+            'share': [0.44, 0.43, 0.45, 0.39, 0.37, 0.45],
+        },
+    ).set_index(['building_category', 'year'])
+
+    average_floor_area = pd.DataFrame(
+        {
+            'building_category': ['house'] * 6,
+            'year': [2020, 2021, 2022, 2023, 2024, 2025],
+            'average_floor_area': [154.0, 154.0, 154.0, 154.0, 154.0, 154.0],
+        },
+    ).set_index(['building_category', 'year'])
+
+    actual = calculate_residential_construction(
+        households_by_year=households_by_year,
+        building_category_share=building_category_share,
+        average_floor_area=average_floor_area,
+        build_area_sum=build_area_sum,
+        period=YearRange(2020, 2025),
+    )
+
+    assert actual[column].tolist() == pytest.approx(expected_values, rel=1e-3, nan_ok=True)
+
 
 if __name__ == '__main__':
     default_input()

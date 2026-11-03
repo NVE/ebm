@@ -181,6 +181,33 @@ class DatabaseManager:
         validated = validated.set_index('year')
         return validated
 
+    def get_building_category_share2(self) -> pd.DataFrame:
+        _df = self.get_new_buildings_residential().reset_index()
+
+        share_columns = {k: k[len('new_') : -len('_share')] for k in [c for c in _df.columns if c.startswith('new_') and c.endswith('_share')]}
+        # _df = _df.rename(columns=share_columns)
+        avg_floor_area_columns = {k: k[len('floor_area_new_') :] for k in [c for c in _df.columns if c.startswith('floor_area_new_')]}
+        # _df = _df.rename(columns=avg_floor_area_columns)
+
+        # value_columns = [c for c in ['floor_area_new_house', 'floor_area_new_apartment_block']]
+
+        building_categories_share = _df.rename(columns=share_columns).melt(
+        value_vars=share_columns.values(), id_vars=['year'], var_name='building_category', value_name='share'
+        )
+        building_categories_average_floor_area = _df.rename(columns=avg_floor_area_columns).melt(
+        value_vars=avg_floor_area_columns.values(), id_vars=['year'], var_name='building_category', value_name='average_floor_area'
+        )
+
+        _join_columns = ['building_category', 'year']
+        if self.years.end < building_categories_share.year.max() or self.years.start > building_categories_share.year.min():
+            msg = f'new_building_residential {building_categories_share.year.min()}-{building_categories_share.year.max()} is outside model period {self.years}'
+            logger.debug(msg)
+
+        merged = building_categories_share.merge(building_categories_average_floor_area, on=_join_columns)[['building_category', 'year', 'share', 'average_floor_area']]
+
+        return merged.query(self.years.as_query())
+
+
     def get_area_new_residential_buildings(self) -> pd.Series:
         """
         Get population and household size DataFrame from a file.

@@ -211,12 +211,12 @@ def calculate_area_forecast(
     if not isinstance(area_per_person, pd.DataFrame):
         area_per_person = dm.get_area_per_person()
     if not isinstance(area_new_residential_buildings, pd.DataFrame):
-        area_new_residential_buildings = dm.get_area_new_residential_buildings()
+        area_new_residential_buildings = dm.get_observed_construction()
 
     if not isinstance(population_forecast, pd.DataFrame):
         population_forecast = dm.get_construction_population()
     if not isinstance(new_buildings_residential, pd.DataFrame):
-        new_buildings_residential = dm.get_new_buildings_residential()
+        new_buildings_residential = dm.get_building_category_share2()
 
     df = calculate_all_area(area_new_residential_buildings, area_parameters, area_per_person,
                             building_code_parameters, population_forecast, new_buildings_residential,

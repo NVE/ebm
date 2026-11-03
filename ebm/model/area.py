@@ -645,7 +645,8 @@ def calculate_commercial_construction(population: pd.Series | pd.DataFrame,
     if isinstance(area_per_person, (float, int)):
         df = df.assign(area_per_person=area_per_person)
     elif isinstance(area_per_person, pd.Series):
-        df = df.merge(area_per_person.to_frame(name='area_per_person'), on=['year'])
+        join_columns = [c for c in ['building_category', 'year'] if c in area_per_person.index.names]
+        df = df.merge(area_per_person.to_frame(name='area_per_person'), on=join_columns)
     else:
         join_columns = [c for c in ['building_category', 'year'] if c in area_per_person.columns]
         area_per_person = area_per_person[join_columns + ['area_per_person']]
@@ -710,8 +711,8 @@ def calculate_residential_construction(households_by_year: pd.Series, building_c
     # It might be sensible to calculate total floor area and work from there (like commercial) rather than going
     # through average_floor_area <-> building_growth <-> households_change <-> population_growth
 
-    if isinstance(average_floor_area, pd.Series):
-        average_floor_area = average_floor_area[period.to_index()]
+#    if isinstance(average_floor_area, pd.Series):
+#        average_floor_area = average_floor_area[period.to_index()]
 
     # Årlig endring i antall boliger (brukt Årlig endring i antall småhus)
     households_change = calculate_household_change(households_by_year)
@@ -785,9 +786,14 @@ def calculate_yearly_constructed_floor_area(build_area_sum: pd.Series, yearly_fl
 
     """
     observed_construction = build_area_sum.copy()
+
+    value_column = 'observered_floor_area'
     if isinstance(observed_construction, pd.Series):
-        observed_construction = build_area_sum.to_frame(name='house').reset_index()
+        observed_construction = build_area_sum.to_frame(value_column).reset_index()
     else:
+        value_columns = [c for c in ['observered_floor_area', 'house', 'apartment_block'] if c in observed_construction.columns]
+        value_column = value_columns[0] if value_columns else observed_construction.columns[-1]
+
         observed_construction = build_area_sum.reset_index()
     floor_area_change = yearly_floor_area_change.copy()
     if isinstance(yearly_floor_area_change, pd.Series):
@@ -797,7 +803,7 @@ def calculate_yearly_constructed_floor_area(build_area_sum: pd.Series, yearly_fl
     merge_columns = [c  for c in ['building_category', 'year'] if c in observed_construction.columns]
 
     df = observed_construction.merge(floor_area_change, on=merge_columns, how='outer')
-    df = df.assign(constructed_floor_area=df['house'].fillna(df['yearly_floor_area_change']))
+    df = df.assign(constructed_floor_area=df[value_column].fillna(df['yearly_floor_area_change']))
     return df.set_index(merge_columns)['constructed_floor_area'].astype(float)
 
 
@@ -1086,47 +1092,28 @@ def calculate_construction(building_category_demolition_by_year: pd.Series, year
 
     """
     check_yearly_index(new_buildings_population, years)
+    population_forecast = new_buildings_population.query(years.as_query())
 
-    construction = []
     building_category_demolition_by_year.loc[:] = 0.0
-    for building_category in building_category_demolition_by_year.index.get_level_values(level='building_category').unique():
-        if building_category not in ['house', 'apartment_block']: #TODO: temp fix. Refactor
-            demolition = building_category_demolition_by_year.loc[building_category].reset_index().set_index(['year']).demolition
 
-            c = calculate_commercial_construction(population=new_buildings_population['population'],
-                                                  area_per_person=area_per_person.loc[building_category],
-                                                  demolition=demolition)
-            c['building_category'] = building_category
-        else:
-            share_name, floor_area_name = 'new_house_share', 'floor_area_new_house'
-            if building_category == BuildingCategory.APARTMENT_BLOCK:
-                share_name = 'new_apartment_block_share'
-                floor_area_name = 'floor_area_new_apartment_block'
-            building_category_share = new_buildings_category_shares[share_name]
-            average_floor_area = new_buildings_category_shares[floor_area_name]
-            household_size = new_buildings_population['household_size']
-            population = new_buildings_population['population']
-            households_by_year = calculate_households_by_year(household_size, population)
-            bc_yearly_construction_floor_area=yearly_construction_floor_area[building_category].dropna()
+    demolition = building_category_demolition_by_year.to_frame().reset_index()
+    commercial_construction = calculate_commercial_construction(
+        population=population_forecast['population'],
+        area_per_person=area_per_person,
+        demolition=demolition)
 
-            bas_index = range(years.start, years.start + len(bc_yearly_construction_floor_area))
-            bas_index = new_buildings_category_shares.index
-            build_area_sum = pd.Series(
-                data=bc_yearly_construction_floor_area,
-                index=bas_index)
+    households_by_year = calculate_households_by_year(population_forecast['household_size'], population_forecast['population'])
+    residential_construction = calculate_residential_construction(
+        households_by_year=households_by_year,
+        building_category_share=new_buildings_category_shares.set_index(['building_category', 'year']),
+        build_area_sum=yearly_construction_floor_area.set_index(['building_category', 'year']),
+        average_floor_area=new_buildings_category_shares.set_index(['building_category', 'year'])['average_floor_area'], period=years)
 
-            c = calculate_residential_construction(households_by_year=households_by_year,
-                                              building_category_share=building_category_share,
-                                              build_area_sum=build_area_sum,
-                                              average_floor_area=average_floor_area,
-                                              period=years)
-            if 'building_category' not in c.columns:
-                c['building_category'] = building_category
-
-        construction.append(c.reset_index())
-
-    all_construction = pd.concat(construction)
-    return all_construction
+    construction = pd.concat([
+        commercial_construction,
+        residential_construction,
+    ])
+    return construction
 
 
 def calculate_all_area(area_new_residential_buildings, area_parameters, area_per_person,
@@ -1142,12 +1129,14 @@ def calculate_all_area(area_new_residential_buildings, area_parameters, area_per
     demolition_floor_area_by_year = calculate_demolition_floor_area_by_year(area_parameters, s_curve_demolition,
                                                                                  years)
     building_category_demolition_by_year = sum_building_category_demolition_by_year(demolition_floor_area_by_year)
+
     construction_floor_area_by_year = calculate_construction(
         building_category_demolition_by_year=building_category_demolition_by_year, years=years,
         area_per_person=area_per_person,
         yearly_construction_floor_area=area_new_residential_buildings,
         new_buildings_population=construction_population[['population', 'household_size']],
         new_buildings_category_shares=new_buildings_category_share)
+
     construction_by_building_category_and_year = construction_with_building_code(
         building_category_demolition_by_year=building_category_demolition_by_year,
         construction_floor_area_by_year=construction_floor_area_by_year,

@@ -573,11 +573,11 @@ holiday_home_energy_consumption = pa.DataFrameSchema(
 
 area_per_person = pa.DataFrameSchema(
     columns={
-        'building_category': pa.Column(str, checks=[
+        'building_category': pa.Column(str, nullable=True, coerce=True, checks=[
             pa.Check(check_building_category),
             pa.Check(check_not_holiday_home),
         ]),
-        'area_per_person': pa.Column(float, nullable=True),
+        'area_per_person': pa.Column(float, nullable=True, coerce=True),
     },
 )
 

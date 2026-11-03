@@ -41,6 +41,18 @@ def test_calculate_commercial_construction_with_area_per_person_as_series():
     pd.testing.assert_frame_equal(result, expected)
 
 
+def test_calculate_commercial_construction_with_empty_area_per_person():
+    period = YearRange(2020, 2022)
+    population = pd.Series([1_000_000, 1_500_000, 2_000_000], index=period.to_index())
+    demolition = pd.Series([10_000, 12_000, 14_000], index=period.to_index())
+    empty_area_per_person = empty_area_per_person = pd.Series(
+        data=[], dtype=object, name='empty_area_per_person', index=pd.Index([], name='building_category', dtype=object))
+
+    result = calculate_commercial_construction(population, empty_area_per_person, demolition)
+
+    assert result.empty
+
+
 def test_calculate_commercial_construction_with_area_per_person_as_float():
     period = YearRange(2020, 2022)
     population = pd.Series([1_000_000, 1_500_000, 2_000_000], index=period.to_index())

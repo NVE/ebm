@@ -494,7 +494,7 @@ def construction_with_building_code(building_category_demolition_by_year: pd.Ser
     construction_with_building_code.loc[
         construction_with_building_code.query(query_period_start_end).index, 'constructed_floor_area'] = 0.0
 
-    df = construction_with_building_code.set_index(['building_category', 'building_code', 'year'])[['constructed_floor_area']]
+    df = construction_with_building_code.set_index(['building_category', 'building_code', 'year'])[['constructed_floor_area']].astype(float)
 
     df['net_construction_acc'] = df.groupby(by=['building_category', 'building_code'])['constructed_floor_area'].cumsum()
     #s.name = 'construction'
@@ -655,7 +655,7 @@ def calculate_commercial_construction(population: pd.Series | pd.DataFrame,
     df = df.assign(demolition_prev_year=df.groupby(by=['building_category']).shift(periods=1, fill_value=0)['demolished_floor_area'])
     df = df.assign(total_area=lambda x: x['area_per_person'] * x['population'])
     df = df.assign(net_constructed_floor_area=df.groupby(by=['building_category'])[['total_area']].diff().fillna(0))
-    df = df.assign(constructed_floor_area=df['net_constructed_floor_area'] + df['demolition_prev_year'])
+    df = df.assign(constructed_floor_area=(df['net_constructed_floor_area'] + df['demolition_prev_year']).astype(float))
     df = df.assign(accumulated_constructed_floor_area=df.groupby(by=['building_category'])[['constructed_floor_area']].cumsum())
 
     return df.sort_values('_input_order').drop(columns=['_input_order'])

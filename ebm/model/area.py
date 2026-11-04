@@ -1143,8 +1143,10 @@ def calculate_all_area(area_new_residential_buildings, area_parameters, area_per
         building_code=building_code_parameters,
         years=years)
 
+    residential_building_categories = set(new_buildings_category_share.building_category.unique().tolist())
     construction_with_demolition = calculate_construction_with_demolition(construction_by_building_category_and_year,
-                                                                          demolition_floor_area_by_year)
+                                                                          demolition_floor_area_by_year,
+                                                                          residential_building_categories)
 
     existing_area = calculate_existing_area(area_parameters, building_code_parameters, years)
     total_area_floor_by_year = merge_total_area_by_year(construction_with_demolition.area, existing_area)

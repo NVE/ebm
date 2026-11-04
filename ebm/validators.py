@@ -53,7 +53,7 @@ def check_not_holiday_home(value: pd.Series) -> pd.Series:
     pd.Series of bool values
 
     """
-    return ~value.isin(['holiday_home'])
+    return ~value.isin(['holiday_home', 'holiday_homes'])
 
 
 def check_building_group(value: pd.Series) -> pd.Series:
@@ -87,7 +87,8 @@ def check_default_building_category(value: pd.Series) -> pd.Series:
     pd.Series of bool values
 
     """
-    return value.isin(list(BuildingCategory) + ['holiday_home'] + ['prison'] + ['default'])
+    return ~value.isna()
+
 
 def check_default_building_category_with_group(value: pd.Series) -> pd.Series:
     """
@@ -103,6 +104,7 @@ def check_default_building_category_with_group(value: pd.Series) -> pd.Series:
     -------
     pd.Series of bool values
     """
+    return ~value.isna()
     return value.isin([*list(BuildingCategory), 'default', RESIDENTIAL, NON_RESIDENTIAL, 'holiday_homes', 'prison'])
 
 
@@ -241,7 +243,9 @@ def check_building_category_share(values: pd.DataFrame) -> pd.Series:
     Returns:
         pd.Series: A series of bool with the truth value of new_house_share + new_apartment_block_share equals 1.0
     """
-    return values.new_house_share + values.new_apartment_block_share == 1.0
+    columns = [c for c in values.columns if c.startswith('new_') and c.endswith('_share')]
+
+    return values[columns].sum(axis=1) == 1.0
 
 
 def create_residential_area_checks():
@@ -407,8 +411,8 @@ expanded_energy_need_behaviour_factor = pa.DataFrameSchema(
 area = pa.DataFrameSchema(
     columns={
         "building_category": pa.Column(str, checks=[
-            pa.Check(check_building_category),
             pa.Check(check_not_holiday_home),
+            pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$"),
         ]),
         'building_code': pa.Column(str, checks=[pa.Check(check_building_code, element_wise=True)]),
         "area": pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0)], coerce=True)},
@@ -420,7 +424,6 @@ area = pa.DataFrameSchema(
 building_category = pa.DataFrameSchema(
     columns={
         "building_category": pa.Column(str, checks=[
-            pa.Check(check_building_category),
             pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$"),
         ]),
         'building_group': pa.Column(str, checks=[pa.Check(check_building_group)]),
@@ -453,26 +456,30 @@ building_code_parameters = pa.DataFrameSchema(columns={
 area_new_residential_buildings = pa.DataFrameSchema(
     columns={
         'year': pa.Column(int),
-        'house': pa.Column(pa.Float64, nullable=True, checks=create_residential_area_checks()),
-        'apartment_block': pa.Column(pa.Float64, nullable=True, checks=create_residential_area_checks())
+        'house': pa.Column(pa.Float64, nullable=True, checks=create_residential_area_checks(), required=False),
+        'apartment_block': pa.Column(pa.Float64, nullable=True, checks=create_residential_area_checks(), required=False)
     },
     name='construction_building_category_yearly'
 )
 
 
-new_buildings_residential = pa.DataFrameSchema(
-    parsers=[pa.Parser(lambda df: df.rename(columns={'flood_area_new_apartment_block': 'floor_area_new_apartment_block'}))],
-    columns={
+def new_buildings_residential() -> pa.DataFrameSchema:
+    share_validator = pa.Column(float, checks=[pa.Check.between(0.0, 1.0)], required=False)
+    floor_area_validator = pa.Column(int, checks=[pa.Check.between(1, 1000)], required=False)
+    validator_columns = {
         'year': pa.Column(int, checks=[pa.Check.between(2010, 2070)]),
-        'new_house_share': pa.Column(float, checks=[pa.Check.between(0.0, 1.0)]),
-        'new_apartment_block_share': pa.Column(float, checks=[pa.Check.between(0.0, 1.0)]),
-        'floor_area_new_house': pa.Column(int, checks=[pa.Check.between(1, 1000)]),
-        'floor_area_new_apartment_block': pa.Column(int, checks=[pa.Check.between(1, 1000)])
-    },
-    checks=[pa.Check(check_building_category_share,
-                     error='The sum of new_house_share and new_apartment_block_share should be 1.0 (100%)')],
-    name='new_buildings_house_share'
-)
+        'new_house_share': share_validator,
+        'new_apartment_block_share': share_validator,
+        'floor_area_new_house': floor_area_validator,
+        'floor_area_new_apartment_block': floor_area_validator,
+    }
+    dataframe_schema = pa.DataFrameSchema(
+    parsers=[pa.Parser(lambda df: df.rename(columns={'flood_area_new_apartment_block': 'floor_area_new_apartment_block'}))],
+    columns=validator_columns,
+        checks=[pa.Check(check_building_category_share, error='The yearly sum of shares in new_buildings_residential should be 1.0 (100%)')],
+        name='new_buildings_house_share'
+    )
+    return dataframe_schema
 
 
 population_forecast = pa.DataFrameSchema(
@@ -487,8 +494,8 @@ population_forecast = pa.DataFrameSchema(
 s_curve = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=[
-            pa.Check(check_building_category),
             pa.Check(check_not_holiday_home),
+            pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$"),
         ]),
         'condition': pa.Column(str, checks=[pa.Check(check_building_condition)]),
         'earliest_age_for_measure': pa.Column(int, checks=[pa.Check.greater_than(0)]),
@@ -501,10 +508,12 @@ s_curve = pa.DataFrameSchema(
     name='scurve_parameters')
 
 
-### TODO: remove strong restrictions on float values and add warnings (should be able to be neg values)
 energy_need_original_condition = pa.DataFrameSchema(
     columns={
-        'building_category': pa.Column(str, checks=[pa.Check(check_default_building_category)]),
+        'building_category': pa.Column(str, checks=[
+            pa.Check(check_default_building_category),
+            pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$"),
+        ]),
         'building_code': pa.Column(str, checks=[pa.Check(check_default_building_code, element_wise=True)]),
         'purpose': pa.Column(str, checks=[pa.Check(check_default_energy_purpose)]),
         'kwh_m2': pa.Column(float, coerce=True, checks=[pa.Check.greater_than_or_equal_to(0)])
@@ -516,7 +525,10 @@ energy_need_original_condition = pa.DataFrameSchema(
 
 improvement_building_upgrade = pa.DataFrameSchema(
     columns={
-        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category)),
+        'building_category': pa.Column(str, checks=[
+            pa.Check(check_default_building_category),
+            pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$")
+        ]),
         'building_code': pa.Column(str, checks=pa.Check(check_default_building_code, element_wise=True)),
         'purpose': pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
         'building_condition': pa.Column(str, checks=[pa.Check(check_existing_building_conditions)]),
@@ -574,8 +586,9 @@ holiday_home_energy_consumption = pa.DataFrameSchema(
 area_per_person = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, nullable=True, coerce=True, checks=[
-            pa.Check(check_building_category),
             pa.Check(check_not_holiday_home),
+            pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$"),
+
         ]),
         'area_per_person': pa.Column(float, nullable=True, coerce=True),
     },
@@ -584,8 +597,8 @@ area_per_person = pa.DataFrameSchema(
 heating_system_initial_shares = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=[
-            pa.Check(check_building_category),
-            pa.Check(check_not_holiday_home)
+            pa.Check(check_not_holiday_home),
+            pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$"),
         ]),
         'building_code': pa.Column(str, checks=pa.Check(check_default_building_code, element_wise=True)),
         'heating_systems': pa.Column(str, checks=pa.Check(check_heating_systems)),
@@ -609,7 +622,11 @@ heating_system_initial_shares = pa.DataFrameSchema(
 # - add check on years. Parse to make long format and check years and values? years must be in order, max limit (2070) etc.
 heating_system_forecast = pa.DataFrameSchema(
     columns={
-        'building_category': pa.Column(str, checks=pa.Check(check_default_building_category_with_group)),
+        'building_category': pa.Column(str,
+                                       checks=[
+                                           pa.Check(check_default_building_category_with_group),
+                                           pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$"),
+                                       ]),
         'building_code': pa.Column(str, checks=pa.Check(check_default_building_code, element_wise=True)),
         'heating_systems': pa.Column(str, checks=pa.Check(check_heating_systems)),
         'new_heating_systems': pa.Column(str, checks=pa.Check(check_heating_systems)) 

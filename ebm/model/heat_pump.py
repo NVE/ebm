@@ -41,17 +41,16 @@ def heat_pump_production(energy_need, air_air, district_heating):
 
 def heat_prod_hp(production: pd.DataFrame, group_by:list|None=None) -> pd.DataFrame:
     grouping = ['building_group', 'year'] if not group_by else group_by
-    production.loc[production['building_category'].isin(['house', 'apartment_block']), 'building_group'] = 'Residential'
-    production.loc[production['building_group'] != 'Residential', 'building_group'] = 'Non-residential'
     return production.groupby(by=grouping+['hp_source']).agg({'RV_HP': 'sum'}) / 1_000_000
 
 
-def heat_prod_hp_wide(production: pd.DataFrame) -> pd.DataFrame:
+def heat_prod_hp_wide(production: pd.DataFrame, building_groups) -> pd.DataFrame:
     """
     Change transform the result of production into heat_prod_hp wide format with years as columns.
 
     Parameters
     ----------
+    building_groups :
     production : pd.DataFrame
         Containing year, building_group, hp_source
 
@@ -64,11 +63,13 @@ def heat_prod_hp_wide(production: pd.DataFrame) -> pd.DataFrame:
     -----
     The function will modify the original dataframe by adding an RV_HP column
     """
-    df = heat_prod_hp(production)
+    df = production.merge(building_groups, on='building_category', how='left')
+    df = heat_prod_hp(df)
+
     wide = df.reset_index().pivot(columns=['year'], index=['building_group', 'hp_source'], values=['RV_HP']).reset_index()
     wide.columns = ['building_group', 'hp_source'] + [c for c in wide.columns.get_level_values(1)[2:]]
 
-    category_order = {'Residential': 100, 'Holiday homes': 200, 'Non-residential': 300}
+    category_order = {'Residential': 100, 'Holiday homes': 200, 'Non-residential': 300, 'residential': 100, 'holiday_homes': 200, 'non_residential': 300}
     hp_source = {'Heat pump air-air': 24, 'Heat pump central heating': 25}
     wide = wide.sort_values(by=['building_group', 'hp_source'],
                         key=lambda x: x.map(category_order) if x.name == 'building_group' else x.map(

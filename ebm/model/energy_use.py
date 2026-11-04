@@ -264,11 +264,12 @@ def efficiency_kwh(energy_need: pd.Series,
     return kwh
 
 
-
-def building_group_energy_use_kwh(heating_systems_parameter: pd.DataFrame, energy_need: pd.DataFrame) -> pd.DataFrame:
+def building_group_energy_use_kwh(heating_systems_parameter: pd.DataFrame, energy_need: pd.DataFrame,
+                                  building_groups) -> pd.DataFrame:
     df = all_purposes(heating_systems_parameter)
-    df.loc[:, 'building_group'] = 'Non-residential'
-    df.loc[df.building_category.isin(['house', 'apartment_block']), 'building_group'] = 'Residential'
+    df = df.merge(building_groups, on='building_category', how='left')
+    #residential_index = df.building_group.isin(['residential', 'holiday_homes', 'Residential', 'Holiday-homes'])
+    #df.loc[residential_index, 'building_group'] = df.loc[residential_index, 'building_category']
 
     efficiency_factor_df = efficiency_factor(df)
     df = energy_use_kwh(energy_need=energy_need, efficiency_factor=efficiency_factor_df)
@@ -321,6 +322,7 @@ def calculate_energy_use(database_manager: 'DatabaseManager',
     area_parameters = database_manager.get_area_parameters() if area_parameters is None else area_parameters
     area_parameters['year'] = years.start
     building_code_parameters = database_manager.file_handler.get_building_code() if building_code_parameters is None else building_code_parameters
+    building_groups = database_manager.get_building_category()
 
     s_curves_by_condition = calculate_s_curves(scurve_parameters, building_code_parameters, years)  # 📌
     area_forecast = extractors.extract_area_forecast(years, s_curves_by_condition, building_code_parameters, area_parameters, database_manager)  # 📍
@@ -330,6 +332,6 @@ def calculate_energy_use(database_manager: 'DatabaseManager',
 
     heating_systems_projection = extractors.extract_heating_systems_forecast(years, database_manager)  # 📍
     heating_systems_parameter = h_s_param.heating_systems_parameter_from_projection(heating_systems_projection)  # 📌
-    energy_use_kwh_with_building_group = building_group_energy_use_kwh(heating_systems_parameter, total_energy_need)
+    energy_use_kwh_with_building_group = building_group_energy_use_kwh(heating_systems_parameter, total_energy_need, building_groups)
 
     return energy_use_kwh_with_building_group

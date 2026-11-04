@@ -303,6 +303,7 @@ def calculate_energy_use(
 
     years = YearRange(*years) if isinstance(years, tuple) else years
     input_directory = input_directory if isinstance(input_directory, pathlib.Path) else pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'input'))
+    dm = DatabaseManager(FileHandler(directory=input_directory), years=years)
 
     if area_forecast is None:
         area_forecast = calculate_area_forecast(years=years, input_directory=input_directory, **kwargs)
@@ -316,7 +317,9 @@ def calculate_energy_use(
         area_forecast.set_index(['building_category', 'building_code', 'building_condition', 'year']),
     )  # 📌
     heating_systems_parameter = h_s_param.heating_systems_parameter_from_projection(heating_systems_projection)  # 📌
-    energy_use_kwh = e_u.building_group_energy_use_kwh(heating_systems_parameter, total_energy_need)  # 📌
+    building_groups = dm.get_building_category() if 'building_category' not in kwargs else kwargs['building_category']
+
+    energy_use_kwh = e_u.building_group_energy_use_kwh(heating_systems_parameter, total_energy_need, building_groups=building_groups)  # 📌
     return energy_use_kwh
 
 

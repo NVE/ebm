@@ -3,12 +3,12 @@ import pandas as pd
 from ebm.model.bema import BUILDING_CATEGORY_ORDER
 
 
-def transform_heating_systems_share_long(heating_systems_projection: pd.DataFrame) -> pd.DataFrame:
+def transform_heating_systems_share_long(heating_systems_projection: pd.DataFrame, building_groups: pd.DataFrame) -> pd.DataFrame:
     df = heating_systems_projection.copy()
 
     fane2_columns = ['building_category', 'heating_systems', 'year', 'heating_system_share']
-
-    df.loc[~df['building_category'].isin(['house', 'apartment_block']), 'building_category'] = 'non_residential'
+    df = df.merge(building_groups, on='building_category', how='left')
+    df.loc[~df['building_group'].str.lower().isin(['Residential', 'Holiday-homes', 'residential', 'holiday_homes']), 'building_category'] = 'non_residential'
 
     mean_heating_system_shares_yearly = df[fane2_columns].groupby(by=['year', 'building_category', 'heating_systems']).mean()
     return mean_heating_system_shares_yearly

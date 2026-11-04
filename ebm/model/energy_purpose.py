@@ -4,7 +4,7 @@ from enum import StrEnum, auto, unique
 import pandas as pd
 from pandas import DataFrame
 
-from ebm.model.bema import BUILDING_CATEGORY_ORDER, TEK_ORDER
+from ebm.model.bema import TEK_ORDER
 
 
 @unique
@@ -60,9 +60,28 @@ class EnergyPurpose(StrEnum):
     @classmethod
     def cooling(cls) -> typing.Iterable['EnergyPurpose']:
         return [cls.COOLING]
-    
 
-def group_energy_use_kwh_by_building_group_purpose_year_wide(energy_use_kwh: pd.DataFrame) -> pd.DataFrame:
+
+def make_building_category_sort_key(building_groups: pd.DataFrame) -> dict:
+    df = building_groups.assign(lineno=range(1, len(building_groups) + 1))
+
+    sort_key = (
+        pd.concat(
+            [
+                df[['building_category']].assign(sort_key=df['lineno'] + 100),
+                (df.groupby(by=['building_group'])[['lineno']].min() + 300)
+                .reset_index()
+                .rename(columns={'building_group': 'building_category', 'lineno': 'sort_key'}),
+            ]
+        )
+        .reset_index(drop=True)
+        .set_index(['building_category'])
+        .to_dict()['sort_key']
+    )
+    return sort_key
+
+
+def group_energy_use_kwh_by_building_group_purpose_year_wide(energy_use_kwh: pd.DataFrame, building_groups: pd.DataFrame) -> pd.DataFrame:
     """
     Group non-residential building_categories and transform energy_use_kwh to wide.
 
@@ -70,6 +89,7 @@ def group_energy_use_kwh_by_building_group_purpose_year_wide(energy_use_kwh: pd.
 
     Parameters
     ----------
+    building_groups :
     energy_use_kwh : pd.DataFrame
         expects columns building_category, building_condition, building_code, purpose, heating_systems, load, year, kwh
 
@@ -78,29 +98,29 @@ def group_energy_use_kwh_by_building_group_purpose_year_wide(energy_use_kwh: pd.
     pd.DataFrame
         columns building_group, purpose, U, year1, year2, ..., yearN
     """
-    def group_non_residential(df: DataFrame):
-        df.loc[:, 'building_group'] = df.index.get_level_values(level='building_category')
-        query = '~building_category.isin(["house", "apartment_block", "holiday_home"])'
-        df.loc[df.query(query).index, 'building_group'] = 'non_residential'
-        return df
-
     df = (energy_use_kwh
           .copy()
           .reset_index()
-          .set_index(['building_category', 'building_condition', 'building_code', 'purpose', 'heating_systems', 'load', 'year'])
           .sort_index()).drop(columns='building_group')
+
+    df = df.merge(building_groups, on='building_category', how='left')
+    df['building_group'] = df['building_group'].where(~df['building_group'].isin(['Residential', 'Holiday-homes', 'residential', 'holiday_homes']), df['building_category'])
+
+    df = df.set_index(['building_category', 'building_condition', 'building_code', 'purpose', 'heating_systems', 'load', 'year'])
 
     df.loc[:, 'GWh'] = df.loc[:, 'kwh'] / 1_000_000
     df.loc[:, ('building_code', 'building_condition')] = ('all', 'all')
 
-    df = group_non_residential(df)
 
     summed = df.groupby(by=['building_group', 'purpose', 'year']).sum().reset_index()
     summed = summed[['building_group', 'purpose', 'year', 'GWh']]
 
     hz = summed.pivot(columns=['year'], index=['building_group', 'purpose'], values=['GWh']).reset_index()
+    
+    building_category_key = make_building_category_sort_key(building_groups)
+    
     hz = hz.sort_values(by=['building_group', 'purpose'],
-                        key=lambda x: x.map(BUILDING_CATEGORY_ORDER) if x.name == 'building_group' else x.map(
+                        key=lambda x: x.map(building_category_key) if x.name == 'building_group' else x.map(
                             TEK_ORDER) if x.name == 'building_code' else x.map(
                             {'heating_rv': 1, 'heating_dhw': 2, 'fans_and_pumps': 3, 'lighting': 4,
                              'electrical_equipment': 5, 'cooling': 6}) if x.name == 'purpose' else x)
@@ -111,19 +131,18 @@ def group_energy_use_kwh_by_building_group_purpose_year_wide(energy_use_kwh: pd.
     return hz.rename(columns={'building_group': 'building_category'})
 
 
-
-
-def group_energy_use_by_year_category_building_code_purpose(energy_use_kwh: pd.DataFrame) -> pd.DataFrame:
+def group_energy_use_by_year_category_building_code_purpose(energy_use_kwh: pd.DataFrame, building_groups: pd.DataFrame) -> pd.DataFrame:
     df = (energy_use_kwh.copy().reset_index()
           .set_index(['building_category', 'building_condition', 'building_code', 'purpose', 'heating_systems', 'load', 'year'])
           .sort_index())
 
     df.loc[:, 'GWh'] = (df['m2'] * df['kwh_m2']) / 1_000_000
 
+    building_category_key = make_building_category_sort_key(building_groups)
     df = df.reset_index().groupby(by=['year', 'building_category', 'building_code', 'purpose'], as_index=False).sum()
     df = df[['year', 'building_category', 'building_code', 'purpose', 'GWh']]
     df = df.sort_values(by=['year', 'building_category', 'building_code', 'purpose'],
-                        key=lambda x: x.map(BUILDING_CATEGORY_ORDER) if x.name == 'building_category' else x.map(
+                        key=lambda x: x.map(building_category_key) if x.name == 'building_category' else x.map(
                             TEK_ORDER) if x.name == 'building_category' else x.map(
                             TEK_ORDER) if x.name == 'building_code' else x.map(
                             {'heating_rv': 1, 'heating_dhw': 2, 'fans_and_pumps': 3, 'lighting': 4,

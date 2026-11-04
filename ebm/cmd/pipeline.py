@@ -37,10 +37,18 @@ def main():
     list(export_energy_model_reports(years, database_manager, output_path))
 
 
+def _capitalize_building_groups(building_groups: pd.DataFrame) -> pd.DataFrame:
+    df = building_groups.copy()
+    df['building_group'] = df['building_group'].str.capitalize()
+    df['building_group'] = df['building_group'].str.replace('_', '-')
+    return df
+
+
 def export_energy_model_reports(years: YearRange, database_manager: DatabaseManager, output_path: pathlib.Path, file_writer: callable = None) -> pathlib.Path:
     dataframe_writer = write_pretty_excel if file_writer is None else file_writer
     logger.debug('Extract area')
 
+    building_groups = database_manager.get_building_category().pipe(_capitalize_building_groups)
     scurve_parameters = database_manager.get_scurve_params() # 📍
 
     area_parameters = database_manager.get_area_parameters() # 📍
@@ -56,7 +64,8 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
 
     total_energy_need = e_n.transform_total_energy_need(energy_need_kwh_m2, area_forecast)  # 📌
     heating_systems_parameter = h_s_param.heating_systems_parameter_from_projection(heating_systems_projection) # 📌
-    energy_use_kwh = e_u.building_group_energy_use_kwh(heating_systems_parameter, total_energy_need) # 📌
+    energy_use_kwh = e_u.building_group_energy_use_kwh(heating_systems_parameter, total_energy_need,
+                                                       building_groups)  # 📌
 
     logger.info('Area forecast to area')
     existing_area = a_f.filter_existing_area(area_forecast)
@@ -83,7 +92,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     logger.info('Heating_system_share')
 
     logger.debug('Transform fane 2')
-    heating_systems_share = transform_heating_systems_share_long(heating_systems_projection)
+    heating_systems_share = transform_heating_systems_share_long(heating_systems_projection, building_groups)
 
     logger.debug('Transform fane 1')
     heating_systems_share_wide = transform_heating_systems_share_wide(heating_systems_share) # ♨️
@@ -108,7 +117,7 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     district_heating = h_p.district_heating_heat_pump(expanded_heating_systems_parameter)
 
     production = h_p.heat_pump_production(total_energy_need, air_air, district_heating)
-    heat_prod_hp_wide = h_p.heat_prod_hp_wide(production) # 🧮
+    heat_prod_hp_wide = h_p.heat_prod_hp_wide(production, building_groups)  # 🧮
 
     logger.debug('Write file heat_prod_hp.xlsx')
     heat_prod_hp_file = output_path / 'heat_prod_hp.xlsx'
@@ -146,10 +155,12 @@ def export_energy_model_reports(years: YearRange, database_manager: DatabaseMana
     ])
 
     logger.debug('Transform fane 1')
-    energy_purpose_wide = e_p.group_energy_use_kwh_by_building_group_purpose_year_wide(energy_use_kwh=energy_use_kwh) # 🚿
+    energy_purpose_wide = e_p.group_energy_use_kwh_by_building_group_purpose_year_wide(energy_use_kwh=energy_use_kwh,
+                                                                                       building_groups=building_groups)  # 🚿
 
     logger.debug('Transform fane 2')
-    energy_purpose_long = e_p.group_energy_use_by_year_category_building_code_purpose(energy_use_kwh=energy_use_kwh) # 🚿
+    energy_purpose_long = e_p.group_energy_use_by_year_category_building_code_purpose(energy_use_kwh=energy_use_kwh,
+                                                                                      building_groups=building_groups)  # 🚿
 
     logger.debug('Write file energy_purpose.xlsx')
     energy_purpose_output = output_path / 'energy_purpose.xlsx'

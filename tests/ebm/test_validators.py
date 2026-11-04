@@ -122,6 +122,7 @@ def test_area_parameters_building_categories():
     [
         ('house', 'residential'),
         ('holiday_home', 'holiday_homes'),
+        ('a_block', 'residential'),
     ],
 )
 def test_building_category_allows_supported_categories(category, group):
@@ -188,7 +189,7 @@ def test_building_category():
     building_category.validate(df)
 
 
-@pytest.mark.parametrize('illegal_building_category', ['småhus', 'villa', 'holiday_home', 'holiday_homes'])
+@pytest.mark.parametrize('illegal_building_category', ['små hus', 'villa villa', 'holiday_home', 'holiday_homes'])
 def test_area_parameters_raises_schema_error_on_unknown_building_category(illegal_building_category):
     rows = [[illegal_building_category, 'TEK10', 10000]]
     df = pd.DataFrame(data=rows, columns=['building_category', 'building_code', 'area'])
@@ -316,7 +317,7 @@ def new_buildings_residential_df():
 
 
 def test_new_buildings_residential_ok(new_buildings_residential_df):
-    new_buildings_residential.validate(new_buildings_residential_df)
+    new_buildings_residential().validate(new_buildings_residential_df)
 
 
 def test_new_buildings_residential_renames_flood_area_to_floor_area(new_buildings_residential_df):
@@ -325,7 +326,7 @@ def test_new_buildings_residential_renames_flood_area_to_floor_area(new_building
               [2011, 0.59, 0.41, 175, 75]],
         columns=['year', 'new_house_share', 'new_apartment_block_share', 'floor_area_new_house', 'flood_area_new_apartment_block'],
     )
-    df = new_buildings_residential.validate(new_buildings_residential_df)
+    df = new_buildings_residential().validate(new_buildings_residential_df)
 
     assert 'flood_area_new_apartment_block' not in df.columns
     assert 'floor_area_new_apartment_block' in df.columns
@@ -339,23 +340,32 @@ def test_new_buildings_residential_renames_flood_area_to_floor_area(new_building
                           ('floor_area_new_house', 0, 1001),
                           ('floor_area_new_apartment_block', 0, 1001)])
 def test_new_buildings_residential_value_ranges(new_buildings_residential_df, column, too_low, too_high):
-    new_buildings_residential.validate(new_buildings_residential_df)
+    new_buildings_residential().validate(new_buildings_residential_df)
 
     new_buildings_residential_df.loc[0, column] = too_low
     with pytest.raises(pa.errors.SchemaError):
-        new_buildings_residential.validate(new_buildings_residential_df)
+        new_buildings_residential().validate(new_buildings_residential_df)
 
     new_buildings_residential_df.loc[0, column] = too_high
     with pytest.raises(pa.errors.SchemaError):
-        new_buildings_residential.validate(new_buildings_residential_df)
+        new_buildings_residential().validate(new_buildings_residential_df)
 
 
 def test_new_buildings_residential_sum_of_share_should_be_1(new_buildings_residential_df):
     new_buildings_residential_df.loc[0, 'new_apartment_block_share'] = 1.0
     new_buildings_residential_df.loc[0, 'new_house_share'] = 1.0
 
-    with pytest.raises(pa.errors.SchemaError):
-        new_buildings_residential.validate(new_buildings_residential_df)
+    with pytest.raises(pa.errors.SchemaError, match=r'The yearly sum of shares in new_buildings_residential should be 1.0'):
+        new_buildings_residential().validate(new_buildings_residential_df)
+
+
+def test_new_buildings_residential_sum_of_category_2_share_should_be_1():
+    schema_with_category_2 = pd.DataFrame(
+        data=[[2010, 1.0, 1.0, 175, 75], [2011, 1.0, 1.0, 175, 75]],
+        columns=['year', 'new_house_share', 'new_category_2_share', 'floor_area_new_house', 'floor_area_category_2'],
+    )
+    with pytest.raises(pa.errors.SchemaError, match=r'The yearly sum of shares in new_buildings_residential should be 1.0'):
+        new_buildings_residential().validate(schema_with_category_2)
 
 
 def test_population_coerce_values():
@@ -401,7 +411,7 @@ def test_scurve_parameters_ok(s_curves):
     s_curve.validate(s_curves)
 
 
-@pytest.mark.parametrize('illegal_building_category', ['småhus', 'villa', 'holiday_home', 'holiday_homes'])
+@pytest.mark.parametrize('illegal_building_category', ['små hus', 'villa villa', 'holiday_home', 'holiday_homes'])
 def test_scurve_parameters_reject_invalid_building_category(s_curves, illegal_building_category:str):
     s_curves.loc[0, 'building_category'] = illegal_building_category
 
@@ -494,7 +504,7 @@ def test_energy_need_original_condition(original_condition_df):
 
 
 def test_energy_need_original_condition_require_valid_building_cat(original_condition_df):
-    original_condition_df.loc[0, 'building_category'] = 'not_a_building_category'
+    original_condition_df.loc[0, 'building_category'] = 'not_a_building_category,|'
     with pytest.raises(pa.errors.SchemaError):
         energy_need_original_condition.validate(original_condition_df)
 
@@ -547,7 +557,7 @@ def test_energy_req_reduction_per_condition(reduction_per_condition_df):
 
 
 def test_energy_req_reduction_per_condition_require_valid_building_cat(reduction_per_condition_df):
-    reduction_per_condition_df.loc[0, 'building_category'] = 'not_a_building_category'
+    reduction_per_condition_df.loc[0, 'building_category'] = 'not_a_building_category,|'
     with pytest.raises(pa.errors.SchemaError):
         improvement_building_upgrade.validate(reduction_per_condition_df)
 
@@ -711,7 +721,7 @@ hospital,0.6
 university,0.6"""
     area_per_person.validate(pd.read_csv(io.StringIO(area_per_person_csv)))
 
-@pytest.mark.parametrize('illegal_building_category', ['småhus', 'villa', 'holiday_home', 'holiday_homes'])
+@pytest.mark.parametrize('illegal_building_category', ['små hus', 'villa villa', 'holiday_home', 'holiday_homes'])
 def test_area_per_person_raises_schema_error(illegal_building_category):
     area_per_person_csv = f"""building_category,area_per_person
 {illegal_building_category},0.6
@@ -749,7 +759,7 @@ university,TEK97,HP Central heating - Gas,2023,0.0000719616069676
     
     heating_system_initial_shares.validate(shares_start_year)
 
-@pytest.mark.parametrize('illegal_building_category', ['småhus', 'villa', 'holiday_home', 'holiday_homes'])
+@pytest.mark.parametrize('illegal_building_category', ['små hus', 'villa villa', 'holiday_home', 'holiday_homes'])
 def test_heating_systems_validation_failure_on_illegal_building_category(illegal_building_category):
     shares_start_year = pd.read_csv(
         io.StringIO(
@@ -764,6 +774,7 @@ apartment_block,TEK07,DH - Bio,2020,0.0
 
     with pytest.raises(pa.errors.SchemaError):
         heating_system_initial_shares.validate(shares_start_year)
+
 
 def test_heating_systems_shares_require_same_start_year():
     shares_start_year = pd.read_csv(io.StringIO("""

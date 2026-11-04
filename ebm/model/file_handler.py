@@ -451,7 +451,12 @@ class FileHandler:
             validator = getattr(validators, file_to_validate[:-4].lower())
 
             try:
-                validator.validate(df, lazy=True)
+                if callable(validator):
+                    if hasattr(validator, 'validate'):
+                        validator.validate(df, lazy=True)
+                    else:
+                        validator().validate(df, lazy=True)
+
             except (SchemaErrors, SchemaError):
                 logger.error(f'Got error while validating {file_to_validate}')
                 raise

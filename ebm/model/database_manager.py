@@ -176,7 +176,7 @@ class DatabaseManager:
           "year", "Andel nye småhus", "Andel nye leiligheter", "Areal nye småhus", "Areal nye leiligheter"
         """
         df = self.file_handler.get_new_buildings_residential()
-        validated = ebm.validators.new_buildings_residential.validate(df)
+        validated = ebm.validators.new_buildings_residential().validate(df)
         validated['year'] = validated['year'].astype(int)
         validated = validated.set_index('year')
         return validated

@@ -16,11 +16,17 @@ From this category the model only uses the area attributed to storage and wareho
 
 For already built area we assume that all area in a given building code is built the same year. This year is "building year" in the table below. 
 
+.. seealso::
+    How to create a :ref:`Custom building category`
+
 .. csv-table:: Building codes and their active years
   :file: ../tables/building_code_parameters.csv
   :header-rows: 1
   :widths: 25 25 25 25
   :delim: ,
+
+.. seealso::
+    How to :ref:`Add a new building code`
 
 
 .. |date| date::

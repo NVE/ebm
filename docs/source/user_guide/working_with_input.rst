@@ -8,6 +8,45 @@ EBM supports scenario-based modeling by allowing users to create and manage sepa
 flexible experimentation with different assumptions and configurations.
 
 
+List available datasets
+-----------------------
+
+The following command lists all available input datasets:
+
+.. code-block:: bash
+
+   ebm list-input
+
+.. admonition:: expected output
+   :collapsible: closed
+   :class: expected-output
+
+   .. code-block:: powershell
+
+      PS C:\dev\ws\root> ebm list-input
+
+      Available datasets:
+      -------------------
+      - long_analysis_2024: Standard input-datasett for LA25. Datasettet inneholder input-filer som
+                            brukes for å kjøre ebm med forutsetninger for LA25. Datasettet er også
+                            kalt prognosedatasettet fra høsten 2025.
+
+      - original: Det originale ikke-kalibrerte datasettet.
+
+      - short_analysis_2025: short_analysis_2025-datasettet inneholder oppdaterte forutsetninger
+                             for framskriving av energibruk i bygg. De viktigste endringene gjelder
+                             riving, innfasing av LED, virkningsgrader for oppvarmingsløsninger,
+                             boligstørrelser, fordeling av nye boliger og kalibrering mot oppdatert
+                             statistikk. Datasettet brukes som oppdatert grunnlag for framskriving av
+                             energibruk i bygg i TIKS26. Datasettet gir et lavere utgangspunkt for
+                             framskriving av kraftforbruk i bygg enn tidligere kalibrering,
+                             samtidig som enkelte endringer, særlig knyttet til riving og
+                             oppvarmingsløsninger, trekker energibruken opp isolert sett.
+
+
+The output shows the names and a brief description of each dataset. The dataset names can be used to create new input directories for different scenarios.
+
+
 Creating an input directory for a scenario
 ------------------------------------------
 
@@ -15,14 +54,13 @@ To create a new scenario in EBM, open your preferred terminal and run the follow
 
 .. code-block:: bash
 
-   ebm --create-input --input=user-case-tek30
+   ebm create-input long_analysis_2025 --input=user-case-tek30
 
 
-The input directory will be created using the path defined by the ``--input`` option. In this case the new input files will be
-created as the subdirectory |user_case_tek30| in the current working directory.
+The argument ``create-input`` will use the dataset ``long_analysis_2025`` as the basis for creating input files.
+In this case the new input files will be copied to the subdirectory, |user_case_tek30|, as defined by the ``--input`` option.
 
-If the directory you name does not exist, the program will attempt to create it. All input files necessary to run ebm
-will be created, with their default values, in the supplied path.
+If the directory you named does not exist, the program will attempt to create it.
 
 
 .. tip::
@@ -39,11 +77,24 @@ Once the input directory is ready, you can run the model using:
 
    ebm --input=user-case-tek30
 
-The model result as defined in |user_case_tek30| will be written to the subdirectory |output_directory|.
+The model result calculated from the input files as defined in |user_case_tek30| will be written to the subdirectory |output_directory|.
+|output_directory| will be created if it does not already exist.
+
+
+The command above is an abbreviation of the command:
+
+.. code-block:: bash
+
+   ebm energy-use output/ --input=user-case-tek30
+
+The arguments ``energy-use`` and ``output/`` are the defaults.
+
 
 .. seealso::
 
-   :ref:`Results<result files>`
+   :ref:`Result files<result files>`
+
+   :ref:`Additional Arguments<user-guide-additional-arguments>`
 
 
 .. |date| date::

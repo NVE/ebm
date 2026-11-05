@@ -22,6 +22,11 @@ New built useful floor area for residential buildings in 2020 and 2021 from stat
 |area_per_person_ref| |br|
 Useful floor area for new non-residential buildings based on population growth.
 
+.. _building_category csv:
+
+|building_category_ref| |br|
+Building categories and what group of buildings they belong to in the model. Each category represents a type of building.
+
 .. _building_code_parameters csv:
 
 |building_code_parameters_ref| |br|
@@ -418,6 +423,16 @@ The input constraints, datatypes and accepted values are listed per input file i
 
    .. tab:: Other
       .. tabs::
+         .. tab:: building_category
+            ``building_category``
+            - required
+            - values: Any string with letters, numbers and underscore
+
+            ``building_group``
+            - required
+            - values: ``residential`` or ``non_residential``
+
+
          .. tab:: building_code_parameters
             ``building_code``
             - required

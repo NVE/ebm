@@ -10,6 +10,8 @@
 
 .. |area_per_person_ref| replace:: 🧾 :ref:`area_per_person.csv<area_per_person csv>`
 
+.. |building_category_ref| replace:: 🧾 :ref:`building_category.csv<building_category csv>`
+
 .. |building_code_parameters_ref| replace:: 🧾 :ref:`building_code_parameters.csv<building_code_parameters csv>`
 
 .. |energy_need_behaviour_factor_ref| replace:: 🧾 :ref:`energy_need_behaviour_factor.csv<energy_need_behaviour_factor csv>`

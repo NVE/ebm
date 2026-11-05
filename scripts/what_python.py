@@ -1,6 +1,7 @@
 import os
 import shutil
 import sys
+
 try:
     from importlib.metadata import PackageNotFoundError, version
 except ImportError:
@@ -19,13 +20,14 @@ def split_and_break_path(path):
     return path
 
 
-current_shell = os.environ.get('SHELL', 'Not detected 🙅')
-if "PSModulePath" in os.environ:
-    current_shell = "Probably PowerShell 😒"
-elif os.environ.get("ComSpec", "").strip().endswith("cmd.exe"):
-    current_shell = "Possibly cmd.exe 😞"
-elif os.environ.get("SHELL"):
+if os.environ.get('PROMPT'):
+    current_shell = 'Probably cmd.exe 😞'
+elif os.environ.get('SHELL'):
     current_shell = f"Unix shell: {os.environ['SHELL']} 😊"
+elif 'PSModulePath' in os.environ:
+    current_shell = 'Probably PowerShell 😒'
+else:
+    current_shell = 'Not detected 🙅'
 
 try:
     pandas_version = version('pandas')

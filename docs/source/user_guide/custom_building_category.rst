@@ -15,7 +15,7 @@ ebm will calculate constructed floor area for the building category.
 Plan
 ----
 
-To add a building category to ebm you have to edit a number of files in the subdirectory |user_case_bc|.
+Adding new building categories to ebm involves editing a number of files in the subdirectory |user_case_bc|.
 
  - Add the new building category to the model to |building_category_ref|
  - Add existing area to |area_ref|
@@ -482,7 +482,17 @@ Define avarage floor area and building category share
 
 Share of new terraced house buildings and average floor area for terraced house are defined in two new columns. The columns must be named *new_terraced_house_share* and *floor_area_new_terraced_house*.
 
-*new_terraced_house_share* is a value between 0.0 and 1.0. The sum of *new_house_share*, *new_terraced_house_share* and *new_apartment_block_share* should be equal to 1.0 for each year. Any positive value will work for *floor_area_new_terraced_house*. The values in the example below are not based on any real data.
+``new_terraced_house_share`` is a value between 0.0 and 1.0. The sum of ``new_house_share*, ``new_terraced_house_share`` and ``new_apartment_block_share`` should be equal to 1.0 for each year. Any positive value will work for ``floor_area_new_terraced_house``. ``new_house_share`` and/or ``new_apartment_block_share`` must be adjusted to ensure the sum of shares is equal to 1.0 for each year.
+
+Example:
+
+.. math::
+
+   \text{new house share} (\text{y }) = &\text{1.0} \\
+                                        &- {\text{new terraced house share} (\text{y})} \\
+                                        &- {\text{new apartment block share} (\text{y})}
+
+
 
 
 .. tabs::
@@ -490,39 +500,19 @@ Share of new terraced house buildings and average floor area for terraced house 
    .. tab:: Summary table
 
         .. csv-table:: Summary new_buildings_residential.csv
-           :header: year,new_house_share,new_terraced_house_share,new_apartment_block_share,floor_area_new_house,floor_area_new_apartment_block,floor_area_new_terraced_house
+           :header: year,new_house_share,new_terraced_house_share,floor_area_new_terraced_house
 
-            2020,0.24,**0.2**,0.56,154,69,**105**
-            2021,0.22,**0.21**,0.57,154,69,**105**
-            2022,0.23,**0.22**,0.55,154,69,**105**
-            2023,0.16,**0.23**,0.61,154,69,**105**
-            2024,0.14,**0.23**,0.63,154,69,**105**
-            2025,0.21,**0.24**,0.55,154,69,**105**
-            2026,0.21,**0.24**,0.55,154,69,**105**
-            2027,0.2,**0.24**,0.56,154,69,**105**
-            2028,0.2,**0.24**,0.56,154,69,**105**
-            2029,0.19,**0.25**,0.56,154,69,**105**
-            2030,0.19,**0.25**,0.56,154,69,**105**
-            2031,0.19,**0.25**,0.56,154,69,**105**
-            2032,0.19,**0.25**,0.56,154,69,**105**
-            2033,0.18,**0.25**,0.57,154,69,**105**
-            2034,0.18,**0.25**,0.57,154,69,**105**
-            2035,0.18,**0.25**,0.57,154,69,**105**
-            2036,0.18,**0.25**,0.57,154,69,**105**
-            2037,0.18,**0.25**,0.57,154,69,**105**
-            2038,0.16,**0.26**,0.58,154,69,**105**
-            2039,0.16,**0.26**,0.58,154,69,**105**
-            2040,0.16,**0.26**,0.58,154,69,**105**
-            2041,0.16,**0.26**,0.58,154,69,**105**
-            2042,0.16,**0.26**,0.58,154,69,**105**
-            2043,0.15,**0.26**,0.59,154,69,**105**
-            2044,0.15,**0.26**,0.59,154,69,**105**
-            2045,0.15,**0.26**,0.59,154,69,**105**
-            2046,0.15,**0.26**,0.59,154,69,**105**
-            2047,0.14,**0.27**,0.59,154,69,**105**
-            2048,0.13,**0.27**,0.6,154,69,**105**
-            2049,0.13,**0.27**,0.6,154,69,**105**
-            2050,0.12,**0.28**,0.6,154,69,**105**
+            2020,0.24,0.2,105
+            2021,0.22,0.21,105
+            2022,0.23,0.22,105
+            2023,0.16,0.23,105
+            2024,0.14,0.23,105
+            2025,0.21,0.24,105
+            2026,0.21,0.24,105
+            2027,0.2,0.24,105
+            2028,0.2,0.24,105
+            2029,0.19,0.25,105
+            2030,0.19,0.25,105
 
    .. tab:: formatted table
 
@@ -733,8 +723,9 @@ Calibration files
 
 heating_rv
 ^^^^^^^^^^
+The factor column in ``calibrate_heating_rv.csv`` is used adjust the energy need for heating in the model. The factor is applied to the energy need for heating_rv defined in |energy_need_original_condition_ref|.
 
-The content of ``calibrate_heating_rv.csv`` is the same as the default value of ``1.0`` for all building categories and building codes. If you want to calibrate differently the new building categories, you can add them to the file in |user_case_bc|.
+The default factor is 1.0. If you want the new building categories calibrated differently, you can update the input file in  |user_case_bc|.
 
 .. tabs::
 
@@ -748,13 +739,15 @@ The content of ``calibrate_heating_rv.csv`` is the same as the default value of 
 energy consumption
 ^^^^^^^^^^^^^^^^^^
 
-If you want ``terraced_house`` to have the same calibration factor as ``house``, you can replace ``house`` with ``house+terraced_house`` in the building_category column of ``calibrate_energy_consumption.csv`` in |user_case_bc|. The file should then look like the example below.
+calibrate_energy_consumption.csv is used to adjust a given heating system's share in favour of another.
+
+``prison`` is covered by ``non_residential`` and does not need to be added. If you want ``terraced_house`` to have the same calibration factor as ``house``, you can replace ``house`` with ``house+terraced_house`` in the building_category column of ``calibrate_energy_consumption.csv`` in |user_case_bc|. The file should then look like the example below.
 
 .. tabs::
 
    .. tab:: Summmary
 
-      .. csv-table:: Content calibrate_heating_rv.csv
+      .. csv-table:: Content calibrate_energy_consumption.csv
 
          :header: building_category,to,from,factor
             house+terraced_house,Electric boiler,Electricity,1

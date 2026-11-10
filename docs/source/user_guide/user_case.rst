@@ -4,21 +4,19 @@
 User case
 =========
 
-Working with input
-------------------
-
-Working with input explains how EBM supports scenario-based modelling by letting you create and use separate
-input directories for different assumptions or configurations.
-
 .. toctree::
    :maxdepth: 2
+   :hidden:
 
    working_with_input
+   add_a_new_building_code
+   custom_building_category
 
 
-Add a new building code
------------------------
-This guide demonstrates how to create and configure a new scenario in EBM by introducing a hypothetical future building code: *TEK30*.
+:doc:`working_with_input` explains how EBM supports scenario-based modelling by letting you create and use separate
+input directories for different assumptions or configurations.
+
+:doc:`add_a_new_building_code` demonstrates how to create and configure a new scenario in EBM by introducing a hypothetical future building code: *TEK30*.
 Scenario-based modeling in EBM allows users to explore alternative planning assumptions, regulatory changes, and energy performance impacts by managing separate input directories.
 
 The TEK30 scenario showcases how to:
@@ -28,21 +26,7 @@ The TEK30 scenario showcases how to:
  - Configure heating system shares
  - Optionally adjust lighting improvements
 
-.. toctree::
-   :maxdepth: 2
-
-   add_a_new_building_code
-
-
-Add new building categories
----------------------------
-
-This example shows how to add new building categories to an EBM scenario.
-
-.. toctree::
-   :maxdepth: 2
-
-   custom_building_category
+:doc:`custom_building_category` shows how to add new building categories to an EBM scenario.
 
 
 .. |date| date::

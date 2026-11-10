@@ -1,45 +1,65 @@
-.. |user_case_bc| replace:: ``📁extra-building-categories``
+.. |user_case_bc| replace:: ``📁custom-building-categories``
 
 
-Add new building categories
-===========================
+Custom building category
+========================
 
 .. admonition:: Endringsforslag
 
-   *custom building categories* som alternativ tittel for å variere språket i menyen.
+   *custom building categories* som alternativ tittel for å variere språket i menyen. Det sto tidligere *Add new building categories*.
 
 This example demonstrates how to use ``EBM`` scenario functionality by adding a new building building categories. There
 are two different types of building categories in ebm with different input file requirements. The difference defines how
 ebm will calculate constructed floor area for the building category.
 
+Plan
+----
 
 To add a building category to ebm you have to edit a number of files in the subdirectory |user_case_bc|.
+
  - Add the new building category to the model to |building_category_ref|
  - Add existing area to |area_ref|
  - Define s-curves for the building category in |s_curve_ref|
  - Define energy need for the building category in |energy_need_original_condition_ref|
  - Specify heating system shares in |heating_system_initial_shares_ref|
  - Define heating system transitions in |heating_system_forecast_ref|
+ - Define construction for the new building category in one of the following ways:
+
+   + Construction based on area per person in  |area_per_person_ref|
+   + Construction based on changes in households in |new_buildings_residential_ref|
+
+The following files contain definitions for building categories and may be updated to include the new building category if deemed necessary:
+
+ - |heating_system_forecast_ref|
+ - |improvement_building_upgrade_ref|
+ - |energy_need_behaviour_factor_ref|
+ - calibration files
 
 
-Construction based on area per person (Mostly Non-residential)
- - |area_per_person_ref| (if the building category is a non-residential building category)
+Create a new input directory
+----------------------------
 
+It is necessary to create a new input directory for EBM. To do this, open your preferred terminal and run the following command:
 
-Construction based on number of households (Residential)
- - |new_buildings_residential_ref| (if the building category is a residential building category)
- - |area_new_residential_buildings_ref|
+.. code-block:: bash
+
+   ebm create-input short_analysis_2026 --input=custom-building-categories
+
+The input directory is created based on the dataset ``short_analysis_2026``. The new input files will be copied to the subdirectory, |user_case_bc|, as defined by the ``--input`` option.
+
+.. seealso::
+    :doc:`Working with input<working_with_input>` for more information on creating and using input directories in EBM.
 
 
 Update building category listing
 --------------------------------
 
-EBM reads building categories from |building_category_ref|. In this file, you also define the group to which each
-building category belongs. Building group are used to define input for multiple building categories at once, and for aggragating results.
+EBM reads building categories from |building_category_ref|.
 
-In this example we will add two new building categories to the model. Terraced house for residential and prison for non-residential.
+You also define the group to which each building category belongs. Building group are used to define input for multiple
+building categories at once, and for aggragating results.
 
-
+In this example we will add two new building categories to the model. The residential building category Terraced house, and the non-residential prison.
 
 You can edit |building_category_ref| using a
 plain text editor (e.g., Notepad) or spreadsheet software such as Microsoft Excel or LibreOffice Calc.
@@ -51,6 +71,7 @@ Add the following lines to |building_category_ref| in  |user_case_bc| to define 
    terraced_house,residential
    prison,non_residential
 
+Both ``terraced_house`` and ``prison`` must be present in |building_category_ref|.
 
 When done correctly |building_category_ref| in  |user_case_bc| should look like the example below.
 
@@ -117,6 +138,7 @@ Define existing floor area
 
 For each building category and building code, you need to define the existing area in |area_ref| in |user_case_bc|. The floor area is defined as m^2 in the column named area.
 
+Both ``terraced_house`` and ``prison`` must be present in |area_ref|.
 
 .. tabs::
 
@@ -185,6 +207,7 @@ Define S-curves
 
 The new building categories also require s-curve definitions for small_measure, renovation and demolition. S-curves are defined in |s_curve_ref| in |user_case_bc|.
 
+Both ``terraced_house`` and ``prison`` must be present in |s_curve_ref|.
 
 .. tabs::
 
@@ -251,6 +274,7 @@ EBM allows multiple building categories and building codes to be defined in a si
 residential/non_residential groups. In this example, house and terraced_house are combined using +. The default definition
 specifies the most common values, while building codes that differ override those defaults.
 
+Both ``terraced_house`` and ``prison`` must be present in |energy_need_original_condition_ref|.
 
 .. tabs::
 
@@ -323,6 +347,8 @@ Specify heating system shares
 This file tells ``EBM`` what the share of each heating system is for a given building code. The new building categories must
 be added to the file |heating_system_initial_shares_ref| in |user_case_bc|.
 
+Both ``terraced_house`` and ``prison`` must be present in |heating_system_initial_shares_ref|.
+
 .. note::
    As of version 1.2.0, |heating_system_initial_shares_ref| does not support multiple definitions by combining building
    categories and building codes with ``+``. ``default``, ``non_residential``, and ``residential`` will work.
@@ -378,8 +404,11 @@ Non-residential construction
 ----------------------------
 
 EBM calculates new construction for non-residential building categories based on area per person. The area per person
-is defined in |area_per_person_ref| in |user_case_bc|. The file must have definitions for the
-new prison building category.
+is defined in |area_per_person_ref| in |user_case_bc|.
+
+The file must have definitions for the new ``prison`` building category.
+
+
 
 .. tabs::
 
@@ -417,7 +446,7 @@ new prison building category.
 Residential construction
 ------------------------
 
-Residential require definitions for yearly share of building category and the average floor area of new buildings. These are defined in |new_buildings_residential_ref| and |area_new_residential_buildings_ref| in |user_case_bc|. The files must have definitions for the new terraced_house building category.
+Residential require definitions for yearly share of building category and the average floor area of new buildings. These are defined in |new_buildings_residential_ref| and |area_new_residential_buildings_ref| in |user_case_bc|. The files must have definitions for the new ``terraced_house`` building category.
 
 Define avarage floor area and building category share
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -429,7 +458,7 @@ Share of new terraced house buildings and average floor area for terraced house 
 
 .. tabs::
 
-   .. tab:: formatted tableø
+   .. tab:: Summary table
 
         .. csv-table:: Summary new_buildings_residential.csv
            :header: year,new_house_share,new_terraced_house_share,new_apartment_block_share,floor_area_new_house,floor_area_new_apartment_block,floor_area_new_terraced_house
@@ -489,11 +518,11 @@ Share of new terraced house buildings and average floor area for terraced house 
 Define counstruction in the first two years
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Define construction in the first two years of the model in |area_new_residential_buildings_ref|. The file must have definitions for the new terraced_house building category.
+Define construction in the first two years of the model in |area_new_residential_buildings_ref|. The file must have definitions for the new ``terraced_house`` building category.
 
 .. tabs::
 
-   .. tab:: formatted table
+   .. tab:: Summary table
 
         .. csv-table:: Summary area_new_residential_buildings.csv
            :header: year,house,apartment_block,terraced_house
@@ -530,7 +559,7 @@ Once you have adapted all the input files listed abouve, you can run the model u
 
 .. code-block:: powershell
 
-   ebm --input=extra-building-categories
+   ebm --input=custom-building-categories
 
 The model results can be found in the subdirectory named |output_directory|.
 
@@ -709,11 +738,11 @@ Re-run the model
 
 .. code-block:: powershell
 
-   ebm --input=extra-building-categories --open
+   ebm --input=custom-building-categories --open
 
 
 .. tip::
-   You can use ``--open`` to have EBM automatically open the output files.
+   EBM will open the result automatically when use use the option ``--open``
 
 
 

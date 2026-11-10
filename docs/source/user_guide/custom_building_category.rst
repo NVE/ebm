@@ -43,9 +43,39 @@ It is necessary to create a new input directory for EBM. To do this, open your p
 
 .. code-block:: bash
 
-   ebm create-input short_analysis_2026 --input=custom-building-categories
+   ebm create-input short_analysis_2025 --input=custom-building-categories
 
-The input directory is created based on the dataset ``short_analysis_2026``. The new input files will be copied to the subdirectory, |user_case_bc|, as defined by the ``--input`` option.
+.. admonition:: expected output
+   :collapsible: closed
+   :class: expected-output
+
+   .. code-block:: powershell
+
+       Using data from "custom-building-categories"
+       Copy input from C:\dev\ws\Energibruksmodell\ebm\data\short_analysis_2025
+       Creating directory custom-building-categories
+       Creating missing file  custom-building-categories\building_code_parameters.csv
+       Creating missing file  custom-building-categories\s_curve.csv
+       Creating missing file  custom-building-categories\population_forecast.csv
+       Creating missing file  custom-building-categories\new_buildings_residential.csv
+       Creating missing file  custom-building-categories\area_new_residential_buildings.csv
+       Creating missing file  custom-building-categories\area.csv
+       Creating missing file  custom-building-categories\energy_need_behaviour_factor.csv
+       Creating missing file  custom-building-categories\energy_need_original_condition.csv
+       Creating missing file  custom-building-categories\improvement_building_upgrade.csv
+       Creating missing file  custom-building-categories\energy_need_improvements.csv
+       Creating missing file  custom-building-categories\holiday_home_energy_consumption.csv
+       Creating missing file  custom-building-categories\holiday_home_stock.csv
+       Creating missing file  custom-building-categories\area_per_person.csv
+       Creating missing file  custom-building-categories\heating_system_initial_shares.csv
+       Creating missing file  custom-building-categories\heating_system_efficiencies.csv
+       Creating missing file  custom-building-categories\heating_system_forecast.csv
+       Creating missing file  custom-building-categories\building_category.csv
+       Creating missing file  custom-building-categories\README.md
+       Finished creating input files in custom-building-categories
+
+
+The input directory is created based on the dataset ``short_analysis_2025``. The new input files will be copied to the subdirectory, |user_case_bc|, as defined by the ``--input`` option.
 
 .. seealso::
     :doc:`Working with input<working_with_input>` for more information on creating and using input directories in EBM.
@@ -339,7 +369,6 @@ Both ``terraced_house`` and ``prison`` must be present in |energy_need_original_
 
         Optionally, `Download energy_need_original_condition.csv <../_static/user_case/custom_building_category/energy_need_original_condition.csv>`_ working example.
 
-
 Specify heating system shares
 -----------------------------
 
@@ -560,6 +589,29 @@ Once you have adapted all the input files listed abouve, you can run the model u
 .. code-block:: powershell
 
    ebm --input=custom-building-categories
+
+.. admonition:: expected output
+   :collapsible: closed
+   :class: expected-output
+
+   .. code-block:: powershell
+
+       Using data from "custom-building-categories"
+       Input directory "custom-building-categories" contains calibration files
+       Using YearRange(start=2020, end=2030)
+       Area forecast to area
+       Wrote output\area.xlsx
+       Energy use to energy_purpose
+       Heating_system_share
+       Wrote output\heating_system_share.xlsx
+       heat_prod_hp
+       Wrote output\heat_prod_hp.xlsx
+       Energy_use
+       Wrote output\energy_use.xlsx
+       Wrote output\energy_purpose.xlsx
+       demolition_construction
+       Wrote output\demolition_construction.xlsx
+
 
 The model results can be found in the subdirectory named |output_directory|.
 

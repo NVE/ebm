@@ -54,7 +54,37 @@ To create a new scenario in EBM, open your preferred terminal and run the follow
 
 .. code-block:: bash
 
-   ebm create-input long_analysis_2025 --input=user-case-tek30
+   ebm create-input long_analysis_2024 --input=user-case-tek30
+
+
+.. admonition:: expected output
+   :collapsible: closed
+   :class: expected-output
+
+   .. code-block:: powershell
+
+       Using data from "user-case-tek30"
+       Copy input from C:\dev\ws\Energibruksmodell\ebm\data\long_analysis_2024
+       Creating directory user-case-tek30
+       Creating missing file  user-case-tek30\building_code_parameters.csv
+       Creating missing file  user-case-tek30\s_curve.csv
+       Creating missing file  user-case-tek30\population_forecast.csv
+       Creating missing file  user-case-tek30\new_buildings_residential.csv
+       Creating missing file  user-case-tek30\area_new_residential_buildings.csv
+       Creating missing file  user-case-tek30\area.csv
+       Creating missing file  user-case-tek30\energy_need_behaviour_factor.csv
+       Creating missing file  user-case-tek30\energy_need_original_condition.csv
+       Creating missing file  user-case-tek30\improvement_building_upgrade.csv
+       Creating missing file  user-case-tek30\energy_need_improvements.csv
+       Creating missing file  user-case-tek30\holiday_home_energy_consumption.csv
+       Creating missing file  user-case-tek30\holiday_home_stock.csv
+       Creating missing file  user-case-tek30\area_per_person.csv
+       Creating missing file  user-case-tek30\heating_system_initial_shares.csv
+       Creating missing file  user-case-tek30\heating_system_efficiencies.csv
+       Creating missing file  user-case-tek30\heating_system_forecast.csv
+       Creating missing file  user-case-tek30\building_category.csv
+       Creating missing file  user-case-tek30\README.md
+       Finished creating input files in user-case-tek30
 
 
 The argument ``create-input`` will use the dataset ``long_analysis_2025`` as the basis for creating input files.

@@ -1111,131 +1111,20 @@ storage_repairs,TEK97,HP - Electricity,2023,0.1632849356867121
 storage_repairs,TEK97,HP Central heating - Bio,2023,0.00019362655741005704
 storage_repairs,TEK97,HP Central heating - Electric boiler,2023,0.36404351190494705
 storage_repairs,TEK97,HP Central heating - Gas,2023,7.196160696758601e-05
-terraced_house,PRE_TEK49,DH,2023,0.0213315113565833
-terraced_house,PRE_TEK49,DH - Bio,2023,0.0076580066831269
-terraced_house,PRE_TEK49,Electric boiler,2023,0.0256775930931896
-terraced_house,PRE_TEK49,Electric boiler - Solar,2023,0.0003008594060781
-terraced_house,PRE_TEK49,Electricity,2023,0.0521984906804366
-terraced_house,PRE_TEK49,Electricity - Bio,2023,0.2247326376682365
-terraced_house,PRE_TEK49,HP - Bio - Electricity,2023,0.5649908788840201
-terraced_house,PRE_TEK49,HP - Electricity,2023,0.0992947318980815
-terraced_house,PRE_TEK49,HP Central heating - Electric boiler,2023,0.0038152903302471
-terraced_house,TEK49,DH,2023,0.0213315113565833
-terraced_house,TEK49,DH - Bio,2023,0.0076580066831269
-terraced_house,TEK49,Electric boiler,2023,0.0256775930931896
-terraced_house,TEK49,Electric boiler - Solar,2023,0.0003008594060781
-terraced_house,TEK49,Electricity,2023,0.0521984906804366
-terraced_house,TEK49,Electricity - Bio,2023,0.2247326376682365
-terraced_house,TEK49,HP - Bio - Electricity,2023,0.5649908788840201
-terraced_house,TEK49,HP - Electricity,2023,0.0992947318980815
-terraced_house,TEK49,HP Central heating - Electric boiler,2023,0.0038152903302471
-terraced_house,TEK69,DH,2023,0.0213315113565833
-terraced_house,TEK69,DH - Bio,2023,0.0076580066831269
-terraced_house,TEK69,Electric boiler,2023,0.0256775930931896
-terraced_house,TEK69,Electric boiler - Solar,2023,0.0003008594060781
-terraced_house,TEK69,Electricity,2023,0.0521984906804366
-terraced_house,TEK69,Electricity - Bio,2023,0.2247326376682365
-terraced_house,TEK69,HP - Bio - Electricity,2023,0.5649908788840201
-terraced_house,TEK69,HP - Electricity,2023,0.0992947318980815
-terraced_house,TEK69,HP Central heating - Electric boiler,2023,0.0038152903302471
-terraced_house,TEK87,DH,2023,0.0213315113565833
-terraced_house,TEK87,DH - Bio,2023,0.0076580066831269
-terraced_house,TEK87,Electric boiler,2023,0.0256775930931896
-terraced_house,TEK87,Electric boiler - Solar,2023,0.0003008594060781
-terraced_house,TEK87,Electricity,2023,0.0521984906804366
-terraced_house,TEK87,Electricity - Bio,2023,0.2247326376682365
-terraced_house,TEK87,HP - Bio - Electricity,2023,0.5649908788840201
-terraced_house,TEK87,HP - Electricity,2023,0.0992947318980815
-terraced_house,TEK87,HP Central heating - Electric boiler,2023,0.0038152903302471
-terraced_house,TEK97,DH,2023,0.0213315113565833
-terraced_house,TEK97,DH - Bio,2023,0.0076580066831269
-terraced_house,TEK97,Electric boiler,2023,0.0256775930931896
-terraced_house,TEK97,Electric boiler - Solar,2023,0.0003008594060781
-terraced_house,TEK97,Electricity,2023,0.0521984906804366
-terraced_house,TEK97,Electricity - Bio,2023,0.2247326376682365
-terraced_house,TEK97,HP - Bio - Electricity,2023,0.5649908788840201
-terraced_house,TEK97,HP - Electricity,2023,0.0992947318980815
-terraced_house,TEK97,HP Central heating - Electric boiler,2023,0.0038152903302471
-terraced_house,TEK07,DH,2023,0.0213315113565833
-terraced_house,TEK07,DH - Bio,2023,0.0076580066831269
-terraced_house,TEK07,Electric boiler,2023,0.0256775930931896
-terraced_house,TEK07,Electric boiler - Solar,2023,0.0003008594060781
-terraced_house,TEK07,Electricity,2023,0.0521984906804366
-terraced_house,TEK07,Electricity - Bio,2023,0.2247326376682365
-terraced_house,TEK07,HP - Bio - Electricity,2023,0.5649908788840201
-terraced_house,TEK07,HP - Electricity,2023,0.0992947318980815
-terraced_house,TEK07,HP Central heating - Electric boiler,2023,0.0038152903302471
-terraced_house,TEK10,DH,2023,0.0213315113565833
-terraced_house,TEK10,DH - Bio,2023,0.0076580066831269
-terraced_house,TEK10,Electric boiler,2023,0.0256775930931896
-terraced_house,TEK10,Electric boiler - Solar,2023,0.0003008594060781
-terraced_house,TEK10,Electricity,2023,0.0521984906804366
-terraced_house,TEK10,Electricity - Bio,2023,0.2247326376682365
-terraced_house,TEK10,HP - Bio - Electricity,2023,0.5649908788840201
-terraced_house,TEK10,HP - Electricity,2023,0.0992947318980815
-terraced_house,TEK10,HP Central heating - Electric boiler,2023,0.0038152903302471
-terraced_house,TEK17,DH,2023,0.0213315113565833
-terraced_house,TEK17,DH - Bio,2023,0.0076580066831269
-terraced_house,TEK17,Electric boiler,2023,0.0256775930931896
-terraced_house,TEK17,Electric boiler - Solar,2023,0.0003008594060781
-terraced_house,TEK17,Electricity,2023,0.0521984906804366
-terraced_house,TEK17,Electricity - Bio,2023,0.2247326376682365
-terraced_house,TEK17,HP - Bio - Electricity,2023,0.5649908788840201
-terraced_house,TEK17,HP - Electricity,2023,0.0992947318980815
-terraced_house,TEK17,HP Central heating - Electric boiler,2023,0.0038152903302471
-prison,PRE_TEK49,DH,2023,0.318
-prison,PRE_TEK49,Electric boiler,2023,0.06
-prison,PRE_TEK49,Electricity,2023,0.071
-prison,PRE_TEK49,Electricity - Bio,2023,0.022
-prison,PRE_TEK49,Gas,2023,0.002
-prison,PRE_TEK49,HP - Electricity,2023,0.163
-prison,PRE_TEK49,HP Central heating - Electric boiler,2023,0.364
-prison,TEK49,DH,2023,0.318
-prison,TEK49,Electric boiler,2023,0.06
-prison,TEK49,Electricity,2023,0.071
-prison,TEK49,Electricity - Bio,2023,0.022
-prison,TEK49,Gas,2023,0.002
-prison,TEK49,HP - Electricity,2023,0.163
-prison,TEK49,HP Central heating - Electric boiler,2023,0.364
-prison,TEK69,DH,2023,0.318
-prison,TEK69,Electric boiler,2023,0.06
-prison,TEK69,Electricity,2023,0.071
-prison,TEK69,Electricity - Bio,2023,0.022
-prison,TEK69,Gas,2023,0.002
-prison,TEK69,HP - Electricity,2023,0.163
-prison,TEK69,HP Central heating - Electric boiler,2023,0.364
-prison,TEK87,DH,2023,0.318
-prison,TEK87,Electric boiler,2023,0.06
-prison,TEK87,Electricity,2023,0.071
-prison,TEK87,Electricity - Bio,2023,0.022
-prison,TEK87,Gas,2023,0.002
-prison,TEK87,HP - Electricity,2023,0.163
-prison,TEK87,HP Central heating - Electric boiler,2023,0.364
-prison,TEK97,DH,2023,0.318
-prison,TEK97,Electric boiler,2023,0.06
-prison,TEK97,Electricity,2023,0.071
-prison,TEK97,Electricity - Bio,2023,0.022
-prison,TEK97,Gas,2023,0.002
-prison,TEK97,HP - Electricity,2023,0.163
-prison,TEK97,HP Central heating - Electric boiler,2023,0.364
-prison,TEK07,DH,2023,0.318
-prison,TEK07,Electric boiler,2023,0.06
-prison,TEK07,Electricity,2023,0.071
-prison,TEK07,Electricity - Bio,2023,0.022
-prison,TEK07,Gas,2023,0.002
-prison,TEK07,HP - Electricity,2023,0.163
-prison,TEK07,HP Central heating - Electric boiler,2023,0.364
-prison,TEK10,DH,2023,0.318
-prison,TEK10,Electric boiler,2023,0.06
-prison,TEK10,Electricity,2023,0.071
-prison,TEK10,Electricity - Bio,2023,0.022
-prison,TEK10,Gas,2023,0.002
-prison,TEK10,HP - Electricity,2023,0.163
-prison,TEK10,HP Central heating - Electric boiler,2023,0.364
-prison,TEK17,DH,2023,0.318
-prison,TEK17,Electric boiler,2023,0.06
-prison,TEK17,Electricity,2023,0.071
-prison,TEK17,Electricity - Bio,2023,0.022
-prison,TEK17,Gas,2023,0.002
-prison,TEK17,HP - Electricity,2023,0.163
-prison,TEK17,HP Central heating - Electric boiler,2023,0.364
+terraced_house,default,DH,2023,0.0213315113565833
+terraced_house,default,DH - Bio,2023,0.0076580066831269
+terraced_house,default,Electric boiler,2023,0.0256775930931896
+terraced_house,default,Electric boiler - Solar,2023,0.0003008594060781
+terraced_house,default,Electricity,2023,0.0521984906804366
+terraced_house,default,Electricity - Bio,2023,0.2247326376682365
+terraced_house,default,HP - Bio - Electricity,2023,0.5649908788840201
+terraced_house,default,HP - Electricity,2023,0.0992947318980815
+terraced_house,default,HP Central heating - Electric boiler,2023,0.0038152903302471
+prison,default,DH,2023,0.318
+prison,default,Electric boiler,2023,0.06
+prison,default,Electricity,2023,0.071
+prison,default,Electricity - Bio,2023,0.022
+prison,default,Gas,2023,0.002
+prison,default,HP - Electricity,2023,0.163
+prison,default,HP Central heating - Electric boiler,2023,0.364
+

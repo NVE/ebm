@@ -4,6 +4,10 @@
 Add new building categories
 ===========================
 
+.. admonition:: Endringsforslag
+
+   *custom building categories* som alternativ tittel for å variere språket i menyen.
+
 This example demonstrates how to use ``EBM`` scenario functionality by adding a new building building categories. There
 are two different types of building categories in ebm with different input file requirements. The difference defines how
 ebm will calculate constructed floor area for the building category.
@@ -27,15 +31,6 @@ Construction based on number of households (Residential)
  - |area_new_residential_buildings_ref|
 
 
-Optional input files
- - |energy_need_improvements_ref|
- - |improvement_building_upgrade_ref| (optional)
- - |energy_need_behaviour_factor_ref| (optional)
- - 🧾calibrate_heating_rv
- - 🧾calibrate_energy_consumption
-
-
-
 Update building category listing
 --------------------------------
 
@@ -49,7 +44,7 @@ In this example we will add two new building categories to the model. Terraced h
 You can edit |building_category_ref| using a
 plain text editor (e.g., Notepad) or spreadsheet software such as Microsoft Excel or LibreOffice Calc.
 
-Add the following lines to |building_category_csv_ref| in  |user_case_bc| to define TEK30 as a new building category entries:
+Add the following lines to |building_category_ref| in  |user_case_bc| to define new building categories and their groups:
 
 .. code-block:: text
 
@@ -328,6 +323,10 @@ Specify heating system shares
 This file tells ``EBM`` what the share of each heating system is for a given building code. The new building categories must
 be added to the file |heating_system_initial_shares_ref| in |user_case_bc|.
 
+.. note::
+   As of version 1.2.0, |heating_system_initial_shares_ref| does not support multiple definitions by combining building
+   categories and building codes with ``+``. ``default``, ``non_residential``, and ``residential`` will work.
+
 
 .. tabs::
 
@@ -336,134 +335,23 @@ be added to the file |heating_system_initial_shares_ref| in |user_case_bc|.
         .. csv-table:: Summary heating_system_initial_shares.csv
            :header: building_category,building_code,heating_systems,year,heating_system_share
 
-            terraced_house,PRE_TEK49,DH,2023,0.0213315113565833
-            terraced_house,PRE_TEK49,DH - Bio,2023,0.0076580066831269
-            terraced_house,PRE_TEK49,Electric boiler,2023,0.0256775930931896
-            terraced_house,PRE_TEK49,Electric boiler - Solar,2023,0.0003008594060781
-            terraced_house,PRE_TEK49,Electricity,2023,0.0521984906804366
-            terraced_house,PRE_TEK49,Electricity - Bio,2023,0.2247326376682365
-            terraced_house,PRE_TEK49,HP - Bio - Electricity,2023,0.5649908788840201
-            terraced_house,PRE_TEK49,HP - Electricity,2023,0.0992947318980815
-            terraced_house,PRE_TEK49,HP Central heating - Electric boiler,2023,0.0038152903302471
-            terraced_house,TEK49,DH,2023,0.0213315113565833
-            terraced_house,TEK49,DH - Bio,2023,0.0076580066831269
-            terraced_house,TEK49,Electric boiler,2023,0.0256775930931896
-            terraced_house,TEK49,Electric boiler - Solar,2023,0.0003008594060781
-            terraced_house,TEK49,Electricity,2023,0.0521984906804366
-            terraced_house,TEK49,Electricity - Bio,2023,0.2247326376682365
-            terraced_house,TEK49,HP - Bio - Electricity,2023,0.5649908788840201
-            terraced_house,TEK49,HP - Electricity,2023,0.0992947318980815
-            terraced_house,TEK49,HP Central heating - Electric boiler,2023,0.0038152903302471
-            terraced_house,TEK69,DH,2023,0.0213315113565833
-            terraced_house,TEK69,DH - Bio,2023,0.0076580066831269
-            terraced_house,TEK69,Electric boiler,2023,0.0256775930931896
-            terraced_house,TEK69,Electric boiler - Solar,2023,0.0003008594060781
-            terraced_house,TEK69,Electricity,2023,0.0521984906804366
-            terraced_house,TEK69,Electricity - Bio,2023,0.2247326376682365
-            terraced_house,TEK69,HP - Bio - Electricity,2023,0.5649908788840201
-            terraced_house,TEK69,HP - Electricity,2023,0.0992947318980815
-            terraced_house,TEK69,HP Central heating - Electric boiler,2023,0.0038152903302471
-            terraced_house,TEK87,DH,2023,0.0213315113565833
-            terraced_house,TEK87,DH - Bio,2023,0.0076580066831269
-            terraced_house,TEK87,Electric boiler,2023,0.0256775930931896
-            terraced_house,TEK87,Electric boiler - Solar,2023,0.0003008594060781
-            terraced_house,TEK87,Electricity,2023,0.0521984906804366
-            terraced_house,TEK87,Electricity - Bio,2023,0.2247326376682365
-            terraced_house,TEK87,HP - Bio - Electricity,2023,0.5649908788840201
-            terraced_house,TEK87,HP - Electricity,2023,0.0992947318980815
-            terraced_house,TEK87,HP Central heating - Electric boiler,2023,0.0038152903302471
-            terraced_house,TEK97,DH,2023,0.0213315113565833
-            terraced_house,TEK97,DH - Bio,2023,0.0076580066831269
-            terraced_house,TEK97,Electric boiler,2023,0.0256775930931896
-            terraced_house,TEK97,Electric boiler - Solar,2023,0.0003008594060781
-            terraced_house,TEK97,Electricity,2023,0.0521984906804366
-            terraced_house,TEK97,Electricity - Bio,2023,0.2247326376682365
-            terraced_house,TEK97,HP - Bio - Electricity,2023,0.5649908788840201
-            terraced_house,TEK97,HP - Electricity,2023,0.0992947318980815
-            terraced_house,TEK97,HP Central heating - Electric boiler,2023,0.0038152903302471
-            terraced_house,TEK07,DH,2023,0.0213315113565833
-            terraced_house,TEK07,DH - Bio,2023,0.0076580066831269
-            terraced_house,TEK07,Electric boiler,2023,0.0256775930931896
-            terraced_house,TEK07,Electric boiler - Solar,2023,0.0003008594060781
-            terraced_house,TEK07,Electricity,2023,0.0521984906804366
-            terraced_house,TEK07,Electricity - Bio,2023,0.2247326376682365
-            terraced_house,TEK07,HP - Bio - Electricity,2023,0.5649908788840201
-            terraced_house,TEK07,HP - Electricity,2023,0.0992947318980815
-            terraced_house,TEK07,HP Central heating - Electric boiler,2023,0.0038152903302471
-            terraced_house,TEK10,DH,2023,0.0213315113565833
-            terraced_house,TEK10,DH - Bio,2023,0.0076580066831269
-            terraced_house,TEK10,Electric boiler,2023,0.0256775930931896
-            terraced_house,TEK10,Electric boiler - Solar,2023,0.0003008594060781
-            terraced_house,TEK10,Electricity,2023,0.0521984906804366
-            terraced_house,TEK10,Electricity - Bio,2023,0.2247326376682365
-            terraced_house,TEK10,HP - Bio - Electricity,2023,0.5649908788840201
-            terraced_house,TEK10,HP - Electricity,2023,0.0992947318980815
-            terraced_house,TEK10,HP Central heating - Electric boiler,2023,0.0038152903302471
-            terraced_house,TEK17,DH,2023,0.0213315113565833
-            terraced_house,TEK17,DH - Bio,2023,0.0076580066831269
-            terraced_house,TEK17,Electric boiler,2023,0.0256775930931896
-            terraced_house,TEK17,Electric boiler - Solar,2023,0.0003008594060781
-            terraced_house,TEK17,Electricity,2023,0.0521984906804366
-            terraced_house,TEK17,Electricity - Bio,2023,0.2247326376682365
-            terraced_house,TEK17,HP - Bio - Electricity,2023,0.5649908788840201
-            terraced_house,TEK17,HP - Electricity,2023,0.0992947318980815
-            terraced_house,TEK17,HP Central heating - Electric boiler,2023,0.0038152903302471
-            prison,PRE_TEK49,DH,2023,0.318
-            prison,PRE_TEK49,Electric boiler,2023,0.06
-            prison,PRE_TEK49,Electricity,2023,0.071
-            prison,PRE_TEK49,Electricity - Bio,2023,0.022
-            prison,PRE_TEK49,Gas,2023,0.002
-            prison,PRE_TEK49,HP - Electricity,2023,0.163
-            prison,PRE_TEK49,HP Central heating - Electric boiler,2023,0.364
-            prison,TEK49,DH,2023,0.318
-            prison,TEK49,Electric boiler,2023,0.06
-            prison,TEK49,Electricity,2023,0.071
-            prison,TEK49,Electricity - Bio,2023,0.022
-            prison,TEK49,Gas,2023,0.002
-            prison,TEK49,HP - Electricity,2023,0.163
-            prison,TEK49,HP Central heating - Electric boiler,2023,0.364
-            prison,TEK69,DH,2023,0.318
-            prison,TEK69,Electric boiler,2023,0.06
-            prison,TEK69,Electricity,2023,0.071
-            prison,TEK69,Electricity - Bio,2023,0.022
-            prison,TEK69,Gas,2023,0.002
-            prison,TEK69,HP - Electricity,2023,0.163
-            prison,TEK69,HP Central heating - Electric boiler,2023,0.364
-            prison,TEK87,DH,2023,0.318
-            prison,TEK87,Electric boiler,2023,0.06
-            prison,TEK87,Electricity,2023,0.071
-            prison,TEK87,Electricity - Bio,2023,0.022
-            prison,TEK87,Gas,2023,0.002
-            prison,TEK87,HP - Electricity,2023,0.163
-            prison,TEK87,HP Central heating - Electric boiler,2023,0.364
-            prison,TEK97,DH,2023,0.318
-            prison,TEK97,Electric boiler,2023,0.06
-            prison,TEK97,Electricity,2023,0.071
-            prison,TEK97,Electricity - Bio,2023,0.022
-            prison,TEK97,Gas,2023,0.002
-            prison,TEK97,HP - Electricity,2023,0.163
-            prison,TEK97,HP Central heating - Electric boiler,2023,0.364
-            prison,TEK07,DH,2023,0.318
-            prison,TEK07,Electric boiler,2023,0.06
-            prison,TEK07,Electricity,2023,0.071
-            prison,TEK07,Electricity - Bio,2023,0.022
-            prison,TEK07,Gas,2023,0.002
-            prison,TEK07,HP - Electricity,2023,0.163
-            prison,TEK07,HP Central heating - Electric boiler,2023,0.364
-            prison,TEK10,DH,2023,0.318
-            prison,TEK10,Electric boiler,2023,0.06
-            prison,TEK10,Electricity,2023,0.071
-            prison,TEK10,Electricity - Bio,2023,0.022
-            prison,TEK10,Gas,2023,0.002
-            prison,TEK10,HP - Electricity,2023,0.163
-            prison,TEK10,HP Central heating - Electric boiler,2023,0.364
-            prison,TEK17,DH,2023,0.318
-            prison,TEK17,Electric boiler,2023,0.06
-            prison,TEK17,Electricity,2023,0.071
-            prison,TEK17,Electricity - Bio,2023,0.022
-            prison,TEK17,Gas,2023,0.002
-            prison,TEK17,HP - Electricity,2023,0.163
-            prison,TEK17,HP Central heating - Electric boiler,2023,0.364
+            terraced_house,default,DH,2023,0.0213315113565833
+            terraced_house,default,DH - Bio,2023,0.0076580066831269
+            terraced_house,default,Electric boiler,2023,0.0256775930931896
+            terraced_house,default,Electric boiler - Solar,2023,0.0003008594060781
+            terraced_house,default,Electricity,2023,0.0521984906804366
+            terraced_house,default,Electricity - Bio,2023,0.2247326376682365
+            terraced_house,default,HP - Bio - Electricity,2023,0.5649908788840201
+            terraced_house,default,HP - Electricity,2023,0.0992947318980815
+            terraced_house,default,HP Central heating - Electric boiler,2023,0.0038152903302471
+            prison,default,DH,2023,0.318
+            prison,default,Electric boiler,2023,0.06
+            prison,default,Electricity,2023,0.071
+            prison,default,Electricity - Bio,2023,0.022
+            prison,default,Gas,2023,0.002
+            prison,default,HP - Electricity,2023,0.163
+            prison,default,HP Central heating - Electric boiler,2023,0.364
+
 
    .. tab:: formatted table
 
@@ -531,6 +419,14 @@ Residential construction
 
 Residential require definitions for yearly share of building category and the average floor area of new buildings. These are defined in |new_buildings_residential_ref| and |area_new_residential_buildings_ref| in |user_case_bc|. The files must have definitions for the new terraced_house building category.
 
+Define avarage floor area and building category share
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Share of new terraced house buildings and average floor area for terraced house are defined in two new columns. The columns must be named *new_terraced_house_share* and *floor_area_new_terraced_house*.
+
+*new_terraced_house_share* is a value between 0.0 and 1.0. The sum of *new_house_share*, *new_terraced_house_share* and *new_apartment_block_share* should be equal to 1.0 for each year. Any positive value will work for *floor_area_new_terraced_house*. The values in the example below are not based on any real data.
+
+
 .. tabs::
 
    .. tab:: formatted tableø
@@ -590,6 +486,8 @@ Residential require definitions for yearly share of building category and the av
 
         Download `new_buildings_residential.csv <../_static/user_case/custom_building_category/new_buildings_residential.csv>`_.
 
+Define counstruction in the first two years
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Define construction in the first two years of the model in |area_new_residential_buildings_ref|. The file must have definitions for the new terraced_house building category.
 
@@ -625,7 +523,6 @@ Define construction in the first two years of the model in |area_new_residential
       Download `area_new_residential_buildings.csv <../_static/user_case/custom_building_category/area_new_residential_buildings.csv>`_.
 
 
-
 Run the model
 ----------------
 
@@ -637,6 +534,186 @@ Once you have adapted all the input files listed abouve, you can run the model u
 
 The model results can be found in the subdirectory named |output_directory|.
 
+
+
+.. admonition:: Endringsforslag
+
+   Dette begynner å bli langt. Skulle innholdet vært fordelt over flere sider?
+
+
+Optional input files
+--------------------
+
+All the files listed so far must include the new building categories. There are also some input file that you can add
+the new building categories to if deemed necessary.
+
+
+Heating system transitions
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Heating system forcast is defined in |heating_system_forecast_ref| in |user_case_bc|. The file should have definitions for
+the new terraced_house building category. Prison is already covered by ``non_residential`` and does not need to be added.
+
+
+.. tabs::
+
+   .. tab:: Summary table
+
+        .. csv-table:: Summary heating_system_forecast.csv
+           :header: building_category,building_code,heating_systems,new_heating_systems,2024,…,2030
+
+            terraced_house,default,HP Central heating - Gas,HP Central heating - Electric boiler,0.2,…,1.0
+            terraced_house,default,Electricity - Bio,HP - Bio - Electricity,0.03,…,0.24375
+
+   .. tab:: formatted table
+
+      You should be able to paste the content of this table into |heating_system_forecast_ref| when using Excel
+
+      .. csv-table:: Content heating_system_forecast.csv
+           :file: ../_static/user_case/custom_building_category/heating_system_forecast.csv
+           :header-rows: 1
+
+
+   .. tab:: raw csv
+
+      You can add the raw csv content at the end of |heating_system_forecast_ref| using notepad or a similar text editor.
+
+        .. literalinclude:: ../_static/user_case/custom_building_category/heating_system_forecast.csv
+           :language: csv
+
+   .. tab:: Download
+
+      Download `heating_system_forecast.csv <../_static/user_case/custom_building_category/heating_system_forecast.csv>`_.
+
+
+Building condition improvements
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The new building categories are already covered by |improvement_building_upgrade_ref| using the ``default`` building category. There is
+no need to add the new building categories to this file unless you want to define specific improvements
+
+.. tabs::
+
+   .. tab:: formatted table
+
+      .. csv-table:: Content improvement_building_upgrade.csv
+          :file: ../_static/user_case/custom_building_category/improvement_building_upgrade.csv
+          :header-rows: 1
+
+
+
+Behaviour factor
+^^^^^^^^^^^^^^^^
+
+Behaviour factor already defines values by using ``residential`` and ``non_residential``. Any missing combination of
+building category, building code an purpose missing in this file will have the behaviour factor set to ``1.0``.
+
+
+.. tabs::
+
+   .. tab:: formatted table
+
+      .. csv-table:: Content energy_need_behaviour_factor.csv
+
+         :header: building_category,building_code,purpose,behaviour_factor,start_year,end_year
+            residential,default,default,1,2020,
+            house,PRE_TEK49+TEK69+TEK87+TEK49+TEK97,default,0.9,2020,
+            house,default,lighting,0.85,2020,
+            non_residential,default,default,1.06,2020,
+            retail,default,electrical_equipment,2,2020,
+
+
+If you want ``terraced_house`` to have the same behaviour factor as ``house`` you can replace ``house`` with ``house+terraced_house`` in the building_category column of |energy_need_behaviour_factor_ref| in |user_case_bc|. The file should then look like the example below.
+
+.. tabs::
+
+   .. tab:: formatted table
+
+      You should be able to paste the content of this table into |energy_need_behaviour_factor_ref| when using Excel
+
+      .. csv-table:: Content energy_need_behaviour_factor.csv
+          :file: ../_static/user_case/custom_building_category/energy_need_behaviour_factor.csv
+          :header-rows: 1
+
+   .. tab:: raw csv
+
+      You can add the raw csv content at the end of |energy_need_behaviour_factor_ref| using notepad or a similar text editor.
+
+        .. literalinclude:: ../_static/user_case/custom_building_category/energy_need_behaviour_factor.csv
+           :language: csv
+
+   .. tab:: Download
+
+      Download `energy_need_behaviour_factor.csv <../_static/user_case/custom_building_category/energy_need_behaviour_factor.csv>`_.
+
+
+Calibration files
+-----------------
+
+heating_rv
+^^^^^^^^^^
+
+The content of ``calibrate_heating_rv.csv`` is the same as the default value of ``1.0`` for all building categories and building codes. If you want to calibrate differently the new building categories, you can add them to the file in |user_case_bc|.
+
+.. tabs::
+
+   .. tab:: formatted table
+
+      .. csv-table:: Content calibrate_heating_rv.csv
+          :file: ../_static/user_case/custom_building_category/calibrate_heating_rv.csv
+          :header-rows: 1
+
+
+energy consumption
+^^^^^^^^^^^^^^^^^^
+
+If you want ``terraced_house`` to have the same calibration factor as ``house``, you can replace ``house`` with ``house+terraced_house`` in the building_category column of ``calibrate_energy_consumption.csv`` in |user_case_bc|. The file should then look like the example below.
+
+.. tabs::
+
+   .. tab:: Summmary
+
+      .. csv-table:: Content calibrate_heating_rv.csv
+
+         :header: building_category,to,from,factor
+            house+terraced_house,Electric boiler,Electricity,1
+            house+terraced_house,DH,Electricity - Bio,0.45
+            house+terraced_house,Electricity,HP - Bio - Electricity,0.9
+            house+terraced_house,Electricity,HP - Electricity,1
+            house+terraced_house,Gas,HP - Electricity,1
+            house+terraced_house,Electricity - Bio,Electricity,0.81
+            house+terraced_house,Electricity - Bio,HP - Electricity,0.75
+            house+terraced_house,HP - Bio - Electricity,Electricity - Bio,0.95
+            house+terraced_house,DH - Bio,Electricity,1
+            house+terraced_house,HP - Bio - Electricity,Electricity,0.98
+            house+terraced_house,HP - Electricity,Electricity,1
+            house+terraced_house,HP Central heating - Bio,Electric boiler,1
+            house+terraced_house,HP Central heating - Electric boiler,Electric boiler,0.5
+            house+terraced_house,HP Central heating - Gas,Electric boiler,1
+            house+terraced_house,Electric boiler - Solar,Electric boiler,1
+            apartment_block,Electric boiler,HP Central heating - Electric boiler,0.4
+            …,…,…,…
+
+   .. tab:: formatted table
+
+      .. csv-table:: Content calibrate_energy_consumption.csv
+          :file: ../_static/user_case/custom_building_category/calibrate_energy_consumption.csv
+          :header-rows: 1
+
+   .. tab:: Download
+
+      Download `calibrate_energy_consumption.csv <../_static/user_case/custom_building_category/calibrate_energy_consumption.csv>`_.
+
+Re-run the model
+----------------
+
+.. code-block:: powershell
+
+   ebm --input=extra-building-categories --open
+
+
+.. tip::
+   You can use ``--open`` to have EBM automatically open the output files.
 
 
 

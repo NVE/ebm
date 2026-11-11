@@ -36,6 +36,11 @@ The following files contain definitions for building categories and may be updat
  - calibration files
 
 
+.. note::
+
+    These instructions are made for 1.3.0 and later. :ref:`What version of ebm are we running? <What version of ebm are we running?>`
+
+
 Create a new input directory
 ----------------------------
 
@@ -78,7 +83,8 @@ It is necessary to create a new input directory for EBM. To do this, open your p
 The input directory is created based on the dataset ``short_analysis_2025``. The new input files will be copied to the subdirectory, |user_case_bc|, as defined by the ``--input`` option.
 
 .. seealso::
-    :doc:`Working with input<working_with_input>` for more information on creating and using input directories in EBM.
+
+    Refer to :doc:`Working with input <working_with_input>` for more information on creating and using input directories in EBM.
 
 
 Update building category listing

@@ -46,9 +46,10 @@ Install ebm using pip
 
 
 
+
 What version of ebm are we running?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+.. _What version of ebm are we running?:
 Once installed, you need to setup input files with all the parameters required to  run ``EBM``. But before we do that, let's
 check if ebm is working properly. Open a terminal (powershell) and type:
 

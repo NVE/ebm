@@ -117,6 +117,16 @@ def test_area_parameters_building_categories():
 
     area.validate(df)
 
+def test_area_should_not_allow_plus_in_name():
+    """ Test that area validator does not allow building categories with a plus sign in the name.
+
+        Area does not support expansion for building_category and building_code.
+    """
+    df = pd.DataFrame(data=[('house+apartment', 'TEK10', 10000)], columns=['building_category', 'building_code', 'area'])
+
+    with pytest.raises(pa.errors.SchemaError):
+        area.validate(df)
+
 @pytest.mark.parametrize(
     ('category', 'group'),
     [
@@ -758,6 +768,34 @@ university,TEK97,HP Central heating - Gas,2023,0.0000719616069676
 """.strip()), skipinitialspace=True)
     
     heating_system_initial_shares.validate(shares_start_year)
+
+
+def test_heating_system_initial_shares_allow_plus_in_building_category():
+    shares_start_year = pd.read_csv(
+        io.StringIO(
+            """
+building_category,building_code,heating_systems,year,heating_system_share
+apartment_block+house,TEK17,DH,2023,1.0                                                                                                                                             
+""".strip()
+        ),
+        skipinitialspace=True,
+    )
+
+    df = heating_system_initial_shares.validate(shares_start_year)
+
+    expected = pd.DataFrame({
+            'building_category': ['apartment_block+house'],
+            'building_code': ['TEK17'],
+            'heating_systems': ['DH'],
+            'year': [2023],
+            'heating_system_share': [1.0]
+        })
+
+    pd.testing.assert_frame_equal(
+        df,
+        expected,
+    )
+
 
 @pytest.mark.parametrize('illegal_building_category', ['små hus', 'villa villa', 'holiday_home', 'holiday_homes'])
 def test_heating_systems_validation_failure_on_illegal_building_category(illegal_building_category):

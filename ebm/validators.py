@@ -22,6 +22,8 @@ from ebm.model.data_classes import YearRange
 from ebm.model.energy_purpose import EnergyPurpose
 from ebm.model.heating_systems import HeatingSystems
 
+check_building_category_name_single = pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$")
+check_building_category_name_with_expansion = pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_\+]+$")
 
 def check_building_category(value: pd.Series) -> pd.Series:
     """
@@ -412,7 +414,7 @@ area = pa.DataFrameSchema(
     columns={
         "building_category": pa.Column(str, checks=[
             pa.Check(check_not_holiday_home),
-            pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$"),
+            check_building_category_name_single,
         ]),
         'building_code': pa.Column(str, checks=[pa.Check(check_building_code, element_wise=True)]),
         "area": pa.Column(float, checks=[pa.Check.greater_than_or_equal_to(0)], coerce=True)},
@@ -424,7 +426,7 @@ area = pa.DataFrameSchema(
 building_category = pa.DataFrameSchema(
     columns={
         "building_category": pa.Column(str, checks=[
-            pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$"),
+            check_building_category_name_single,
         ]),
         'building_group': pa.Column(str, checks=[pa.Check(check_building_group)]),
     },
@@ -495,7 +497,7 @@ s_curve = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=[
             pa.Check(check_not_holiday_home),
-            pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$"),
+            check_building_category_name_with_expansion,
         ]),
         'condition': pa.Column(str, checks=[pa.Check(check_building_condition)]),
         'earliest_age_for_measure': pa.Column(int, checks=[pa.Check.greater_than(0)]),
@@ -512,7 +514,7 @@ energy_need_original_condition = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=[
             pa.Check(check_default_building_category),
-            pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$"),
+            check_building_category_name_with_expansion,
         ]),
         'building_code': pa.Column(str, checks=[pa.Check(check_default_building_code, element_wise=True)]),
         'purpose': pa.Column(str, checks=[pa.Check(check_default_energy_purpose)]),
@@ -527,7 +529,7 @@ improvement_building_upgrade = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=[
             pa.Check(check_default_building_category),
-            pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$")
+            check_building_category_name_with_expansion
         ]),
         'building_code': pa.Column(str, checks=pa.Check(check_default_building_code, element_wise=True)),
         'purpose': pa.Column(str, checks=pa.Check(check_default_energy_purpose)),
@@ -587,7 +589,7 @@ area_per_person = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, nullable=True, coerce=True, checks=[
             pa.Check(check_not_holiday_home),
-            pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$"),
+            check_building_category_name_with_expansion,
 
         ]),
         'area_per_person': pa.Column(float, nullable=True, coerce=True),
@@ -598,7 +600,7 @@ heating_system_initial_shares = pa.DataFrameSchema(
     columns={
         'building_category': pa.Column(str, checks=[
             pa.Check(check_not_holiday_home),
-            pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$"),
+            check_building_category_name_with_expansion,
         ]),
         'building_code': pa.Column(str, checks=pa.Check(check_default_building_code, element_wise=True)),
         'heating_systems': pa.Column(str, checks=pa.Check(check_heating_systems)),
@@ -625,7 +627,7 @@ heating_system_forecast = pa.DataFrameSchema(
         'building_category': pa.Column(str,
                                        checks=[
                                            pa.Check(check_default_building_category_with_group),
-                                           pa.Check.str_matches(r"^[A-Za-zÆØÅæøå_]+$"),
+                                           check_building_category_name_with_expansion,
                                        ]),
         'building_code': pa.Column(str, checks=pa.Check(check_default_building_code, element_wise=True)),
         'heating_systems': pa.Column(str, checks=pa.Check(check_heating_systems)),

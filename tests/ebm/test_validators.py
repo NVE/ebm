@@ -731,7 +731,7 @@ hospital,0.6
 university,0.6"""
     area_per_person.validate(pd.read_csv(io.StringIO(area_per_person_csv)))
 
-@pytest.mark.parametrize('illegal_building_category', ['små hus', 'villa villa', 'holiday_home', 'holiday_homes'])
+@pytest.mark.parametrize('illegal_building_category', ['små hus', 'villa villa', 'holiday_home', 'holiday_homes', 'default', 'residential'])
 def test_area_per_person_raises_schema_error(illegal_building_category):
     area_per_person_csv = f"""building_category,area_per_person
 {illegal_building_category},0.6

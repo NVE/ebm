@@ -41,6 +41,41 @@ def check_building_category(value: pd.Series) -> pd.Series:
     """
     return value.isin(list(BuildingCategory) + ['holiday_home'] + ['prison'])
 
+
+def check_not_residential(value: pd.Series) -> pd.Series:
+    """
+    Makes sure that the series value does not contain 'residential'
+
+    Parameters
+    ----------
+    value: pd.Series
+        A series of str that will be checked against BuildingCategory
+
+    Returns
+    -------
+    pd.Series of bool values
+
+    """
+    return ~value.isin(['residential'])
+
+
+def check_not_default(value: pd.Series) -> pd.Series:
+    """
+    Makes sure that the series value does not contain 'default'
+
+    Parameters
+    ----------
+    value: pd.Series
+        A series of str that will be checked against BuildingCategory
+
+    Returns
+    -------
+    pd.Series of bool values
+
+    """
+    return ~value.isin(['default'])
+
+
 def check_not_holiday_home(value: pd.Series) -> pd.Series:
     """
     Makes sure that the series value does not contain values that are corresponding to a BuildingCategory 'holiday_home'
@@ -590,6 +625,8 @@ area_per_person = pa.DataFrameSchema(
         'building_category': pa.Column(str, nullable=True, coerce=True, checks=[
             pa.Check(check_not_holiday_home),
             check_building_category_name_with_expansion,
+            pa.Check(check_not_default),
+            pa.Check(check_not_residential),
 
         ]),
         'area_per_person': pa.Column(float, nullable=True, coerce=True),

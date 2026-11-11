@@ -562,11 +562,20 @@ class DatabaseManager:
             float values indexed by building_category, (year)
         """
         df = self.file_handler.get_area_per_person()
-        df = df.set_index('building_category')
+        exploded = df.pipe(add_lineno).pipe(explode_on_plus, 'building_category')
+        aliases = self.get_building_category_alias()
+        merged = aliases.merge(exploded,
+                               how='inner',
+                               left_on='building_category_alias',
+                               right_on='building_category',
+                               suffixes=['', '_definition'])
+
+        deduped = merged.drop_duplicates(subset=['building_category', 'lineno'], keep='last')
+        indexed = deduped.set_index('building_category')
 
         if building_category:
-            return df.area_per_person.loc[building_category]
-        return df.area_per_person
+            return indexed.area_per_person.loc[building_category]
+        return indexed.area_per_person
 
     def get_heating_system_initial_shares(self) -> pd.DataFrame:
         """

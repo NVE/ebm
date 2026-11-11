@@ -44,26 +44,54 @@ def test_get_new_buildings_residential_rename_flood_area_new_apartment_block(flo
     pd.testing.assert_frame_equal(actual, expected)
 
 
-def test_get_area_per_person():
+def test_get_area_per_person(simple_file_handler: FileHandler):
     area_per_person = pd.DataFrame({
-        'building_category': {0: 'kindergarten', 1: 'retail'},
+        'building_category': {0: 'jail', 1: 'kindergarten'},
         'area_per_person': {0: 0.6, 1: 6.0}})
 
-    fh = FileHandler()
-    fh.get_area_per_person = Mock(return_value=area_per_person)
-    dm = DatabaseManager(file_handler=fh)
+
+    simple_file_handler.get_area_per_person = Mock(return_value=area_per_person)
+    dm = DatabaseManager(file_handler=simple_file_handler)
 
     result = dm.get_area_per_person()
     expected = pd.Series([0.6, 6.0],
                          name='area_per_person',
-                         index=pd.Index(['kindergarten', 'retail'], name='building_category'))
+                         index=pd.Index(['jail', 'kindergarten'], name='building_category'))
 
     pd.testing.assert_series_equal(result, expected)
 
-    expected = np.float64(6.0)
+    expected = np.float64(0.6)
 
-    retail = dm.get_area_per_person(building_category=BuildingCategory.RETAIL)
+    jail = dm.get_area_per_person(building_category='jail')
+    assert jail == expected
+
+
+@pytest.mark.parametrize('definition', [
+    'jail+kindergarten',
+    'non_residential',
+    'non_residential+jail',
+])
+def test_get_area_per_person_explode_building_category_on_plus(
+        definition: str, simple_file_handler: FileHandler):
+    area_per_person = pd.DataFrame({
+        'building_category': {0: definition},
+        'area_per_person': {0: 0.6}})
+
+    simple_file_handler.get_area_per_person = Mock(return_value=area_per_person)
+    dm = DatabaseManager(file_handler=simple_file_handler)
+
+    result = dm.get_area_per_person()
+    expected = pd.Series([0.6, 0.6],
+                         name='area_per_person',
+                         index=pd.Index(['jail', 'kindergarten'], name='building_category'))
+
+    pd.testing.assert_series_equal(result, expected)
+
+    expected = np.float64(0.6)
+
+    retail = dm.get_area_per_person(building_category='jail')
     assert retail == expected
+
 
 
 def test_get_energy_need_yearly_improvements():
@@ -228,7 +256,7 @@ def test_get_get_energy_req_original_condition_expand_unique_columns():
     pd.testing.assert_frame_equal(result, expected, check_like=True)
 
 @pytest.fixture
-def simple_file_handler():
+def simple_file_handler() -> FileHandler:
     mock_file_handler = Mock(spec=FileHandler)
     mock_file_handler.get_building_category.return_value=pd.DataFrame(
         {
@@ -688,7 +716,7 @@ kindergarten,TEK01,Gas,DH,0.05,0.075
     pd.testing.assert_frame_equal(actual.reset_index(drop=True), expected)
 
 
-def test_behaviour_factor_explode_on_plus(simple_file_handler):
+def test_behaviour_factor_explode_on_plus(simple_file_handler: FileHandler):
     behaviour_factor_df = pd.DataFrame(
         [
             ['default', 'default', 'default', 0.42, None, None],

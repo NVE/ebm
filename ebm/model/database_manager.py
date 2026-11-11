@@ -119,15 +119,55 @@ class DatabaseManager:
         return building_code_params_df
 
 
-    def get_scurve_params(self):
+    def get_scurve_params(self) -> pd.DataFrame:
         """
         Get input dataframe with S-curve parameters/assumptions.
 
-        Returns:
-        - scurve_params (pd.DataFrame): DataFrame with S-curve parameters.
+         - Explodes building_category and condition columns on '+' to create all combinations of building_category and condition.
+         - Expands default, non_residential, and residential building categories to their respective aliases.
+         - Expands default conditions to demolition, small_measure, and renovation conditions.
+         - Prefer the last definition on duplicates.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame with S-curve parameters.
+
+            columns:
+
+                - building_category
+                - condition
+                - earliest_age_for_measure
+                - average_age_for_measure
+                - rush_period_years
+                - last_age_for_measure
+                - rush_share
+                - never_share
         """
         scurve_params = self.file_handler.get_s_curve()
-        return scurve_params
+
+        exploded = scurve_params.pipe(add_lineno).pipe(explode_on_plus, 'building_category').pipe(explode_on_plus, 'condition')
+        condition_alias = self.get_building_condition_alias().query('building_condition.isin(["demolition", "small_measure", "renovation"])')
+        building_category_alias = self.get_building_category_alias()
+        aliases = building_category_alias.merge(condition_alias, how='cross')
+
+        inner_merged = exploded.merge(aliases, how='inner',
+                               right_on=['building_category_alias', 'building_condition_alias'],
+                               left_on=['building_category', 'condition'],
+                               suffixes=['_definition',''])
+
+        deduped = inner_merged.drop_duplicates(subset=['building_category', 'building_condition'], keep='last')
+        deduped = deduped.assign(condition=deduped['building_condition'])
+
+        return deduped[['building_category',
+                        'condition',
+                        'earliest_age_for_measure',
+                        'average_age_for_measure',
+                        'rush_period_years',
+                        'last_age_for_measure',
+                        'rush_share',
+                        'never_share',
+                        ]]
 
     def get_construction_population(self) -> pd.DataFrame:
         """

@@ -44,6 +44,135 @@ def test_get_new_buildings_residential_rename_flood_area_new_apartment_block(flo
     pd.testing.assert_frame_equal(actual, expected)
 
 
+@pytest.mark.parametrize('building_category, expected_building_category, condition, expected_condition', [
+    pytest.param('jail+kindergarten', ['jail', 'jail', 'kindergarten', 'kindergarten'],
+                 'small_measure+demolition', ['small_measure', 'demolition', 'small_measure', 'demolition'],
+                 id='dual_plus'),
+    pytest.param('default',
+                 ['big_house', 'house', 'jail', 'kindergarten'],
+                 'small_measure',
+                 ['small_measure', 'small_measure', 'small_measure', 'small_measure'],
+                 id='building_category_default'),
+    pytest.param('kindergarten',
+                 ['kindergarten', 'kindergarten', 'kindergarten'],
+                 'default',
+                 ['small_measure', 'renovation', 'demolition'],
+                id='condition_default'),
+    pytest.param('house',
+                 ['house', 'house', 'house'],
+                 'default',
+                 ['small_measure', 'renovation', 'demolition'],
+                 id='condition_default'),
+    pytest.param('big_house',
+                 ['big_house'],
+                 'renovation+renovation',
+                 ['renovation'],
+                 id='condition_plus'),
+    pytest.param('residential',
+                 ['big_house', 'house'],
+                 'renovation',
+                 ['renovation', 'renovation'],
+                 id='building_category_residential'),
+    pytest.param('non_residential+kindergarten',
+                 ['jail', 'kindergarten'],
+                 'demolition',
+                 ['demolition', 'demolition'],
+                 id='building_category_non_residential'),
+    pytest.param('non_residential+non_residential+jail+kindergarten',
+                 ['jail', 'kindergarten'],
+                 'demolition',
+                 ['demolition', 'demolition'],
+                 id='duplicate_non_residential'),
+])
+def test_get_scurve_params_explode_plus(simple_file_handler: FileHandler, building_category, expected_building_category, condition, expected_condition):
+    s_curve = pd.DataFrame({
+        'building_category': [building_category],
+        'condition': [condition],
+        'earliest_age_for_measure': [10],
+        'average_age_for_measure': [2.0],
+        'rush_period_years': [3.0],
+        'last_age_for_measure': [3.0],
+        'rush_share': [3.0],
+        'never_share': [3.0],
+    }
+    )
+    simple_file_handler.get_s_curve = Mock(return_value=s_curve)
+    dm = DatabaseManager(file_handler=simple_file_handler)
+
+    res = dm.get_scurve_params().reset_index(drop=True)
+    expected= pd.DataFrame({
+        'building_category': expected_building_category,
+        'condition': expected_condition,
+        'earliest_age_for_measure': [10]*len(expected_building_category),
+    })
+
+    pd.testing.assert_frame_equal(res[['building_category', 'condition', 'earliest_age_for_measure']], expected, check_like=True)
+
+
+def test_get_scurve_params_keep_last_definition_on_duplicates(simple_file_handler: FileHandler):
+    s_curve= pd.DataFrame({
+        'building_category': ['jail', 'jail',],
+        'condition': ['small_measure', 'small_measure',],
+        'earliest_age_for_measure': [1, 2, ],
+        'average_age_for_measure': [1.0, 2.0, ],
+        'rush_period_years': [1.0, 2.0, ],
+        'last_age_for_measure': [1.0, 2.0,],
+        'rush_share': [1.0, 2.0, ],
+        'never_share': [1.0, 2.0, ],
+    })
+    
+    simple_file_handler.get_s_curve = Mock(return_value=s_curve)
+    dm = DatabaseManager(file_handler=simple_file_handler)
+
+    res = dm.get_scurve_params().reset_index(drop=True)
+    expected = pd.DataFrame({
+            'building_category': ['jail'],
+            'condition': ['small_measure'],
+            'earliest_age_for_measure': [2],
+        }
+    )
+
+    pd.testing.assert_frame_equal(res[['building_category', 'condition', 'earliest_age_for_measure']], expected, check_like=True)
+
+
+def test_get_scurve_params_keep_last_definition_on_duplicates_when_mixing_building_category_and_building_group(simple_file_handler: FileHandler):
+    """
+    This test checks that when there are duplicates, the last definition is kept. The last definition is determined by
+    the lineno column, which is added by add_lineno. The test checks that the result is sorted by lineno before dropping
+    duplicates. There is an issue where the result is not ordered correctly. Possiby related to merge order.
+    """
+
+    s_curve = pd.read_csv(io.StringIO("""
+building_category,condition,earliest_age_for_measure,average_age_for_measure,rush_period_years,last_age_for_measure,rush_share,never_share
+culture+hotel+sports+storage_repairs,small_measure,3,20,20,50,0.8,0.01
+default,small_measure,5,25,20,50,0.8,0.01
+default,renovation,5,45,30,80,0.65,0.02
+culture,small_measure,3,25,20,50,0.8,0.01
+culture,renovation,5,45,40,80,0.7,0.05
+sports,renovation,15,70,40,120,0.65,0.05
+culture,demolition,50,100,30,100,0.7,0.1
+non_residential,demolition,50,101,30,130,0.7,0.05
+culture,demolition,50,102,30,100,0.7,0.1
+        """))
+    building_category = pd.read_csv(io.StringIO("""building_category,building_group
+hotel,non_residential
+big_house,residential
+school,non_residential
+university,non_residential
+culture,non_residential
+sports,non_residential
+holiday_home,holiday_homes"""))
+
+    simple_file_handler.get_s_curve = Mock(return_value=s_curve)
+    simple_file_handler.get_building_category = Mock(return_value=building_category)
+    dm = DatabaseManager(file_handler=simple_file_handler)
+
+    culture = dm.get_scurve_params().reset_index(drop=True).set_index(['building_category', 'condition']).loc['culture']
+    assert pytest.approx(culture.loc[('demolition'), 'average_age_for_measure']) == [102]
+    assert pytest.approx(culture.loc[('small_measure'), 'average_age_for_measure']) == [25]
+    assert pytest.approx(culture.loc[('renovation'), 'average_age_for_measure']) == [45]
+
+
 def test_get_area_per_person(simple_file_handler: FileHandler):
     area_per_person = pd.DataFrame({
         'building_category': {0: 'jail', 1: 'kindergarten'},
@@ -91,7 +220,6 @@ def test_get_area_per_person_explode_building_category_on_plus(
 
     retail = dm.get_area_per_person(building_category='jail')
     assert retail == expected
-
 
 
 def test_get_energy_need_yearly_improvements():
@@ -263,7 +391,7 @@ def simple_file_handler() -> FileHandler:
             'building_category': ['big_house', 'house', 'jail', 'kindergarten'],
             'building_group': ['residential', 'residential', 'non_residential', 'non_residential'],
         })
-
+    #pd.DataFrame({'building_condition': building_conditions, 'building_condition_alias': [self.DEFAULT_VALUE] * len(building_conditions)})
     mock_file_handler.get_building_code.return_value = pd.DataFrame(
         {
             'building_code': ['TEK01', 'TEK02']

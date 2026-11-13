@@ -384,11 +384,6 @@ be added to the file |heating_system_initial_shares_ref| in |user_case_bc|.
 
 Both ``terraced_house`` and ``prison`` must be present in |heating_system_initial_shares_ref|.
 
-.. note::
-   As of version 1.2.0, |heating_system_initial_shares_ref| does not support multiple definitions by combining building
-   categories and building codes with ``+``. ``default``, ``non_residential``, and ``residential`` will work.
-
-
 .. tabs::
 
    .. tab:: Summary table

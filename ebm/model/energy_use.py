@@ -48,6 +48,7 @@ def peak_load(heating_systems_projection:pd.DataFrame) -> pd.DataFrame:
     df.loc[:, 'load'] = 'peak'
     df.loc[:, 'purpose'] = 'heating_rv'
     df['heating_system'] = df.heating_systems.apply(lambda s: s.split('-')[1:2]).explode('heating_system')
+    df = df[df['heating_system'].notna()]
     df['heating_system'] = df['heating_system'].str.strip()
     return df
 
@@ -61,6 +62,7 @@ def tertiary_load(heating_systems_projection: pd.DataFrame) ->pd.DataFrame:
     df.loc[:, 'load'] = 'tertiary'
     df.loc[:, 'purpose'] = 'heating_rv'
     df['heating_system'] = df.heating_systems.apply(lambda s: s.split('-')[2:3]).explode('heating_system')
+    df = df[df['heating_system'].notna()]
     df['heating_system'] = df['heating_system'].str.strip()
     return df
 

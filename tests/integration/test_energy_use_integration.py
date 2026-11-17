@@ -2,6 +2,7 @@ import os
 import pathlib
 import sys
 
+import numpy as np
 import pandas as pd
 import pytest
 from loguru import logger
@@ -60,17 +61,7 @@ expected_building_group_energy_use = {
             ('residential', 'Electricity', 2044): 34786775527.04805, ('residential', 'Electricity', 2045): 34708213183.45203,
             ('residential', 'Electricity', 2046): 34589761749.040016, ('residential', 'Electricity', 2047): 34471758702.1105,
             ('residential', 'Electricity', 2048): 34335149779.404625, ('residential', 'Electricity', 2049): 34217253629.19904,
-            ('residential', 'Electricity', 2050): 34092268470.39, ('residential', 'Ingen', 2020): 0.0,
-            ('residential', 'Ingen', 2021): 0.0, ('residential', 'Ingen', 2022): 0.0, ('residential', 'Ingen', 2023): 0.0,
-            ('residential', 'Ingen', 2024): 0.0, ('residential', 'Ingen', 2025): 0.0, ('residential', 'Ingen', 2026): 0.0,
-            ('residential', 'Ingen', 2027): 0.0, ('residential', 'Ingen', 2028): 0.0, ('residential', 'Ingen', 2029): 0.0,
-            ('residential', 'Ingen', 2030): 0.0, ('residential', 'Ingen', 2031): 0.0, ('residential', 'Ingen', 2032): 0.0,
-            ('residential', 'Ingen', 2033): 0.0, ('residential', 'Ingen', 2034): 0.0, ('residential', 'Ingen', 2035): 0.0,
-            ('residential', 'Ingen', 2036): 0.0, ('residential', 'Ingen', 2037): 0.0, ('residential', 'Ingen', 2038): 0.0,
-            ('residential', 'Ingen', 2039): 0.0, ('residential', 'Ingen', 2040): 0.0, ('residential', 'Ingen', 2041): 0.0,
-            ('residential', 'Ingen', 2042): 0.0, ('residential', 'Ingen', 2043): 0.0, ('residential', 'Ingen', 2044): 0.0,
-            ('residential', 'Ingen', 2045): 0.0, ('residential', 'Ingen', 2046): 0.0, ('residential', 'Ingen', 2047): 0.0,
-            ('residential', 'Ingen', 2048): 0.0, ('residential', 'Ingen', 2049): 0.0, ('residential', 'Ingen', 2050): 0.0,
+            ('residential', 'Electricity', 2050): 34092268470.39,
             ('residential', 'Solar', 2020): 2091260.766183585, ('residential', 'Solar', 2021): 2088301.8014598538,
             ('residential', 'Solar', 2022): 2081448.643985017, ('residential', 'Solar', 2023): 2079170.9996649974,
             ('residential', 'Solar', 2024): 2074582.1317013446, ('residential', 'Solar', 2025): 2068490.6376518041,
@@ -152,17 +143,7 @@ expected_building_group_energy_use = {
             ('non_residential', 'Fossil', 2023): 22339423.1518955, ('non_residential', 'Fossil', 2024): 17919320.106229,
             ('non_residential', 'Fossil', 2025): 14955498.53703225, ('non_residential', 'Fossil', 2026): 11969013.472209465,
             ('non_residential', 'Fossil', 2027): 8963499.839415869, ('non_residential', 'Fossil', 2028): 5968539.153594006,
-            ('non_residential', 'Fossil', 2029): 2980818.346081184, ('non_residential', 'Ingen', 2020): 0.0,
-            ('non_residential', 'Ingen', 2021): 0.0, ('non_residential', 'Ingen', 2022): 0.0, ('non_residential', 'Ingen', 2023): 0.0,
-            ('non_residential', 'Ingen', 2024): 0.0, ('non_residential', 'Ingen', 2025): 0.0, ('non_residential', 'Ingen', 2026): 0.0,
-            ('non_residential', 'Ingen', 2027): 0.0, ('non_residential', 'Ingen', 2028): 0.0, ('non_residential', 'Ingen', 2029): 0.0,
-            ('non_residential', 'Ingen', 2030): 0.0, ('non_residential', 'Ingen', 2031): 0.0, ('non_residential', 'Ingen', 2032): 0.0,
-            ('non_residential', 'Ingen', 2033): 0.0, ('non_residential', 'Ingen', 2034): 0.0, ('non_residential', 'Ingen', 2035): 0.0,
-            ('non_residential', 'Ingen', 2036): 0.0, ('non_residential', 'Ingen', 2037): 0.0, ('non_residential', 'Ingen', 2038): 0.0,
-            ('non_residential', 'Ingen', 2039): 0.0, ('non_residential', 'Ingen', 2040): 0.0, ('non_residential', 'Ingen', 2041): 0.0,
-            ('non_residential', 'Ingen', 2042): 0.0, ('non_residential', 'Ingen', 2043): 0.0, ('non_residential', 'Ingen', 2044): 0.0,
-            ('non_residential', 'Ingen', 2045): 0.0, ('non_residential', 'Ingen', 2046): 0.0, ('non_residential', 'Ingen', 2047): 0.0,
-            ('non_residential', 'Ingen', 2048): 0.0, ('non_residential', 'Ingen', 2049): 0.0, ('non_residential', 'Ingen', 2050): 0.0,
+            ('non_residential', 'Fossil', 2029): 2980818.346081184,
             ('non_residential', 'Solar', 2020): 866616.4581550302, ('non_residential', 'Solar', 2021): 864444.5229845959,
             ('non_residential', 'Solar', 2022): 863469.8661415464, ('non_residential', 'Solar', 2023): 864815.182278608,
             ('non_residential', 'Solar', 2024): 866158.4526011569, ('non_residential', 'Solar', 2025): 866613.6179539261,

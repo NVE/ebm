@@ -67,22 +67,15 @@ def test_heating_rv():
 
     expected = pd.DataFrame(
         data=[
-            ['house', 'TEK99', 1977, 'Electric boiler', 'Electric boiler',
-             0.4, 1.0, 0.97, 'Electricity', 'base', 'heating_rv'],
-            ['house', 'TEK99', 1977, 'HP - Bio - Electricity', 'HP',
-             0.5, 0.6, 4.2, 'Electricity', 'base', 'heating_rv'],
-            ['house', 'TEK99', 1977, 'Electric boiler', np.nan,
-             0.4, 0.0, 1.0, 'Ingen', 'peak', 'heating_rv'],
-            ['house', 'TEK99', 1977, 'HP - Bio - Electricity', 'Bio',
-             0.5, 0.3, 0.68, 'Bio', 'peak', 'heating_rv'],
-            ['house', 'TEK99', 1977, 'Electric boiler', np.nan,
-             0.4, 0.0, 1.0, 'Ingen', 'tertiary', 'heating_rv'],
-            ['house', 'TEK99', 1977, 'HP - Bio - Electricity', 'Electricity',
-             0.5, 0.1, 0.99, 'Electricity', 'tertiary', 'heating_rv'],],
+            ['house', 'TEK99', 1977, 'Electric boiler', 'Electric boiler', 0.4, 1.0, 0.97, 'Electricity', 'base', 'heating_rv'],
+            ['house', 'TEK99', 1977, 'HP - Bio - Electricity', 'HP', 0.5, 0.6, 4.2, 'Electricity', 'base', 'heating_rv'],
+            ['house', 'TEK99', 1977, 'HP - Bio - Electricity', 'Bio', 0.5, 0.3, 0.68, 'Bio', 'peak', 'heating_rv'],
+            ['house', 'TEK99', 1977, 'HP - Bio - Electricity', 'Electricity', 0.5, 0.1, 0.99, 'Electricity', 'tertiary', 'heating_rv'],],
+
         columns=['building_category','building_code','year','heating_systems','heating_system',
                  'heating_system_share', 'load_share','load_efficiency','energy_product','load','purpose'])
 
-    assert len(result) == 6
+    assert len(result) == 4
 
     pd.testing.assert_frame_equal(result , expected)
 
@@ -362,3 +355,42 @@ def test_efficiency_kwh_raise_value_error_on_mismatching_index(
                                   heating_system_share=pd.Series([0.4, 0.6], index=pd.Index(heating_system_share)),
                                   load_share=pd.Series([0.4, 0.6], index=pd.Index(load_share)),
                                   load_efficiency=pd.Series([0.4, 0.6], index=pd.Index(load_efficiency)))
+
+def test_peak_load_drop_rows_with_no_heating_system():
+    hsp = pd.DataFrame(
+        {
+            'building_category': ['apartment_block', 'apartment_block'],
+            'building_code': ['PRE_TEK49', 'PRE_TEK49'],
+            'year': [2020, 2020],
+            'heating_systems': ['DH', 'DH - Bio'],
+            'heating_system_share': [0.1137174722481208, 0.0033946606308616],
+            'peak_load_coverage': [0.0, 0.05],
+            'peak_load_efficiency': [1.0, 0.65],
+            'peak_load_energy_product': ['Ingen', 'Bio'],
+            'heating_system': ['-', '-'],
+        }
+    )
+
+    res = energy_use.peak_load(hsp)
+
+    assert res['heating_systems'].tolist() == ['DH - Bio']
+
+
+def  test_tertiary_load_drops_rows_with_no_heating_system():
+    hsp = pd.DataFrame(
+        {
+            'building_category': ['house', 'house'],
+            'building_code': ['PRE_TEK49', 'PRE_TEK49'],
+            'year': [2020, 2020],
+            'heating_systems': ['Electricity - Bio', 'HP - Bio - Electricity'],
+            'heating_system_share': [0.1775387837579069, 0.5197916085732984],
+            'tertiary_load_coverage': [0.3, 0.1],
+            'tertiary_load_efficiency': [0.65, 0.65],
+            'tertiary_load_energy_product': ['Ingen', 'Bio'],
+            'heating_system': ['-', '-'],
+        }
+    )
+
+    res = energy_use.tertiary_load(hsp)
+
+    assert res['heating_systems'].tolist() == ['HP - Bio - Electricity']

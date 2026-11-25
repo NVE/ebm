@@ -1,5 +1,7 @@
 import argparse
 import os
+import sys
+
 os.environ['DISABLE_PANDERA_IMPORT_WARNING'] = 'True'
 import pathlib
 import time
@@ -36,10 +38,14 @@ class CalibrateConfig:  # noqa: D101
     calibration_year_cell: str | None = None
     calibration_workbook_name: str | None = None
     calibration_sheet_name: str | None = None
+    input_directory: pathlib.Path | None = None
     output_directory: pathlib.Path | None = None
 
     def __post_init__(self):   # noqa: C901
         """Load calibration config from environment variables when None."""
+        if self.input_directory is None:
+            self.input_directory = pathlib.Path(os.environ.get('EBM_INPUT_DIRECTORY', 'kalibrering'))
+
         if self.write_to_disk is None:
             self.write_to_disk = os.environ.get('EBM_WRITE_TO_DISK', 'False').upper() == 'TRUE'
         if self.calibration_spreadsheet_name is None:
@@ -50,10 +56,10 @@ class CalibrateConfig:  # noqa: D101
                                                     "Kalibreringsark.xlsx!Kalibreringsfaktorer")
         if self.energy_requirements_calibration_file is None:
             self.energy_requirements_calibration_file = os.environ.get('EBM_CALIBRATION_ENERGY_REQUIREMENT',
-                                                              f'kalibrering/{FileHandler.CALIBRATE_ENERGY_REQUIREMENT}')
+                                                              f'{self.input_directory.name}/{FileHandler.CALIBRATE_ENERGY_REQUIREMENT}')
         if self.energy_consumption_calibration_file is None:
             self.energy_consumption_calibration_file = os.environ.get('EBM_CALIBRATION_ENERGY_CONSUMPTION',
-                                                             f'kalibrering/{FileHandler.CALIBRATE_ENERGY_CONSUMPTION}')
+                                                             f'{self.input_directory.name}/{FileHandler.CALIBRATE_ENERGY_CONSUMPTION}')
         if self.energy_source_target_cells is None:
             self.energy_source_target_cells = os.environ.get('EBM_CALIBRATION_ENERGY_SOURCE_USAGE',
                                                              'C64:E68')
@@ -80,6 +86,11 @@ def calibrate_with_spreadsheet(calibration_config: CalibrateConfig, calibration_
     logger.info(f'Make {calibration_config.calibration_sheet} compatible with ebm')
     energy_source_by_building_group = com_calibration_reader.transform(calibration)
 
+    if not calibration_config.input_directory.is_dir():
+        msg = f'Input directory `{calibration_config.input_directory}` does not exist'
+        logger.error(msg)
+        raise NotADirectoryError(msg)
+
     logger.info('Write calibration to ebm input')
     eq_calibration_writer = EnergyRequirementCalibrationWriter()
     eq_calibration_writer.load(energy_source_by_building_group, calibration_config.energy_requirements_calibration_file)
@@ -89,11 +100,11 @@ def calibrate_with_spreadsheet(calibration_config: CalibrateConfig, calibration_
 
     logger.info('Calculate calibrated energy use')
     area_forecast = None
-    area_forecast_file = pathlib.Path('kalibrert/area_forecast.csv')
+    area_forecast_file = calibration_config.input_directory / 'area_forecast.csv'
     if area_forecast_file.is_file():
         logger.info(f'Using dataframe cached in {area_forecast_file}')
         area_forecast = pd.read_csv(area_forecast_file)
-    database_manager = DatabaseManager(FileHandler(directory='kalibrering'))
+    database_manager = DatabaseManager(FileHandler(directory=calibration_config.input_directory))
     df = run_calibration(database_manager, calibration_year=calibration_year,
                          area_forecast=area_forecast, write_to_output=calibration_config.write_to_disk)
 
@@ -154,10 +165,16 @@ def load_arguments() -> argparse.Namespace:
     arg_parser.add_argument('--debug', action='store_true',
                             help='Run in debug mode. (Extra information written to stdout)')
     arg_parser.add_argument('--version', '-v', action='version', version=f'{PROGRAM_NAME} {version}')
+    input_help = f'Input directory for calibration files. Default: "kalibrering" or EBM_INPUT_DIRECTORY environment variable.'
+    arg_parser.add_argument('--input',
+                            type=str,
+                            nargs='?',
+                            default=os.environ.get('EBM_INPUT_DIRECTORY', 'kalibrering'),
+                            help=input_help)
     arg_parser.add_argument('--calibration-year', '--ebm-calibration-year',
                             type=int,
                             nargs='?',
-                            default=int(os.environ.get('EBM_CALIBRATION_YEAR', '2023')))
+                            default=int(os.environ.get('EBM_CALIBRATION_YEAR', '2023')),)
     arguments = arg_parser.parse_args()
     return arguments
 
@@ -171,13 +188,19 @@ def main() -> None:
     start_time = time.time()
 
     calibration_year = arguments.calibration_year
+    logger.info('Using input directory: {input_directory}', input_directory=arguments.input)
     logger.info('Using calibration year: {calibration_year}', calibration_year=calibration_year)
 
-    calibration_config = CalibrateConfig()
+    calibration_config = CalibrateConfig(input_directory=pathlib.Path(arguments.input))
 
     logger.info(f'Loading {calibration_config.calibration_sheet}')
 
-    calibrate_with_spreadsheet(calibration_config, calibration_year)
+    try:
+        calibrate_with_spreadsheet(calibration_config, calibration_year)
+    except NotADirectoryError:
+        print(f'Input directory {calibration_config.input_directory} does not exist.', file=sys.stderr)
+        print('You can use the --input argument to specify a different input directory.', file=sys.stderr)
+        return
 
     logger.info(f'Calibrated {calibration_config.calibration_spreadsheet_name} in {round(time.time() - start_time, 2)} seconds')
 

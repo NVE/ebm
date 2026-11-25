@@ -2,6 +2,16 @@
 Changelog
 =========
 
+
+Version 1.2.1 - 2026-11-25
+--------------------------
+
+Fixed
+^^^^^
+
+* ebm-calibrate read input directory from environment variable EBM_INPUT_DIRECTORY and command line argument --input.
+
+
 Version 1.2.0 - 2026-10-22
 --------------------------
 
